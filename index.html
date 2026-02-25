@@ -272,6 +272,88 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .toast.success{border-left-color:var(--emerald);}
 .toast.error{border-left-color:var(--ruby);}
 @keyframes toastIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
+
+
+/* ── PAGE MOT DE PASSE (reset/invite) ─────────────── */
+#pwd-page{display:none;min-height:100vh;position:relative;overflow:hidden;background:var(--bg-void);}
+#pwd-page .auth-glow{position:absolute;pointer-events:none;border-radius:50%;}
+#pwd-page .auth-glow:nth-child(1){top:-20%;right:-10%;width:600px;height:600px;background:radial-gradient(circle,rgba(184,115,51,.06),transparent 65%);animation:breathe 7s ease-in-out infinite;}
+#pwd-page .auth-glow:nth-child(2){bottom:-15%;left:-5%;width:400px;height:400px;background:radial-gradient(circle,rgba(45,212,160,.04),transparent 65%);animation:breathe 9s ease-in-out infinite reverse;}
+.pwd-wrap{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.pwd-panel{width:100%;max-width:420px;animation:panelIn .8s var(--ease-out) forwards;opacity:0;}
+.pwd-logo{text-align:center;margin-bottom:36px;padding-bottom:28px;border-bottom:1px solid var(--text-faint);position:relative;}
+.pwd-logo::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:40px;height:1px;background:var(--copper);}
+.pwd-logo-icon{display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border:1px solid rgba(184,115,51,.25);border-radius:50%;margin-bottom:14px;position:relative;}
+.pwd-logo-icon::before{content:'';position:absolute;inset:-5px;border:1px solid rgba(184,115,51,.08);border-radius:50%;}
+.pwd-logo-letter{font-family:'Playfair Display',serif;font-style:italic;font-size:1.3rem;color:var(--copper-light);}
+.pwd-brand{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:600;color:var(--text-primary);margin-bottom:4px;}
+.pwd-tagline{font-size:.65rem;color:var(--text-muted);letter-spacing:.2em;text-transform:uppercase;}
+.pwd-h{font-family:'Playfair Display',serif;font-size:1.55rem;font-weight:400;color:var(--text-primary);margin-bottom:6px;}
+.pwd-p{font-size:.82rem;color:var(--text-secondary);margin-bottom:28px;font-weight:300;line-height:1.6;}
+.pwd-strength{margin-top:8px;}
+.pwd-strength-bar{height:3px;background:var(--bg-active);border-radius:3px;overflow:hidden;margin-bottom:6px;}
+.pwd-strength-fill{height:100%;border-radius:3px;transition:all .3s var(--ease);width:0%;}
+.pwd-strength-txt{font-size:.68rem;color:var(--text-muted);font-weight:500;}
+.pwd-rules{margin-top:8px;display:flex;flex-direction:column;gap:5px;}
+.pwd-rule{display:flex;align-items:center;gap:8px;font-size:.72rem;color:var(--text-muted);transition:color var(--t-fast);}
+.pwd-rule.ok{color:var(--emerald);}
+.pwd-rule-dot{width:5px;height:5px;border-radius:50%;background:var(--text-faint);transition:background var(--t-fast);flex-shrink:0;}
+.pwd-rule.ok .pwd-rule-dot{background:var(--emerald);}
+.pwd-success{display:none;text-align:center;padding:28px;background:var(--emerald-bg);border:1px solid rgba(45,212,160,.2);border-radius:var(--r-lg);}
+.pwd-success-icon{font-size:2.5rem;margin-bottom:12px;}
+.pwd-success-t{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--emerald);margin-bottom:8px;}
+.pwd-success-p{font-size:.82rem;color:var(--text-secondary);font-weight:300;line-height:1.6;}
+
+/* ── LIEN MOT DE PASSE OUBLIÉ ──────────────────────── */
+.forgot-link{display:block;text-align:right;font-size:.73rem;color:var(--copper);margin-top:8px;margin-bottom:4px;cursor:pointer;transition:color var(--t-fast);}
+.forgot-link:hover{color:var(--copper-light);}
+.back-to-login{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;color:var(--text-muted);cursor:pointer;margin-top:20px;transition:color var(--t-fast);}
+.back-to-login:hover{color:var(--text-primary);}
+.back-to-login::before{content:'←';}
+
+/* ── FORGOT PASSWORD VIEW (dans auth-page) ─────────── */
+#forgot-view{display:none;}
+#login-view{display:block;}
+.forgot-sent{display:none;text-align:center;padding:24px;background:var(--sapphire-bg);border:1px solid rgba(74,158,232,.2);border-radius:var(--r-lg);margin-top:16px;}
+.forgot-sent-ico{font-size:1.8rem;margin-bottom:10px;}
+.forgot-sent-t{font-size:.9rem;font-weight:500;color:var(--sapphire);margin-bottom:6px;}
+.forgot-sent-p{font-size:.78rem;color:var(--text-secondary);font-weight:300;line-height:1.5;}
+
+/* ── PAGE PROFIL ───────────────────────────────────── */
+.profile-grid{display:grid;grid-template-columns:280px 1fr;gap:24px;align-items:start;}
+.profile-card{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow:hidden;transition:border-color var(--t-base);}
+.profile-card:hover{border-color:var(--text-muted);}
+.profile-avatar-zone{padding:32px 24px;text-align:center;border-bottom:1px solid var(--text-faint);background:var(--bg-float);position:relative;}
+.profile-avatar-zone::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--copper),transparent);}
+.profile-big-avatar{width:84px;height:84px;border-radius:50%;background:linear-gradient(135deg,var(--copper),var(--copper-light));display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--bg-void);margin:0 auto 16px;box-shadow:0 0 0 3px rgba(184,115,51,.15),0 0 0 6px rgba(184,115,51,.06);}
+.profile-display-name{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:600;color:var(--text-primary);margin-bottom:4px;}
+.profile-email{font-size:.75rem;color:var(--text-muted);word-break:break-all;}
+.profile-role-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:.68rem;font-weight:700;margin-top:10px;}
+.role-admin{background:var(--copper-dim);color:var(--copper);border:1px solid rgba(184,115,51,.2);}
+.role-user{background:var(--sapphire-bg);color:var(--sapphire);border:1px solid rgba(74,158,232,.15);}
+.profile-meta{padding:16px 24px;}
+.profile-meta-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--text-faint);font-size:.8rem;}
+.profile-meta-item:last-child{border-bottom:none;}
+.profile-meta-icon{font-size:.9rem;width:18px;text-align:center;flex-shrink:0;}
+.profile-meta-label{color:var(--text-muted);flex:1;}
+.profile-meta-val{color:var(--text-primary);font-weight:500;}
+.profile-sections{display:flex;flex-direction:column;gap:20px;}
+.profile-section{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow:hidden;transition:border-color var(--t-base);}
+.profile-section:hover{border-color:var(--text-muted);}
+.profile-section-head{padding:18px 24px;border-bottom:1px solid var(--text-faint);display:flex;align-items:center;gap:10px;background:var(--bg-float);}
+.profile-section-title{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:600;color:var(--text-primary);}
+.profile-section-icon{font-size:1rem;width:20px;text-align:center;}
+.profile-section-body{padding:24px;}
+.profile-form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.profile-form-row.single{grid-template-columns:1fr;}
+.profile-save-bar{display:flex;align-items:center;justify-content:space-between;padding-top:16px;border-top:1px solid var(--text-faint);margin-top:4px;}
+.profile-save-msg{font-size:.78rem;color:var(--emerald);font-weight:500;opacity:0;transition:opacity var(--t-base);}
+.profile-save-msg.show{opacity:1;}
+.pwd-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);cursor:pointer;font-size:.85rem;transition:color var(--t-fast);padding:2px;}
+.pwd-toggle:hover{color:var(--text-primary);}
+.input-pwd-wrap{position:relative;}
+.input-pwd-wrap .fg-inp{padding-right:40px;}
+
 </style>
 </head>
 <body>
@@ -285,6 +367,59 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 </div>
 
 <!-- AUTH -->
+
+<!-- MOT DE PASSE (reset / invitation) -->
+<div id="pwd-page">
+  <div class="auth-glow"></div>
+  <div class="auth-glow"></div>
+  <div class="auth-grid"></div>
+  <div class="pwd-wrap">
+    <div class="pwd-panel">
+      <div class="pwd-logo">
+        <div class="pwd-logo-icon"><span class="pwd-logo-letter">S</span></div>
+        <div class="pwd-brand">Expédition SOY</div>
+        <div class="pwd-tagline">Sécurité · Compte</div>
+      </div>
+      <div id="pwd-form-zone">
+        <div class="pwd-h" id="pwd-h">Définir votre mot de passe</div>
+        <div class="pwd-p" id="pwd-p">Choisissez un mot de passe sécurisé pour votre compte. Il doit contenir au moins 8 caractères.</div>
+        <div class="fld">
+          <label class="fld-lbl">Nouveau mot de passe</label>
+          <div class="input-pwd-wrap">
+            <input type="password" id="pwd-new" class="fld-inp" placeholder="••••••••" oninput="checkPwdStrength()" style="padding-right:40px">
+            <span class="pwd-toggle" onclick="togglePwd('pwd-new',this)">👁</span>
+          </div>
+          <div class="pwd-strength">
+            <div class="pwd-strength-bar"><div class="pwd-strength-fill" id="pwd-strength-bar"></div></div>
+            <div class="pwd-strength-txt" id="pwd-strength-txt">Entrez un mot de passe</div>
+          </div>
+          <div class="pwd-rules">
+            <div class="pwd-rule" id="rule-len"><div class="pwd-rule-dot"></div>Minimum 8 caractères</div>
+            <div class="pwd-rule" id="rule-upper"><div class="pwd-rule-dot"></div>Au moins une majuscule</div>
+            <div class="pwd-rule" id="rule-num"><div class="pwd-rule-dot"></div>Au moins un chiffre</div>
+            <div class="pwd-rule" id="rule-special"><div class="pwd-rule-dot"></div>Au moins un caractère spécial</div>
+          </div>
+        </div>
+        <div class="fld">
+          <label class="fld-lbl">Confirmer le mot de passe</label>
+          <div class="input-pwd-wrap">
+            <input type="password" id="pwd-confirm" class="fld-inp" placeholder="••••••••" style="padding-right:40px">
+            <span class="pwd-toggle" onclick="togglePwd('pwd-confirm',this)">👁</span>
+          </div>
+        </div>
+        <button class="btn-auth" id="btn-pwd-submit" onclick="submitNewPwd()">Confirmer le mot de passe</button>
+        <div class="auth-err" id="pwd-err"></div>
+      </div>
+      <div class="pwd-success" id="pwd-success">
+        <div class="pwd-success-icon">✅</div>
+        <div class="pwd-success-t">Mot de passe défini avec succès</div>
+        <div class="pwd-success-p">Votre mot de passe a été enregistré. Vous allez être redirigé vers la page de connexion dans quelques secondes.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <div id="auth-page">
   <div class="auth-glow"></div>
   <div class="auth-glow"></div>
@@ -298,6 +433,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
       </div>
       <div class="auth-h">Connexion</div>
       <div class="auth-p">Accès réservé aux membres autorisés. Entrez vos identifiants pour continuer.</div>
+      <div id="login-view">
       <div class="fld">
         <label class="fld-lbl">Adresse courriel</label>
         <input type="email" id="auth-email" class="fld-inp" placeholder="votre@courriel.com" autocomplete="email">
@@ -306,8 +442,29 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
         <label class="fld-lbl">Mot de passe</label>
         <input type="password" id="auth-password" class="fld-inp" placeholder="••••••••" autocomplete="current-password">
       </div>
+      
+      <span class="forgot-link" onclick="showForgot()">Mot de passe oublié ?</span>
       <button class="btn-auth" id="btn-login" onclick="doLogin()">Accéder au tableau de bord</button>
       <div class="auth-err" id="auth-err"></div>
+
+      <!-- VUE MOT DE PASSE OUBLIÉ -->
+      </div><!-- /login-view -->
+      <div id="forgot-view" style="display:none">
+        <div class="pwd-h" style="margin-bottom:8px">Mot de passe oublié</div>
+        <div class="auth-p">Entrez votre adresse courriel. Vous recevrez un lien pour redéfinir votre mot de passe.</div>
+        <div class="fld">
+          <label class="fld-lbl">Adresse courriel</label>
+          <input type="email" id="forgot-email" class="fld-inp" placeholder="votre@courriel.com">
+        </div>
+        <button class="btn-auth" id="btn-forgot" onclick="submitForgot()">Envoyer le lien de réinitialisation</button>
+        <div class="auth-err" id="forgot-err" style="display:none"></div>
+        <div class="forgot-sent" id="forgot-sent">
+          <div class="forgot-sent-ico">📬</div>
+          <div class="forgot-sent-t">Courriel envoyé !</div>
+          <div class="forgot-sent-p">Vérifiez votre boîte de réception. Le lien est valide 24 heures. Pensez à vérifier vos courriels indésirables.</div>
+        </div>
+        <span class="back-to-login" onclick="showLogin()"> Retour à la connexion</span>
+      </div>
     </div>
   </div>
 </div>
@@ -334,6 +491,10 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
       </div>
       <div class="sb-item admin-only" onclick="showPage('nouvelle')" id="nav-nouvelle" style="display:none">
         <span class="sb-ico">⊕</span> Nouvelle saisie
+      </div>
+            <div class="sb-sec">Mon compte</div>
+      <div class="sb-item" onclick="showPage('profil')" id="nav-profil">
+        <span class="sb-ico">◎</span> Mon profil
       </div>
       <div class="sb-sec admin-only" id="nav-admin-section" style="display:none">Administration</div>
       <div class="sb-item admin-only" onclick="showPage('admin')" id="nav-admin" style="display:none">
@@ -475,6 +636,135 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
         </div>
       </div>
 
+
+      <!-- PROFIL -->
+      <div class="page" id="page-profil">
+        <div class="sec-h" style="margin-bottom:24px">
+          <div><div class="sec-t">Mon profil</div><div class="sec-s">Personnalisez votre compte et gérez votre sécurité</div></div>
+        </div>
+        <div class="profile-grid">
+          <!-- Carte identité -->
+          <div>
+            <div class="profile-card">
+              <div class="profile-avatar-zone">
+                <div class="profile-big-avatar" id="profile-big-avatar">?</div>
+                <div class="profile-display-name" id="profile-display-name">—</div>
+                <div class="profile-email" id="profile-email-display">—</div>
+                <div class="profile-role-badge" id="profile-role-badge">—</div>
+              </div>
+              <div class="profile-meta">
+                <div class="profile-meta-item">
+                  <span class="profile-meta-icon">📅</span>
+                  <span class="profile-meta-label">Membre depuis</span>
+                  <span class="profile-meta-val" id="profile-since">—</span>
+                </div>
+                <div class="profile-meta-item">
+                  <span class="profile-meta-icon">🔑</span>
+                  <span class="profile-meta-label">Rôle</span>
+                  <span class="profile-meta-val" id="profile-role-txt">—</span>
+                </div>
+                <div class="profile-meta-item">
+                  <span class="profile-meta-icon">📍</span>
+                  <span class="profile-meta-label">Statut</span>
+                  <span class="profile-meta-val" style="color:var(--emerald)">● Actif</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sections formulaires -->
+          <div class="profile-sections">
+
+            <!-- Informations personnelles -->
+            <div class="profile-section">
+              <div class="profile-section-head">
+                <span class="profile-section-icon">👤</span>
+                <div class="profile-section-title">Informations personnelles</div>
+              </div>
+              <div class="profile-section-body">
+                <div class="profile-form-row">
+                  <div class="fg">
+                    <label class="fg-lbl">Prénom</label>
+                    <input type="text" id="profile-prenom" class="fg-inp" placeholder="Votre prénom">
+                  </div>
+                  <div class="fg">
+                    <label class="fg-lbl">Nom</label>
+                    <input type="text" id="profile-nom" class="fg-inp" placeholder="Votre nom">
+                  </div>
+                </div>
+                <div class="profile-form-row single">
+                  <div class="fg">
+                    <label class="fg-lbl">Adresse courriel</label>
+                    <input type="email" id="profile-email-input" class="fg-inp" placeholder="votre@courriel.com" disabled style="opacity:.5;cursor:not-allowed;" title="Le courriel ne peut pas être modifié">
+                  </div>
+                </div>
+                <div class="profile-form-row single">
+                  <div class="fg">
+                    <label class="fg-lbl">Titre / Poste</label>
+                    <input type="text" id="profile-poste" class="fg-inp" placeholder="ex: Responsable qualité">
+                  </div>
+                </div>
+                <div class="profile-save-bar">
+                  <span class="profile-save-msg" id="profile-info-msg">✓ Profil mis à jour</span>
+                  <button class="btn-sub" onclick="saveProfileInfo()">Enregistrer</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Changer le mot de passe -->
+            <div class="profile-section">
+              <div class="profile-section-head">
+                <span class="profile-section-icon">🔒</span>
+                <div class="profile-section-title">Sécurité — Mot de passe</div>
+              </div>
+              <div class="profile-section-body">
+                <div class="profile-form-row single">
+                  <div class="fg">
+                    <label class="fg-lbl req">Nouveau mot de passe</label>
+                    <div class="input-pwd-wrap">
+                      <input type="password" id="profile-pwd-new" class="fg-inp" placeholder="Minimum 8 caractères" oninput="checkProfilePwd()" style="padding-right:40px">
+                      <span class="pwd-toggle" onclick="togglePwd('profile-pwd-new',this)" style="right:12px;top:50%;transform:translateY(-50%);position:absolute;">👁</span>
+                    </div>
+                    <div class="pwd-strength" style="margin-top:8px">
+                      <div class="pwd-strength-bar"><div class="pwd-strength-fill" id="profile-pwd-bar"></div></div>
+                      <div class="pwd-strength-txt" id="profile-pwd-txt">Entrez un nouveau mot de passe</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="profile-form-row single">
+                  <div class="fg">
+                    <label class="fg-lbl req">Confirmer le mot de passe</label>
+                    <div class="input-pwd-wrap">
+                      <input type="password" id="profile-pwd-confirm" class="fg-inp" placeholder="Répétez le mot de passe" style="padding-right:40px">
+                      <span class="pwd-toggle" onclick="togglePwd('profile-pwd-confirm',this)" style="right:12px;top:50%;transform:translateY(-50%);position:absolute;">👁</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="profile-save-bar">
+                  <span class="profile-save-msg" id="profile-pwd-msg">✓ Mot de passe mis à jour</span>
+                  <button class="btn-sub" onclick="saveProfilePwd()">Mettre à jour</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Déconnexion -->
+            <div class="profile-section">
+              <div class="profile-section-head">
+                <span class="profile-section-icon">⎋</span>
+                <div class="profile-section-title">Session</div>
+              </div>
+              <div class="profile-section-body">
+                <p style="font-size:.84rem;color:var(--text-secondary);margin-bottom:20px;font-weight:300;line-height:1.6;">
+                  Vous êtes actuellement connecté. La déconnexion mettra fin à votre session sur cet appareil.
+                </p>
+                <button class="btn-can" style="border-color:var(--ruby);color:var(--ruby);" onclick="doLogout()">⎋ Se déconnecter</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
     </div>
   </main>
 </div>
@@ -550,6 +840,385 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 
 <script>
 
+/* ════════════════════════════════════════════════════
+   DÉTECTION TOKEN AU CHARGEMENT
+   Gère: invitation, reset password, email confirm
+════════════════════════════════════════════════════ */
+async function init() {
+  // Vérifier s'il y a un token dans l'URL (hash ou query params)
+  const hash = window.location.hash;
+  const params = new URLSearchParams(window.location.search);
+  
+  // Supabase v2 met les tokens dans le hash
+  const hashParams = new URLSearchParams(hash.replace('#', ''));
+  const type = hashParams.get('type') || params.get('type');
+  const accessToken = hashParams.get('access_token') || params.get('access_token');
+  const error = hashParams.get('error_description') || params.get('error_description');
+
+  hideLoading();
+
+  // Token de réinitialisation ou d'invitation
+  if (type === 'recovery' || type === 'invite' || type === 'signup') {
+    if (error) {
+      showAuth();
+      showAuthErr('Lien expiré ou invalide. Veuillez faire une nouvelle demande.');
+      return;
+    }
+    // Définir la session avec le token pour que la mise à jour fonctionne
+    if (accessToken) {
+      const refreshToken = hashParams.get('refresh_token') || params.get('refresh_token');
+      try {
+        await sb.auth.setSession({ access_token: accessToken, refresh_token: refreshToken || '' });
+      } catch(e) {}
+    }
+    // Afficher la page de définition de mot de passe
+    document.getElementById('pwd-h').textContent = type === 'recovery' 
+      ? 'Réinitialiser votre mot de passe' 
+      : 'Définir votre mot de passe';
+    document.getElementById('pwd-p').textContent = type === 'recovery'
+      ? 'Entrez votre nouveau mot de passe ci-dessous.'
+      : 'Bienvenue ! Créez votre mot de passe pour accéder à votre compte.';
+    showPwdPage();
+    // Nettoyer l'URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+    return;
+  }
+
+  // Vérifier session normale
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    await checkRole();
+    showApp();
+    await loadAll();
+  } else {
+    showAuth();
+  }
+}
+
+/* ── AFFICHAGE DES PAGES PRINCIPALES ──────────────── */
+function hideLoading() { document.getElementById('loading-screen').classList.add('hidden'); }
+
+function showAuth() {
+  document.getElementById('auth-page').style.display = 'block';
+  document.getElementById('pwd-page').style.display  = 'none';
+  document.getElementById('app').style.display       = 'none';
+}
+
+function showPwdPage() {
+  document.getElementById('auth-page').style.display = 'none';
+  document.getElementById('pwd-page').style.display  = 'block';
+  document.getElementById('app').style.display       = 'none';
+}
+
+function showApp() {
+  document.getElementById('auth-page').style.display = 'none';
+  document.getElementById('pwd-page').style.display  = 'none';
+  document.getElementById('app').style.display       = 'block';
+  updateUserUI();
+  populateDepts();
+  if (isAdmin) enableAdmin(); else enableUser();
+}
+
+/* ── CONNEXION ─────────────────────────────────────── */
+async function doLogin() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pwd   = document.getElementById('auth-password').value;
+  const btn   = document.getElementById('btn-login');
+  const err   = document.getElementById('auth-err');
+  if (!email || !pwd) { showAuthErr('Veuillez remplir tous les champs.'); return; }
+  btn.disabled = true; btn.textContent = 'Vérification…'; err.classList.remove('show');
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
+  btn.disabled = false; btn.textContent = 'Accéder au tableau de bord';
+  if (error) { showAuthErr('Identifiants incorrects. Veuillez réessayer.'); return; }
+  currentUser = data.user;
+  await checkRole();
+  showApp();
+  await loadAll();
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  currentUser = null; isAdmin = false; allProblems = [];
+  document.getElementById('app').style.display       = 'none';
+  document.getElementById('auth-page').style.display = 'block';
+  document.getElementById('pwd-page').style.display  = 'none';
+  showLogin();
+  document.getElementById('auth-email').value    = '';
+  document.getElementById('auth-password').value = '';
+}
+
+function showAuthErr(m) {
+  const e = document.getElementById('auth-err');
+  e.textContent = m; e.classList.add('show');
+}
+
+document.getElementById('auth-password')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+/* ── MOT DE PASSE OUBLIÉ ───────────────────────────── */
+function showForgot() {
+  document.getElementById('login-view').style.display  = 'none';
+  document.getElementById('forgot-view').style.display = 'block';
+}
+function showLogin() {
+  document.getElementById('forgot-view').style.display = 'none';
+  document.getElementById('login-view').style.display  = 'block';
+  document.getElementById('forgot-sent').style.display = 'none';
+  const fe = document.getElementById('forgot-err');
+  if (fe) { fe.classList.remove('show'); fe.style.display = 'none'; }
+}
+
+async function submitForgot() {
+  const email = document.getElementById('forgot-email').value.trim();
+  const btn   = document.getElementById('btn-forgot');
+  const err   = document.getElementById('forgot-err');
+  if (!email) {
+    err.textContent = 'Veuillez entrer votre adresse courriel.';
+    err.classList.add('show'); err.style.display = 'block'; return;
+  }
+  btn.disabled = true; btn.textContent = 'Envoi…';
+  err.classList.remove('show'); err.style.display = 'none';
+
+  const redirectUrl = window.location.origin + window.location.pathname;
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: redirectUrl,
+  });
+
+  btn.disabled = false; btn.textContent = 'Envoyer le lien de réinitialisation';
+
+  if (error) {
+    err.textContent = 'Erreur : ' + error.message;
+    err.classList.add('show'); err.style.display = 'block'; return;
+  }
+  document.getElementById('forgot-sent').style.display = 'block';
+  btn.style.display = 'none';
+}
+
+/* ── DÉFINITION DU NOUVEAU MOT DE PASSE ────────────── */
+function checkPwdStrength() {
+  const pwd = document.getElementById('pwd-new').value;
+  const bar = document.getElementById('pwd-strength-bar');
+  const txt = document.getElementById('pwd-strength-txt');
+
+  const rules = {
+    len:     pwd.length >= 8,
+    upper:   /[A-Z]/.test(pwd),
+    num:     /[0-9]/.test(pwd),
+    special: /[^A-Za-z0-9]/.test(pwd),
+  };
+
+  document.getElementById('rule-len').classList.toggle('ok', rules.len);
+  document.getElementById('rule-upper').classList.toggle('ok', rules.upper);
+  document.getElementById('rule-num').classList.toggle('ok', rules.num);
+  document.getElementById('rule-special').classList.toggle('ok', rules.special);
+
+  const score = Object.values(rules).filter(Boolean).length;
+  const pct   = score * 25;
+  const colors = ['', 'var(--ruby)', 'var(--amber)', 'var(--amber)', 'var(--emerald)'];
+  const labels = ['', 'Très faible', 'Faible', 'Correct', 'Fort'];
+  bar.style.width = pct + '%';
+  bar.style.background = colors[score] || 'var(--text-faint)';
+  txt.textContent = pwd.length === 0 ? 'Entrez un mot de passe' : labels[score] || '';
+  txt.style.color = colors[score] || 'var(--text-muted)';
+}
+
+async function submitNewPwd() {
+  const pwd     = document.getElementById('pwd-new').value;
+  const confirm = document.getElementById('pwd-confirm').value;
+  const btn     = document.getElementById('btn-pwd-submit');
+  const err     = document.getElementById('pwd-err');
+
+  err.classList.remove('show');
+
+  if (pwd.length < 8) {
+    err.textContent = 'Le mot de passe doit contenir au moins 8 caractères.';
+    err.classList.add('show'); return;
+  }
+  if (pwd !== confirm) {
+    err.textContent = 'Les mots de passe ne correspondent pas.';
+    err.classList.add('show'); return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Enregistrement…';
+
+  const { error } = await sb.auth.updateUser({ password: pwd });
+
+  btn.disabled = false; btn.textContent = 'Confirmer le mot de passe';
+
+  if (error) {
+    err.textContent = 'Erreur : ' + error.message;
+    err.classList.add('show'); return;
+  }
+
+  // Succès
+  document.getElementById('pwd-form-zone').style.display = 'none';
+  document.getElementById('pwd-success').style.display    = 'block';
+
+  // Déconnexion et redirection après 3 secondes
+  setTimeout(async () => {
+    await sb.auth.signOut();
+    showAuth();
+    document.getElementById('pwd-page').style.display = 'none';
+    document.getElementById('auth-page').style.display = 'block';
+  }, 3000);
+}
+
+function togglePwd(inputId, icon) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text'; icon.textContent = '🔒';
+  } else {
+    input.type = 'password'; icon.textContent = '👁';
+  }
+}
+
+/* ── PROFIL ────────────────────────────────────────── */
+async function loadProfile() {
+  if (!currentUser) return;
+  const meta = currentUser.user_metadata || {};
+  const email = currentUser.email || '';
+
+  // Sidebar user info déjà mis à jour via updateUserUI
+  // Remplir le formulaire profil
+  document.getElementById('profile-prenom').value       = meta.prenom || '';
+  document.getElementById('profile-nom').value          = meta.nom    || '';
+  document.getElementById('profile-email-input').value  = email;
+  document.getElementById('profile-poste').value        = meta.poste  || '';
+
+  // Grande carte identité
+  const displayName = [meta.prenom, meta.nom].filter(Boolean).join(' ') || email.split('@')[0];
+  const initials    = displayName.substring(0, 2).toUpperCase();
+  document.getElementById('profile-big-avatar').textContent   = initials;
+  document.getElementById('profile-display-name').textContent = displayName;
+  document.getElementById('profile-email-display').textContent = email;
+  document.getElementById('profile-role-txt').textContent      = isAdmin ? 'Administrateur' : 'Utilisateur';
+
+  const roleBadge = document.getElementById('profile-role-badge');
+  roleBadge.textContent = isAdmin ? '🔑 Administrateur' : '👤 Utilisateur';
+  roleBadge.className   = 'profile-role-badge ' + (isAdmin ? 'role-admin' : 'role-user');
+
+  // Date de création du compte
+  const since = currentUser.created_at
+    ? new Date(currentUser.created_at).toLocaleDateString('fr-CA', { day:'2-digit', month:'long', year:'numeric' })
+    : '—';
+  document.getElementById('profile-since').textContent = since;
+}
+
+async function saveProfileInfo() {
+  const prenom = document.getElementById('profile-prenom').value.trim();
+  const nom    = document.getElementById('profile-nom').value.trim();
+  const poste  = document.getElementById('profile-poste').value.trim();
+  const btn    = document.querySelector('#page-profil .profile-sections .profile-section:first-child .btn-sub');
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Enregistrement…'; }
+
+  const { data, error } = await sb.auth.updateUser({
+    data: { prenom, nom, poste }
+  });
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Enregistrer'; }
+
+  if (error) { toast('Erreur : ' + error.message, 'error'); return; }
+
+  // Mettre à jour l'état local
+  if (data?.user) currentUser = data.user;
+
+  // Rafraîchir l'affichage
+  await loadProfile();
+  updateUserUI();
+
+  const msg = document.getElementById('profile-info-msg');
+  msg.classList.add('show');
+  setTimeout(() => msg.classList.remove('show'), 3000);
+  toast('Profil mis à jour.', 'success');
+}
+
+function checkProfilePwd() {
+  const pwd = document.getElementById('profile-pwd-new').value;
+  const bar = document.getElementById('profile-pwd-bar');
+  const txt = document.getElementById('profile-pwd-txt');
+  const score = [pwd.length >= 8, /[A-Z]/.test(pwd), /[0-9]/.test(pwd), /[^A-Za-z0-9]/.test(pwd)].filter(Boolean).length;
+  const pct    = score * 25;
+  const colors = ['var(--text-faint)', 'var(--ruby)', 'var(--amber)', 'var(--amber)', 'var(--emerald)'];
+  const labels = ['Entrez un nouveau mot de passe', 'Très faible', 'Faible', 'Correct', 'Fort'];
+  bar.style.width = pct + '%';
+  bar.style.background = colors[score];
+  txt.textContent = labels[score] || '';
+  txt.style.color = colors[score];
+}
+
+async function saveProfilePwd() {
+  const pwd     = document.getElementById('profile-pwd-new').value;
+  const confirm = document.getElementById('profile-pwd-confirm').value;
+  const btn     = document.querySelectorAll('#page-profil .btn-sub')[1];
+
+  if (pwd.length < 8) { toast('Le mot de passe doit contenir au moins 8 caractères.', 'error'); return; }
+  if (pwd !== confirm) { toast('Les mots de passe ne correspondent pas.', 'error'); return; }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Mise à jour…'; }
+
+  const { error } = await sb.auth.updateUser({ password: pwd });
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Mettre à jour'; }
+
+  if (error) { toast('Erreur : ' + error.message, 'error'); return; }
+
+  document.getElementById('profile-pwd-new').value     = '';
+  document.getElementById('profile-pwd-confirm').value = '';
+  checkProfilePwd();
+
+  const msg = document.getElementById('profile-pwd-msg');
+  msg.classList.add('show');
+  setTimeout(() => msg.classList.remove('show'), 3000);
+  toast('Mot de passe mis à jour avec succès.', 'success');
+}
+
+/* ── UI HELPERS ────────────────────────────────────── */
+async function checkRole() {
+  try {
+    const { data } = await sb.from('admins').select('email').eq('email', currentUser.email).single();
+    isAdmin = !!data;
+  } catch { isAdmin = false; }
+}
+
+function updateUserUI() {
+  if (!currentUser) return;
+  const meta  = currentUser.user_metadata || {};
+  const email = currentUser.email || '';
+  const displayName = [meta.prenom, meta.nom].filter(Boolean).join(' ') || email.split('@')[0];
+  const initials    = displayName.substring(0, 2).toUpperCase();
+  document.getElementById('user-avatar').textContent = initials;
+  document.getElementById('user-name').textContent   = displayName;
+  document.getElementById('user-role').textContent   = isAdmin ? 'Administrateur' : 'Utilisateur';
+}
+
+function enableAdmin() {
+  document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+  document.getElementById('th-actions').style.display = '';
+}
+function enableUser() {
+  document.getElementById('btn-new-top').style.display = '';
+  document.getElementById('nav-nouvelle').style.display = '';
+}
+
+function populateDepts() {
+  ['filter-dept', 'm-dept', 'n-dept'].forEach(id => {
+    const s = document.getElementById(id); if (!s) return;
+    s.innerHTML = id === 'filter-dept'
+      ? '<option value="">Tous les départements</option>'
+      : '<option value="">— Sélectionner —</option>';
+    depts.forEach(d => {
+      const o = document.createElement('option'); o.value = d; o.textContent = d; s.appendChild(o);
+    });
+  });
+}
+
+
+/* ════ DATA & RENDERING ════ */
+
 // ═══════════════════════════════════════════
 // SUPABASE CONFIG
 // ═══════════════════════════════════════════
@@ -569,50 +1238,9 @@ let departments = ['SST','Qualité','Coûts','Délais','Motivation','Environneme
 // ═══════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════
-async function init() {
-  const { data: { session } } = await sb.auth.getSession();
-  hideLoading();
-  if (session) {
-    currentUser = session.user;
-    await checkRole();
-    showApp();
-    await loadAll();
-  } else {
-    showAuth();
-  }
-}
 
-function hideLoading() {
-  document.getElementById('loading-screen').classList.add('hidden');
-}
-function showAuth() {
-  document.getElementById('auth-page').style.display = 'block';
-}
-function showApp() {
-  document.getElementById('auth-page').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  updateUserUI();
-  populateDeptSelects();
-  if (isAdmin) showAdminUI();
-  else showUserUI();
-}
 
-async function checkRole() {
-  // Vérifier si l'email est dans la liste des admins
-  // On stocke les admins dans une table 'admins'
-  try {
-    const { data } = await sb.from('admins').select('email').eq('email', currentUser.email).single();
-    isAdmin = !!data;
-  } catch { isAdmin = false; }
-}
 
-function updateUserUI() {
-  const email = currentUser?.email || '';
-  const initials = email.substring(0,2).toUpperCase();
-  document.getElementById('user-avatar').textContent = initials;
-  document.getElementById('user-name').textContent = email.split('@')[0];
-  document.getElementById('user-role').textContent = isAdmin ? '🔑 Administrateur' : '👤 Utilisateur';
-}
 
 function showAdminUI() {
   document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
@@ -646,42 +1274,7 @@ function populateDeptSelects() {
 // ═══════════════════════════════════════════
 // AUTH
 // ═══════════════════════════════════════════
-async function doLogin() {
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value;
-  const btn = document.getElementById('btn-login');
-  const errEl = document.getElementById('auth-err');
 
-  if (!email || !password) {
-    showAuthError('Veuillez remplir tous les champs.');
-    return;
-  }
-  btn.disabled = true;
-  btn.textContent = 'Connexion…';
-  errEl.classList.remove('show');
-
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  btn.disabled = false;
-  btn.textContent = 'Se connecter';
-
-  if (error) {
-    showAuthError('Identifiants incorrects. Vérifiez votre courriel et mot de passe.');
-    return;
-  }
-  currentUser = data.user;
-  await checkRole();
-  showApp();
-  await loadAll();
-}
-
-async function doLogout() {
-  await sb.auth.signOut();
-  currentUser = null; isAdmin = false; allProblems = [];
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('auth-page').style.display = 'block';
-  document.getElementById('auth-email').value = '';
-  document.getElementById('auth-password').value = '';
-}
 
 function showAuthError(msg) {
   const el = document.getElementById('auth-err');
@@ -689,8 +1282,7 @@ function showAuthError(msg) {
   el.classList.add('show');
 }
 
-document.getElementById('auth-password')?.addEventListener('keydown', e => {
-  if (e.key === 'Enter') doLogin();
+
 });
 
 // ═══════════════════════════════════════════
