@@ -549,7 +549,7 @@ body { font-size: 0.9375rem; }
             <div class="kpi-val" id="kpi-total">—</div>
             <div class="kpi-sub">Voir le registre →</div>
           </div>
-          <div class="kpi ruby" onclick="goToRegistre('À traiter')" style="cursor:pointer">
+          <div class="kpi ruby" onclick="goToRegistre('A traiter')" style="cursor:pointer">
             <div class="kpi-top"><div class="kpi-lbl">À traiter</div><div class="kpi-ico">🔴</div></div>
             <div class="kpi-val" id="kpi-ouvert">—</div>
             <div class="kpi-sub">Voir le registre →</div>
@@ -559,7 +559,7 @@ body { font-size: 0.9375rem; }
             <div class="kpi-val" id="kpi-cours">—</div>
             <div class="kpi-sub">Voir le registre →</div>
           </div>
-          <div class="kpi emerald" onclick="goToRegistre('Résolu')" style="cursor:pointer">
+          <div class="kpi emerald" onclick="goToRegistre('Resolu')" style="cursor:pointer">
             <div class="kpi-top"><div class="kpi-lbl">Résolues</div><div class="kpi-ico">✅</div></div>
             <div class="kpi-val" id="kpi-resolu">—</div>
             <div class="kpi-sub">Voir le registre →</div>
@@ -605,8 +605,8 @@ body { font-size: 0.9375rem; }
           <select class="fsel" id="filter-dept" onchange="filterTable()"><option value="">Tous les départements</option></select>
           <select class="fsel" id="filter-statut" onchange="filterTable()">
             <option value="">Tous les statuts</option>
-            <option value="À traiter">À traiter</option><option value="En cours">En cours</option>
-            <option value="Résolu">Résolu</option><option value="Annulé">Annulé</option><option value="Clôturé">Clôturé</option>
+            <option value="A traiter">À traiter</option><option value="En cours">En cours</option>
+            <option value="Resolu">Résolu</option><option value="Annule">Annulé</option><option value="Cloture">Clôturé</option>
           </select>
           <select class="fsel" id="filter-priorite" onchange="filterTable()">
             <option value="">Toutes les priorités</option>
@@ -810,7 +810,7 @@ body { font-size: 0.9375rem; }
           </select>
         </div>
         <div class="fg"><label class="fg-lbl">Statut initial</label>
-          <select id="m-statut" class="fg-sel"><option value="À traiter">À traiter</option><option value="En cours">En cours</option></select>
+          <select id="m-statut" class="fg-sel"><option value="A traiter">À traiter</option><option value="En cours">En cours</option></select>
         </div>
         <div class="fg"><label class="fg-lbl">Responsable</label><input type="text" id="m-responsable" class="fg-inp" placeholder="Nom du responsable"></div>
         <div class="fg full"><label class="fg-lbl req">Description</label><textarea id="m-description" class="fg-ta" placeholder="Description détaillée…"></textarea></div>
@@ -835,8 +835,8 @@ body { font-size: 0.9375rem; }
       <div class="fg-grid">
         <div class="fg"><label class="fg-lbl">Statut</label>
           <select id="edit-statut" class="fg-sel">
-            <option value="À traiter">À traiter</option><option value="En cours">En cours</option>
-            <option value="Résolu">Résolu</option><option value="Annulé">Annulé</option><option value="Clôturé">Clôturé</option>
+            <option value="A traiter">À traiter</option><option value="En cours">En cours</option>
+            <option value="Resolu">Résolu</option><option value="Annule">Annulé</option><option value="Cloture">Clôturé</option>
           </select>
         </div>
         <div class="fg"><label class="fg-lbl">Priorité</label>
@@ -985,15 +985,15 @@ async function loadAll(){
     const {data,error}=await sb.from('problematiques').select('*').order('created_at',{ascending:false});
     if(error){toast('Erreur: '+error.message,'error');return;}
     const all=data||[];
-    allProblems=all.filter(p=>p.statut!=='Clôturé'); // registre exclut les clôturés
+    allProblems=all.filter(p=>p.statut!=='Cloture');
     renderDash(); renderTable(); renderAdminTable();
   }catch(e){toast('Connexion impossible.','error');}
 }
 function renderDash(){
   const total=allProblems.length;
-  const ouvert=allProblems.filter(p=>p.statut==='À traiter').length;
+  const ouvert=allProblems.filter(p=>p.statut==='A traiter').length;
   const cours=allProblems.filter(p=>p.statut==='En cours').length;
-  const resolu=allProblems.filter(p=>p.statut==='Résolu').length;
+  const resolu=allProblems.filter(p=>p.statut==='Resolu').length;
   document.getElementById('kpi-total').textContent=total;
   document.getElementById('kpi-ouvert').textContent=ouvert;
   document.getElementById('kpi-cours').textContent=cours;
@@ -1001,7 +1001,7 @@ function renderDash(){
   const badge=document.getElementById('badge-ouvert');
   if(badge){ouvert>0?(badge.style.display='',badge.textContent=ouvert):badge.style.display='none';}
   // Seulement les problématiques actives (À traiter + En cours)
-  const actifs=allProblems.filter(p=>p.statut==='À traiter'||p.statut==='En cours');
+  const actifs=allProblems.filter(p=>p.statut==='A traiter'||p.statut==='En cours');
   const dc={};depts.forEach(d=>dc[d]=0);
   actifs.forEach(p=>{if(p.departement)dc[p.departement]=(dc[p.departement]||0)+1;});
   const maxD=Math.max(...Object.values(dc),1);
@@ -1017,7 +1017,7 @@ function renderDash(){
 }
 function renderTable(data){
   const probs=data||allProblems;
-  document.getElementById('prob-tbody').innerHTML=probs.length===0?'<tr><td colspan="8"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique trouvee.</div></div></td></tr>':probs.map(p=>`<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,65))}${(p.description||'').length>65?'...':''}</small></div></td><td><span class="badge bd">${esc(p.departement||'')}</span></td><td style="font-size:.82rem;color:var(--text-secondary)">${esc(p.responsable||'')}</td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td>${isAdmin?`<td><button class="ab ab-e" onclick="openEdit(${p.id})">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" onclick="cloturerProb(${p.id})">Cloturer</button>`:''}</td>`:'<td></td>'}</tr>`).join('');
+  document.getElementById('prob-tbody').innerHTML=probs.length===0?'<tr><td colspan="8"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique trouvee.</div></div></td></tr>':probs.map(p=>`<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,65))}${(p.description||'').length>65?'...':''}</small></div></td><td><span class="badge bd">${esc(p.departement||'')}</span></td><td style="font-size:.82rem;color:var(--text-secondary)">${esc(p.responsable||'')}</td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td>${isAdmin?`<td><button class="ab ab-e" onclick="openEdit(${p.id})">Modifier</button>${p.statut!=='Cloture'?`<button class="ab ab-c" onclick="cloturerProb(${p.id})">Cloturer</button>`:''}</td>`:'<td></td>'}</tr>`).join('');
 }
 function filterTable(){
   const q=document.getElementById('search-input').value.toLowerCase();
@@ -1028,7 +1028,7 @@ function filterTable(){
 }
 function renderAdminTable(){
   if(!isAdmin)return;
-  document.getElementById('admin-tbody').innerHTML=allProblems.length===0?'<tr><td colspan="8"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique.</div></div></td></tr>':allProblems.map(p=>`<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td class="c-title">${esc(p.intitule)}</td><td><span class="badge bd">${esc(p.departement||'')}</span></td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${esc(p.soumis_par||'')}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td><td><button class="ab ab-e" onclick="openEdit(${p.id})">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" onclick="cloturerProb(${p.id})">Cloturer</button>`:''}</td></tr>`).join('');
+  document.getElementById('admin-tbody').innerHTML=allProblems.length===0?'<tr><td colspan="8"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique.</div></div></td></tr>':allProblems.map(p=>`<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td class="c-title">${esc(p.intitule)}</td><td><span class="badge bd">${esc(p.departement||'')}</span></td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${esc(p.soumis_par||'')}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td><td><button class="ab ab-e" onclick="openEdit(${p.id})">Modifier</button>${p.statut!=='Cloture'?`<button class="ab ab-c" onclick="cloturerProb(${p.id})">Cloturer</button>`:''}</td></tr>`).join('');
 }
 async function submitNouvelleProb(){
   const intitule=document.getElementById('n-intitule').value.trim();
@@ -1039,7 +1039,7 @@ async function submitNouvelleProb(){
   if(!intitule||!dept||!prio||!desc){toast('Champs obligatoires manquants.','error');return;}
   const nbtn=document.querySelector('#page-nouvelle .btn-sub');
   if(nbtn){nbtn.disabled=true;nbtn.textContent='Envoi...';}
-  const {error}=await sb.from('problematiques').insert([{intitule,departement:dept,priorite:prio,responsable:resp||null,description:desc,statut:'À traiter',soumis_par:currentUser.email}]);
+  const {error}=await sb.from('problematiques').insert([{intitule,departement:dept,priorite:prio,responsable:resp||null,description:desc,statut:'A traiter',soumis_par:currentUser.email}]);
   if(nbtn){nbtn.disabled=false;nbtn.textContent='Soumettre';}
   if(error){toast('Erreur: '+error.message,'error');return;}
   toast('Problematique soumise.','success');
@@ -1072,7 +1072,7 @@ function openEdit(id){
   const ep=allProblems.find(x=>x.id===id);if(!ep)return;
   document.getElementById('edit-id').value=id;
   document.getElementById('edit-subtitle').textContent=ep.intitule;
-  document.getElementById('edit-statut').value=ep.statut||'À traiter';
+  document.getElementById('edit-statut').value=ep.statut||'A traiter';
   document.getElementById('edit-priorite').value=ep.priorite||'Moyenne';
   document.getElementById('edit-responsable').value=ep.responsable||'';
   document.getElementById('edit-seuil').value=ep.seuil||'';
@@ -1096,7 +1096,7 @@ async function saveEdit(){
 }
 async function cloturerProb(id){
   if(!confirm('Cloturer cette problematique ?'))return;
-  const {error}=await sb.from('problematiques').update({statut:'Clôturé',updated_at:new Date().toISOString()}).eq('id',id);
+  const {error}=await sb.from('problematiques').update({statut:'Cloture',updated_at:new Date().toISOString()}).eq('id',id);
   if(error){toast('Erreur: '+error.message,'error');return;}
   toast('Problematique cloturee.','success'); await loadAll();
 }
@@ -1208,10 +1208,16 @@ function toast(msg,type='info'){
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function fmtDate(d){return d?new Date(d).toLocaleDateString('fr-CA',{day:'2-digit',month:'short',year:'numeric'}):''}
 function fmtId(id){return String(id||'').padStart(4,'0').slice(-4);}
-function bStat(s){const m={'À traiter':'bt','En cours':'bc','Résolu':'br','Annulé':'ban','Clôturé':'bcl'};return `<span class="badge ${m[s]||'ban'}">${esc(s||'')}</span>`;}
+function bStat(s){
+  const labels={'A traiter':'À traiter','En cours':'En cours','Resolu':'Résolu','Annule':'Annulé','Cloture':'Clôturé'};
+  const cls={'A traiter':'bt','En cours':'bc','Resolu':'br','Annule':'ban','Cloture':'bcl'};
+  return `<span class="badge ${cls[s]||'ban'}">${labels[s]||esc(s||'')}</span>`;
+}
 function bPrio(p){const m={Critique:'bpC',Haute:'bpH',Moyenne:'bpM',Basse:'bpB'};return `<span class="badge ${m[p]||'bpB'}">${esc(p||'')}</span>`;}
 
 window.addEventListener('load',()=>setTimeout(init,800));
+
+
 
 
 
