@@ -57,11 +57,11 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 .sp-lbl{color:var(--text-muted);}
 
 /* MAIN */
-.main{flex:1;padding:18px 28px 50px;overflow-x:auto;}
+.main{flex:1;padding:18px 28px 50px;}
 
 /* TABLE */
-.tbl-outer{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow:hidden;min-width:1080px;}
-.ptbl{width:100%;border-collapse:collapse;}
+.tbl-outer{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.ptbl{width:100%;border-collapse:collapse;min-width:1080px;}
 .ptbl thead tr{background:var(--bg-float);border-bottom:2px solid var(--text-faint);}
 .ptbl thead th{padding:13px 12px;text-align:left;font-size:.62rem;font-weight:800;color:var(--copper);letter-spacing:.15em;text-transform:uppercase;white-space:nowrap;}
 .ptbl tbody tr{border-bottom:1px solid var(--text-faint);transition:background var(--t-fast);}
@@ -143,6 +143,22 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 .s-fait    .statut-sel { color: var(--emerald) !important; background:rgba(45,212,160,.12) !important; }
 .s-attente .statut-sel { color: var(--amber)   !important; background:rgba(232,164,58,.12)!important; }
 .s-vide    .statut-sel { color: var(--text-muted) !important; }
+
+
+/* ══ MOBILE SCROLL ══════════════════════════════════════════════════ */
+@media (max-width: 1100px) {
+  .main { padding: 14px 10px 50px; }
+  .date-nav { padding: 14px 10px 0; }
+  .stats-bar { padding: 12px 10px 0; }
+  .topbar { padding: 0 14px; }
+  .tb-title { font-size: 1.1rem; }
+  .ptbl thead th { font-size: .58rem; padding: 10px 8px; letter-spacing: .08em; }
+  .ptbl tbody td { font-size: .78rem; padding: 9px 8px; }
+  .cs { min-width: 80px !important; font-size: .76rem; padding: 5px 6px; }
+  .ci, .ci-t { font-size: .76rem; padding: 5px 6px; }
+  .btn-sv { font-size: .7rem; padding: 5px 9px; }
+  .date-lbl { font-size: .88rem; min-width: 200px; padding: 7px 14px; }
+}
 
 </style>
 </head>
