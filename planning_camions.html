@@ -176,13 +176,14 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
   <div class="tbl-outer" id="tbl" style="display:none">
     <table class="ptbl">
       <thead><tr>
+        <th style="text-align:center">#</th>
         <th>Heure planifiée</th>
         <th>Statut ligne</th>
         <th>Type camion</th>
-        <th>N° Camion</th>
-        <th>Destination</th>
         <th>Description</th>
         <th>Statut</th>
+        <th>Destination</th>
+        <th>N° Camion</th>
         <th>Chargement</th>
         <th>Heure réelle</th>
         <th style="text-align:center">Short GH</th>
@@ -299,17 +300,28 @@ async function load(){
 // ── RENDER ─────────────────────────────────────────────────────────
 function render(){
   const extras=Object.keys(rows).map(Number).filter(i=>i>=10).sort((a,b)=>a-b);
-  let html='';
-  SLOTS.forEach(s => { html+=buildRow(s.idx, s.h, s.lbl, false); });
+
+  // Construire la liste complète des entrées avec leur heure pour tri
+  const all=[];
+  SLOTS.forEach(s => all.push({idx:s.idx, h:s.h, lbl:s.lbl, extra:false}));
   extras.forEach(i => {
     const r=rows[i];
-    html+=buildRow(i, r.heure_planif||'—', (r.heure_planif||'?')+' · Extra', true);
+    const h=r.heure_planif||'00:00';
+    all.push({idx:i, h:h, lbl:h+' · Extra', extra:true});
+  });
+
+  // Tri par heure, puis par idx pour départager les égalités
+  all.sort((a,b)=> a.h<b.h?-1 : a.h>b.h?1 : a.idx-b.idx);
+
+  let html='';
+  all.forEach((entry, pos) => {
+    html+=buildRow(entry.idx, entry.h, entry.lbl, entry.extra, pos+1);
   });
   document.getElementById('tbody').innerHTML=html;
   updateStats();
 }
 
-function buildRow(idx, heure, lbl, isExtra){
+function buildRow(idx, heure, lbl, isExtra, lineNum){
   const r=rows[idx]||{};
   const sl=r.statut_ligne||'Actif';
   const ann=sl==='Annulé';
@@ -319,6 +331,7 @@ function buildRow(idx, heure, lbl, isExtra){
   const selDests=DESTS.map(d=>`<option${r.destination===d?' selected':''}>${esc(d)}</option>`).join('');
   const svgSave='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
   return `<tr id="tr${idx}" class="${trCls}">
+    <td style="text-align:center;font-weight:700;color:var(--text-muted);font-size:.8rem">${lineNum}</td>
     <td><span class="h-badge ${hcls}">${dot?'<span class="now-dot"></span>':''}${esc(lbl)}</span></td>
     <td><select class="cs" onchange="fchg(${idx},'statut_ligne',this.value)">
       <option${sl==='Actif'?' selected':''}>Actif</option>
@@ -329,16 +342,16 @@ function buildRow(idx, heure, lbl, isExtra){
       <option${r.type_camion==='REEFER'?' selected':''}>REEFER</option>
       <option${r.type_camion==='CHAUFFÉE'?' selected':''}>CHAUFFÉE</option>
     </select></td>
-    <td><input class="ci" style="max-width:100px" value="${esc(r.num_camion||'')}" placeholder="N° camion" oninput="fchg(${idx},'num_camion',this.value)"></td>
-    <td><select class="cs" style="min-width:170px" onchange="fchg(${idx},'destination',this.value)">
-      <option value="">—</option>${selDests}
-    </select></td>
     <td><input class="ci" value="${esc(r.description||'')}" placeholder="Description…" oninput="fchg(${idx},'description',this.value)"></td>
     <td><select class="cs" onchange="fchg(${idx},'statut',this.value)">
       <option value="">—</option>
       <option${r.statut==='ATTENTE'?' selected':''}>ATTENTE</option>
       <option${r.statut==='FAIT'?' selected':''}>FAIT</option>
     </select></td>
+    <td><select class="cs" style="min-width:170px" onchange="fchg(${idx},'destination',this.value)">
+      <option value="">—</option>${selDests}
+    </select></td>
+    <td><input class="ci" style="max-width:100px" value="${esc(r.num_camion||'')}" placeholder="N° camion" oninput="fchg(${idx},'num_camion',this.value)"></td>
     <td><select class="cs" style="min-width:140px" onchange="fchg(${idx},'chargement',this.value)">
       <option value="">—</option>
       <option${r.chargement==='PRÊTE'?' selected':''}>PRÊTE</option>
