@@ -93,7 +93,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .sb-brand{padding:28px 22px 22px;border-bottom:1px solid var(--text-faint);}
 .sb-logo-row{display:flex;align-items:center;gap:13px;margin-bottom:14px;}
 .sb-icon{width:38px;height:38px;border:1px solid rgba(184,115,51,.3);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-style:italic;font-size:.95rem;color:var(--copper-light);background:var(--copper-dim);flex-shrink:0;}
-.sb-name{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:var(--text-primary);letter-spacing:.01em;}
+
 .sb-rule{height:1px;background:linear-gradient(90deg,var(--copper),transparent);width:36px;margin-bottom:4px;}
 .sb-sub{font-size:.6rem;font-weight:500;color:var(--text-muted);letter-spacing:.22em;text-transform:uppercase;}
 .sb-nav{flex:1;padding:18px 12px;overflow-y:auto;}
@@ -120,7 +120,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 
 /* TOPBAR */
 .topbar{position:sticky;top:0;z-index:100;height:60px;background:rgba(16,18,26,.88);backdrop-filter:blur(16px) saturate(180%);border-bottom:1px solid var(--text-faint);padding:0 30px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
-#topbar-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:400;color:var(--text-primary);letter-spacing:.02em;}
+
 .tb-acts{display:flex;align-items:center;gap:10px;}
 .btn-copper{display:flex;align-items:center;gap:7px;padding:8px 18px;background:var(--copper);color:var(--bg-void);border-radius:var(--r-md);font-size:.8rem;font-weight:700;letter-spacing:.06em;transition:all var(--t-base) var(--ease);cursor:pointer;}
 .btn-copper:hover{background:var(--copper-light);transform:translateY(-1px);box-shadow:0 6px 20px rgba(184,115,51,.3);}
@@ -166,7 +166,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 /* SECTION HEADER */
 .sec-h{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--text-faint);position:relative;}
 .sec-h::after{content:'';position:absolute;bottom:-1px;left:0;width:36px;height:1px;background:var(--copper);}
-.sec-t{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--text-primary);}
+
 .sec-s{font-size:.73rem;color:var(--text-muted);margin-top:3px;font-weight:300;}
 
 /* STATS */
@@ -365,7 +365,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .bpM{background:rgba(90,174,238,.12);color:#5AAEEE;border:1px solid rgba(90,174,238,.25);}
 .bpB{background:rgba(52,232,176,.12);color:#34E8B0;border:1px solid rgba(52,232,176,.25);}
 .bd{background:rgba(200,132,58,.12);color:var(--copper-light);border:1px solid rgba(200,132,58,.25);}
-.sec-t{font-size:1.15rem;font-weight:600;color:var(--text-primary);}
+
 .sec-s{font-size:.8rem;color:var(--text-secondary);margin-top:3px;}
 .stat-lbl{font-size:.8rem;font-weight:700;color:var(--text-primary);margin-bottom:14px;}
 .dept-n{font-size:.82rem;color:var(--text-secondary);}
@@ -385,7 +385,7 @@ body { font-size: 0.9375rem; }
 .main { padding: 28px 32px; }
 .kpi-row { gap: 18px; }
 .kpi-val { font-size: 3rem; }
-.sec-t { font-size: 1.25rem; }
+
 .topbar { height: 64px; }
 
 .dtbl tbody td { font-size: .88rem; padding: 14px 18px; }
@@ -397,12 +397,12 @@ body { font-size: 0.9375rem; }
 
 
 .sb-icon { width: 44px !important; height: 44px !important; font-size: 1.2rem !important; }
-.sb-name { font-family: 'Playfair Display', serif !important; font-size: 1.18rem !important; font-weight: 700 !important; color: var(--text-primary) !important; }
+
 
 
 
 /* ══ TITRES OUTFIT +30% ══════════════════════════════════════════ */
-.sb-name { font-family: 'Outfit', sans-serif !important; font-size: 1.52rem !important; font-weight: 700 !important; color: var(--text-primary) !important; letter-spacing: -.01em !important; }
+
 
 
 /* ══ KPI ICÔNES GRANDES ET DESIGN ═══════════════════════════════ */
@@ -425,13 +425,7 @@ body { font-size: 0.9375rem; }
 
 
 /* ══ TOPBAR TITLE — FINAL ══════════════════════════════════════════ */
-.topbar-title {
-  font-family: 'Outfit', sans-serif;
-  font-size: 1.72rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -.02em;
-}
+
 
 /* ══ KPI ICONS — FINAL (double taille = 96px) ══════════════════════ */
 .kpi-ico {
@@ -449,6 +443,30 @@ body { font-size: 0.9375rem; }
 .kpi.ruby    .kpi-ico { background: rgba(238,96,96,.15);  color: var(--ruby); }
 .kpi.sapphire .kpi-ico{ background: rgba(90,174,238,.15); color: var(--sapphire); }
 .kpi.emerald .kpi-ico { background: rgba(52,232,176,.15); color: var(--emerald); }
+
+/* ══ TITRES FINAUX ══════════════════════════════════════════════════ */
+#topbar-title,
+.topbar-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.52rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -.01em;
+}
+.sb-name {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.52rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -.01em;
+}
+.sec-t {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.52rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -.01em;
+}
 </style>
 </head>
 <body>
