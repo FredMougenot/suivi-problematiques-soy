@@ -989,8 +989,7 @@ async function loadAll(){
   try{
     const {data,error}=await sb.from('problematiques').select('*').order('created_at',{ascending:false});
     if(error){toast('Erreur: '+error.message,'error');return;}
-    const all=data||[];
-    allProblems=all.filter(p=>p.statut!=='Clôturé');
+    allProblems=data||[];
     renderDash(); renderTable(); renderAdminTable();
   }catch(e){toast('Connexion impossible.','error');}
 }
