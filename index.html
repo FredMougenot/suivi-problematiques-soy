@@ -753,9 +753,9 @@ function showApp() {
   document.getElementById('auth-page').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   updateUserUI();
-  populateDeptSelects();
-  if (isAdmin) showAdminUI();
-  else showUserUI();
+  populateDepts();
+  if (isAdmin) enableAdmin();
+  else enableUser();
 }
 
 async function checkRole() {
