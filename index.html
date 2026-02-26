@@ -149,13 +149,13 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .kpi.ruby::after{background:radial-gradient(circle,rgba(224,85,85,.1),transparent 70%);}
 .kpi.sapphire::before{background:linear-gradient(90deg,transparent,var(--sapphire),transparent);}
 .kpi.sapphire::after{background:radial-gradient(circle,rgba(74,158,232,.1),transparent 70%);}
-.kpi-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;position:relative;z-index:1;}
+
 .kpi-lbl{font-size:.65rem;font-weight:700;color:var(--text-muted);letter-spacing:.18em;text-transform:uppercase;}
-.kpi-ico{width:32px;height:32px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:.85rem;}
-.kpi.copper .kpi-ico{background:var(--copper-dim);}
-.kpi.emerald .kpi-ico{background:var(--emerald-bg);}
-.kpi.ruby .kpi-ico{background:var(--ruby-bg);}
-.kpi.sapphire .kpi-ico{background:var(--sapphire-bg);}
+
+.kpi.copper 
+.kpi.emerald 
+.kpi.ruby 
+.kpi.sapphire 
 .kpi-val{font-family:'Playfair Display',serif;font-size:2.4rem;font-weight:700;line-height:1;letter-spacing:-.02em;position:relative;z-index:1;}
 .kpi.copper .kpi-val{color:var(--copper-light);}
 .kpi.emerald .kpi-val{color:var(--emerald);}
@@ -370,7 +370,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .stat-lbl{font-size:.8rem;font-weight:700;color:var(--text-primary);margin-bottom:14px;}
 .dept-n{font-size:.82rem;color:var(--text-secondary);}
 .dept-cnt{font-size:.82rem;font-weight:700;color:var(--text-primary);}
-.topbar-title{font-size:1.3rem;font-weight:700;color:var(--text-primary);font-family:'Playfair Display',serif;}
+
 .sec-h{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
 .sb-item-logout{color:var(--ruby) !important;}
 .sb-item-logout:hover{background:rgba(238,96,96,.10) !important;color:#FF7878 !important;}
@@ -387,7 +387,7 @@ body { font-size: 0.9375rem; }
 .kpi-val { font-size: 3rem; }
 .sec-t { font-size: 1.25rem; }
 .topbar { height: 64px; }
-.topbar-title { font-size: 1.1rem; }
+
 .dtbl tbody td { font-size: .88rem; padding: 14px 18px; }
 .dtbl thead th { font-size: .72rem; padding: 14px 18px; }
 .sb-item { font-size: .92rem; padding: 11px 14px; }
@@ -398,42 +398,57 @@ body { font-size: 0.9375rem; }
 
 .sb-icon { width: 44px !important; height: 44px !important; font-size: 1.2rem !important; }
 .sb-name { font-family: 'Playfair Display', serif !important; font-size: 1.18rem !important; font-weight: 700 !important; color: var(--text-primary) !important; }
-.topbar-title { font-size: 1.35rem !important; font-weight: 700 !important; color: var(--text-primary) !important; font-family: 'Playfair Display', serif !important; letter-spacing: .01em !important; }
+
 
 
 /* ══ TITRES OUTFIT +30% ══════════════════════════════════════════ */
 .sb-name { font-family: 'Outfit', sans-serif !important; font-size: 1.52rem !important; font-weight: 700 !important; color: var(--text-primary) !important; letter-spacing: -.01em !important; }
-.topbar-title { font-family: 'Outfit', sans-serif !important; font-size: 1.72rem !important; font-weight: 700 !important; color: var(--text-primary) !important; letter-spacing: -.02em !important; }
+
 
 /* ══ KPI ICÔNES GRANDES ET DESIGN ═══════════════════════════════ */
-.kpi-ico {
-  width: 52px !important; height: 52px !important;
-  border-radius: 14px !important;
-  font-size: 1.65rem !important;
-  display: flex !important; align-items: center !important; justify-content: center !important;
-  flex-shrink: 0 !important;
-}
-.kpi.copper .kpi-ico { background: rgba(200,132,58,.18) !important; font-size: 1.7rem !important; }
-.kpi.ruby    .kpi-ico { background: rgba(238,96,96,.15)  !important; font-size: 1.7rem !important; }
-.kpi.sapphire .kpi-ico{ background: rgba(90,174,238,.15) !important; font-size: 1.7rem !important; }
-.kpi.emerald .kpi-ico { background: rgba(52,232,176,.15) !important; font-size: 1.7rem !important; }
-.kpi-top { align-items: center !important; gap: 12px !important; }
+
+.kpi.copper 
+.kpi.ruby    
+.kpi.sapphire 
+.kpi.emerald 
+
 
 
 /* ══ KPI SVG ICONS ════════════════════════════════════════════════ */
-.kpi-ico {
-  width: 48px !important; height: 48px !important;
-  border-radius: 12px !important;
-  display: flex !important; align-items: center !important; justify-content: center !important;
-  flex-shrink: 0 !important;
-}
-.kpi-ico svg { width: 22px; height: 22px; }
-.kpi.copper  .kpi-ico { background: rgba(200,132,58,.18) !important; color: var(--copper-light); }
-.kpi.ruby    .kpi-ico { background: rgba(238,96,96,.15)  !important; color: var(--ruby); }
-.kpi.sapphire .kpi-ico{ background: rgba(90,174,238,.15) !important; color: var(--sapphire); }
-.kpi.emerald .kpi-ico { background: rgba(52,232,176,.15) !important; color: var(--emerald); }
-.kpi-top { align-items: center !important; }
 
+.kpi-ico svg { width: 22px; height: 22px; }
+.kpi.copper  
+.kpi.ruby    
+.kpi.sapphire 
+.kpi.emerald 
+
+
+
+/* ══ TOPBAR TITLE — FINAL ══════════════════════════════════════════ */
+.topbar-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.72rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -.02em;
+}
+
+/* ══ KPI ICONS — FINAL (double taille = 96px) ══════════════════════ */
+.kpi-ico {
+  width: 96px;
+  height: 96px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.kpi-ico svg { width: 44px; height: 44px; }
+.kpi-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; position: relative; z-index: 1; }
+.kpi.copper  .kpi-ico { background: rgba(200,132,58,.18); color: var(--copper-light); }
+.kpi.ruby    .kpi-ico { background: rgba(238,96,96,.15);  color: var(--ruby); }
+.kpi.sapphire .kpi-ico{ background: rgba(90,174,238,.15); color: var(--sapphire); }
+.kpi.emerald .kpi-ico { background: rgba(52,232,176,.15); color: var(--emerald); }
 </style>
 </head>
 <body>
@@ -615,7 +630,7 @@ body { font-size: 0.9375rem; }
           </div>
         </div>
         <div class="sec-h">
-          <div><div class="sec-t">Soumissions récentes</div><div class="sec-s">Les 5 dernières problématiques</div></div>
+          <div><div class="sec-t">Nouveautés</div><div class="sec-s">Les 5 dernières problématiques</div></div>
         </div>
         <div class="tbl-wrap">
           <table class="dtbl">
