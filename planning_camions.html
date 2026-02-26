@@ -130,6 +130,12 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 .spinner{display:flex;align-items:center;justify-content:center;padding:50px;gap:12px;color:var(--text-muted);font-size:.9rem;}
 .spin{width:18px;height:18px;border:2px solid var(--text-faint);border-top-color:var(--copper);border-radius:50%;animation:rot .7s linear infinite;}
 @keyframes rot{to{transform:rotate(360deg)}}
+
+/* ══ TYPE CAMION COULEURS ══════════════════════════════════════════ */
+.cs.type-chauf { color: #FF8C42 !important; font-weight: 700; border-color: rgba(255,140,66,.35); }
+.cs.type-reefer { color: #7EC8E3 !important; font-weight: 700; border-color: rgba(126,200,227,.35); }
+.desc-sel { min-width: 150px; }
+
 </style>
 </head>
 <body>
@@ -183,7 +189,8 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
         <th>Description</th>
         <th>Statut</th>
         <th>Destination</th>
-        <th>N° Camion</th>
+        <th>N° Arrivée</th>
+        <th>N° Départ</th>
         <th>Chargement</th>
         <th>Heure réelle</th>
         <th style="text-align:center">Short GH</th>
@@ -226,17 +233,18 @@ const sb = supabase.createClient(SB_URL, SB_KEY);
 
 // 10 slots fixes quotidiens
 const SLOTS = [
-  {idx:0, h:'06:00', lbl:'06h00 · Camion A'},
-  {idx:1, h:'06:00', lbl:'06h00 · Camion B'},
-  {idx:2, h:'07:30', lbl:'07h30'},
-  {idx:3, h:'09:00', lbl:'09h00'},
-  {idx:4, h:'11:30', lbl:'11h30'},
-  {idx:5, h:'14:00', lbl:'14h00'},
-  {idx:6, h:'15:30', lbl:'15h30'},
-  {idx:7, h:'17:00', lbl:'17h00'},
-  {idx:8, h:'18:00', lbl:'18h00'},
-  {idx:9, h:'19:00', lbl:'19h00'},
+  {idx:0, h:'06:00', lbl:'06h00 · Camion A', defDesc:'',               defType:'CHAUFFÉE'},
+  {idx:1, h:'06:00', lbl:'06h00 · Camion B', defDesc:'Stock palette',   defType:'CHAUFFÉE'},
+  {idx:2, h:'07:30', lbl:'07h30',             defDesc:'',               defType:'CHAUFFÉE'},
+  {idx:3, h:'09:00', lbl:'09h00',             defDesc:'',               defType:'CHAUFFÉE'},
+  {idx:4, h:'11:30', lbl:'11h30',             defDesc:'Stock 1 commande',defType:'CHAUFFÉE'},
+  {idx:5, h:'14:00', lbl:'14h00',             defDesc:'Stock 2 grains', defType:'CHAUFFÉE'},
+  {idx:6, h:'15:30', lbl:'15h30',             defDesc:'',               defType:'CHAUFFÉE'},
+  {idx:7, h:'17:00', lbl:'17h00',             defDesc:'',               defType:'CHAUFFÉE'},
+  {idx:8, h:'18:00', lbl:'18h00',             defDesc:'',               defType:'CHAUFFÉE'},
+  {idx:9, h:'19:00', lbl:'19h00',             defDesc:'',               defType:'CHAUFFÉE'},
 ];
+const DESC_OPTS = ['','Camion vide','Stock palette','Stock 1 commande','Stock 2 grains'];
 const DESTS = ['GH','ADVANTECH','PROACTIVE','LJDERY','AUCUN REPARTIR BOBTAIL'];
 
 let curDate = todayStr();
@@ -299,6 +307,13 @@ async function load(){
 
 // ── RENDER ─────────────────────────────────────────────────────────
 function render(){
+  // Appliquer les valeurs par défaut des slots fixes si pas encore de données
+  SLOTS.forEach(s => {
+    if(!rows[s.idx]) rows[s.idx]={slot_index:s.idx};
+    if(!rows[s.idx].type_camion) rows[s.idx].type_camion=s.defType||'CHAUFFÉE';
+    if(!rows[s.idx].description && s.defDesc) rows[s.idx].description=s.defDesc;
+  });
+
   const extras=Object.keys(rows).map(Number).filter(i=>i>=10).sort((a,b)=>a-b);
 
   // Construire la liste complète des entrées avec leur heure pour tri
@@ -337,12 +352,17 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
       <option${sl==='Actif'?' selected':''}>Actif</option>
       <option${sl==='Annulé'?' selected':''}>Annulé</option>
     </select></td>
-    <td><select class="cs" style="min-width:105px" onchange="fchg(${idx},'type_camion',this.value)">
+    <td><select class="cs ${r.type_camion==='REEFER'?'type-reefer':'type-chauf'}" style="min-width:105px"
+      onchange="fchg(${idx},'type_camion',this.value);updTypeSel(this)">
       <option value="">—</option>
       <option${r.type_camion==='REEFER'?' selected':''}>REEFER</option>
-      <option${r.type_camion==='CHAUFFÉE'?' selected':''}>CHAUFFÉE</option>
+      <option${r.type_camion==='CHAUFFÉE'||!r.type_camion?' selected':''}>CHAUFFÉE</option>
     </select></td>
-    <td><input class="ci" value="${esc(r.description||'')}" placeholder="Description…" oninput="fchg(${idx},'description',this.value)"></td>
+    <td>
+      <select class="cs desc-sel" style="min-width:150px" onchange="fchg(${idx},'description',this.value)">
+        ${DESC_OPTS.map(o=>`<option value="${esc(o)}"${r.description===o||(!r.description&&o==='')?' selected':''}>${esc(o)||'—'}</option>`).join('')}
+      </select>
+    </td>
     <td><select class="cs" onchange="fchg(${idx},'statut',this.value)">
       <option value="">—</option>
       <option${r.statut==='ATTENTE'?' selected':''}>ATTENTE</option>
@@ -351,7 +371,8 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
     <td><select class="cs" style="min-width:170px" onchange="fchg(${idx},'destination',this.value)">
       <option value="">—</option>${selDests}
     </select></td>
-    <td><input class="ci" style="max-width:100px" value="${esc(r.num_camion||'')}" placeholder="N° camion" oninput="fchg(${idx},'num_camion',this.value)"></td>
+    <td><input class="ci" style="max-width:95px" value="${esc(r.num_arrivee||'')}" placeholder="N° arrivée" oninput="fchg(${idx},'num_arrivee',this.value)"></td>
+    <td><input class="ci" style="max-width:95px" value="${esc(r.num_depart||'')}" placeholder="N° départ" oninput="fchg(${idx},'num_depart',this.value)"></td>
     <td><select class="cs" style="min-width:140px" onchange="fchg(${idx},'chargement',this.value)">
       <option value="">—</option>
       <option${r.chargement==='PRÊTE'?' selected':''}>PRÊTE</option>
@@ -395,7 +416,8 @@ async function saveRow(idx){
     heure_planif:r.heure_planif||(slot?slot.h:'00:00'),
     statut_ligne:r.statut_ligne||'Actif',
     type_camion:r.type_camion||null,
-    num_camion:r.num_camion||null,
+    num_arrivee:r.num_arrivee||null,
+    num_depart:r.num_depart||null,
     destination:r.destination||null,
     description:r.description||null,
     statut:r.statut||null,
@@ -479,6 +501,10 @@ async function confirmAdd(){
   await saveRow(newIdx);
   const tr=document.getElementById('tr'+newIdx);
   if(tr) tr.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function updTypeSel(sel){
+  sel.classList.remove('type-chauf','type-reefer');
+  sel.classList.add(sel.value==='REEFER'?'type-reefer':'type-chauf');
 }
 </script>
 </body>
