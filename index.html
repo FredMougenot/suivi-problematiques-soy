@@ -994,10 +994,11 @@ async function loadAll(){
   }catch(e){toast('Connexion impossible.','error');}
 }
 function renderDash(){
-  const total=allProblems.length;
-  const ouvert=allProblems.filter(p=>p.statut==='À traiter').length;
-  const cours=allProblems.filter(p=>p.statut==='En cours').length;
-  const resolu=allProblems.filter(p=>p.statut==='Résolu').length;
+  const actives=allProblems.filter(p=>p.statut!=='Clôturé');
+  const total=actives.length;
+  const ouvert=actives.filter(p=>p.statut==='À traiter').length;
+  const cours=actives.filter(p=>p.statut==='En cours').length;
+  const resolu=actives.filter(p=>p.statut==='Résolu').length;
   document.getElementById('kpi-total').textContent=total;
   document.getElementById('kpi-ouvert').textContent=ouvert;
   document.getElementById('kpi-cours').textContent=cours;
@@ -1005,7 +1006,7 @@ function renderDash(){
   const badge=document.getElementById('badge-ouvert');
   if(badge){ouvert>0?(badge.style.display='',badge.textContent=ouvert):badge.style.display='none';}
   // Seulement les problématiques actives (À traiter + En cours)
-  const actifs=allProblems.filter(p=>p.statut==='À traiter'||p.statut==='En cours');
+  const actifs=actives.filter(p=>p.statut==='À traiter'||p.statut==='En cours');
   const dc={};depts.forEach(d=>dc[d]=0);
   actifs.forEach(p=>{if(p.departement)dc[p.departement]=(dc[p.departement]||0)+1;});
   const maxD=Math.max(...Object.values(dc),1);
@@ -1220,6 +1221,7 @@ function bStat(s){
 function bPrio(p){const m={Critique:'bpC',Haute:'bpH',Moyenne:'bpM',Basse:'bpB'};return `<span class="badge ${m[p]||'bpB'}">${esc(p||'')}</span>`;}
 
 window.addEventListener('load',()=>setTimeout(init,800));
+
 
 
 
