@@ -272,6 +272,48 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .toast.success{border-left-color:var(--emerald);}
 .toast.error{border-left-color:var(--ruby);}
 @keyframes toastIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
+
+/* ── PAGE PROFIL ───────────────────────────────────── */
+.profil-layout{display:grid;grid-template-columns:260px 1fr;gap:22px;align-items:start;}
+.profil-id-card{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow:hidden;}
+.profil-id-card::before{content:'';display:block;height:1px;background:linear-gradient(90deg,transparent,var(--copper),transparent);}
+.profil-avatar-zone{padding:28px 20px;text-align:center;border-bottom:1px solid var(--text-faint);background:var(--bg-float);}
+.profil-big-av{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--copper),var(--copper-light));display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;color:var(--bg-void);margin:0 auto 14px;box-shadow:0 0 0 3px rgba(184,115,51,.15),0 0 0 7px rgba(184,115,51,.05);}
+.profil-dn{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:3px;}
+.profil-em{font-size:.72rem;color:var(--text-muted);word-break:break-all;}
+.profil-role{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:.66rem;font-weight:700;margin-top:10px;}
+.profil-role.admin{background:var(--copper-dim);color:var(--copper);border:1px solid rgba(184,115,51,.2);}
+.profil-role.user{background:var(--sapphire-bg);color:var(--sapphire);border:1px solid rgba(74,158,232,.15);}
+.profil-meta{padding:14px 20px;}
+.profil-meta-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--text-faint);font-size:.79rem;}
+.profil-meta-row:last-child{border-bottom:none;}
+.profil-meta-lbl{color:var(--text-muted);flex:1;}
+.profil-meta-val{color:var(--text-primary);font-weight:500;text-align:right;}
+
+.profil-sections{display:flex;flex-direction:column;gap:18px;}
+.profil-section{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow:hidden;transition:border-color var(--t-base);}
+.profil-section:hover{border-color:var(--text-muted);}
+.profil-section-head{padding:16px 22px;border-bottom:1px solid var(--text-faint);background:var(--bg-float);display:flex;align-items:center;gap:9px;}
+.profil-section-head::before{content:'';display:block;width:3px;height:16px;background:var(--copper);border-radius:2px;flex-shrink:0;}
+.profil-section-title{font-family:'Playfair Display',serif;font-size:.92rem;font-weight:600;color:var(--text-primary);}
+.profil-section-body{padding:22px;}
+
+.profil-form-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:0;}
+.profil-form-1{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:0;}
+
+.pwd-wrap-input{position:relative;}
+.pwd-wrap-input .fg-inp{padding-right:40px;}
+.pwd-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);cursor:pointer;font-size:.82rem;user-select:none;transition:color var(--t-fast);}
+.pwd-eye:hover{color:var(--text-primary);}
+
+.pwd-bar-wrap{height:3px;background:var(--bg-active);border-radius:3px;overflow:hidden;margin-top:6px;}
+.pwd-bar-fill{height:100%;border-radius:3px;transition:width .3s var(--ease),background .3s var(--ease);width:0%;}
+.pwd-bar-label{font-size:.68rem;margin-top:5px;font-weight:500;transition:color .3s;}
+
+.profil-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-top:18px;padding-top:16px;border-top:1px solid var(--text-faint);}
+.profil-ok-msg{font-size:.78rem;color:var(--emerald);font-weight:500;opacity:0;transition:opacity .4s;margin-right:auto;}
+.profil-ok-msg.show{opacity:1;}
+
 </style>
 </head>
 <body>
@@ -334,6 +376,10 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
       </div>
       <div class="sb-item admin-only" onclick="showPage('nouvelle')" id="nav-nouvelle" style="display:none">
         <span class="sb-ico">⊕</span> Nouvelle saisie
+      </div>
+      <div class="sb-sec">Mon compte</div>
+      <div class="sb-item" onclick="showPage('profil')" id="nav-profil">
+        <span class="sb-ico">◎</span> Mon profil
       </div>
       <div class="sb-sec admin-only" id="nav-admin-section" style="display:none">Administration</div>
       <div class="sb-item admin-only" onclick="showPage('admin')" id="nav-admin" style="display:none">
@@ -474,6 +520,121 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
           </table>
         </div>
       </div>
+
+
+      <!-- PROFIL -->
+      <div class="page" id="page-profil">
+        <div class="sec-h" style="margin-bottom:24px">
+          <div>
+            <div class="sec-t">Mon profil</div>
+            <div class="sec-s">Vos informations personnelles et votre sécurité</div>
+          </div>
+        </div>
+        <div class="profil-layout">
+
+          <!-- Carte identité -->
+          <div class="profil-id-card">
+            <div class="profil-avatar-zone">
+              <div class="profil-big-av" id="pav">?</div>
+              <div class="profil-dn" id="pdn">—</div>
+              <div class="profil-em" id="pem">—</div>
+              <div class="profil-role" id="prolbadge">—</div>
+            </div>
+            <div class="profil-meta">
+              <div class="profil-meta-row">
+                <span class="profil-meta-lbl">Rôle</span>
+                <span class="profil-meta-val" id="prolrole">—</span>
+              </div>
+              <div class="profil-meta-row">
+                <span class="profil-meta-lbl">Membre depuis</span>
+                <span class="profil-meta-val" id="prolsince">—</span>
+              </div>
+              <div class="profil-meta-row">
+                <span class="profil-meta-lbl">Statut</span>
+                <span class="profil-meta-val" style="color:var(--emerald)">● Actif</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sections -->
+          <div class="profil-sections">
+
+            <!-- Informations personnelles -->
+            <div class="profil-section">
+              <div class="profil-section-head">
+                <div class="profil-section-title">Informations personnelles</div>
+              </div>
+              <div class="profil-section-body">
+                <div class="profil-form-2" style="margin-bottom:16px">
+                  <div class="fg">
+                    <label class="fg-lbl">Prénom</label>
+                    <input type="text" id="p-prenom" class="fg-inp" placeholder="Votre prénom">
+                  </div>
+                  <div class="fg">
+                    <label class="fg-lbl">Nom</label>
+                    <input type="text" id="p-nom" class="fg-inp" placeholder="Votre nom">
+                  </div>
+                </div>
+                <div class="profil-form-1" style="margin-bottom:16px">
+                  <div class="fg">
+                    <label class="fg-lbl">Titre / Poste</label>
+                    <input type="text" id="p-poste" class="fg-inp" placeholder="ex: Responsable qualité">
+                  </div>
+                </div>
+                <div class="profil-form-1">
+                  <div class="fg">
+                    <label class="fg-lbl">Courriel</label>
+                    <input type="email" id="p-email" class="fg-inp" disabled
+                      style="opacity:.45;cursor:not-allowed"
+                      title="L'adresse courriel ne peut pas être modifiée ici">
+                  </div>
+                </div>
+                <div class="profil-actions">
+                  <span class="profil-ok-msg" id="info-ok">✓ Informations enregistrées</span>
+                  <button class="btn-sub" onclick="saveProfilInfo()">Enregistrer</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Changer le mot de passe -->
+            <div class="profil-section">
+              <div class="profil-section-head">
+                <div class="profil-section-title">Changer le mot de passe</div>
+              </div>
+              <div class="profil-section-body">
+                <div class="profil-form-1" style="margin-bottom:16px">
+                  <div class="fg">
+                    <label class="fg-lbl req">Nouveau mot de passe</label>
+                    <div class="pwd-wrap-input">
+                      <input type="password" id="p-pwd1" class="fg-inp"
+                        placeholder="Minimum 8 caractères"
+                        oninput="evalPwd(this.value,'p-pwd-bar','p-pwd-lbl')">
+                      <span class="pwd-eye" onclick="toggleEye('p-pwd1',this)">👁</span>
+                    </div>
+                    <div class="pwd-bar-wrap"><div class="pwd-bar-fill" id="p-pwd-bar"></div></div>
+                    <div class="pwd-bar-label" id="p-pwd-lbl" style="color:var(--text-muted)">Entrez un mot de passe</div>
+                  </div>
+                </div>
+                <div class="profil-form-1">
+                  <div class="fg">
+                    <label class="fg-lbl req">Confirmer le mot de passe</label>
+                    <div class="pwd-wrap-input">
+                      <input type="password" id="p-pwd2" class="fg-inp"
+                        placeholder="Répétez le mot de passe">
+                      <span class="pwd-eye" onclick="toggleEye('p-pwd2',this)">👁</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="profil-actions">
+                  <span class="profil-ok-msg" id="pwd-ok">✓ Mot de passe mis à jour</span>
+                  <button class="btn-sub" onclick="saveProfilPwd()">Mettre à jour</button>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /profil-sections -->
+        </div><!-- /profil-layout -->
+      </div><!-- /page-profil -->
 
     </div>
   </main>
@@ -1007,8 +1168,10 @@ const pageTitles = {
   problematiques:  'Toutes les problématiques',
   nouvelle:        'Soumettre une problématique',
   admin:           'Gestion — Administration',
+  profil:          'Mon profil',
 };
 function showPage(name) {
+  if (name === 'profil') loadProfilPage();
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
@@ -1069,6 +1232,117 @@ function badgePrio(p) {
 // ═══════════════════════════════════════════
 // START
 // ═══════════════════════════════════════════
+
+/* ── PROFIL ────────────────────────────────────── */
+function loadProfilPage() {
+  if (!currentUser) return;
+  const meta  = currentUser.user_metadata || {};
+  const email = currentUser.email || '';
+  const prenom = meta.prenom || '';
+  const nom    = meta.nom    || '';
+  const poste  = meta.poste  || '';
+  const dn = [prenom, nom].filter(Boolean).join(' ') || email.split('@')[0];
+  const initials = dn.substring(0,2).toUpperCase();
+
+  // Carte identité
+  document.getElementById('pav').textContent  = initials;
+  document.getElementById('pdn').textContent  = dn;
+  document.getElementById('pem').textContent  = email;
+
+  const roleBadge = document.getElementById('prolbadge');
+  roleBadge.textContent = isAdmin ? '🔑 Administrateur' : '👤 Utilisateur';
+  roleBadge.className   = 'profil-role ' + (isAdmin ? 'admin' : 'user');
+  document.getElementById('prolrole').textContent = isAdmin ? 'Administrateur' : 'Utilisateur';
+
+  const since = currentUser.created_at
+    ? new Date(currentUser.created_at).toLocaleDateString('fr-CA',{day:'2-digit',month:'long',year:'numeric'})
+    : '—';
+  document.getElementById('prolsince').textContent = since;
+
+  // Formulaire info
+  document.getElementById('p-prenom').value = prenom;
+  document.getElementById('p-nom').value    = nom;
+  document.getElementById('p-poste').value  = poste;
+  document.getElementById('p-email').value  = email;
+
+  // Vider champs mot de passe
+  document.getElementById('p-pwd1').value = '';
+  document.getElementById('p-pwd2').value = '';
+  document.getElementById('p-pwd-bar').style.width = '0%';
+  document.getElementById('p-pwd-lbl').textContent = 'Entrez un mot de passe';
+  document.getElementById('p-pwd-lbl').style.color = 'var(--text-muted)';
+}
+
+async function saveProfilInfo() {
+  const prenom = document.getElementById('p-prenom').value.trim();
+  const nom    = document.getElementById('p-nom').value.trim();
+  const poste  = document.getElementById('p-poste').value.trim();
+
+  const { data, error } = await sb.auth.updateUser({ data: { prenom, nom, poste } });
+  if (error) { toast('Erreur : ' + error.message, 'error'); return; }
+
+  if (data?.user) currentUser = data.user;
+  updateUserUI();
+
+  // Rafraîchir la carte identité sans recharger la page
+  const dn = [prenom, nom].filter(Boolean).join(' ') || (currentUser.email||'').split('@')[0];
+  document.getElementById('pav').textContent = dn.substring(0,2).toUpperCase();
+  document.getElementById('pdn').textContent = dn;
+
+  const msg = document.getElementById('info-ok');
+  msg.classList.add('show');
+  setTimeout(() => msg.classList.remove('show'), 3000);
+  toast('Profil mis à jour.', 'success');
+}
+
+async function saveProfilPwd() {
+  const pwd1 = document.getElementById('p-pwd1').value;
+  const pwd2 = document.getElementById('p-pwd2').value;
+
+  if (pwd1.length < 8) { toast('Le mot de passe doit contenir au moins 8 caractères.', 'error'); return; }
+  if (pwd1 !== pwd2)   { toast('Les deux mots de passe ne correspondent pas.', 'error'); return; }
+
+  const btn = document.querySelector('#page-profil .profil-sections .profil-section:last-child .btn-sub');
+  if (btn) { btn.disabled = true; btn.textContent = 'Mise à jour…'; }
+
+  const { error } = await sb.auth.updateUser({ password: pwd1 });
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Mettre à jour'; }
+  if (error) { toast('Erreur : ' + error.message, 'error'); return; }
+
+  // Vider les champs — aucune redirection nécessaire, Supabase met à jour la session en place
+  document.getElementById('p-pwd1').value = '';
+  document.getElementById('p-pwd2').value = '';
+  document.getElementById('p-pwd-bar').style.width = '0%';
+  document.getElementById('p-pwd-lbl').textContent = 'Entrez un mot de passe';
+  document.getElementById('p-pwd-lbl').style.color = 'var(--text-muted)';
+
+  const msg = document.getElementById('pwd-ok');
+  msg.classList.add('show');
+  setTimeout(() => msg.classList.remove('show'), 3000);
+  toast('Mot de passe mis à jour avec succès.', 'success');
+}
+
+function evalPwd(pwd, barId, lblId) {
+  const score = [pwd.length>=8, /[A-Z]/.test(pwd), /[0-9]/.test(pwd), /[^A-Za-z0-9]/.test(pwd)].filter(Boolean).length;
+  const pct    = score * 25;
+  const colors = ['var(--text-faint)','var(--ruby)','var(--amber)','var(--amber)','var(--emerald)'];
+  const labels = ['Entrez un mot de passe','Très faible','Faible','Correct','Fort'];
+  const bar = document.getElementById(barId);
+  const lbl = document.getElementById(lblId);
+  bar.style.width      = pct + '%';
+  bar.style.background = colors[score];
+  lbl.textContent      = pwd.length === 0 ? labels[0] : labels[score];
+  lbl.style.color      = pwd.length === 0 ? 'var(--text-muted)' : colors[score];
+}
+
+function toggleEye(inputId, icon) {
+  const inp = document.getElementById(inputId);
+  if (!inp) return;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  icon.textContent = inp.type === 'password' ? '👁' : '🔒';
+}
+
 window.addEventListener('load', () => setTimeout(init, 800));
 
 </script>
