@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planification Camions — Expédition SOY</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg-void:#06070B;--bg-deep:#0B0D13;--bg-base:#0F1118;
+  --bg-raised:#15181F;--bg-float:#1A1E2A;--bg-hover:#1F2436;--bg-active:#242B40;
+  --copper:#C8843A;--copper-light:#E0A870;--copper-pale:#EDD4A8;
+  --copper-glow:rgba(200,132,58,.22);--copper-dim:rgba(200,132,58,.10);
+  --text-primary:#F0EAE0;--text-secondary:#BEC5D6;
+  --text-muted:#7A82A0;--text-faint:#2C3350;
+  --emerald:#2DD4A0;--emerald-bg:rgba(45,212,160,.10);
+  --ruby:#E05555;--ruby-bg:rgba(224,85,85,.10);
+  --amber:#E8A43A;--amber-bg:rgba(232,164,58,.10);
+  --sapphire:#4A9EE8;--sapphire-bg:rgba(74,158,232,.10);
+  --r-sm:4px;--r-md:10px;--r-lg:16px;--r-xl:24px;
+  --shadow-md:0 4px 16px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);
+  --ease:cubic-bezier(.4,0,.2,1);--t-fast:.15s;--t-base:.25s;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:16px;}
+body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-primary);min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── TOPBAR ────────────────────────────────────────────────── */
+.topbar{
+  position:sticky;top:0;z-index:100;height:64px;
+  background:rgba(15,17,24,.92);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--text-faint);
+  padding:0 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+.topbar-left{display:flex;align-items:center;gap:16px;}
+.tb-back{
+  display:flex;align-items:center;gap:7px;
+  padding:7px 14px;border-radius:var(--r-md);
+  background:var(--bg-float);border:1px solid var(--text-faint);
+  color:var(--text-secondary);font-size:.82rem;font-weight:500;
+  cursor:pointer;text-decoration:none;transition:all var(--t-fast);
+}
+.tb-back:hover{border-color:var(--copper);color:var(--copper-light);}
+.tb-back svg{width:14px;height:14px;}
+.topbar-brand{display:flex;align-items:center;gap:10px;}
+.tb-icon{
+  width:36px;height:36px;border-radius:var(--r-md);
+  background:var(--copper-dim);border:1px solid rgba(200,132,58,.3);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Playfair Display',serif;font-style:italic;
+  font-size:1rem;color:var(--copper-light);
+}
+.topbar-title{
+  font-family:'Outfit',sans-serif;font-size:1.52rem;
+  font-weight:700;color:var(--text-primary);letter-spacing:-.01em;
+}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.tb-date{
+  font-size:.82rem;color:var(--text-secondary);
+  background:var(--bg-float);border:1px solid var(--text-faint);
+  padding:6px 14px;border-radius:var(--r-md);
+}
+.tb-today{
+  font-size:.82rem;font-weight:600;color:var(--copper-light);
+  background:var(--copper-dim);border:1px solid rgba(200,132,58,.25);
+  padding:6px 14px;border-radius:var(--r-md);cursor:pointer;
+  transition:all var(--t-fast);
+}
+.tb-today:hover{background:rgba(200,132,58,.18);}
+
+/* ── DATE NAV ────────────────────────────────────────── */
+.date-nav{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:18px 28px 0;
+}
+.date-btn{
+  width:34px;height:34px;border-radius:var(--r-md);
+  background:var(--bg-raised);border:1px solid var(--text-faint);
+  color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all var(--t-fast);font-size:1rem;
+}
+.date-btn:hover{border-color:var(--copper);color:var(--copper-light);}
+.date-display{
+  font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:700;
+  color:var(--text-primary);padding:6px 20px;
+  background:var(--bg-raised);border:1px solid var(--text-faint);
+  border-radius:var(--r-md);min-width:220px;text-align:center;
+}
+.date-today-pill{
+  font-size:.72rem;font-weight:700;color:var(--copper-light);
+  background:var(--copper-dim);border:1px solid rgba(200,132,58,.25);
+  padding:3px 10px;border-radius:20px;margin-left:4px;
+}
+
+/* ── MAIN ────────────────────────────────────────────────── */
+.main{flex:1;padding:22px 28px 40px;}
+
+/* ── STATS BAR ───────────────────────────────────────────── */
+.stats-bar{
+  display:flex;gap:12px;margin-bottom:22px;flex-wrap:wrap;
+}
+.stat-pill{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 16px;border-radius:var(--r-md);
+  background:var(--bg-raised);border:1px solid var(--text-faint);
+  font-size:.8rem;font-weight:600;
+}
+.stat-pill .sp-dot{width:8px;height:8px;border-radius:50%;}
+.stat-pill.actif .sp-dot{background:var(--emerald);}
+.stat-pill.attente .sp-dot{background:var(--amber);}
+.stat-pill.fait .sp-dot{background:var(--sapphire);}
+.stat-pill.annule .sp-dot{background:var(--ruby);}
+.stat-pill .sp-val{color:var(--text-primary);}
+.stat-pill .sp-lbl{color:var(--text-muted);}
+
+/* ── TABLE ───────────────────────────────────────────────── */
+.tbl-wrap{
+  background:var(--bg-raised);border:1px solid var(--text-faint);
+  border-radius:var(--r-lg);overflow:hidden;
+}
+.ptbl{width:100%;border-collapse:collapse;}
+.ptbl thead tr{background:var(--bg-float);border-bottom:1px solid var(--text-faint);}
+.ptbl thead th{
+  padding:12px 14px;text-align:left;
+  font-size:.63rem;font-weight:800;color:var(--copper);
+  letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;
+}
+.ptbl tbody tr{border-bottom:1px solid var(--text-faint);transition:background var(--t-fast);}
+.ptbl tbody tr:last-child{border-bottom:none;}
+.ptbl tbody tr:hover{background:rgba(200,132,58,.03);}
+.ptbl tbody tr.annule-row{opacity:.55;}
+.ptbl tbody tr.annule-row td{text-decoration:line-through;color:var(--text-muted)!important;}
+.ptbl tbody td{padding:13px 14px;font-size:.84rem;color:var(--text-primary);vertical-align:middle;}
+
+/* Heure */
+.td-heure{
+  font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;
+  color:var(--copper-light);white-space:nowrap;min-width:70px;
+}
+.td-heure.past{color:var(--text-muted);}
+.td-heure.current{color:var(--emerald);}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap;}
+.b-actif   {background:rgba(45,212,160,.12);color:var(--emerald);border:1px solid rgba(45,212,160,.3);}
+.b-annule  {background:rgba(224,85,85,.12);color:var(--ruby);border:1px solid rgba(224,85,85,.3);}
+.b-attente {background:rgba(232,164,58,.12);color:var(--amber);border:1px solid rgba(232,164,58,.3);}
+.b-fait    {background:rgba(74,158,232,.12);color:var(--sapphire);border:1px solid rgba(74,158,232,.3);}
+.b-encours {background:rgba(200,132,58,.12);color:var(--copper-light);border:1px solid rgba(200,132,58,.3);}
+.b-prete   {background:rgba(45,212,160,.12);color:var(--emerald);border:1px solid rgba(45,212,160,.3);}
+.b-reefer  {background:rgba(74,158,232,.12);color:var(--sapphire);border:1px solid rgba(74,158,232,.3);}
+.b-chauf   {background:rgba(232,164,58,.12);color:var(--amber);border:1px solid rgba(232,164,58,.3);}
+.b-short   {background:rgba(224,85,85,.12);color:var(--ruby);border:1px solid rgba(224,85,85,.3);}
+
+/* Selects inline */
+.cell-sel{
+  background:var(--bg-float);border:1px solid var(--text-faint);
+  color:var(--text-primary);border-radius:var(--r-sm);
+  padding:5px 8px;font-size:.8rem;font-family:'Outfit',sans-serif;
+  cursor:pointer;transition:border-color var(--t-fast);outline:none;
+  min-width:110px;
+}
+.cell-sel:focus{border-color:var(--copper);}
+.cell-sel option{background:var(--bg-float);}
+
+/* Input inline */
+.cell-inp{
+  background:var(--bg-float);border:1px solid var(--text-faint);
+  color:var(--text-primary);border-radius:var(--r-sm);
+  padding:5px 9px;font-size:.8rem;font-family:'Outfit',sans-serif;
+  width:100%;min-width:80px;max-width:180px;
+  transition:border-color var(--t-fast);outline:none;
+}
+.cell-inp:focus{border-color:var(--copper);}
+.cell-inp::placeholder{color:var(--text-muted);}
+
+/* Heure réelle */
+.cell-inp-time{
+  background:var(--bg-float);border:1px solid var(--text-faint);
+  color:var(--text-primary);border-radius:var(--r-sm);
+  padding:5px 8px;font-size:.8rem;font-family:'Outfit',sans-serif;
+  width:90px;transition:border-color var(--t-fast);outline:none;
+}
+.cell-inp-time:focus{border-color:var(--copper);}
+
+/* Bouton sauvegarder */
+.btn-save{
+  padding:5px 13px;border-radius:var(--r-sm);
+  background:linear-gradient(135deg,var(--copper),var(--copper-light));
+  color:#0F1118;font-size:.76rem;font-weight:700;
+  border:none;cursor:pointer;white-space:nowrap;
+  transition:all var(--t-fast);
+}
+.btn-save:hover{opacity:.88;transform:translateY(-1px);}
+.btn-save:disabled{opacity:.4;cursor:default;transform:none;}
+
+/* Short GH checkbox */
+.chk-wrap{display:flex;align-items:center;justify-content:center;}
+.chk-box{
+  width:20px;height:20px;border-radius:5px;
+  border:1.5px solid var(--text-faint);background:var(--bg-float);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all var(--t-fast);flex-shrink:0;
+}
+.chk-box.checked{background:rgba(224,85,85,.2);border-color:var(--ruby);}
+.chk-box.checked::after{content:'✓';font-size:.72rem;color:var(--ruby);font-weight:800;}
+
+/* Toast */
+#toasts{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{
+  padding:11px 18px;border-radius:var(--r-md);font-size:.82rem;font-weight:500;
+  border:1px solid;animation:slideIn .2s var(--ease);
+  max-width:320px;
+}
+.toast.success{background:rgba(45,212,160,.12);color:var(--emerald);border-color:rgba(45,212,160,.3);}
+.toast.error  {background:rgba(224,85,85,.12);color:var(--ruby);border-color:rgba(224,85,85,.3);}
+.toast.info   {background:rgba(74,158,232,.12);color:var(--sapphire);border-color:rgba(74,158,232,.3);}
+@keyframes slideIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
+
+/* Loading */
+.loading{display:flex;align-items:center;justify-content:center;padding:60px;color:var(--text-muted);font-size:.9rem;gap:10px;}
+.spin{width:18px;height:18px;border:2px solid var(--text-faint);border-top-color:var(--copper);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Indicateur actuel */
+.current-indicator{
+  display:flex;align-items:center;gap:6px;
+  font-size:.72rem;color:var(--emerald);font-weight:600;
+}
+.current-dot{width:6px;height:6px;border-radius:50%;background:var(--emerald);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* Num camion */
+.num-badge{
+  font-family:'Playfair Display',serif;font-size:.9rem;font-weight:700;
+  color:var(--text-secondary);letter-spacing:.05em;
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-left">
+    <a href="index.html" class="tb-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Retour
+    </a>
+    <div class="topbar-brand">
+      <div class="tb-icon">S</div>
+      <div class="topbar-title">Planification Camions</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="tb-date" id="tb-date-display">—</div>
+    <div class="tb-today" onclick="goToToday()">Aujourd'hui</div>
+  </div>
+</header>
+
+<!-- DATE NAV -->
+<div class="date-nav">
+  <button class="date-btn" onclick="changeDay(-1)">&#8592;</button>
+  <div class="date-display" id="date-display">—<span class="date-today-pill" id="today-pill" style="display:none">Aujourd'hui</span></div>
+  <button class="date-btn" onclick="changeDay(1)">&#8594;</button>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+  <!-- Stats bar -->
+  <div class="stats-bar" id="stats-bar">
+    <div class="stat-pill actif"><div class="sp-dot"></div><span class="sp-val" id="st-actif">—</span><span class="sp-lbl">Actifs</span></div>
+    <div class="stat-pill attente"><div class="sp-dot"></div><span class="sp-val" id="st-attente">—</span><span class="sp-lbl">En attente</span></div>
+    <div class="stat-pill fait"><div class="sp-dot"></div><span class="sp-val" id="st-fait">—</span><span class="sp-lbl">Faits</span></div>
+    <div class="stat-pill annule"><div class="sp-dot"></div><span class="sp-val" id="st-annule">—</span><span class="sp-lbl">Annulés</span></div>
+  </div>
+
+  <!-- Table -->
+  <div class="tbl-wrap">
+    <div class="loading" id="loading"><div class="spin"></div> Chargement…</div>
+    <table class="ptbl" id="planning-table" style="display:none">
+      <thead>
+        <tr>
+          <th>Heure</th>
+          <th>Statut ligne</th>
+          <th>Type</th>
+          <th>N° Camion</th>
+          <th>Destination</th>
+          <th>Description</th>
+          <th>Statut</th>
+          <th>Chargement</th>
+          <th>Heure réelle</th>
+          <th>Short GH</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="planning-tbody"></tbody>
+    </table>
+  </div>
+</main>
+
+<div id="toasts"></div>
+
+<script>
+const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Horaires fixes quotidiens
+const HORAIRES = [
+  '06:00','06:00','07:30','09:00','11:30','14:00','15:30','17:00','18:00','19:00'
+];
+
+const DESTINATIONS = ['GH','ADVANTECH','PROACTIVE','LJDERY','AUCUN REPARTIR BOBTAIL'];
+
+let currentDate = todayStr();
+let planningData = {}; // keyed by slot index
+
+function todayStr() {
+  return new Date().toISOString().slice(0,10);
+}
+function fmtDateFr(str) {
+  if (!str) return '—';
+  const d = new Date(str + 'T00:00:00');
+  return d.toLocaleDateString('fr-CA', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+}
+function isToday(str) { return str === todayStr(); }
+
+function getCurrentHoraire() {
+  const now = new Date();
+  const hm = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  // Trouver le slot actuel (le plus proche dans le passé)
+  let current = -1;
+  for (let i = 0; i < HORAIRES.length; i++) {
+    if (HORAIRES[i] <= hm) current = i;
+  }
+  return current;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+window.addEventListener('load', async () => {
+  updateDateUI();
+  await ensureTable();
+  await loadPlanning();
+});
+
+async function ensureTable() {
+  // Créer la table si elle n'existe pas via upsert — Supabase la créera automatiquement
+  // On vérifie juste en faisant un select
+  try {
+    await sb.from('planning_camions').select('id').limit(1);
+  } catch(e) {
+    // Table n'existe pas — elle sera créée au premier insert
+  }
+}
+
+// ── DATE ──────────────────────────────────────────────────────────
+function updateDateUI() {
+  const label = fmtDateFr(currentDate);
+  document.getElementById('date-display').innerHTML =
+    label + (isToday(currentDate) ? ' <span class="date-today-pill">Aujourd\'hui</span>' : '');
+  document.getElementById('tb-date-display').textContent = currentDate;
+}
+function changeDay(delta) {
+  const d = new Date(currentDate + 'T00:00:00');
+  d.setDate(d.getDate() + delta);
+  currentDate = d.toISOString().slice(0,10);
+  updateDateUI();
+  loadPlanning();
+}
+function goToToday() {
+  currentDate = todayStr();
+  updateDateUI();
+  loadPlanning();
+}
+
+// ── LOAD ──────────────────────────────────────────────────────────
+async function loadPlanning() {
+  document.getElementById('loading').style.display = 'flex';
+  document.getElementById('planning-table').style.display = 'none';
+
+  const { data, error } = await sb
+    .from('planning_camions')
+    .select('*')
+    .eq('date_jour', currentDate)
+    .order('slot_index');
+
+  if (error && error.code !== 'PGRST116') {
+    toast('Erreur chargement: ' + error.message, 'error');
+    document.getElementById('loading').style.display = 'none';
+    return;
+  }
+
+  // Indexer par slot
+  planningData = {};
+  (data || []).forEach(row => { planningData[row.slot_index] = row; });
+
+  renderTable();
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('planning-table').style.display = 'table';
+}
+
+// ── RENDER ────────────────────────────────────────────────────────
+function renderTable() {
+  const tbody = document.getElementById('planning-tbody');
+  const currentSlot = isToday(currentDate) ? getCurrentHoraire() : -1;
+
+  tbody.innerHTML = HORAIRES.map((h, i) => {
+    const row = planningData[i] || {};
+    const statut_ligne = row.statut_ligne || 'Actif';
+    const annule = statut_ligne === 'Annulé';
+    const heureCls = isToday(currentDate)
+      ? (i < currentSlot ? 'past' : i === currentSlot ? 'current' : '')
+      : '';
+
+    // Libellé heure (deux camions à 6h = slot 0 et 1)
+    const heureLabel = h;
+    const isCurrent = isToday(currentDate) && i === currentSlot;
+
+    return `<tr id="row-${i}" class="${annule ? 'annule-row' : ''}">
+      <td class="td-heure ${heureCls}">
+        ${heureLabel}
+        ${isCurrent ? '<div class="current-indicator"><div class="current-dot"></div></div>' : ''}
+      </td>
+      <td>
+        <select class="cell-sel" onchange="updateField(${i},'statut_ligne',this.value)">
+          <option ${statut_ligne==='Actif'?'selected':''}>Actif</option>
+          <option ${statut_ligne==='Annulé'?'selected':''}>Annulé</option>
+        </select>
+      </td>
+      <td>
+        <select class="cell-sel" style="min-width:100px" onchange="updateField(${i},'type_camion',this.value)">
+          <option value="">—</option>
+          <option ${row.type_camion==='REEFER'?'selected':''}>REEFER</option>
+          <option ${row.type_camion==='CHAUFFÉE'?'selected':''}>CHAUFFÉE</option>
+        </select>
+      </td>
+      <td>
+        <input class="cell-inp" style="max-width:110px" value="${esc(row.num_camion||'')}"
+          placeholder="Ex: 1042"
+          onchange="updateField(${i},'num_camion',this.value)">
+      </td>
+      <td>
+        <select class="cell-sel" style="min-width:160px" onchange="updateField(${i},'destination',this.value)">
+          <option value="">—</option>
+          ${DESTINATIONS.map(d=>`<option ${row.destination===d?'selected':''}>${d}</option>`).join('')}
+        </select>
+      </td>
+      <td>
+        <input class="cell-inp" value="${esc(row.description||'')}"
+          placeholder="Description…"
+          onchange="updateField(${i},'description',this.value)">
+      </td>
+      <td>
+        <select class="cell-sel" onchange="updateField(${i},'statut',this.value)">
+          <option value="">—</option>
+          <option ${row.statut==='ATTENTE'?'selected':''}>ATTENTE</option>
+          <option ${row.statut==='FAIT'?'selected':''}>FAIT</option>
+        </select>
+      </td>
+      <td>
+        <select class="cell-sel" style="min-width:130px" onchange="updateField(${i},'chargement',this.value)">
+          <option value="">—</option>
+          <option ${row.chargement==='PRÊTE'?'selected':''}>PRÊTE</option>
+          <option ${row.chargement==='EN CHARGEMENT'?'selected':''}>EN CHARGEMENT</option>
+          <option ${row.chargement==='ATTENTE'?'selected':''}>ATTENTE</option>
+        </select>
+      </td>
+      <td>
+        <input class="cell-inp-time" type="time" value="${row.heure_reelle||''}"
+          onchange="updateField(${i},'heure_reelle',this.value)">
+      </td>
+      <td>
+        <div class="chk-wrap">
+          <div class="chk-box ${row.short_gh?'checked':''}" onclick="toggleShortGH(${i}, this)"></div>
+        </div>
+      </td>
+      <td>
+        <button class="btn-save" id="btn-save-${i}" onclick="saveRow(${i})">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Sauver
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  updateStats();
+}
+
+// ── UPDATE FIELD ──────────────────────────────────────────────────
+function updateField(idx, field, value) {
+  if (!planningData[idx]) planningData[idx] = { slot_index: idx };
+  planningData[idx][field] = value;
+
+  // Si on change statut_ligne, re-render la ligne pour appliquer le style annulé
+  if (field === 'statut_ligne') {
+    const tr = document.getElementById('row-' + idx);
+    if (tr) {
+      if (value === 'Annulé') tr.classList.add('annule-row');
+      else tr.classList.remove('annule-row');
+    }
+  }
+  updateStats();
+}
+
+function toggleShortGH(idx, el) {
+  if (!planningData[idx]) planningData[idx] = { slot_index: idx };
+  const newVal = !planningData[idx].short_gh;
+  planningData[idx].short_gh = newVal;
+  if (newVal) el.classList.add('checked'); else el.classList.remove('checked');
+  updateStats();
+}
+
+// ── SAVE ROW ──────────────────────────────────────────────────────
+async function saveRow(idx) {
+  const btn = document.getElementById('btn-save-' + idx);
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+
+  const row = planningData[idx] || {};
+  const payload = {
+    date_jour:    currentDate,
+    slot_index:   idx,
+    heure_planif: HORAIRES[idx],
+    statut_ligne: row.statut_ligne || 'Actif',
+    type_camion:  row.type_camion  || null,
+    num_camion:   row.num_camion   || null,
+    destination:  row.destination  || null,
+    description:  row.description  || null,
+    statut:       row.statut       || null,
+    chargement:   row.chargement   || null,
+    heure_reelle: row.heure_reelle || null,
+    short_gh:     row.short_gh     || false,
+    updated_at:   new Date().toISOString(),
+  };
+
+  let error;
+  if (row.id) {
+    ({ error } = await sb.from('planning_camions').update(payload).eq('id', row.id));
+  } else {
+    const { data, error: err } = await sb.from('planning_camions').insert([payload]).select().single();
+    error = err;
+    if (!error && data) planningData[idx] = { ...planningData[idx], ...data };
+  }
+
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Sauver';
+  }
+
+  if (error) { toast('Erreur: ' + error.message, 'error'); return; }
+  toast('Ligne ' + HORAIRES[idx] + ' sauvegardée.', 'success');
+}
+
+// ── STATS ─────────────────────────────────────────────────────────
+function updateStats() {
+  let actif = 0, attente = 0, fait = 0, annule = 0;
+  for (let i = 0; i < HORAIRES.length; i++) {
+    const row = planningData[i] || {};
+    if ((row.statut_ligne || 'Actif') === 'Annulé') { annule++; continue; }
+    if (row.statut === 'FAIT') fait++;
+    else if (row.statut === 'ATTENTE') attente++;
+    else actif++;
+  }
+  document.getElementById('st-actif').textContent   = actif;
+  document.getElementById('st-attente').textContent = attente;
+  document.getElementById('st-fait').textContent    = fait;
+  document.getElementById('st-annule').textContent  = annule;
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function toast(msg, type='info') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type; el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+</script>
+</body>
+</html>
