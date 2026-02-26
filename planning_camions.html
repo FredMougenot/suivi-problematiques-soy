@@ -11,573 +11,461 @@
 <style>
 :root {
   --bg-void:#06070B;--bg-deep:#0B0D13;--bg-base:#0F1118;
-  --bg-raised:#15181F;--bg-float:#1A1E2A;--bg-hover:#1F2436;--bg-active:#242B40;
+  --bg-raised:#15181F;--bg-float:#1A1E2A;--bg-hover:#1F2436;
   --copper:#C8843A;--copper-light:#E0A870;--copper-pale:#EDD4A8;
   --copper-glow:rgba(200,132,58,.22);--copper-dim:rgba(200,132,58,.10);
   --text-primary:#F0EAE0;--text-secondary:#BEC5D6;
   --text-muted:#7A82A0;--text-faint:#2C3350;
-  --emerald:#2DD4A0;--emerald-bg:rgba(45,212,160,.10);
-  --ruby:#E05555;--ruby-bg:rgba(224,85,85,.10);
-  --amber:#E8A43A;--amber-bg:rgba(232,164,58,.10);
-  --sapphire:#4A9EE8;--sapphire-bg:rgba(74,158,232,.10);
-  --r-sm:4px;--r-md:10px;--r-lg:16px;--r-xl:24px;
-  --shadow-md:0 4px 16px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);
-  --ease:cubic-bezier(.4,0,.2,1);--t-fast:.15s;--t-base:.25s;
+  --emerald:#2DD4A0;--ruby:#E05555;--amber:#E8A43A;--sapphire:#4A9EE8;
+  --r-sm:4px;--r-md:10px;--r-lg:16px;
+  --t-fast:.15s;--ease:cubic-bezier(.4,0,.2,1);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{font-size:16px;}
 body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-primary);min-height:100vh;display:flex;flex-direction:column;}
 
-/* ── TOPBAR ────────────────────────────────────────────────── */
-.topbar{
-  position:sticky;top:0;z-index:100;height:64px;
-  background:rgba(15,17,24,.92);backdrop-filter:blur(16px);
-  border-bottom:1px solid var(--text-faint);
-  padding:0 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;
-}
-.topbar-left{display:flex;align-items:center;gap:16px;}
-.tb-back{
-  display:flex;align-items:center;gap:7px;
-  padding:7px 14px;border-radius:var(--r-md);
-  background:var(--bg-float);border:1px solid var(--text-faint);
-  color:var(--text-secondary);font-size:.82rem;font-weight:500;
-  cursor:pointer;text-decoration:none;transition:all var(--t-fast);
-}
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:100;height:64px;background:rgba(15,17,24,.94);backdrop-filter:blur(16px);border-bottom:1px solid var(--text-faint);padding:0 28px;display:flex;align-items:center;justify-content:space-between;}
+.tb-left{display:flex;align-items:center;gap:14px;}
+.tb-back{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:var(--r-md);background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-secondary);font-size:.82rem;font-weight:500;cursor:pointer;text-decoration:none;transition:all var(--t-fast);}
 .tb-back:hover{border-color:var(--copper);color:var(--copper-light);}
-.tb-back svg{width:14px;height:14px;}
-.topbar-brand{display:flex;align-items:center;gap:10px;}
-.tb-icon{
-  width:36px;height:36px;border-radius:var(--r-md);
-  background:var(--copper-dim);border:1px solid rgba(200,132,58,.3);
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Playfair Display',serif;font-style:italic;
-  font-size:1rem;color:var(--copper-light);
-}
-.topbar-title{
-  font-family:'Outfit',sans-serif;font-size:1.52rem;
-  font-weight:700;color:var(--text-primary);letter-spacing:-.01em;
-}
-.topbar-right{display:flex;align-items:center;gap:12px;}
-.tb-date{
-  font-size:.82rem;color:var(--text-secondary);
-  background:var(--bg-float);border:1px solid var(--text-faint);
-  padding:6px 14px;border-radius:var(--r-md);
-}
-.tb-today{
-  font-size:.82rem;font-weight:600;color:var(--copper-light);
-  background:var(--copper-dim);border:1px solid rgba(200,132,58,.25);
-  padding:6px 14px;border-radius:var(--r-md);cursor:pointer;
-  transition:all var(--t-fast);
-}
-.tb-today:hover{background:rgba(200,132,58,.18);}
+.tb-brand{display:flex;align-items:center;gap:10px;}
+.tb-icon{width:36px;height:36px;border-radius:var(--r-md);background:var(--copper-dim);border:1px solid rgba(200,132,58,.3);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-style:italic;font-size:1rem;color:var(--copper-light);flex-shrink:0;}
+.tb-title{font-family:'Outfit',sans-serif;font-size:1.52rem;font-weight:700;color:var(--text-primary);letter-spacing:-.01em;}
+.tb-right{display:flex;align-items:center;gap:10px;}
+.btn-today{padding:8px 16px;border-radius:var(--r-md);background:var(--bg-float);border:1px solid rgba(200,132,58,.3);color:var(--copper-light);font-size:.82rem;font-weight:600;cursor:pointer;transition:all var(--t-fast);}
+.btn-today:hover{background:var(--copper-dim);}
+.btn-add{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;font-size:.84rem;font-weight:700;border:none;cursor:pointer;box-shadow:0 2px 12px rgba(200,132,58,.3);transition:all var(--t-fast);}
+.btn-add:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(200,132,58,.45);}
 
-/* ── DATE NAV ────────────────────────────────────────── */
-.date-nav{
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  padding:18px 28px 0;
-}
-.date-btn{
-  width:34px;height:34px;border-radius:var(--r-md);
-  background:var(--bg-raised);border:1px solid var(--text-faint);
-  color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:all var(--t-fast);font-size:1rem;
-}
-.date-btn:hover{border-color:var(--copper);color:var(--copper-light);}
-.date-display{
-  font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:700;
-  color:var(--text-primary);padding:6px 20px;
-  background:var(--bg-raised);border:1px solid var(--text-faint);
-  border-radius:var(--r-md);min-width:220px;text-align:center;
-}
-.date-today-pill{
-  font-size:.72rem;font-weight:700;color:var(--copper-light);
-  background:var(--copper-dim);border:1px solid rgba(200,132,58,.25);
-  padding:3px 10px;border-radius:20px;margin-left:4px;
-}
+/* DATE NAV */
+.date-nav{display:flex;align-items:center;justify-content:center;gap:10px;padding:20px 28px 0;}
+.date-arr{width:36px;height:36px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:all var(--t-fast);}
+.date-arr:hover{border-color:var(--copper);color:var(--copper-light);}
+.date-lbl{font-family:'Outfit',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text-primary);padding:8px 22px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);min-width:260px;text-align:center;}
+.today-chip{display:inline-block;font-size:.68rem;font-weight:700;color:var(--copper-light);background:var(--copper-dim);border:1px solid rgba(200,132,58,.25);padding:2px 9px;border-radius:20px;margin-left:8px;vertical-align:middle;}
 
-/* ── MAIN ────────────────────────────────────────────────── */
-.main{flex:1;padding:22px 28px 40px;}
+/* STATS */
+.stats-bar{display:flex;gap:10px;padding:16px 28px 0;flex-wrap:wrap;}
+.sp{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);font-size:.8rem;font-weight:600;}
+.sp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sp.s-actif  .sp-dot{background:var(--emerald);}
+.sp.s-att    .sp-dot{background:var(--amber);}
+.sp.s-fait   .sp-dot{background:var(--sapphire);}
+.sp.s-annule .sp-dot{background:var(--ruby);}
+.sp-val{color:var(--text-primary);margin-right:3px;}
+.sp-lbl{color:var(--text-muted);}
 
-/* ── STATS BAR ───────────────────────────────────────────── */
-.stats-bar{
-  display:flex;gap:12px;margin-bottom:22px;flex-wrap:wrap;
-}
-.stat-pill{
-  display:flex;align-items:center;gap:8px;
-  padding:8px 16px;border-radius:var(--r-md);
-  background:var(--bg-raised);border:1px solid var(--text-faint);
-  font-size:.8rem;font-weight:600;
-}
-.stat-pill .sp-dot{width:8px;height:8px;border-radius:50%;}
-.stat-pill.actif .sp-dot{background:var(--emerald);}
-.stat-pill.attente .sp-dot{background:var(--amber);}
-.stat-pill.fait .sp-dot{background:var(--sapphire);}
-.stat-pill.annule .sp-dot{background:var(--ruby);}
-.stat-pill .sp-val{color:var(--text-primary);}
-.stat-pill .sp-lbl{color:var(--text-muted);}
+/* MAIN */
+.main{flex:1;padding:18px 28px 50px;overflow-x:auto;}
 
-/* ── TABLE ───────────────────────────────────────────────── */
-.tbl-wrap{
-  background:var(--bg-raised);border:1px solid var(--text-faint);
-  border-radius:var(--r-lg);overflow:hidden;
-}
+/* TABLE */
+.tbl-outer{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow:hidden;min-width:1080px;}
 .ptbl{width:100%;border-collapse:collapse;}
-.ptbl thead tr{background:var(--bg-float);border-bottom:1px solid var(--text-faint);}
-.ptbl thead th{
-  padding:12px 14px;text-align:left;
-  font-size:.63rem;font-weight:800;color:var(--copper);
-  letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;
-}
+.ptbl thead tr{background:var(--bg-float);border-bottom:2px solid var(--text-faint);}
+.ptbl thead th{padding:13px 12px;text-align:left;font-size:.62rem;font-weight:800;color:var(--copper);letter-spacing:.15em;text-transform:uppercase;white-space:nowrap;}
 .ptbl tbody tr{border-bottom:1px solid var(--text-faint);transition:background var(--t-fast);}
 .ptbl tbody tr:last-child{border-bottom:none;}
-.ptbl tbody tr:hover{background:rgba(200,132,58,.03);}
-.ptbl tbody tr.annule-row{opacity:.55;}
-.ptbl tbody tr.annule-row td{text-decoration:line-through;color:var(--text-muted)!important;}
-.ptbl tbody td{padding:13px 14px;font-size:.84rem;color:var(--text-primary);vertical-align:middle;}
+.ptbl tbody tr:hover td{background:rgba(200,132,58,.025);}
+.ptbl tbody tr.row-extra{border-left:3px solid rgba(200,132,58,.4);}
+.ptbl tbody tr.row-annule td:not(.td-act){opacity:.42;text-decoration:line-through;}
+.ptbl tbody tr.row-annule .cs,.ptbl tbody tr.row-annule .ci{text-decoration:none;opacity:.55;}
+.ptbl tbody td{padding:11px 12px;font-size:.84rem;color:var(--text-primary);vertical-align:middle;}
 
 /* Heure */
-.td-heure{
-  font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;
-  color:var(--copper-light);white-space:nowrap;min-width:70px;
-}
-.td-heure.past{color:var(--text-muted);}
-.td-heure.current{color:var(--emerald);}
+.h-badge{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--copper-light);display:inline-flex;align-items:center;gap:7px;white-space:nowrap;}
+.h-badge.past{color:var(--text-muted);}
+.h-badge.now{color:var(--emerald);}
+.h-badge.extra{color:var(--text-secondary);font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:600;}
+.now-dot{width:7px;height:7px;border-radius:50%;background:var(--emerald);flex-shrink:0;animation:blink 1.4s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* Badges */
-.badge{display:inline-flex;align-items:center;font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap;}
-.b-actif   {background:rgba(45,212,160,.12);color:var(--emerald);border:1px solid rgba(45,212,160,.3);}
-.b-annule  {background:rgba(224,85,85,.12);color:var(--ruby);border:1px solid rgba(224,85,85,.3);}
-.b-attente {background:rgba(232,164,58,.12);color:var(--amber);border:1px solid rgba(232,164,58,.3);}
-.b-fait    {background:rgba(74,158,232,.12);color:var(--sapphire);border:1px solid rgba(74,158,232,.3);}
-.b-encours {background:rgba(200,132,58,.12);color:var(--copper-light);border:1px solid rgba(200,132,58,.3);}
-.b-prete   {background:rgba(45,212,160,.12);color:var(--emerald);border:1px solid rgba(45,212,160,.3);}
-.b-reefer  {background:rgba(74,158,232,.12);color:var(--sapphire);border:1px solid rgba(74,158,232,.3);}
-.b-chauf   {background:rgba(232,164,58,.12);color:var(--amber);border:1px solid rgba(232,164,58,.3);}
-.b-short   {background:rgba(224,85,85,.12);color:var(--ruby);border:1px solid rgba(224,85,85,.3);}
+/* Inputs */
+.cs{background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-sm);padding:6px 8px;font-size:.8rem;font-family:'Outfit',sans-serif;cursor:pointer;outline:none;transition:border-color var(--t-fast);min-width:100px;}
+.cs:focus{border-color:var(--copper);}
+.cs option{background:#1A1E2A;}
+.ci{background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-sm);padding:6px 9px;font-size:.8rem;font-family:'Outfit',sans-serif;width:100%;outline:none;transition:border-color var(--t-fast);}
+.ci:focus{border-color:var(--copper);}
+.ci::placeholder{color:var(--text-muted);}
+.ci-t{background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-sm);padding:6px 8px;font-size:.8rem;font-family:'Outfit',sans-serif;width:96px;outline:none;transition:border-color var(--t-fast);}
+.ci-t:focus{border-color:var(--copper);}
 
-/* Selects inline */
-.cell-sel{
-  background:var(--bg-float);border:1px solid var(--text-faint);
-  color:var(--text-primary);border-radius:var(--r-sm);
-  padding:5px 8px;font-size:.8rem;font-family:'Outfit',sans-serif;
-  cursor:pointer;transition:border-color var(--t-fast);outline:none;
-  min-width:110px;
-}
-.cell-sel:focus{border-color:var(--copper);}
-.cell-sel option{background:var(--bg-float);}
+/* Short GH */
+.chk{width:22px;height:22px;border-radius:5px;border:1.5px solid var(--text-faint);background:var(--bg-float);cursor:pointer;display:flex;align-items:center;justify-content:center;margin:0 auto;transition:all var(--t-fast);}
+.chk.on{background:rgba(224,85,85,.18);border-color:var(--ruby);}
+.chk.on::after{content:'✓';font-size:.75rem;font-weight:800;color:var(--ruby);}
 
-/* Input inline */
-.cell-inp{
-  background:var(--bg-float);border:1px solid var(--text-faint);
-  color:var(--text-primary);border-radius:var(--r-sm);
-  padding:5px 9px;font-size:.8rem;font-family:'Outfit',sans-serif;
-  width:100%;min-width:80px;max-width:180px;
-  transition:border-color var(--t-fast);outline:none;
-}
-.cell-inp:focus{border-color:var(--copper);}
-.cell-inp::placeholder{color:var(--text-muted);}
+/* Boutons */
+.td-act{white-space:nowrap;min-width:100px;}
+.btn-sv{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--r-sm);background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;font-size:.75rem;font-weight:700;border:none;cursor:pointer;transition:all var(--t-fast);}
+.btn-sv:hover{opacity:.85;transform:translateY(-1px);}
+.btn-sv:disabled{opacity:.35;cursor:default;transform:none;}
+.btn-rm{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:var(--r-sm);background:transparent;border:1px solid var(--text-faint);color:var(--text-muted);cursor:pointer;margin-left:5px;transition:all var(--t-fast);font-size:.8rem;}
+.btn-rm:hover{border-color:var(--ruby);color:var(--ruby);background:rgba(224,85,85,.08);}
 
-/* Heure réelle */
-.cell-inp-time{
-  background:var(--bg-float);border:1px solid var(--text-faint);
-  color:var(--text-primary);border-radius:var(--r-sm);
-  padding:5px 8px;font-size:.8rem;font-family:'Outfit',sans-serif;
-  width:90px;transition:border-color var(--t-fast);outline:none;
-}
-.cell-inp-time:focus{border-color:var(--copper);}
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.overlay.open{display:flex;}
+.modal{background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-lg);padding:28px;width:400px;max-width:95vw;box-shadow:0 16px 48px rgba(0,0,0,.6);}
+.modal-t{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:20px;display:flex;align-items:center;gap:10px;}
+.fg{margin-bottom:14px;}
+.fg label{display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:6px;}
+.fg .fi,.fg .fs{width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:10px 13px;font-size:.88rem;font-family:'Outfit',sans-serif;outline:none;transition:border-color var(--t-fast);}
+.fg .fi:focus,.fg .fs:focus{border-color:var(--copper);}
+.fg .fs option{background:var(--bg-raised);}
+.m-acts{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+.btn-cx{padding:9px 18px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);font-size:.84rem;font-weight:600;cursor:pointer;transition:all var(--t-fast);}
+.btn-cx:hover{color:var(--text-primary);border-color:var(--text-muted);}
+.btn-ok{padding:9px 20px;border-radius:var(--r-md);background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;font-size:.84rem;font-weight:700;border:none;cursor:pointer;transition:opacity var(--t-fast);}
+.btn-ok:hover{opacity:.88;}
 
-/* Bouton sauvegarder */
-.btn-save{
-  padding:5px 13px;border-radius:var(--r-sm);
-  background:linear-gradient(135deg,var(--copper),var(--copper-light));
-  color:#0F1118;font-size:.76rem;font-weight:700;
-  border:none;cursor:pointer;white-space:nowrap;
-  transition:all var(--t-fast);
-}
-.btn-save:hover{opacity:.88;transform:translateY(-1px);}
-.btn-save:disabled{opacity:.4;cursor:default;transform:none;}
-
-/* Short GH checkbox */
-.chk-wrap{display:flex;align-items:center;justify-content:center;}
-.chk-box{
-  width:20px;height:20px;border-radius:5px;
-  border:1.5px solid var(--text-faint);background:var(--bg-float);
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:all var(--t-fast);flex-shrink:0;
-}
-.chk-box.checked{background:rgba(224,85,85,.2);border-color:var(--ruby);}
-.chk-box.checked::after{content:'✓';font-size:.72rem;color:var(--ruby);font-weight:800;}
-
-/* Toast */
-#toasts{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
-.toast{
-  padding:11px 18px;border-radius:var(--r-md);font-size:.82rem;font-weight:500;
-  border:1px solid;animation:slideIn .2s var(--ease);
-  max-width:320px;
-}
+/* TOAST */
+#toasts{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+.toast{padding:11px 18px;border-radius:var(--r-md);font-size:.82rem;font-weight:500;border:1px solid;animation:tin .2s var(--ease);max-width:320px;pointer-events:auto;}
 .toast.success{background:rgba(45,212,160,.12);color:var(--emerald);border-color:rgba(45,212,160,.3);}
-.toast.error  {background:rgba(224,85,85,.12);color:var(--ruby);border-color:rgba(224,85,85,.3);}
-.toast.info   {background:rgba(74,158,232,.12);color:var(--sapphire);border-color:rgba(74,158,232,.3);}
-@keyframes slideIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
+.toast.error{background:rgba(224,85,85,.12);color:var(--ruby);border-color:rgba(224,85,85,.3);}
+.toast.info{background:rgba(74,158,232,.12);color:var(--sapphire);border-color:rgba(74,158,232,.3);}
+@keyframes tin{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
 
-/* Loading */
-.loading{display:flex;align-items:center;justify-content:center;padding:60px;color:var(--text-muted);font-size:.9rem;gap:10px;}
-.spin{width:18px;height:18px;border:2px solid var(--text-faint);border-top-color:var(--copper);border-radius:50%;animation:spin .7s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* Indicateur actuel */
-.current-indicator{
-  display:flex;align-items:center;gap:6px;
-  font-size:.72rem;color:var(--emerald);font-weight:600;
-}
-.current-dot{width:6px;height:6px;border-radius:50%;background:var(--emerald);animation:pulse 1.5s infinite;}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-
-/* Num camion */
-.num-badge{
-  font-family:'Playfair Display',serif;font-size:.9rem;font-weight:700;
-  color:var(--text-secondary);letter-spacing:.05em;
-}
+.spinner{display:flex;align-items:center;justify-content:center;padding:50px;gap:12px;color:var(--text-muted);font-size:.9rem;}
+.spin{width:18px;height:18px;border:2px solid var(--text-faint);border-top-color:var(--copper);border-radius:50%;animation:rot .7s linear infinite;}
+@keyframes rot{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
 <!-- TOPBAR -->
 <header class="topbar">
-  <div class="topbar-left">
+  <div class="tb-left">
     <a href="index.html" class="tb-back">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       Retour
     </a>
-    <div class="topbar-brand">
+    <div class="tb-brand">
       <div class="tb-icon">S</div>
-      <div class="topbar-title">Planification Camions</div>
+      <div class="tb-title">Planification Camions</div>
     </div>
   </div>
-  <div class="topbar-right">
-    <div class="tb-date" id="tb-date-display">—</div>
-    <div class="tb-today" onclick="goToToday()">Aujourd'hui</div>
+  <div class="tb-right">
+    <button class="btn-today" onclick="goToday()">Aujourd'hui</button>
+    <button class="btn-add" onclick="openModal()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Ajouter un camion
+    </button>
   </div>
 </header>
 
 <!-- DATE NAV -->
 <div class="date-nav">
-  <button class="date-btn" onclick="changeDay(-1)">&#8592;</button>
-  <div class="date-display" id="date-display">—<span class="date-today-pill" id="today-pill" style="display:none">Aujourd'hui</span></div>
-  <button class="date-btn" onclick="changeDay(1)">&#8594;</button>
+  <button class="date-arr" onclick="changeDay(-1)">&#8592;</button>
+  <div class="date-lbl" id="date-lbl">—</div>
+  <button class="date-arr" onclick="changeDay(1)">&#8594;</button>
 </div>
 
-<!-- MAIN -->
-<main class="main">
-  <!-- Stats bar -->
-  <div class="stats-bar" id="stats-bar">
-    <div class="stat-pill actif"><div class="sp-dot"></div><span class="sp-val" id="st-actif">—</span><span class="sp-lbl">Actifs</span></div>
-    <div class="stat-pill attente"><div class="sp-dot"></div><span class="sp-val" id="st-attente">—</span><span class="sp-lbl">En attente</span></div>
-    <div class="stat-pill fait"><div class="sp-dot"></div><span class="sp-val" id="st-fait">—</span><span class="sp-lbl">Faits</span></div>
-    <div class="stat-pill annule"><div class="sp-dot"></div><span class="sp-val" id="st-annule">—</span><span class="sp-lbl">Annulés</span></div>
-  </div>
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="sp s-actif">  <div class="sp-dot"></div><span class="sp-val" id="st-a">0</span><span class="sp-lbl">Actifs</span></div>
+  <div class="sp s-att">    <div class="sp-dot"></div><span class="sp-val" id="st-w">0</span><span class="sp-lbl">En attente</span></div>
+  <div class="sp s-fait">   <div class="sp-dot"></div><span class="sp-val" id="st-f">0</span><span class="sp-lbl">Faits</span></div>
+  <div class="sp s-annule"> <div class="sp-dot"></div><span class="sp-val" id="st-x">0</span><span class="sp-lbl">Annulés</span></div>
+</div>
 
-  <!-- Table -->
-  <div class="tbl-wrap">
-    <div class="loading" id="loading"><div class="spin"></div> Chargement…</div>
-    <table class="ptbl" id="planning-table" style="display:none">
-      <thead>
-        <tr>
-          <th>Heure</th>
-          <th>Statut ligne</th>
-          <th>Type</th>
-          <th>N° Camion</th>
-          <th>Destination</th>
-          <th>Description</th>
-          <th>Statut</th>
-          <th>Chargement</th>
-          <th>Heure réelle</th>
-          <th>Short GH</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="planning-tbody"></tbody>
+<!-- TABLE -->
+<main class="main">
+  <div id="spinner" class="spinner"><div class="spin"></div> Chargement…</div>
+  <div class="tbl-outer" id="tbl" style="display:none">
+    <table class="ptbl">
+      <thead><tr>
+        <th>Heure planifiée</th>
+        <th>Statut ligne</th>
+        <th>Type camion</th>
+        <th>N° Camion</th>
+        <th>Destination</th>
+        <th>Description</th>
+        <th>Statut</th>
+        <th>Chargement</th>
+        <th>Heure réelle</th>
+        <th style="text-align:center">Short GH</th>
+        <th></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
     </table>
   </div>
 </main>
 
+<!-- MODAL -->
+<div class="overlay" id="modal">
+  <div class="modal">
+    <div class="modal-t">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--copper-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      Ajouter un camion supplémentaire
+    </div>
+    <div class="fg"><label>Heure d'arrivée</label><input class="fi" type="time" id="m-h" value="08:00"></div>
+    <div class="fg"><label>Type de camion</label>
+      <select class="fs" id="m-t"><option value="">— Sélectionner —</option><option>REEFER</option><option>CHAUFFÉE</option></select></div>
+    <div class="fg"><label>N° Camion</label><input class="fi" type="text" id="m-n" placeholder="Ex: 1042"></div>
+    <div class="fg"><label>Destination</label>
+      <select class="fs" id="m-d"><option value="">— Sélectionner —</option>
+        <option>GH</option><option>ADVANTECH</option><option>PROACTIVE</option>
+        <option>LJDERY</option><option>AUCUN REPARTIR BOBTAIL</option>
+      </select></div>
+    <div class="m-acts">
+      <button class="btn-cx" onclick="closeModal()">Annuler</button>
+      <button class="btn-ok" onclick="confirmAdd()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
 <div id="toasts"></div>
 
 <script>
-const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+const sb = supabase.createClient(SB_URL, SB_KEY);
 
-// Horaires fixes quotidiens
-const HORAIRES = [
-  '06:00','06:00','07:30','09:00','11:30','14:00','15:30','17:00','18:00','19:00'
+// 10 slots fixes quotidiens
+const SLOTS = [
+  {idx:0, h:'06:00', lbl:'06h00 · Camion A'},
+  {idx:1, h:'06:00', lbl:'06h00 · Camion B'},
+  {idx:2, h:'07:30', lbl:'07h30'},
+  {idx:3, h:'09:00', lbl:'09h00'},
+  {idx:4, h:'11:30', lbl:'11h30'},
+  {idx:5, h:'14:00', lbl:'14h00'},
+  {idx:6, h:'15:30', lbl:'15h30'},
+  {idx:7, h:'17:00', lbl:'17h00'},
+  {idx:8, h:'18:00', lbl:'18h00'},
+  {idx:9, h:'19:00', lbl:'19h00'},
 ];
+const DESTS = ['GH','ADVANTECH','PROACTIVE','LJDERY','AUCUN REPARTIR BOBTAIL'];
 
-const DESTINATIONS = ['GH','ADVANTECH','PROACTIVE','LJDERY','AUCUN REPARTIR BOBTAIL'];
+let curDate = todayStr();
+let rows = {};  // idx -> row object
 
-let currentDate = todayStr();
-let planningData = {}; // keyed by slot index
-
-function todayStr() {
-  return new Date().toISOString().slice(0,10);
+// ── UTILS ──────────────────────────────────────────────────────────
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function isToday(){ return curDate === todayStr(); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function nowHM(){
+  const n=new Date();
+  return n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
 }
-function fmtDateFr(str) {
-  if (!str) return '—';
-  const d = new Date(str + 'T00:00:00');
-  return d.toLocaleDateString('fr-CA', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+function slotCls(h){
+  if(!isToday()) return '';
+  const hm=nowHM();
+  if(h<hm) return 'past';
+  // premier slot >= maintenant
+  for(const s of SLOTS){ if(s.h>=hm){ return s.h===h?'now':''; } }
+  return '';
 }
-function isToday(str) { return str === todayStr(); }
-
-function getCurrentHoraire() {
-  const now = new Date();
-  const hm = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-  // Trouver le slot actuel (le plus proche dans le passé)
-  let current = -1;
-  for (let i = 0; i < HORAIRES.length; i++) {
-    if (HORAIRES[i] <= hm) current = i;
-  }
-  return current;
-}
-
-// ── INIT ──────────────────────────────────────────────────────────
-window.addEventListener('load', async () => {
-  updateDateUI();
-  await ensureTable();
-  await loadPlanning();
-});
-
-async function ensureTable() {
-  // Créer la table si elle n'existe pas via upsert — Supabase la créera automatiquement
-  // On vérifie juste en faisant un select
-  try {
-    await sb.from('planning_camions').select('id').limit(1);
-  } catch(e) {
-    // Table n'existe pas — elle sera créée au premier insert
-  }
+function toast(msg,type='info'){
+  const el=document.createElement('div');
+  el.className='toast '+type; el.textContent=msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(),4000);
 }
 
 // ── DATE ──────────────────────────────────────────────────────────
-function updateDateUI() {
-  const label = fmtDateFr(currentDate);
-  document.getElementById('date-display').innerHTML =
-    label + (isToday(currentDate) ? ' <span class="date-today-pill">Aujourd\'hui</span>' : '');
-  document.getElementById('tb-date-display').textContent = currentDate;
+function refreshDateUI(){
+  const d=new Date(curDate+'T00:00:00');
+  const lbl=d.toLocaleDateString('fr-CA',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('date-lbl').innerHTML = lbl
+    +(isToday()?'<span class="today-chip">Aujourd\'hui</span>':'');
 }
-function changeDay(delta) {
-  const d = new Date(currentDate + 'T00:00:00');
-  d.setDate(d.getDate() + delta);
-  currentDate = d.toISOString().slice(0,10);
-  updateDateUI();
-  loadPlanning();
+function changeDay(delta){
+  const d=new Date(curDate+'T00:00:00');
+  d.setDate(d.getDate()+delta);
+  curDate=d.toISOString().slice(0,10);
+  refreshDateUI(); load();
 }
-function goToToday() {
-  currentDate = todayStr();
-  updateDateUI();
-  loadPlanning();
-}
+function goToday(){ curDate=todayStr(); refreshDateUI(); load(); }
 
 // ── LOAD ──────────────────────────────────────────────────────────
-async function loadPlanning() {
-  document.getElementById('loading').style.display = 'flex';
-  document.getElementById('planning-table').style.display = 'none';
+window.addEventListener('load',()=>{ refreshDateUI(); load(); });
 
-  const { data, error } = await sb
-    .from('planning_camions')
-    .select('*')
-    .eq('date_jour', currentDate)
-    .order('slot_index');
-
-  if (error && error.code !== 'PGRST116') {
-    toast('Erreur chargement: ' + error.message, 'error');
-    document.getElementById('loading').style.display = 'none';
-    return;
-  }
-
-  // Indexer par slot
-  planningData = {};
-  (data || []).forEach(row => { planningData[row.slot_index] = row; });
-
-  renderTable();
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('planning-table').style.display = 'table';
+async function load(){
+  document.getElementById('spinner').style.display='flex';
+  document.getElementById('tbl').style.display='none';
+  rows={};
+  const {data,error}=await sb.from('planning_camions').select('*')
+    .eq('date_jour',curDate).order('slot_index');
+  if(error && error.code!=='PGRST116')
+    toast('Erreur chargement: '+error.message,'error');
+  (data||[]).forEach(r=>{ rows[r.slot_index]=r; });
+  render();
+  document.getElementById('spinner').style.display='none';
+  document.getElementById('tbl').style.display='block';
 }
 
-// ── RENDER ────────────────────────────────────────────────────────
-function renderTable() {
-  const tbody = document.getElementById('planning-tbody');
-  const currentSlot = isToday(currentDate) ? getCurrentHoraire() : -1;
-
-  tbody.innerHTML = HORAIRES.map((h, i) => {
-    const row = planningData[i] || {};
-    const statut_ligne = row.statut_ligne || 'Actif';
-    const annule = statut_ligne === 'Annulé';
-    const heureCls = isToday(currentDate)
-      ? (i < currentSlot ? 'past' : i === currentSlot ? 'current' : '')
-      : '';
-
-    // Libellé heure (deux camions à 6h = slot 0 et 1)
-    const heureLabel = h;
-    const isCurrent = isToday(currentDate) && i === currentSlot;
-
-    return `<tr id="row-${i}" class="${annule ? 'annule-row' : ''}">
-      <td class="td-heure ${heureCls}">
-        ${heureLabel}
-        ${isCurrent ? '<div class="current-indicator"><div class="current-dot"></div></div>' : ''}
-      </td>
-      <td>
-        <select class="cell-sel" onchange="updateField(${i},'statut_ligne',this.value)">
-          <option ${statut_ligne==='Actif'?'selected':''}>Actif</option>
-          <option ${statut_ligne==='Annulé'?'selected':''}>Annulé</option>
-        </select>
-      </td>
-      <td>
-        <select class="cell-sel" style="min-width:100px" onchange="updateField(${i},'type_camion',this.value)">
-          <option value="">—</option>
-          <option ${row.type_camion==='REEFER'?'selected':''}>REEFER</option>
-          <option ${row.type_camion==='CHAUFFÉE'?'selected':''}>CHAUFFÉE</option>
-        </select>
-      </td>
-      <td>
-        <input class="cell-inp" style="max-width:110px" value="${esc(row.num_camion||'')}"
-          placeholder="Ex: 1042"
-          onchange="updateField(${i},'num_camion',this.value)">
-      </td>
-      <td>
-        <select class="cell-sel" style="min-width:160px" onchange="updateField(${i},'destination',this.value)">
-          <option value="">—</option>
-          ${DESTINATIONS.map(d=>`<option ${row.destination===d?'selected':''}>${d}</option>`).join('')}
-        </select>
-      </td>
-      <td>
-        <input class="cell-inp" value="${esc(row.description||'')}"
-          placeholder="Description…"
-          onchange="updateField(${i},'description',this.value)">
-      </td>
-      <td>
-        <select class="cell-sel" onchange="updateField(${i},'statut',this.value)">
-          <option value="">—</option>
-          <option ${row.statut==='ATTENTE'?'selected':''}>ATTENTE</option>
-          <option ${row.statut==='FAIT'?'selected':''}>FAIT</option>
-        </select>
-      </td>
-      <td>
-        <select class="cell-sel" style="min-width:130px" onchange="updateField(${i},'chargement',this.value)">
-          <option value="">—</option>
-          <option ${row.chargement==='PRÊTE'?'selected':''}>PRÊTE</option>
-          <option ${row.chargement==='EN CHARGEMENT'?'selected':''}>EN CHARGEMENT</option>
-          <option ${row.chargement==='ATTENTE'?'selected':''}>ATTENTE</option>
-        </select>
-      </td>
-      <td>
-        <input class="cell-inp-time" type="time" value="${row.heure_reelle||''}"
-          onchange="updateField(${i},'heure_reelle',this.value)">
-      </td>
-      <td>
-        <div class="chk-wrap">
-          <div class="chk-box ${row.short_gh?'checked':''}" onclick="toggleShortGH(${i}, this)"></div>
-        </div>
-      </td>
-      <td>
-        <button class="btn-save" id="btn-save-${i}" onclick="saveRow(${i})">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          Sauver
-        </button>
-      </td>
-    </tr>`;
-  }).join('');
-
+// ── RENDER ─────────────────────────────────────────────────────────
+function render(){
+  const extras=Object.keys(rows).map(Number).filter(i=>i>=10).sort((a,b)=>a-b);
+  let html='';
+  SLOTS.forEach(s => { html+=buildRow(s.idx, s.h, s.lbl, false); });
+  extras.forEach(i => {
+    const r=rows[i];
+    html+=buildRow(i, r.heure_planif||'—', (r.heure_planif||'?')+' · Extra', true);
+  });
+  document.getElementById('tbody').innerHTML=html;
   updateStats();
 }
 
-// ── UPDATE FIELD ──────────────────────────────────────────────────
-function updateField(idx, field, value) {
-  if (!planningData[idx]) planningData[idx] = { slot_index: idx };
-  planningData[idx][field] = value;
+function buildRow(idx, heure, lbl, isExtra){
+  const r=rows[idx]||{};
+  const sl=r.statut_ligne||'Actif';
+  const ann=sl==='Annulé';
+  const hcls=isExtra?'extra':slotCls(heure);
+  const dot=hcls==='now';
+  const trCls=(ann?'row-annule':'')+(isExtra?' row-extra':'');
+  const selDests=DESTS.map(d=>`<option${r.destination===d?' selected':''}>${esc(d)}</option>`).join('');
+  const svgSave='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+  return `<tr id="tr${idx}" class="${trCls}">
+    <td><span class="h-badge ${hcls}">${dot?'<span class="now-dot"></span>':''}${esc(lbl)}</span></td>
+    <td><select class="cs" onchange="fchg(${idx},'statut_ligne',this.value)">
+      <option${sl==='Actif'?' selected':''}>Actif</option>
+      <option${sl==='Annulé'?' selected':''}>Annulé</option>
+    </select></td>
+    <td><select class="cs" style="min-width:105px" onchange="fchg(${idx},'type_camion',this.value)">
+      <option value="">—</option>
+      <option${r.type_camion==='REEFER'?' selected':''}>REEFER</option>
+      <option${r.type_camion==='CHAUFFÉE'?' selected':''}>CHAUFFÉE</option>
+    </select></td>
+    <td><input class="ci" style="max-width:100px" value="${esc(r.num_camion||'')}" placeholder="N° camion" oninput="fchg(${idx},'num_camion',this.value)"></td>
+    <td><select class="cs" style="min-width:170px" onchange="fchg(${idx},'destination',this.value)">
+      <option value="">—</option>${selDests}
+    </select></td>
+    <td><input class="ci" value="${esc(r.description||'')}" placeholder="Description…" oninput="fchg(${idx},'description',this.value)"></td>
+    <td><select class="cs" onchange="fchg(${idx},'statut',this.value)">
+      <option value="">—</option>
+      <option${r.statut==='ATTENTE'?' selected':''}>ATTENTE</option>
+      <option${r.statut==='FAIT'?' selected':''}>FAIT</option>
+    </select></td>
+    <td><select class="cs" style="min-width:140px" onchange="fchg(${idx},'chargement',this.value)">
+      <option value="">—</option>
+      <option${r.chargement==='PRÊTE'?' selected':''}>PRÊTE</option>
+      <option${r.chargement==='EN CHARGEMENT'?' selected':''}>EN CHARGEMENT</option>
+      <option${r.chargement==='ATTENTE'?' selected':''}>ATTENTE</option>
+    </select></td>
+    <td><input class="ci-t" type="time" value="${esc(r.heure_reelle||'')}" oninput="fchg(${idx},'heure_reelle',this.value)"></td>
+    <td><div class="chk${r.short_gh?' on':''}" onclick="togGH(${idx},this)"></div></td>
+    <td class="td-act">
+      <button class="btn-sv" id="bsv${idx}" onclick="saveRow(${idx})">${svgSave} Sauver</button>
+      ${isExtra?`<button class="btn-rm" onclick="delRow(${idx})" title="Supprimer">✕</button>`:''}
+    </td>
+  </tr>`;
+}
 
-  // Si on change statut_ligne, re-render la ligne pour appliquer le style annulé
-  if (field === 'statut_ligne') {
-    const tr = document.getElementById('row-' + idx);
-    if (tr) {
-      if (value === 'Annulé') tr.classList.add('annule-row');
-      else tr.classList.remove('annule-row');
-    }
+// ── CHAMPS ─────────────────────────────────────────────────────────
+function fchg(idx, field, val){
+  if(!rows[idx]) rows[idx]={slot_index:idx};
+  rows[idx][field]=val;
+  if(field==='statut_ligne'){
+    const tr=document.getElementById('tr'+idx);
+    if(tr){ val==='Annulé'?tr.classList.add('row-annule'):tr.classList.remove('row-annule'); }
   }
   updateStats();
 }
-
-function toggleShortGH(idx, el) {
-  if (!planningData[idx]) planningData[idx] = { slot_index: idx };
-  const newVal = !planningData[idx].short_gh;
-  planningData[idx].short_gh = newVal;
-  if (newVal) el.classList.add('checked'); else el.classList.remove('checked');
-  updateStats();
+function togGH(idx, el){
+  if(!rows[idx]) rows[idx]={slot_index:idx};
+  const v=!rows[idx].short_gh;
+  rows[idx].short_gh=v;
+  v?el.classList.add('on'):el.classList.remove('on');
 }
 
-// ── SAVE ROW ──────────────────────────────────────────────────────
-async function saveRow(idx) {
-  const btn = document.getElementById('btn-save-' + idx);
-  if (btn) { btn.disabled = true; btn.textContent = '…'; }
-
-  const row = planningData[idx] || {};
-  const payload = {
-    date_jour:    currentDate,
-    slot_index:   idx,
-    heure_planif: HORAIRES[idx],
-    statut_ligne: row.statut_ligne || 'Actif',
-    type_camion:  row.type_camion  || null,
-    num_camion:   row.num_camion   || null,
-    destination:  row.destination  || null,
-    description:  row.description  || null,
-    statut:       row.statut       || null,
-    chargement:   row.chargement   || null,
-    heure_reelle: row.heure_reelle || null,
-    short_gh:     row.short_gh     || false,
-    updated_at:   new Date().toISOString(),
+// ── SAVE ───────────────────────────────────────────────────────────
+async function saveRow(idx){
+  const btn=document.getElementById('bsv'+idx);
+  if(btn){btn.disabled=true;btn.textContent='…';}
+  const slot=SLOTS.find(s=>s.idx===idx);
+  const r=rows[idx]||{};
+  const payload={
+    date_jour:curDate, slot_index:idx,
+    heure_planif:r.heure_planif||(slot?slot.h:'00:00'),
+    statut_ligne:r.statut_ligne||'Actif',
+    type_camion:r.type_camion||null,
+    num_camion:r.num_camion||null,
+    destination:r.destination||null,
+    description:r.description||null,
+    statut:r.statut||null,
+    chargement:r.chargement||null,
+    heure_reelle:r.heure_reelle||null,
+    short_gh:r.short_gh||false,
+    updated_at:new Date().toISOString(),
   };
-
   let error;
-  if (row.id) {
-    ({ error } = await sb.from('planning_camions').update(payload).eq('id', row.id));
+  if(r.id){
+    ({error}=await sb.from('planning_camions').update(payload).eq('id',r.id));
   } else {
-    const { data, error: err } = await sb.from('planning_camions').insert([payload]).select().single();
-    error = err;
-    if (!error && data) planningData[idx] = { ...planningData[idx], ...data };
+    const {data:saved,error:err}=await sb.from('planning_camions').insert([payload]).select().single();
+    error=err;
+    if(!error&&saved) rows[idx]={...rows[idx],...saved};
   }
-
-  if (btn) {
-    btn.disabled = false;
-    btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Sauver';
-  }
-
-  if (error) { toast('Erreur: ' + error.message, 'error'); return; }
-  toast('Ligne ' + HORAIRES[idx] + ' sauvegardée.', 'success');
+  const svgSave='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+  if(btn){btn.disabled=false;btn.innerHTML=svgSave+' Sauver';}
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  toast('✓ '+(slot?slot.lbl:(r.heure_planif||'Extra'))+' sauvegardé','success');
 }
 
-// ── STATS ─────────────────────────────────────────────────────────
-function updateStats() {
-  let actif = 0, attente = 0, fait = 0, annule = 0;
-  for (let i = 0; i < HORAIRES.length; i++) {
-    const row = planningData[i] || {};
-    if ((row.statut_ligne || 'Actif') === 'Annulé') { annule++; continue; }
-    if (row.statut === 'FAIT') fait++;
-    else if (row.statut === 'ATTENTE') attente++;
-    else actif++;
+// ── DELETE (extra) ─────────────────────────────────────────────────
+async function delRow(idx){
+  if(!confirm('Supprimer ce camion supplémentaire ?')) return;
+  const r=rows[idx];
+  if(r&&r.id){
+    const {error}=await sb.from('planning_camions').delete().eq('id',r.id);
+    if(error){toast('Erreur: '+error.message,'error');return;}
   }
-  document.getElementById('st-actif').textContent   = actif;
-  document.getElementById('st-attente').textContent = attente;
-  document.getElementById('st-fait').textContent    = fait;
-  document.getElementById('st-annule').textContent  = annule;
+  delete rows[idx]; render();
+  toast('Camion supplémentaire supprimé.','info');
 }
 
-// ── HELPERS ───────────────────────────────────────────────────────
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+// ── STATS ──────────────────────────────────────────────────────────
+function updateStats(){
+  let a=0,w=0,f=0,x=0;
+  const allIdx=[...SLOTS.map(s=>s.idx),...Object.keys(rows).map(Number).filter(i=>i>=10)];
+  allIdx.forEach(i=>{
+    const r=rows[i]||{};
+    if((r.statut_ligne||'Actif')==='Annulé'){x++;return;}
+    if(r.statut==='FAIT') f++;
+    else if(r.statut==='ATTENTE') w++;
+    else a++;
+  });
+  document.getElementById('st-a').textContent=a;
+  document.getElementById('st-w').textContent=w;
+  document.getElementById('st-f').textContent=f;
+  document.getElementById('st-x').textContent=x;
+}
 
-function toast(msg, type='info') {
-  const el = document.createElement('div');
-  el.className = 'toast ' + type; el.textContent = msg;
-  document.getElementById('toasts').appendChild(el);
-  setTimeout(() => el.remove(), 4000);
+// ── MODAL ──────────────────────────────────────────────────────────
+function openModal(){
+  document.getElementById('m-h').value='08:00';
+  document.getElementById('m-t').value='';
+  document.getElementById('m-n').value='';
+  document.getElementById('m-d').value='';
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('modal').addEventListener('click',e=>{
+    if(e.target===document.getElementById('modal')) closeModal();
+  });
+});
+async function confirmAdd(){
+  const h=document.getElementById('m-h').value;
+  if(!h){toast('Veuillez choisir une heure.','error');return;}
+  const used=Object.keys(rows).map(Number).filter(i=>i>=10);
+  const newIdx=used.length>0?Math.max(...used)+1:10;
+  rows[newIdx]={
+    slot_index:newIdx,
+    heure_planif:h,
+    type_camion:document.getElementById('m-t').value||null,
+    num_camion:document.getElementById('m-n').value||null,
+    destination:document.getElementById('m-d').value||null,
+    statut_ligne:'Actif',
+  };
+  closeModal();
+  render();
+  await saveRow(newIdx);
+  const tr=document.getElementById('tr'+newIdx);
+  if(tr) tr.scrollIntoView({behavior:'smooth',block:'center'});
 }
 </script>
 </body>
