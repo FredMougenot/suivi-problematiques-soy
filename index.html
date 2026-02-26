@@ -984,7 +984,9 @@ async function loadAll(){
   try{
     const {data,error}=await sb.from('problematiques').select('*').order('created_at',{ascending:false});
     if(error){toast('Erreur: '+error.message,'error');return;}
-    allProblems=data||[]; renderDash(); renderTable(); renderAdminTable();
+    const all=data||[];
+    allProblems=all.filter(p=>p.statut!=='Clôturé'); // registre exclut les clôturés
+    renderDash(); renderTable(); renderAdminTable();
   }catch(e){toast('Connexion impossible.','error');}
 }
 function renderDash(){
@@ -998,13 +1000,15 @@ function renderDash(){
   document.getElementById('kpi-resolu').textContent=resolu;
   const badge=document.getElementById('badge-ouvert');
   if(badge){ouvert>0?(badge.style.display='',badge.textContent=ouvert):badge.style.display='none';}
+  // Seulement les problématiques actives (À traiter + En cours)
+  const actifs=allProblems.filter(p=>p.statut==='À traiter'||p.statut==='En cours');
   const dc={};depts.forEach(d=>dc[d]=0);
-  allProblems.forEach(p=>{if(p.departement)dc[p.departement]=(dc[p.departement]||0)+1;});
+  actifs.forEach(p=>{if(p.departement)dc[p.departement]=(dc[p.departement]||0)+1;});
   const maxD=Math.max(...Object.values(dc),1);
   document.getElementById('dept-stats').innerHTML=depts.map(d=>`<div class="dept-row"><div class="dept-n">${d}</div><div class="dept-track"><div class="dept-fill" style="width:${(dc[d]/maxD*100).toFixed(0)}%"></div></div><div class="dept-cnt">${dc[d]}</div></div>`).join('');
   const prios=['Critique','Haute','Moyenne','Basse'];
   const pc={};prios.forEach(p=>pc[p]=0);
-  allProblems.forEach(p=>{if(p.priorite)pc[p.priorite]=(pc[p.priorite]||0)+1;});
+  actifs.forEach(p=>{if(p.priorite)pc[p.priorite]=(pc[p.priorite]||0)+1;});
   const maxP=Math.max(...Object.values(pc),1);
   const pcols={Critique:'var(--ruby)',Haute:'var(--amber)',Moyenne:'var(--sapphire)',Basse:'var(--emerald)'};
   document.getElementById('prio-stats').innerHTML=prios.map(p=>`<div class="dept-row"><div class="dept-n"><span class="badge bp${p[0]}">${p}</span></div><div class="dept-track"><div class="dept-fill" style="width:${(pc[p]/maxP*100).toFixed(0)}%;background:${pcols[p]}"></div></div><div class="dept-cnt">${pc[p]}</div></div>`).join('');
@@ -1208,6 +1212,7 @@ function bStat(s){const m={'À traiter':'bt','En cours':'bc','Résolu':'br','Ann
 function bPrio(p){const m={Critique:'bpC',Haute:'bpH',Moyenne:'bpM',Basse:'bpB'};return `<span class="badge ${m[p]||'bpB'}">${esc(p||'')}</span>`;}
 
 window.addEventListener('load',()=>setTimeout(init,800));
+
 
 
 </script>
