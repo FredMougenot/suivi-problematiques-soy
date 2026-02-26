@@ -627,7 +627,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
                 </div>
                 <div class="profil-actions">
                   <span class="profil-ok-msg" id="pwd-ok">✓ Mot de passe mis à jour</span>
-                  <button class="btn-sub" onclick="saveProfilPwd()">Mettre à jour</button>
+                  <button class="btn-sub" id="btn-pwd-update" onclick="saveProfilPwd()">Mettre à jour</button>
                 </div>
               </div>
             </div>
@@ -1302,7 +1302,7 @@ async function saveProfilPwd() {
   if (pwd1.length < 8) { toast('Le mot de passe doit contenir au moins 8 caractères.', 'error'); return; }
   if (pwd1 !== pwd2)   { toast('Les deux mots de passe ne correspondent pas.', 'error'); return; }
 
-  const btn = document.querySelector('#page-profil .profil-sections .profil-section:last-child .btn-sub');
+  const btn = document.getElementById('btn-pwd-update');
   if (btn) { btn.disabled = true; btn.textContent = 'Mise à jour…'; }
 
   const { error } = await sb.auth.updateUser({ password: pwd1 });
