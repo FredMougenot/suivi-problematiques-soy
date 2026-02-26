@@ -10,16 +10,16 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
-  --bg-void:#07080C;--bg-deep:#0C0E14;--bg-base:#10121A;
-  --bg-raised:#161923;--bg-float:#1C2030;--bg-hover:#222840;--bg-active:#252B42;
-  --copper:#B87333;--copper-light:#D4956A;--copper-pale:#E8C4A0;
-  --copper-glow:rgba(184,115,51,.18);--copper-dim:rgba(184,115,51,.08);
-  --text-primary:#EEE8DC;--text-secondary:#9AA0B4;
-  --text-muted:#4A5168;--text-faint:#1E2438;
-  --emerald:#2DD4A0;--emerald-bg:rgba(45,212,160,.08);
-  --ruby:#E05555;--ruby-bg:rgba(224,85,85,.08);
-  --amber:#E8A43A;--amber-bg:rgba(232,164,58,.08);
-  --sapphire:#4A9EE8;--sapphire-bg:rgba(74,158,232,.08);
+  --bg-void:#06070B;--bg-deep:#0B0D13;--bg-base:#0F1118;
+  --bg-raised:#14171F;--bg-float:#191D28;--bg-hover:#1F2435;--bg-active:#232A3E;
+  --copper:#C8843A;--copper-light:#E0A870;--copper-pale:#EDD4A8;
+  --copper-glow:rgba(200,132,58,.22);--copper-dim:rgba(200,132,58,.10);
+  --text-primary:#F2EDE4;--text-secondary:#C2C8D8;
+  --text-muted:#7A82A0;--text-faint:#2E3650;
+  --emerald:#34E8B0;--emerald-bg:rgba(52,232,176,.10);
+  --ruby:#EE6060;--ruby-bg:rgba(238,96,96,.10);
+  --amber:#F0B040;--amber-bg:rgba(240,176,64,.10);
+  --sapphire:#5AAEEE;--sapphire-bg:rgba(90,174,238,.10);
   --r-sm:4px;--r-md:10px;--r-lg:16px;--r-xl:24px;
   --shadow-sm:0 1px 3px rgba(0,0,0,.4);
   --shadow-md:0 4px 16px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);
@@ -336,6 +336,96 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .setup-success-t{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--emerald);margin-bottom:8px;}
 .setup-success-p{font-size:.82rem;color:var(--text-secondary);font-weight:300;line-height:1.6;}
 
+
+/* ══ LISIBILITÉ AMÉLIORÉE v5 ══════════════════════════════════════ */
+
+/* Sidebar plus lisible */
+.sb-item { font-size:.88rem !important; font-weight:500 !important; color:var(--text-secondary) !important; padding:10px 13px !important; }
+.sb-item.active { color:var(--text-primary) !important; background:var(--bg-hover) !important; }
+.sb-item:hover { color:var(--text-primary) !important; }
+.sb-sec { font-size:.62rem !important; color:var(--text-muted) !important; letter-spacing:.2em !important; margin:24px 0 10px !important; }
+.sb-uname { font-size:.85rem !important; font-weight:600 !important; color:var(--text-primary) !important; }
+.sb-urole { font-size:.72rem !important; color:var(--text-secondary) !important; }
+
+/* KPI cards plus lisibles */
+.kpi { border:1px solid var(--text-faint) !important; padding:22px 20px !important; }
+.kpi-lbl { font-size:.78rem !important; font-weight:700 !important; letter-spacing:.08em !important; color:var(--text-secondary) !important; }
+.kpi-val { font-size:2.8rem !important; }
+.kpi-sub { font-size:.75rem !important; color:var(--text-secondary) !important; margin-top:6px !important; }
+.kpi.copper { border-top:2px solid var(--copper) !important; }
+.kpi.ruby { border-top:2px solid var(--ruby) !important; }
+.kpi.sapphire { border-top:2px solid var(--sapphire) !important; }
+.kpi.emerald { border-top:2px solid var(--emerald) !important; }
+.kpi { cursor:pointer; }
+.kpi:hover { transform:translateY(-3px) !important; border-color:var(--copper) !important; }
+
+/* Table plus lisible */
+.dtbl thead th { font-size:.68rem !important; padding:13px 16px !important; color:var(--copper-light) !important; border-bottom:1px solid var(--text-faint) !important; }
+.dtbl tbody td { font-size:.84rem !important; padding:13px 16px !important; color:var(--text-primary) !important; border-bottom:1px solid var(--text-faint) !important; }
+.dtbl tbody tr:hover td { background:rgba(200,132,58,.05) !important; }
+.c-title { font-size:.86rem !important; font-weight:500 !important; color:var(--text-primary) !important; }
+.c-title small { font-size:.76rem !important; color:var(--text-secondary) !important; display:block; margin-top:3px; }
+.c-id { font-size:.74rem !important; color:var(--copper-light) !important; font-weight:700 !important; }
+
+/* Badges plus lisibles */
+.badge { font-size:.72rem !important; font-weight:700 !important; padding:4px 10px !important; border-radius:20px !important; }
+.bt { background:rgba(238,96,96,.15) !important; color:#EE6060 !important; border:1px solid rgba(238,96,96,.3) !important; }
+.bc { background:rgba(90,174,238,.15) !important; color:#5AAEEE !important; border:1px solid rgba(90,174,238,.3) !important; }
+.br { background:rgba(52,232,176,.15) !important; color:#34E8B0 !important; border:1px solid rgba(52,232,176,.3) !important; }
+.ban { background:rgba(122,130,160,.12) !important; color:#B0B8CC !important; border:1px solid rgba(122,130,160,.25) !important; }
+.bcl { background:rgba(122,130,160,.12) !important; color:#8890A8 !important; border:1px solid rgba(122,130,160,.2) !important; }
+.bpC { background:rgba(238,96,96,.15) !important; color:#EE6060 !important; border:1px solid rgba(238,96,96,.3) !important; }
+.bpH { background:rgba(240,176,64,.15) !important; color:#F0B040 !important; border:1px solid rgba(240,176,64,.3) !important; }
+.bpM { background:rgba(90,174,238,.12) !important; color:#5AAEEE !important; border:1px solid rgba(90,174,238,.25) !important; }
+.bpB { background:rgba(52,232,176,.12) !important; color:#34E8B0 !important; border:1px solid rgba(52,232,176,.25) !important; }
+.bd  { background:rgba(200,132,58,.12) !important; color:var(--copper-light) !important; border:1px solid rgba(200,132,58,.25) !important; }
+
+/* Topbar */
+.topbar-title { font-size:1rem !important; font-weight:600 !important; color:var(--text-primary) !important; }
+
+/* Stat cards */
+.stat-lbl { font-size:.8rem !important; font-weight:700 !important; color:var(--text-primary) !important; margin-bottom:14px !important; }
+.dept-n { font-size:.82rem !important; color:var(--text-secondary) !important; }
+.dept-cnt { font-size:.82rem !important; font-weight:700 !important; color:var(--text-primary) !important; }
+
+/* Section headers */
+.sec-t { font-size:1.15rem !important; font-weight:600 !important; color:var(--text-primary) !important; }
+.sec-s { font-size:.8rem !important; color:var(--text-secondary) !important; margin-top:3px !important; }
+
+/* Bouton action dans table */
+.ab { font-size:.74rem !important; padding:5px 11px !important; font-weight:600 !important; }
+
+/* Formulaires */
+.fg-lbl { font-size:.8rem !important; color:var(--text-secondary) !important; font-weight:600 !important; margin-bottom:7px !important; }
+.fg-inp { font-size:.88rem !important; color:var(--text-primary) !important; background:var(--bg-raised) !important; border-color:var(--text-faint) !important; padding:11px 14px !important; }
+.fg-inp:focus { border-color:var(--copper) !important; color:var(--text-primary) !important; }
+
+/* KPI cliquable — curseur */
+.kpi { cursor:pointer; transition:transform .2s, box-shadow .2s, border-color .2s !important; }
+
+
+.sb-item-logout { color:var(--ruby) !important; margin-top:2px; }
+.sb-item-logout:hover { background:rgba(238,96,96,.10) !important; color:#FF7878 !important; }
+.sb-item-logout .sb-ico { color:var(--ruby) !important; }
+
+
+.btn-add-prob {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:10px 20px; border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--copper),var(--copper-light));
+  color:#0F1118; font-size:.84rem; font-weight:700;
+  border:none; cursor:pointer; white-space:nowrap;
+  box-shadow:0 2px 12px rgba(200,132,58,.3);
+  transition:all var(--t-fast);
+  letter-spacing:.02em;
+}
+.btn-add-prob:hover {
+  transform:translateY(-1px);
+  box-shadow:0 4px 20px rgba(200,132,58,.45);
+}
+.btn-add-prob span { font-size:1.1rem; font-weight:400; }
+.sec-h { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+
 </style>
 </head>
 <body>
@@ -451,6 +541,9 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
       <div class="sb-item" onclick="showPage('profil')" id="nav-profil">
         <span class="sb-ico">◎</span> Mon profil
       </div>
+      <div class="sb-item sb-item-logout" onclick="doLogout()" id="nav-logout">
+        <span class="sb-ico">⏻</span> Déconnexion
+      </div>
       <div class="sb-sec admin-only" id="nav-admin-section" style="display:none">Administration</div>
       <div class="sb-item admin-only" onclick="showPage('admin')" id="nav-admin" style="display:none">
         <span class="sb-ico">⚙</span> Gestion complète
@@ -482,25 +575,25 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
       <!-- DASHBOARD -->
       <div class="page active" id="page-dashboard">
         <div class="kpi-row">
-          <div class="kpi copper">
+          <div class="kpi copper" onclick="goToRegistre('')" title="Voir toutes les problématiques">
             <div class="kpi-top"><div class="kpi-lbl">Total</div><div class="kpi-ico">📋</div></div>
             <div class="kpi-val" id="kpi-total">—</div>
-            <div class="kpi-sub">Toutes problématiques</div>
+            <div class="kpi-sub">Voir le registre →</div>
           </div>
-          <div class="kpi ruby">
+          <div class="kpi ruby" onclick="goToRegistre('À traiter')" title="Voir les problématiques à traiter">
             <div class="kpi-top"><div class="kpi-lbl">À traiter</div><div class="kpi-ico">🔴</div></div>
             <div class="kpi-val" id="kpi-ouvert">—</div>
-            <div class="kpi-sub">En attente d'action</div>
+            <div class="kpi-sub">Voir le registre →</div>
           </div>
-          <div class="kpi sapphire">
+          <div class="kpi sapphire" onclick="goToRegistre('En cours')" title="Voir les problématiques en cours">
             <div class="kpi-top"><div class="kpi-lbl">En cours</div><div class="kpi-ico">🔄</div></div>
             <div class="kpi-val" id="kpi-cours">—</div>
-            <div class="kpi-sub">En traitement actif</div>
+            <div class="kpi-sub">Voir le registre →</div>
           </div>
-          <div class="kpi emerald">
+          <div class="kpi emerald" onclick="goToRegistre('Résolu')" title="Voir les problématiques résolues">
             <div class="kpi-top"><div class="kpi-lbl">Résolues</div><div class="kpi-ico">✅</div></div>
             <div class="kpi-val" id="kpi-resolu">—</div>
-            <div class="kpi-sub">Clôturées avec succès</div>
+            <div class="kpi-sub">Voir le registre →</div>
           </div>
         </div>
         <div class="stat-row">
@@ -526,6 +619,15 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 
       <!-- PROBLÉMATIQUES -->
       <div class="page" id="page-problematiques">
+        <div class="sec-h" style="margin-bottom:20px">
+          <div>
+            <div class="sec-t">Registre des problématiques</div>
+            <div class="sec-s">Toutes les problématiques soumises</div>
+          </div>
+          <button class="btn-add-prob" onclick="showPage('nouvelle')" id="btn-add-registre">
+            <span>＋</span> Soumettre une problématique
+          </button>
+        </div>
         <div class="filters">
           <div class="srch-wrap">
             <span class="srch-ico">⌕</span>
@@ -1412,6 +1514,18 @@ async function saveProfilInfo() {
 }
 
 async function saveProfilPwd() {
+  // TEST DIAGNOSTIC
+  alert('Bouton cliqué — fonction démarrée');
+  const pwd0 = document.getElementById('p-pwd0');
+  const pwd1 = document.getElementById('p-pwd1');
+  const pwd2 = document.getElementById('p-pwd2');
+  alert('p-pwd0: ' + (pwd0 ? pwd0.value : 'INTROUVABLE'));
+  alert('p-pwd1: ' + (pwd1 ? pwd1.value : 'INTROUVABLE'));
+  if (!pwd0 || !pwd1 || !pwd2) { alert('ERREUR: un champ est introuvable dans le DOM'); return; }
+  if (!pwd0.value) { alert('ERREUR: mot de passe actuel vide'); return; }
+  if (pwd1.value.length < 8) { alert('ERREUR: nouveau mdp trop court'); return; }
+  if (pwd1.value !== pwd2.value) { alert('ERREUR: mdp ne correspondent pas'); return; }
+  alert('Validation OK — appel Supabase...');
   const pwd0 = document.getElementById('p-pwd0').value;
   const pwd1 = document.getElementById('p-pwd1').value;
   const pwd2 = document.getElementById('p-pwd2').value;
@@ -1523,6 +1637,17 @@ async function submitSetupPwd() {
     showApp();
     await loadAll();
   }, 2000);
+}
+
+
+function goToRegistre(statut) {
+  // Aller sur la page problématiques et appliquer le filtre statut
+  showPage('problematiques');
+  const sel = document.getElementById('filter-statut');
+  if (sel) {
+    sel.value = statut;
+    filterTable();
+  }
 }
 
 window.addEventListener('load', () => setTimeout(init, 800));
