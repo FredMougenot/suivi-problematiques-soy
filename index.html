@@ -11,15 +11,15 @@
 <style>
 :root{
   --bg-void:#06070B;--bg-deep:#0B0D13;--bg-base:#0F1118;
-  --bg-raised:#14171F;--bg-float:#191D28;--bg-hover:#1F2435;--bg-active:#232A3E;
+  --bg-raised:#15181F;--bg-float:#1A1E2A;--bg-hover:#1F2436;--bg-active:#242B40;
   --copper:#C8843A;--copper-light:#E0A870;--copper-pale:#EDD4A8;
   --copper-glow:rgba(200,132,58,.22);--copper-dim:rgba(200,132,58,.10);
-  --text-primary:#F2EDE4;--text-secondary:#C2C8D8;
-  --text-muted:#7A82A0;--text-faint:#2E3650;
-  --emerald:#34E8B0;--emerald-bg:rgba(52,232,176,.10);
-  --ruby:#EE6060;--ruby-bg:rgba(238,96,96,.10);
-  --amber:#F0B040;--amber-bg:rgba(240,176,64,.10);
-  --sapphire:#5AAEEE;--sapphire-bg:rgba(90,174,238,.10);
+  --text-primary:#F0EAE0;--text-secondary:#BEC5D6;
+  --text-muted:#7A82A0;--text-faint:#2C3350;
+  --emerald:#2DD4A0;--emerald-bg:rgba(45,212,160,.08);
+  --ruby:#E05555;--ruby-bg:rgba(224,85,85,.08);
+  --amber:#E8A43A;--amber-bg:rgba(232,164,58,.08);
+  --sapphire:#4A9EE8;--sapphire-bg:rgba(74,158,232,.08);
   --r-sm:4px;--r-md:10px;--r-lg:16px;--r-xl:24px;
   --shadow-sm:0 1px 3px rgba(0,0,0,.4);
   --shadow-md:0 4px 16px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);
@@ -337,94 +337,45 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .setup-success-p{font-size:.82rem;color:var(--text-secondary);font-weight:300;line-height:1.6;}
 
 
-/* ══ LISIBILITÉ AMÉLIORÉE v5 ══════════════════════════════════════ */
-
-/* Sidebar plus lisible */
-.sb-item { font-size:.88rem !important; font-weight:500 !important; color:var(--text-secondary) !important; padding:10px 13px !important; }
-.sb-item.active { color:var(--text-primary) !important; background:var(--bg-hover) !important; }
-.sb-item:hover { color:var(--text-primary) !important; }
-.sb-sec { font-size:.62rem !important; color:var(--text-muted) !important; letter-spacing:.2em !important; margin:24px 0 10px !important; }
-.sb-uname { font-size:.85rem !important; font-weight:600 !important; color:var(--text-primary) !important; }
-.sb-urole { font-size:.72rem !important; color:var(--text-secondary) !important; }
-
-/* KPI cards plus lisibles */
-.kpi { border:1px solid var(--text-faint) !important; padding:22px 20px !important; }
-.kpi-lbl { font-size:.78rem !important; font-weight:700 !important; letter-spacing:.08em !important; color:var(--text-secondary) !important; }
-.kpi-val { font-size:2.8rem !important; }
-.kpi-sub { font-size:.75rem !important; color:var(--text-secondary) !important; margin-top:6px !important; }
-.kpi.copper { border-top:2px solid var(--copper) !important; }
-.kpi.ruby { border-top:2px solid var(--ruby) !important; }
-.kpi.sapphire { border-top:2px solid var(--sapphire) !important; }
-.kpi.emerald { border-top:2px solid var(--emerald) !important; }
-.kpi { cursor:pointer; }
-.kpi:hover { transform:translateY(-3px) !important; border-color:var(--copper) !important; }
-
-/* Table plus lisible */
-.dtbl thead th { font-size:.68rem !important; padding:13px 16px !important; color:var(--copper-light) !important; border-bottom:1px solid var(--text-faint) !important; }
-.dtbl tbody td { font-size:.84rem !important; padding:13px 16px !important; color:var(--text-primary) !important; border-bottom:1px solid var(--text-faint) !important; }
-.dtbl tbody tr:hover td { background:rgba(200,132,58,.05) !important; }
-.c-title { font-size:.86rem !important; font-weight:500 !important; color:var(--text-primary) !important; }
-.c-title small { font-size:.76rem !important; color:var(--text-secondary) !important; display:block; margin-top:3px; }
-.c-id { font-size:.74rem !important; color:var(--copper-light) !important; font-weight:700 !important; }
-
-/* Badges plus lisibles */
-.badge { font-size:.72rem !important; font-weight:700 !important; padding:4px 10px !important; border-radius:20px !important; }
-.bt { background:rgba(238,96,96,.15) !important; color:#EE6060 !important; border:1px solid rgba(238,96,96,.3) !important; }
-.bc { background:rgba(90,174,238,.15) !important; color:#5AAEEE !important; border:1px solid rgba(90,174,238,.3) !important; }
-.br { background:rgba(52,232,176,.15) !important; color:#34E8B0 !important; border:1px solid rgba(52,232,176,.3) !important; }
-.ban { background:rgba(122,130,160,.12) !important; color:#B0B8CC !important; border:1px solid rgba(122,130,160,.25) !important; }
-.bcl { background:rgba(122,130,160,.12) !important; color:#8890A8 !important; border:1px solid rgba(122,130,160,.2) !important; }
-.bpC { background:rgba(238,96,96,.15) !important; color:#EE6060 !important; border:1px solid rgba(238,96,96,.3) !important; }
-.bpH { background:rgba(240,176,64,.15) !important; color:#F0B040 !important; border:1px solid rgba(240,176,64,.3) !important; }
-.bpM { background:rgba(90,174,238,.12) !important; color:#5AAEEE !important; border:1px solid rgba(90,174,238,.25) !important; }
-.bpB { background:rgba(52,232,176,.12) !important; color:#34E8B0 !important; border:1px solid rgba(52,232,176,.25) !important; }
-.bd  { background:rgba(200,132,58,.12) !important; color:var(--copper-light) !important; border:1px solid rgba(200,132,58,.25) !important; }
-
-/* Topbar */
-.topbar-title { font-size:1rem !important; font-weight:600 !important; color:var(--text-primary) !important; }
-
-/* Stat cards */
-.stat-lbl { font-size:.8rem !important; font-weight:700 !important; color:var(--text-primary) !important; margin-bottom:14px !important; }
-.dept-n { font-size:.82rem !important; color:var(--text-secondary) !important; }
-.dept-cnt { font-size:.82rem !important; font-weight:700 !important; color:var(--text-primary) !important; }
-
-/* Section headers */
-.sec-t { font-size:1.15rem !important; font-weight:600 !important; color:var(--text-primary) !important; }
-.sec-s { font-size:.8rem !important; color:var(--text-secondary) !important; margin-top:3px !important; }
-
-/* Bouton action dans table */
-.ab { font-size:.74rem !important; padding:5px 11px !important; font-weight:600 !important; }
-
-/* Formulaires */
-.fg-lbl { font-size:.8rem !important; color:var(--text-secondary) !important; font-weight:600 !important; margin-bottom:7px !important; }
-.fg-inp { font-size:.88rem !important; color:var(--text-primary) !important; background:var(--bg-raised) !important; border-color:var(--text-faint) !important; padding:11px 14px !important; }
-.fg-inp:focus { border-color:var(--copper) !important; color:var(--text-primary) !important; }
-
-/* KPI cliquable — curseur */
-.kpi { cursor:pointer; transition:transform .2s, box-shadow .2s, border-color .2s !important; }
-
-
-.sb-item-logout { color:var(--ruby) !important; margin-top:2px; }
-.sb-item-logout:hover { background:rgba(238,96,96,.10) !important; color:#FF7878 !important; }
-.sb-item-logout .sb-ico { color:var(--ruby) !important; }
-
-
-.btn-add-prob {
-  display:inline-flex; align-items:center; gap:8px;
-  padding:10px 20px; border-radius:var(--r-md);
-  background:linear-gradient(135deg,var(--copper),var(--copper-light));
-  color:#0F1118; font-size:.84rem; font-weight:700;
-  border:none; cursor:pointer; white-space:nowrap;
-  box-shadow:0 2px 12px rgba(200,132,58,.3);
-  transition:all var(--t-fast);
-  letter-spacing:.02em;
-}
-.btn-add-prob:hover {
-  transform:translateY(-1px);
-  box-shadow:0 4px 20px rgba(200,132,58,.45);
-}
-.btn-add-prob span { font-size:1.1rem; font-weight:400; }
-.sec-h { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+/* ══ LISIBILITE v5 ══════════════════════════════ */
+.sb-item{font-size:.87rem;font-weight:500;color:var(--text-secondary);padding:10px 13px;}
+.sb-item:hover,.sb-item.active{color:var(--text-primary);}
+.sb-sec{font-size:.62rem;color:var(--text-muted);margin:24px 0 10px;}
+.sb-uname{font-size:.85rem;font-weight:600;color:var(--text-primary);}
+.sb-urole{font-size:.72rem;color:var(--text-secondary);}
+.kpi{border:1px solid var(--text-faint);padding:22px 20px;cursor:pointer;}
+.kpi:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.kpi-lbl{font-size:.78rem;font-weight:700;color:var(--text-secondary);}
+.kpi-val{font-size:2.8rem;}
+.kpi-sub{font-size:.76rem;color:var(--text-secondary);margin-top:6px;}
+.dtbl thead th{font-size:.68rem;padding:13px 16px;color:var(--copper-light);}
+.dtbl tbody td{font-size:.84rem;padding:13px 16px;color:var(--text-primary);border-bottom:1px solid var(--text-faint);}
+.dtbl tbody tr:hover td{background:rgba(200,132,58,.04);}
+.c-title{font-size:.86rem;font-weight:500;color:var(--text-primary);}
+.c-title small{font-size:.76rem;color:var(--text-secondary);display:block;margin-top:3px;}
+.c-id{font-size:.74rem;color:var(--copper-light);font-weight:700;}
+.badge{font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:20px;}
+.bt{background:rgba(238,96,96,.15);color:#EE6060;border:1px solid rgba(238,96,96,.3);}
+.bc{background:rgba(90,174,238,.15);color:#5AAEEE;border:1px solid rgba(90,174,238,.3);}
+.br{background:rgba(52,232,176,.15);color:#34E8B0;border:1px solid rgba(52,232,176,.3);}
+.ban{background:rgba(122,130,160,.12);color:#B0B8CC;border:1px solid rgba(122,130,160,.25);}
+.bcl{background:rgba(122,130,160,.10);color:#7A82A0;border:1px solid rgba(122,130,160,.2);}
+.bpC{background:rgba(238,96,96,.15);color:#EE6060;border:1px solid rgba(238,96,96,.3);}
+.bpH{background:rgba(240,176,64,.15);color:#F0B040;border:1px solid rgba(240,176,64,.3);}
+.bpM{background:rgba(90,174,238,.12);color:#5AAEEE;border:1px solid rgba(90,174,238,.25);}
+.bpB{background:rgba(52,232,176,.12);color:#34E8B0;border:1px solid rgba(52,232,176,.25);}
+.bd{background:rgba(200,132,58,.12);color:var(--copper-light);border:1px solid rgba(200,132,58,.25);}
+.sec-t{font-size:1.15rem;font-weight:600;color:var(--text-primary);}
+.sec-s{font-size:.8rem;color:var(--text-secondary);margin-top:3px;}
+.stat-lbl{font-size:.8rem;font-weight:700;color:var(--text-primary);margin-bottom:14px;}
+.dept-n{font-size:.82rem;color:var(--text-secondary);}
+.dept-cnt{font-size:.82rem;font-weight:700;color:var(--text-primary);}
+.topbar-title{font-size:1rem;font-weight:600;color:var(--text-primary);}
+.sec-h{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.sb-item-logout{color:var(--ruby) !important;}
+.sb-item-logout:hover{background:rgba(238,96,96,.10) !important;color:#FF7878 !important;}
+.btn-add-prob{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:var(--r-md);background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;font-size:.84rem;font-weight:700;border:none;cursor:pointer;white-space:nowrap;box-shadow:0 2px 12px rgba(200,132,58,.3);transition:all var(--t-fast);}
+.btn-add-prob:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(200,132,58,.45);}
 
 </style>
 </head>
@@ -541,7 +492,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
       <div class="sb-item" onclick="showPage('profil')" id="nav-profil">
         <span class="sb-ico">◎</span> Mon profil
       </div>
-      <div class="sb-item sb-item-logout" onclick="doLogout()" id="nav-logout">
+      <div class="sb-item sb-item-logout" onclick="doLogout()">
         <span class="sb-ico">⏻</span> Déconnexion
       </div>
       <div class="sb-sec admin-only" id="nav-admin-section" style="display:none">Administration</div>
@@ -575,22 +526,22 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
       <!-- DASHBOARD -->
       <div class="page active" id="page-dashboard">
         <div class="kpi-row">
-          <div class="kpi copper" onclick="goToRegistre('')" title="Voir toutes les problématiques">
+          <div class="kpi copper" onclick="goToRegistre('')" style="cursor:pointer">
             <div class="kpi-top"><div class="kpi-lbl">Total</div><div class="kpi-ico">📋</div></div>
             <div class="kpi-val" id="kpi-total">—</div>
             <div class="kpi-sub">Voir le registre →</div>
           </div>
-          <div class="kpi ruby" onclick="goToRegistre('À traiter')" title="Voir les problématiques à traiter">
+          <div class="kpi ruby" onclick="goToRegistre('A traiter')" style="cursor:pointer">
             <div class="kpi-top"><div class="kpi-lbl">À traiter</div><div class="kpi-ico">🔴</div></div>
             <div class="kpi-val" id="kpi-ouvert">—</div>
             <div class="kpi-sub">Voir le registre →</div>
           </div>
-          <div class="kpi sapphire" onclick="goToRegistre('En cours')" title="Voir les problématiques en cours">
+          <div class="kpi sapphire" onclick="goToRegistre('En cours')" style="cursor:pointer">
             <div class="kpi-top"><div class="kpi-lbl">En cours</div><div class="kpi-ico">🔄</div></div>
             <div class="kpi-val" id="kpi-cours">—</div>
             <div class="kpi-sub">Voir le registre →</div>
           </div>
-          <div class="kpi emerald" onclick="goToRegistre('Résolu')" title="Voir les problématiques résolues">
+          <div class="kpi emerald" onclick="goToRegistre('Resolu')" style="cursor:pointer">
             <div class="kpi-top"><div class="kpi-lbl">Résolues</div><div class="kpi-ico">✅</div></div>
             <div class="kpi-val" id="kpi-resolu">—</div>
             <div class="kpi-sub">Voir le registre →</div>
@@ -624,8 +575,8 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
             <div class="sec-t">Registre des problématiques</div>
             <div class="sec-s">Toutes les problématiques soumises</div>
           </div>
-          <button class="btn-add-prob" onclick="showPage('nouvelle')" id="btn-add-registre">
-            <span>＋</span> Soumettre une problématique
+          <button class="btn-add-prob" onclick="showPage('nouvelle')">
+            ＋ Soumettre une problématique
           </button>
         </div>
         <div class="filters">
@@ -892,765 +843,353 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 <div class="toasts" id="toasts"></div>
 
 <script>
-
-// ═══════════════════════════════════════════
-// SUPABASE CONFIG
-// ═══════════════════════════════════════════
 const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+let currentUser = null, isAdmin = false, allProblems = [];
+const depts = ['SST','Qualite','Couts','Delais','Motivation','Environnement'];
 
-// ═══════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════
-let currentUser = null;
-let isAdmin = false;
-let allProblems = [];
-let departments = ['SST','Qualité','Coûts','Délais','Motivation','Environnement'];
-
-// ═══════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════
 async function init() {
   try {
-    // Détecter token d'invitation dans le hash de l'URL
     const hash = window.location.hash;
     if (hash && hash.includes('access_token')) {
-      const params = new URLSearchParams(hash.replace('#', ''));
-      const type = params.get('type');
-      const accessToken = params.get('access_token');
-      const refreshToken = params.get('refresh_token') || '';
-      if (accessToken) {
-        const { data, error } = await sb.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken
-        });
-        window.history.replaceState({}, document.title, window.location.pathname);
+      const p = new URLSearchParams(hash.replace('#',''));
+      const tok = p.get('access_token'), ref = p.get('refresh_token')||'', typ = p.get('type');
+      if (tok) {
+        const {data,error} = await sb.auth.setSession({access_token:tok,refresh_token:ref});
+        window.history.replaceState({},document.title,window.location.pathname);
         hideLoading();
         if (!error && data.session) {
           currentUser = data.session.user;
-          if (type === 'invite' || type === 'recovery' || type === 'signup') {
-            // Nouvel utilisateur ou reset mot de passe → page création mot de passe
-            showSetupPage();
-          } else {
-            // Magic link ou autre → connexion directe dans l'app
-            await checkRole();
-            showApp();
-            await loadAll();
-          }
+          if (typ==='invite'||typ==='recovery'||typ==='signup') showSetupPage();
+          else { await checkRole(); showApp(); await loadAll(); }
           return;
         }
       }
     }
-    // Session normale
-    const { data: { session } } = await sb.auth.getSession();
+    const {data:{session}} = await sb.auth.getSession();
     hideLoading();
-    if (session) {
-      currentUser = session.user;
-      await checkRole();
-      showApp();
-      await loadAll();
-    } else {
-      showAuth();
-    }
-  } catch(e) {
-    hideLoading();
-    showAuth();
-  }
+    if (session) { currentUser=session.user; await checkRole(); showApp(); await loadAll(); }
+    else showAuth();
+  } catch(e) { hideLoading(); showAuth(); }
 }
 
-function hideLoading() {
-  document.getElementById('loading-screen').classList.add('hidden');
+function hideLoading(){ document.getElementById('loading-screen').classList.add('hidden'); }
+function showAuth(){
+  document.getElementById('auth-page').style.display='block';
+  document.getElementById('setup-page').style.display='none';
+  document.getElementById('app').style.display='none';
 }
-function showAuth() {
-  document.getElementById('auth-page').style.display = 'block';
+function showSetupPage(){
+  document.getElementById('auth-page').style.display='none';
+  document.getElementById('setup-page').style.display='block';
+  document.getElementById('app').style.display='none';
 }
-function showApp() {
-  document.getElementById('auth-page').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  updateUserUI();
-  populateDepts();
-  if (isAdmin) enableAdmin();
-  else enableUser();
+function showApp(){
+  document.getElementById('auth-page').style.display='none';
+  document.getElementById('setup-page').style.display='none';
+  document.getElementById('app').style.display='block';
+  updateUserUI(); populateDepts();
+  if (isAdmin) enableAdmin(); else enableUser();
 }
-
-async function checkRole() {
-  // Vérifier si l'email est dans la liste des admins
-  // On stocke les admins dans une table 'admins'
-  try {
-    const { data } = await sb.from('admins').select('email').eq('email', currentUser.email).single();
-    isAdmin = !!data;
-  } catch { isAdmin = false; }
+async function checkRole(){
+  try { const {data}=await sb.from('admins').select('email').eq('email',currentUser.email).single(); isAdmin=!!data; }
+  catch { isAdmin=false; }
 }
-
-function updateUserUI() {
-  const email = currentUser?.email || '';
-  const initials = email.substring(0,2).toUpperCase();
-  document.getElementById('user-avatar').textContent = initials;
-  document.getElementById('user-name').textContent = email.split('@')[0];
-  document.getElementById('user-role').textContent = isAdmin ? '🔑 Administrateur' : '👤 Utilisateur';
+function updateUserUI(){
+  const meta=currentUser?.user_metadata||{}, email=currentUser?.email||'';
+  const dn=[meta.prenom,meta.nom].filter(Boolean).join(' ')||email.split('@')[0];
+  document.getElementById('user-avatar').textContent=dn.substring(0,2).toUpperCase();
+  document.getElementById('user-name').textContent=dn;
+  document.getElementById('user-role').textContent=isAdmin?'Administrateur':'Utilisateur';
 }
-
-function showAdminUI() {
-  document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
-  document.getElementById('nav-admin').style.display = '';
-  document.getElementById('nav-admin-section').style.display = '';
-  document.getElementById('th-actions').style.display = '';
+function enableAdmin(){
+  document.querySelectorAll('.admin-only').forEach(el=>el.style.display='');
+  document.getElementById('th-actions').style.display='';
 }
-function showUserUI() {
-  document.getElementById('btn-new-top').style.display = '';
-  document.getElementById('nav-nouvelle').style.display = '';
+function enableUser(){
+  document.getElementById('btn-new-top').style.display='';
+  document.getElementById('nav-nouvelle').style.display='';
 }
-
-function populateDeptSelects() {
-  const selects = ['filter-dept','m-dept','n-dept'];
-  selects.forEach(id => {
-    const sel = document.getElementById(id);
-    if (!sel) return;
-    if (id === 'filter-dept') {
-      sel.innerHTML = '<option value="">Tous les départements</option>';
-    } else {
-      sel.innerHTML = '<option value="">— Sélectionner —</option>';
-    }
-    departments.forEach(d => {
-      const opt = document.createElement('option');
-      opt.value = d; opt.textContent = d;
-      sel.appendChild(opt);
-    });
+function populateDepts(){
+  ['filter-dept','m-dept','n-dept'].forEach(id=>{
+    const s=document.getElementById(id); if(!s) return;
+    s.innerHTML=id==='filter-dept'?'<option value="">Tous les departements</option>':'<option value="">Selectionner</option>';
+    depts.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;s.appendChild(o);});
   });
 }
-
-// ═══════════════════════════════════════════
-// AUTH
-// ═══════════════════════════════════════════
-async function doLogin() {
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value;
-  const btn = document.getElementById('btn-login');
-  const errEl = document.getElementById('auth-err');
-
-  if (!email || !password) {
-    showAuthError('Veuillez remplir tous les champs.');
-    return;
-  }
-  btn.disabled = true;
-  btn.textContent = 'Connexion…';
-  errEl.classList.remove('show');
-
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  btn.disabled = false;
-  btn.textContent = 'Se connecter';
-
-  if (error) {
-    showAuthError('Identifiants incorrects. Vérifiez votre courriel et mot de passe.');
-    return;
-  }
-  currentUser = data.user;
-  await checkRole();
-  showApp();
-  await loadAll();
+async function doLogin(){
+  const email=document.getElementById('auth-email').value.trim();
+  const password=document.getElementById('auth-password').value;
+  const btn=document.getElementById('btn-login');
+  const errEl=document.getElementById('auth-err');
+  if(!email||!password){showAuthError('Veuillez remplir tous les champs.');return;}
+  btn.disabled=true; btn.textContent='Connexion...'; errEl.classList.remove('show');
+  const {data,error}=await sb.auth.signInWithPassword({email,password});
+  btn.disabled=false; btn.textContent='Se connecter';
+  if(error){showAuthError('Identifiants incorrects.');return;}
+  currentUser=data.user; await checkRole(); showApp(); await loadAll();
 }
-
-async function doLogout() {
-  await sb.auth.signOut();
-  currentUser = null; isAdmin = false; allProblems = [];
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('auth-page').style.display = 'block';
-  document.getElementById('auth-email').value = '';
-  document.getElementById('auth-password').value = '';
+async function doLogout(){
+  await sb.auth.signOut(); currentUser=null; isAdmin=false; allProblems=[];
+  document.getElementById('app').style.display='none';
+  document.getElementById('auth-page').style.display='block';
+  document.getElementById('auth-email').value='';
+  document.getElementById('auth-password').value='';
 }
-
-function showAuthError(msg) {
-  const el = document.getElementById('auth-err');
-  el.textContent = msg;
-  el.classList.add('show');
-}
-
-document.getElementById('auth-password')?.addEventListener('keydown', e => {
-  if (e.key === 'Enter') doLogin();
+function showAuthError(m){ const e=document.getElementById('auth-err'); e.textContent=m; e.classList.add('show'); }
+document.addEventListener('DOMContentLoaded',()=>{
+  const p=document.getElementById('auth-password');
+  if(p) p.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+  document.querySelectorAll('.overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});});
 });
 
-// ═══════════════════════════════════════════
-// DATA LOADING
-// ═══════════════════════════════════════════
-async function loadAll() {
-  try {
-    const { data, error } = await sb
-      .from('problematiques')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) { toast('Erreur de chargement : ' + error.message, 'error'); return; }
-    allProblems = data || [];
-    renderDash();
-    renderTable();
-    renderAdminTable();
-  } catch(e) {
-    toast('Connexion impossible. Vérifiez votre connexion.', 'error');
-  }
+function evalSetupPwd(pwd){ evalPwd(pwd,'setup-pwd-bar','setup-pwd-lbl'); }
+async function submitSetupPwd(){
+  const sp1=document.getElementById('setup-pwd1').value;
+  const sp2=document.getElementById('setup-pwd2').value;
+  const sbtn=document.getElementById('btn-setup-submit');
+  const serr=document.getElementById('setup-err');
+  serr.style.display='none';
+  if(sp1.length<8){serr.textContent='Minimum 8 caracteres.';serr.style.display='block';return;}
+  if(sp1!==sp2){serr.textContent='Les mots de passe ne correspondent pas.';serr.style.display='block';return;}
+  sbtn.disabled=true; sbtn.textContent='Enregistrement...';
+  const {error}=await sb.auth.updateUser({password:sp1});
+  if(error){sbtn.disabled=false;sbtn.textContent='Confirmer et acceder';serr.textContent='Erreur: '+error.message;serr.style.display='block';return;}
+  document.getElementById('setup-form').style.display='none';
+  document.getElementById('setup-success').style.display='block';
+  setTimeout(async()=>{document.getElementById('setup-page').style.display='none';await checkRole();showApp();await loadAll();},2000);
 }
 
-// ═══════════════════════════════════════════
-// DASHBOARD
-// ═══════════════════════════════════════════
-function renderDash() {
-  const total    = allProblems.length;
-  const ouvert   = allProblems.filter(p => p.statut === 'À traiter').length;
-  const cours    = allProblems.filter(p => p.statut === 'En cours').length;
-  const resolu   = allProblems.filter(p => p.statut === 'Résolu').length;
-
-  document.getElementById('kpi-total').textContent  = total;
-  document.getElementById('kpi-ouvert').textContent = ouvert;
-  document.getElementById('kpi-cours').textContent  = cours;
-  document.getElementById('kpi-resolu').textContent = resolu;
-
-  // Badge sidebar
-  const badge = document.getElementById('badge-ouvert');
-  if (ouvert > 0) { badge.style.display = ''; badge.textContent = ouvert; }
-  else badge.style.display = 'none';
-
-  // Dept stats
-  const deptEl = document.getElementById('dept-stats');
-  const deptCounts = {};
-  departments.forEach(d => deptCounts[d] = 0);
-  allProblems.forEach(p => { if (p.departement) deptCounts[p.departement] = (deptCounts[p.departement]||0) + 1; });
-  const maxD = Math.max(...Object.values(deptCounts), 1);
-  deptEl.innerHTML = departments.map(d => `
-    <div class="dept-stat-row">
-      <div class="dept-stat-name">${d}</div>
-      <div class="dept-stat-bar-wrap">
-        <div class="dept-stat-bar" style="width:${(deptCounts[d]/maxD*100).toFixed(0)}%"></div>
-      </div>
-      <div class="dept-stat-count">${deptCounts[d]}</div>
-    </div>
-  `).join('');
-
-  // Priorité stats
-  const prioEl = document.getElementById('prio-stats');
-  const prios = ['Critique','Haute','Moyenne','Basse'];
-  const prioCounts = {};
-  prios.forEach(p => prioCounts[p] = 0);
-  allProblems.forEach(p => { if (p.priorite) prioCounts[p.priorite] = (prioCounts[p.priorite]||0)+1; });
-  const pclasses = {Critique:'bpC',Haute:'bpH',Moyenne:'bpM',Basse:'bpB'};
-  const maxP = Math.max(...Object.values(prioCounts), 1);
-  prioEl.innerHTML = prios.map(p => `
-    <div class="dept-stat-row">
-      <div class="dept-stat-name"><span class="badge ${pclasses[p]}">${p}</span></div>
-      <div class="dept-stat-bar-wrap">
-        <div class="dept-stat-bar" style="width:${(prioCounts[p]/maxP*100).toFixed(0)}%;background:${p==='Critique'?'var(--red)':p==='Haute'?'var(--orange)':p==='Moyenne'?'#F57F17':'var(--green)'}"></div>
-      </div>
-      <div class="dept-stat-count">${prioCounts[p]}</div>
-    </div>
-  `).join('');
-
-  // Recent
-  const recent = allProblems.slice(0,5);
-  const tb = document.getElementById('recent-tbody');
-  if (recent.length === 0) {
-    tb.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">Aucune problématique pour l\'instant.</div></div></td></tr>';
-    return;
-  }
-  tb.innerHTML = recent.map(p => `
-    <tr>
-      <td><span class="c-id">#${String(p.id).padStart(3,'0').slice(-3)}</span></td>
-      <td><div class="c-title">${escHtml(p.intitule)}</div></td>
-      <td><span class="badge bd">${escHtml(p.departement||'—')}</span></td>
-      <td>${badgePrio(p.priorite)}</td>
-      <td>${badgeStatut(p.statut)}</td>
-      <td style="color:var(--steel);font-size:.8rem">${formatDate(p.created_at)}</td>
-    </tr>
-  `).join('');
+async function loadAll(){
+  try{
+    const {data,error}=await sb.from('problematiques').select('*').order('created_at',{ascending:false});
+    if(error){toast('Erreur: '+error.message,'error');return;}
+    allProblems=data||[]; renderDash(); renderTable(); renderAdminTable();
+  }catch(e){toast('Connexion impossible.','error');}
 }
-
-// ═══════════════════════════════════════════
-// TABLE PROBLÉMATIQUES
-// ═══════════════════════════════════════════
-function renderTable(data) {
-  const probs = data || allProblems;
-  const tb = document.getElementById('prob-tbody');
-  if (probs.length === 0) {
-    tb.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">Aucune problématique trouvée.</div></div></td></tr>';
-    return;
-  }
-  tb.innerHTML = probs.map(p => `
-    <tr>
-      <td><span class="c-id">#${String(p.id).padStart(3,'0').slice(-3)}</span></td>
-      <td>
-        <div class="c-title">${escHtml(p.intitule)}
-          <small>${escHtml((p.description||'').substring(0,60))}${(p.description||'').length>60?'…':''}</small>
-        </div>
-      </td>
-      <td><span class="badge bd">${escHtml(p.departement||'—')}</span></td>
-      <td style="font-size:.83rem;color:var(--ink-mute)">${escHtml(p.responsable||'—')}</td>
-      <td>${badgePrio(p.priorite)}</td>
-      <td>${badgeStatut(p.statut)}</td>
-      <td style="color:var(--steel);font-size:.8rem;white-space:nowrap">${formatDate(p.created_at)}</td>
-      ${isAdmin ? `<td>
-        <button class="ab ab-e" onclick="openEdit(${p.id})">✏ Modifier</button>
-        ${p.statut!=='Clôturé'?`<button class="ab ab-c" onclick="cloturerProb(${p.id})">⊘ Clôturer</button>`:''}
-      </td>` : '<td></td>'}
-    </tr>
-  `).join('');
+function renderDash(){
+  const total=allProblems.length;
+  const ouvert=allProblems.filter(p=>p.statut==='A traiter').length;
+  const cours=allProblems.filter(p=>p.statut==='En cours').length;
+  const resolu=allProblems.filter(p=>p.statut==='Resolu').length;
+  document.getElementById('kpi-total').textContent=total;
+  document.getElementById('kpi-ouvert').textContent=ouvert;
+  document.getElementById('kpi-cours').textContent=cours;
+  document.getElementById('kpi-resolu').textContent=resolu;
+  const badge=document.getElementById('badge-ouvert');
+  if(badge){ouvert>0?(badge.style.display='',badge.textContent=ouvert):badge.style.display='none';}
+  const dc={};depts.forEach(d=>dc[d]=0);
+  allProblems.forEach(p=>{if(p.departement)dc[p.departement]=(dc[p.departement]||0)+1;});
+  const maxD=Math.max(...Object.values(dc),1);
+  document.getElementById('dept-stats').innerHTML=depts.map(d=>`<div class="dept-row"><div class="dept-n">${d}</div><div class="dept-track"><div class="dept-fill" style="width:${(dc[d]/maxD*100).toFixed(0)}%"></div></div><div class="dept-cnt">${dc[d]}</div></div>`).join('');
+  const prios=['Critique','Haute','Moyenne','Basse'];
+  const pc={};prios.forEach(p=>pc[p]=0);
+  allProblems.forEach(p=>{if(p.priorite)pc[p.priorite]=(pc[p.priorite]||0)+1;});
+  const maxP=Math.max(...Object.values(pc),1);
+  const pcols={Critique:'var(--ruby)',Haute:'var(--amber)',Moyenne:'var(--sapphire)',Basse:'var(--emerald)'};
+  document.getElementById('prio-stats').innerHTML=prios.map(p=>`<div class="dept-row"><div class="dept-n"><span class="badge bp${p[0]}">${p}</span></div><div class="dept-track"><div class="dept-fill" style="width:${(pc[p]/maxP*100).toFixed(0)}%;background:${pcols[p]}"></div></div><div class="dept-cnt">${pc[p]}</div></div>`).join('');
+  const recent=allProblems.slice(0,5);
+  document.getElementById('recent-tbody').innerHTML=recent.length===0?'<tr><td colspan="6"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique.</div></div></td></tr>':recent.map(p=>`<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td class="c-title">${esc(p.intitule)}</td><td><span class="badge bd">${esc(p.departement||'')}</span></td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td></tr>`).join('');
 }
-
-function filterTable() {
-  const search  = document.getElementById('search-input').value.toLowerCase();
-  const dept    = document.getElementById('filter-dept').value;
-  const statut  = document.getElementById('filter-statut').value;
-  const priorite = document.getElementById('filter-priorite').value;
-
-  const filtered = allProblems.filter(p => {
-    const matchSearch = !search ||
-      (p.intitule||'').toLowerCase().includes(search) ||
-      (p.description||'').toLowerCase().includes(search) ||
-      (p.responsable||'').toLowerCase().includes(search);
-    const matchDept   = !dept     || p.departement === dept;
-    const matchStatut = !statut   || p.statut === statut;
-    const matchPrio   = !priorite || p.priorite === priorite;
-    return matchSearch && matchDept && matchStatut && matchPrio;
-  });
-  renderTable(filtered);
+function renderTable(data){
+  const probs=data||allProblems;
+  document.getElementById('prob-tbody').innerHTML=probs.length===0?'<tr><td colspan="8"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique trouvee.</div></div></td></tr>':probs.map(p=>`<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,65))}${(p.description||'').length>65?'...':''}</small></div></td><td><span class="badge bd">${esc(p.departement||'')}</span></td><td style="font-size:.82rem;color:var(--text-secondary)">${esc(p.responsable||'')}</td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td>${isAdmin?`<td><button class="ab ab-e" onclick="openEdit(${p.id})">Modifier</button>${p.statut!=='Cloture'?`<button class="ab ab-c" onclick="cloturerProb(${p.id})">Cloturer</button>`:''}</td>`:'<td></td>'}</tr>`).join('');
 }
-
-function renderAdminTable() {
-  if (!isAdmin) return;
-  const tb = document.getElementById('admin-tbody');
-  if (allProblems.length === 0) {
-    tb.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">Aucune problématique.</div></div></td></tr>';
-    return;
-  }
-  tb.innerHTML = allProblems.map(p => `
-    <tr>
-      <td><span class="c-id">#${String(p.id).padStart(3,'0').slice(-3)}</span></td>
-      <td class="c-title">${escHtml(p.intitule)}</td>
-      <td><span class="badge bd">${escHtml(p.departement||'—')}</span></td>
-      <td>${badgePrio(p.priorite)}</td>
-      <td>${badgeStatut(p.statut)}</td>
-      <td style="font-size:.8rem;color:var(--steel)">${escHtml(p.soumis_par||'—')}</td>
-      <td style="color:var(--steel);font-size:.8rem;white-space:nowrap">${formatDate(p.created_at)}</td>
-      <td>
-        <button class="ab ab-e" onclick="openEdit(${p.id})">✏</button>
-        ${p.statut!=='Clôturé'?`<button class="ab ab-c" onclick="cloturerProb(${p.id})">⊘</button>`:''}
-      </td>
-    </tr>
-  `).join('');
+function filterTable(){
+  const q=document.getElementById('search-input').value.toLowerCase();
+  const dept=document.getElementById('filter-dept').value;
+  const stat=document.getElementById('filter-statut').value;
+  const prio=document.getElementById('filter-priorite').value;
+  renderTable(allProblems.filter(p=>(!q||(p.intitule||'').toLowerCase().includes(q)||(p.description||'').toLowerCase().includes(q))&&(!dept||p.departement===dept)&&(!stat||p.statut===stat)&&(!prio||p.priorite===prio)));
 }
-
-// ═══════════════════════════════════════════
-// SUBMIT — UTILISATEUR
-// ═══════════════════════════════════════════
-async function submitNouvelleProb() {
-  const intitule    = document.getElementById('n-intitule').value.trim();
-  const dept        = document.getElementById('n-dept').value;
-  const priorite    = document.getElementById('n-priorite').value;
-  const responsable = document.getElementById('n-responsable').value.trim();
-  const description = document.getElementById('n-description').value.trim();
-
-  if (!intitule || !dept || !priorite || !description) {
-    toast('Veuillez remplir tous les champs obligatoires (*).', 'error'); return;
-  }
-
-  const btn = document.querySelector('#page-nouvelle .btn-sub');
-  btn.disabled = true; btn.textContent = 'Envoi…';
-
-  const { error } = await sb.from('problematiques').insert([{
-    intitule, departement: dept, priorite,
-    responsable: responsable || null,
-    description,
-    statut: 'À traiter',
-    soumis_par: currentUser.email,
-  }]);
-
-  btn.disabled = false; btn.textContent = '⊕ Soumettre';
-
-  if (error) { toast('Erreur : ' + error.message, 'error'); return; }
-  toast('✅ Problématique soumise avec succès !', 'success');
-  resetForm();
-  await loadAll();
-  showPage('problematiques');
+function renderAdminTable(){
+  if(!isAdmin)return;
+  document.getElementById('admin-tbody').innerHTML=allProblems.length===0?'<tr><td colspan="8"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique.</div></div></td></tr>':allProblems.map(p=>`<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td class="c-title">${esc(p.intitule)}</td><td><span class="badge bd">${esc(p.departement||'')}</span></td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${esc(p.soumis_par||'')}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td><td><button class="ab ab-e" onclick="openEdit(${p.id})">Modifier</button>${p.statut!=='Cloture'?`<button class="ab ab-c" onclick="cloturerProb(${p.id})">Cloturer</button>`:''}</td></tr>`).join('');
 }
-
-function resetForm() {
-  ['n-intitule','n-dept','n-priorite','n-responsable','n-description'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
+async function submitNouvelleProb(){
+  const intitule=document.getElementById('n-intitule').value.trim();
+  const dept=document.getElementById('n-dept').value;
+  const prio=document.getElementById('n-priorite').value;
+  const resp=document.getElementById('n-responsable').value.trim();
+  const desc=document.getElementById('n-description').value.trim();
+  if(!intitule||!dept||!prio||!desc){toast('Champs obligatoires manquants.','error');return;}
+  const nbtn=document.querySelector('#page-nouvelle .btn-sub');
+  if(nbtn){nbtn.disabled=true;nbtn.textContent='Envoi...';}
+  const {error}=await sb.from('problematiques').insert([{intitule,departement:dept,priorite:prio,responsable:resp||null,description:desc,statut:'A traiter',soumis_par:currentUser.email}]);
+  if(nbtn){nbtn.disabled=false;nbtn.textContent='Soumettre';}
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  toast('Problematique soumise.','success');
+  ['n-intitule','n-dept','n-priorite','n-responsable','n-description'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  await loadAll(); showPage('problematiques');
 }
-
-// ═══════════════════════════════════════════
-// SUBMIT — ADMIN MODAL
-// ═══════════════════════════════════════════
-function openModalNouvel() {
-  ['m-intitule','m-dept','m-priorite','m-responsable','m-description'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  // Populate dept select in modal
-  const sel = document.getElementById('m-dept');
-  sel.innerHTML = '<option value="">— Sélectionner —</option>';
-  departments.forEach(d => {
-    const opt = document.createElement('option');
-    opt.value = d; opt.textContent = d; sel.appendChild(opt);
-  });
+function openModalNouvel(){
+  ['m-intitule','m-responsable','m-description'].forEach(id=>document.getElementById(id).value='');
+  const ms=document.getElementById('m-dept');
+  ms.innerHTML='<option value="">Selectionner</option>';
+  depts.forEach(d=>{const mo=document.createElement('option');mo.value=d;mo.textContent=d;ms.appendChild(mo);});
   document.getElementById('modal-nouvel').classList.add('open');
 }
-
-async function submitModal() {
-  const intitule    = document.getElementById('m-intitule').value.trim();
-  const dept        = document.getElementById('m-dept').value;
-  const priorite    = document.getElementById('m-priorite').value;
-  const statut      = document.getElementById('m-statut').value;
-  const responsable = document.getElementById('m-responsable').value.trim();
-  const description = document.getElementById('m-description').value.trim();
-
-  if (!intitule || !dept || !priorite || !description) {
-    toast('Champs obligatoires manquants.', 'error'); return;
-  }
-
-  const btn = document.getElementById('btn-submit-modal');
-  btn.disabled = true; btn.textContent = 'Création…';
-
-  const { error } = await sb.from('problematiques').insert([{
-    intitule, departement: dept, priorite, statut,
-    responsable: responsable || null, description,
-    soumis_par: currentUser.email,
-  }]);
-
-  btn.disabled = false; btn.textContent = '⊕ Créer';
-
-  if (error) { toast('Erreur : ' + error.message, 'error'); return; }
-  closeModal('modal-nouvel');
-  toast('✅ Problématique créée avec succès !', 'success');
-  await loadAll();
+async function submitModal(){
+  const mintitule=document.getElementById('m-intitule').value.trim();
+  const mdept=document.getElementById('m-dept').value;
+  const mprio=document.getElementById('m-priorite').value;
+  const mstat=document.getElementById('m-statut').value;
+  const mresp=document.getElementById('m-responsable').value.trim();
+  const mdesc=document.getElementById('m-description').value.trim();
+  if(!mintitule||!mdept||!mprio||!mdesc){toast('Champs obligatoires manquants.','error');return;}
+  const mbtn=document.getElementById('btn-submit-modal');
+  if(mbtn){mbtn.disabled=true;mbtn.textContent='Creation...';}
+  const {error}=await sb.from('problematiques').insert([{intitule:mintitule,departement:mdept,priorite:mprio,statut:mstat,responsable:mresp||null,description:mdesc,soumis_par:currentUser.email}]);
+  if(mbtn){mbtn.disabled=false;mbtn.textContent='Creer';}
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  closeModal('modal-nouvel'); toast('Problematique creee.','success'); await loadAll();
 }
-
-// ═══════════════════════════════════════════
-// EDIT
-// ═══════════════════════════════════════════
-function openEdit(id) {
-  const p = allProblems.find(x => x.id === id);
-  if (!p) return;
-  document.getElementById('edit-id').value       = id;
-  document.getElementById('edit-subtitle').textContent = p.intitule;
-  document.getElementById('edit-statut').value   = p.statut || 'À traiter';
-  document.getElementById('edit-priorite').value = p.priorite || 'Moyenne';
-  document.getElementById('edit-responsable').value = p.responsable || '';
-  document.getElementById('edit-seuil').value    = p.seuil || '';
-  document.getElementById('edit-reel').value     = p.reel || '';
-  document.getElementById('edit-resultat').value = p.resultat || '';
+function openEdit(id){
+  const ep=allProblems.find(x=>x.id===id);if(!ep)return;
+  document.getElementById('edit-id').value=id;
+  document.getElementById('edit-subtitle').textContent=ep.intitule;
+  document.getElementById('edit-statut').value=ep.statut||'A traiter';
+  document.getElementById('edit-priorite').value=ep.priorite||'Moyenne';
+  document.getElementById('edit-responsable').value=ep.responsable||'';
+  document.getElementById('edit-seuil').value=ep.seuil||'';
+  document.getElementById('edit-reel').value=ep.reel||'';
+  document.getElementById('edit-resultat').value=ep.resultat||'';
   document.getElementById('modal-edit').classList.add('open');
 }
-
-async function saveEdit() {
-  const id          = parseInt(document.getElementById('edit-id').value);
-  const statut      = document.getElementById('edit-statut').value;
-  const priorite    = document.getElementById('edit-priorite').value;
-  const responsable = document.getElementById('edit-responsable').value.trim();
-  const seuil       = document.getElementById('edit-seuil').value;
-  const reel        = document.getElementById('edit-reel').value;
-  const resultat    = document.getElementById('edit-resultat').value.trim();
-
-  const updates = {
-    statut, priorite,
-    responsable: responsable || null,
-    seuil:    seuil  ? parseFloat(seuil)  : null,
-    reel:     reel   ? parseFloat(reel)   : null,
-    resultat: resultat || null,
-    updated_at: new Date().toISOString(),
-  };
-
-  const { error } = await sb.from('problematiques').update(updates).eq('id', id);
-  if (error) { toast('Erreur : ' + error.message, 'error'); return; }
-  closeModal('modal-edit');
-  toast('💾 Modifications enregistrées.', 'success');
-  await loadAll();
+async function saveEdit(){
+  const eid=parseInt(document.getElementById('edit-id').value);
+  const {error}=await sb.from('problematiques').update({
+    statut:document.getElementById('edit-statut').value,
+    priorite:document.getElementById('edit-priorite').value,
+    responsable:document.getElementById('edit-responsable').value.trim()||null,
+    seuil:document.getElementById('edit-seuil').value?parseFloat(document.getElementById('edit-seuil').value):null,
+    reel:document.getElementById('edit-reel').value?parseFloat(document.getElementById('edit-reel').value):null,
+    resultat:document.getElementById('edit-resultat').value.trim()||null,
+    updated_at:new Date().toISOString(),
+  }).eq('id',eid);
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  closeModal('modal-edit'); toast('Modifications enregistrees.','success'); await loadAll();
 }
-
-async function cloturerProb(id) {
-  if (!confirm('Clôturer définitivement cette problématique ?')) return;
-  const { error } = await sb.from('problematiques')
-    .update({ statut: 'Clôturé', updated_at: new Date().toISOString() })
-    .eq('id', id);
-  if (error) { toast('Erreur : ' + error.message, 'error'); return; }
-  toast('⊘ Problématique clôturée.', 'success');
-  await loadAll();
+async function cloturerProb(id){
+  if(!confirm('Cloturer cette problematique ?'))return;
+  const {error}=await sb.from('problematiques').update({statut:'Cloture',updated_at:new Date().toISOString()}).eq('id',id);
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  toast('Problematique cloturee.','success'); await loadAll();
 }
-
-// ═══════════════════════════════════════════
-// NAVIGATION
-// ═══════════════════════════════════════════
-const pageTitles = {
-  dashboard:       'Tableau de bord',
-  problematiques:  'Toutes les problématiques',
-  nouvelle:        'Soumettre une problématique',
-  admin:           'Gestion — Administration',
-  profil:          'Mon profil',
-};
-function showPage(name) {
-  if (name === 'profil') loadProfilPage();
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.sb-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  const nav = document.getElementById('nav-' + name);
-  if (nav) nav.classList.add('active');
-  document.getElementById('topbar-title').textContent = pageTitles[name] || '';
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+const pageTitles={dashboard:'Tableau de bord',problematiques:'Registre des problematiques',nouvelle:'Soumettre une problematique',admin:'Administration',profil:'Mon profil'};
+function showPage(name){
+  if(name==='profil')loadProfilPage();
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  const nav=document.getElementById('nav-'+name);
+  if(nav)nav.classList.add('active');
+  document.getElementById('topbar-title').textContent=pageTitles[name]||'';
 }
-
-// ═══════════════════════════════════════════
-// MODALS
-// ═══════════════════════════════════════════
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
-document.querySelectorAll('.overlay').forEach(overlay => {
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) overlay.classList.remove('open');
-  });
-});
-
-// ═══════════════════════════════════════════
-// TOAST
-// ═══════════════════════════════════════════
-function toast(msg, type = 'info') {
-  const el = document.createElement('div');
-  el.className = `toast ${type}`;
-  el.textContent = msg;
-  document.getElementById('toasts').appendChild(el);
-  setTimeout(() => el.remove(), 4000);
-}
-
-// ═══════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════
-function escHtml(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function formatDate(d) {
-  if (!d) return '—';
-  return new Date(d).toLocaleDateString('fr-CA', { day:'2-digit', month:'short', year:'numeric' });
-}
-function badgeStatut(s) {
-  const map = {
-    'À traiter': 'bt', 'En cours': 'bc',
-    'Résolu': 'br',     'Annulé': 'ban',
-    'Clôturé': 'bcl',
-  };
-  return `<span class="badge ${map[s]||'ban'}">${escHtml(s||'—')}</span>`;
-}
-function badgePrio(p) {
-  const map = {
-    'Critique': 'bpC', 'Haute': 'bpH',
-    'Moyenne': 'bpM',   'Basse': 'bpB',
-  };
-  return `<span class="badge ${map[p]||'bpB'}">${escHtml(p||'—')}</span>`;
-}
-
-// ═══════════════════════════════════════════
-// START
-// ═══════════════════════════════════════════
-
-/* ── PROFIL ────────────────────────────────────── */
-function loadProfilPage() {
-  if (!currentUser) return;
-  const meta  = currentUser.user_metadata || {};
-  const email = currentUser.email || '';
-  const prenom = meta.prenom || '';
-  const nom    = meta.nom    || '';
-  const poste  = meta.poste  || '';
-  const dn = [prenom, nom].filter(Boolean).join(' ') || email.split('@')[0];
-  const initials = dn.substring(0,2).toUpperCase();
-
-  // Carte identité
-  document.getElementById('pav').textContent  = initials;
-  document.getElementById('pdn').textContent  = dn;
-  document.getElementById('pem').textContent  = email;
-
-  const roleBadge = document.getElementById('prolbadge');
-  roleBadge.textContent = isAdmin ? '🔑 Administrateur' : '👤 Utilisateur';
-  roleBadge.className   = 'profil-role ' + (isAdmin ? 'admin' : 'user');
-  document.getElementById('prolrole').textContent = isAdmin ? 'Administrateur' : 'Utilisateur';
-
-  const since = currentUser.created_at
-    ? new Date(currentUser.created_at).toLocaleDateString('fr-CA',{day:'2-digit',month:'long',year:'numeric'})
-    : '—';
-  document.getElementById('prolsince').textContent = since;
-
-  // Formulaire info
-  document.getElementById('p-prenom').value = prenom;
-  document.getElementById('p-nom').value    = nom;
-  document.getElementById('p-poste').value  = poste;
-  document.getElementById('p-email').value  = email;
-
-  // Vider champs mot de passe
-  document.getElementById('p-pwd0').value = '';
-  document.getElementById('p-pwd1').value = '';
-  document.getElementById('p-pwd2').value = '';
-  document.getElementById('p-pwd-bar').style.width = '0%';
-  document.getElementById('p-pwd-lbl').textContent = 'Entrez un mot de passe';
-  document.getElementById('p-pwd-lbl').style.color = 'var(--text-muted)';
-}
-
-async function saveProfilInfo() {
-  const prenom = document.getElementById('p-prenom').value.trim();
-  const nom    = document.getElementById('p-nom').value.trim();
-  const poste  = document.getElementById('p-poste').value.trim();
-
-  const { data, error } = await sb.auth.updateUser({ data: { prenom, nom, poste } });
-  if (error) { toast('Erreur : ' + error.message, 'error'); return; }
-
-  if (data?.user) currentUser = data.user;
-  updateUserUI();
-
-  // Rafraîchir la carte identité sans recharger la page
-  const dn = [prenom, nom].filter(Boolean).join(' ') || (currentUser.email||'').split('@')[0];
-  document.getElementById('pav').textContent = dn.substring(0,2).toUpperCase();
-  document.getElementById('pdn').textContent = dn;
-
-  const msg = document.getElementById('info-ok');
-  msg.classList.add('show');
-  setTimeout(() => msg.classList.remove('show'), 3000);
-  toast('Profil mis à jour.', 'success');
-}
-
-async function saveProfilPwd() {
-  // TEST DIAGNOSTIC
-  alert('Bouton cliqué — fonction démarrée');
-  const pwd0 = document.getElementById('p-pwd0');
-  const pwd1 = document.getElementById('p-pwd1');
-  const pwd2 = document.getElementById('p-pwd2');
-  alert('p-pwd0: ' + (pwd0 ? pwd0.value : 'INTROUVABLE'));
-  alert('p-pwd1: ' + (pwd1 ? pwd1.value : 'INTROUVABLE'));
-  if (!pwd0 || !pwd1 || !pwd2) { alert('ERREUR: un champ est introuvable dans le DOM'); return; }
-  if (!pwd0.value) { alert('ERREUR: mot de passe actuel vide'); return; }
-  if (pwd1.value.length < 8) { alert('ERREUR: nouveau mdp trop court'); return; }
-  if (pwd1.value !== pwd2.value) { alert('ERREUR: mdp ne correspondent pas'); return; }
-  alert('Validation OK — appel Supabase...');
-  const pwd0 = document.getElementById('p-pwd0').value;
-  const pwd1 = document.getElementById('p-pwd1').value;
-  const pwd2 = document.getElementById('p-pwd2').value;
-
-  if (!pwd0)           { toast('Veuillez entrer votre mot de passe actuel.', 'error'); return; }
-  if (pwd1.length < 8) { toast('Le nouveau mot de passe doit contenir au moins 8 caractères.', 'error'); return; }
-  if (pwd1 !== pwd2)   { toast('Les deux mots de passe ne correspondent pas.', 'error'); return; }
-
-  const btn = document.getElementById('btn-pwd-update');
-  if (btn) { btn.disabled = true; btn.textContent = 'Vérification…'; }
-
-  // Étape 1 : re-authentifier pour satisfaire Supabase
-  const { error: authErr } = await sb.auth.signInWithPassword({
-    email: currentUser.email,
-    password: pwd0
-  });
-  if (authErr) {
-    if (btn) { btn.disabled = false; btn.textContent = 'Mettre à jour'; }
-    toast('Mot de passe actuel incorrect.', 'error');
-    return;
-  }
-
-  // Étape 2 : changer le mot de passe
-  if (btn) btn.textContent = 'Mise à jour…';
-  const { error } = await sb.auth.updateUser({ password: pwd1 });
-  if (btn) { btn.disabled = false; btn.textContent = 'Mettre à jour'; }
-  if (error) { toast('Erreur : ' + error.message, 'error'); return; }
-
-  // Succès — vider les champs
-  document.getElementById('p-pwd0').value = '';
-  document.getElementById('p-pwd1').value = '';
-  document.getElementById('p-pwd2').value = '';
-  document.getElementById('p-pwd-bar').style.width = '0%';
-  document.getElementById('p-pwd-lbl').textContent = 'Entrez un mot de passe';
-  document.getElementById('p-pwd-lbl').style.color = 'var(--text-muted)';
-
-  const msg = document.getElementById('pwd-ok');
-  msg.classList.add('show');
-  setTimeout(() => msg.classList.remove('show'), 3000);
-  toast('Mot de passe mis à jour avec succès.', 'success');
-}
-
-function evalPwd(pwd, barId, lblId) {
-  const score = [pwd.length>=8, /[A-Z]/.test(pwd), /[0-9]/.test(pwd), /[^A-Za-z0-9]/.test(pwd)].filter(Boolean).length;
-  const pct    = score * 25;
-  const colors = ['var(--text-faint)','var(--ruby)','var(--amber)','var(--amber)','var(--emerald)'];
-  const labels = ['Entrez un mot de passe','Très faible','Faible','Correct','Fort'];
-  const bar = document.getElementById(barId);
-  const lbl = document.getElementById(lblId);
-  bar.style.width      = pct + '%';
-  bar.style.background = colors[score];
-  lbl.textContent      = pwd.length === 0 ? labels[0] : labels[score];
-  lbl.style.color      = pwd.length === 0 ? 'var(--text-muted)' : colors[score];
-}
-
-function toggleEye(inputId, icon) {
-  const inp = document.getElementById(inputId);
-  if (!inp) return;
-  inp.type = inp.type === 'password' ? 'text' : 'password';
-  icon.textContent = inp.type === 'password' ? '👁' : '🔒';
-}
-
-
-function showSetupPage() {
-  document.getElementById('auth-page').style.display  = 'none';
-  document.getElementById('setup-page').style.display = 'block';
-  document.getElementById('app').style.display        = 'none';
-}
-
-function evalSetupPwd(pwd) {
-  evalPwd(pwd, 'setup-pwd-bar', 'setup-pwd-lbl');
-}
-
-async function submitSetupPwd() {
-  const pwd1 = document.getElementById('setup-pwd1').value;
-  const pwd2 = document.getElementById('setup-pwd2').value;
-  const btn  = document.getElementById('btn-setup-submit');
-  const err  = document.getElementById('setup-err');
-
-  err.style.display = 'none';
-
-  if (pwd1.length < 8) {
-    err.textContent = 'Le mot de passe doit contenir au moins 8 caractères.';
-    err.style.display = 'block'; return;
-  }
-  if (pwd1 !== pwd2) {
-    err.textContent = 'Les deux mots de passe ne correspondent pas.';
-    err.style.display = 'block'; return;
-  }
-
-  btn.disabled = true; btn.textContent = 'Enregistrement…';
-
-  // Définir le mot de passe — la session est déjà active grâce au token d'invitation
-  const { error } = await sb.auth.updateUser({ password: pwd1 });
-
-  if (error) {
-    btn.disabled = false; btn.textContent = 'Confirmer et accéder';
-    err.textContent = 'Erreur : ' + error.message;
-    err.style.display = 'block'; return;
-  }
-
-  // Succès — afficher le message et rediriger vers l'app
-  document.getElementById('setup-form').style.display    = 'none';
-  document.getElementById('setup-success').style.display = 'block';
-
-  setTimeout(async () => {
-    document.getElementById('setup-page').style.display = 'none';
-    await checkRole();
-    showApp();
-    await loadAll();
-  }, 2000);
-}
-
-
-function goToRegistre(statut) {
-  // Aller sur la page problématiques et appliquer le filtre statut
+function goToRegistre(statut){
   showPage('problematiques');
-  const sel = document.getElementById('filter-statut');
-  if (sel) {
-    sel.value = statut;
-    filterTable();
-  }
+  const sel=document.getElementById('filter-statut');
+  if(sel){sel.value=statut;filterTable();}
 }
+function loadProfilPage(){
+  if(!currentUser)return;
+  const meta=currentUser.user_metadata||{};
+  const email=currentUser.email||'';
+  const dn=[meta.prenom,meta.nom].filter(Boolean).join(' ')||email.split('@')[0];
+  document.getElementById('pav').textContent=dn.substring(0,2).toUpperCase();
+  document.getElementById('pdn').textContent=dn;
+  document.getElementById('pem').textContent=email;
+  const rb=document.getElementById('prolbadge');
+  rb.textContent=isAdmin?'Admin':'Utilisateur';
+  rb.className='profil-role '+(isAdmin?'admin':'user');
+  document.getElementById('prolrole').textContent=isAdmin?'Administrateur':'Utilisateur';
+  document.getElementById('prolsince').textContent=currentUser.created_at?new Date(currentUser.created_at).toLocaleDateString('fr-CA',{day:'2-digit',month:'long',year:'numeric'}):'';
+  document.getElementById('p-prenom').value=meta.prenom||'';
+  document.getElementById('p-nom').value=meta.nom||'';
+  document.getElementById('p-poste').value=meta.poste||'';
+  document.getElementById('p-email').value=email;
+  document.getElementById('p-pwd0').value='';
+  document.getElementById('p-pwd1').value='';
+  document.getElementById('p-pwd2').value='';
+  const pbar=document.getElementById('p-pwd-bar');
+  const plbl=document.getElementById('p-pwd-lbl');
+  if(pbar)pbar.style.width='0%';
+  if(plbl){plbl.textContent='Entrez un mot de passe';plbl.style.color='var(--text-muted)';}
+}
+async function saveProfilInfo(){
+  const prenom=document.getElementById('p-prenom').value.trim();
+  const nom=document.getElementById('p-nom').value.trim();
+  const poste=document.getElementById('p-poste').value.trim();
+  const {data,error}=await sb.auth.updateUser({data:{prenom,nom,poste}});
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  if(data?.user)currentUser=data.user;
+  updateUserUI();
+  const dn=[prenom,nom].filter(Boolean).join(' ')||(currentUser.email||'').split('@')[0];
+  document.getElementById('pav').textContent=dn.substring(0,2).toUpperCase();
+  document.getElementById('pdn').textContent=dn;
+  const imsg=document.getElementById('info-ok');
+  if(imsg){imsg.classList.add('show');setTimeout(()=>imsg.classList.remove('show'),3000);}
+  toast('Profil mis a jour.','success');
+}
+async function saveProfilPwd(){
+  const curPwd=document.getElementById('p-pwd0').value;
+  const newPwd=document.getElementById('p-pwd1').value;
+  const cfmPwd=document.getElementById('p-pwd2').value;
+  if(!curPwd){toast('Entrez votre mot de passe actuel.','error');return;}
+  if(newPwd.length<8){toast('Le nouveau mot de passe doit contenir au moins 8 caracteres.','error');return;}
+  if(newPwd!==cfmPwd){toast('Les deux nouveaux mots de passe ne correspondent pas.','error');return;}
+  const pbtn=document.getElementById('btn-pwd-update');
+  if(pbtn){pbtn.disabled=true;pbtn.textContent='Verification...';}
+  const {error:authErr}=await sb.auth.signInWithPassword({email:currentUser.email,password:curPwd});
+  if(authErr){
+    if(pbtn){pbtn.disabled=false;pbtn.textContent='Mettre a jour';}
+    toast('Mot de passe actuel incorrect.','error');return;
+  }
+  if(pbtn)pbtn.textContent='Mise a jour...';
+  const {error}=await sb.auth.updateUser({password:newPwd});
+  if(pbtn){pbtn.disabled=false;pbtn.textContent='Mettre a jour';}
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  document.getElementById('p-pwd0').value='';
+  document.getElementById('p-pwd1').value='';
+  document.getElementById('p-pwd2').value='';
+  const pbar=document.getElementById('p-pwd-bar');
+  const plbl=document.getElementById('p-pwd-lbl');
+  if(pbar)pbar.style.width='0%';
+  if(plbl){plbl.textContent='Entrez un mot de passe';plbl.style.color='var(--text-muted)';}
+  const pmsg=document.getElementById('pwd-ok');
+  if(pmsg){pmsg.classList.add('show');setTimeout(()=>pmsg.classList.remove('show'),3000);}
+  toast('Mot de passe mis a jour avec succes.','success');
+}
+function evalPwd(pwd,barId,lblId){
+  const score=[pwd.length>=8,/[A-Z]/.test(pwd),/[0-9]/.test(pwd),/[^A-Za-z0-9]/.test(pwd)].filter(Boolean).length;
+  const colors=['var(--text-faint)','var(--ruby)','var(--amber)','var(--amber)','var(--emerald)'];
+  const labels=['Entrez un mot de passe','Tres faible','Faible','Correct','Fort'];
+  const ebar=document.getElementById(barId);
+  const elbl=document.getElementById(lblId);
+  if(ebar){ebar.style.width=(score*25)+'%';ebar.style.background=colors[score];}
+  if(elbl){elbl.textContent=pwd.length===0?labels[0]:labels[score];elbl.style.color=pwd.length===0?'var(--text-muted)':colors[score];}
+}
+function toggleEye(inputId,icon){
+  const inp=document.getElementById(inputId);if(!inp)return;
+  inp.type=inp.type==='password'?'text':'password';
+  icon.textContent=inp.type==='password'?'O':'X';
+}
+function toast(msg,type='info'){
+  const tel=document.createElement('div');
+  tel.className='toast '+type;tel.textContent=msg;
+  document.getElementById('toasts').appendChild(tel);
+  setTimeout(()=>tel.remove(),4000);
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtDate(d){return d?new Date(d).toLocaleDateString('fr-CA',{day:'2-digit',month:'short',year:'numeric'}):''}
+function fmtId(id){return String(id||'').padStart(4,'0').slice(-4);}
+function bStat(s){const m={'A traiter':'bt','En cours':'bc','Resolu':'br','Annule':'ban','Cloture':'bcl'};return `<span class="badge ${m[s]||'ban'}">${esc(s||'')}</span>`;}
+function bPrio(p){const m={Critique:'bpC',Haute:'bpH',Moyenne:'bpM',Basse:'bpB'};return `<span class="badge ${m[p]||'bpB'}">${esc(p||'')}</span>`;}
 
-window.addEventListener('load', () => setTimeout(init, 800));
+window.addEventListener('load',()=>setTimeout(init,800));
 
 </script>
 </body>
