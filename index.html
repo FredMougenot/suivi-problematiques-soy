@@ -400,6 +400,40 @@ body { font-size: 0.9375rem; }
 .sb-name { font-family: 'Playfair Display', serif !important; font-size: 1.18rem !important; font-weight: 700 !important; color: var(--text-primary) !important; }
 .topbar-title { font-size: 1.35rem !important; font-weight: 700 !important; color: var(--text-primary) !important; font-family: 'Playfair Display', serif !important; letter-spacing: .01em !important; }
 
+
+/* ══ TITRES OUTFIT +30% ══════════════════════════════════════════ */
+.sb-name { font-family: 'Outfit', sans-serif !important; font-size: 1.52rem !important; font-weight: 700 !important; color: var(--text-primary) !important; letter-spacing: -.01em !important; }
+.topbar-title { font-family: 'Outfit', sans-serif !important; font-size: 1.72rem !important; font-weight: 700 !important; color: var(--text-primary) !important; letter-spacing: -.02em !important; }
+
+/* ══ KPI ICÔNES GRANDES ET DESIGN ═══════════════════════════════ */
+.kpi-ico {
+  width: 52px !important; height: 52px !important;
+  border-radius: 14px !important;
+  font-size: 1.65rem !important;
+  display: flex !important; align-items: center !important; justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+.kpi.copper .kpi-ico { background: rgba(200,132,58,.18) !important; font-size: 1.7rem !important; }
+.kpi.ruby    .kpi-ico { background: rgba(238,96,96,.15)  !important; font-size: 1.7rem !important; }
+.kpi.sapphire .kpi-ico{ background: rgba(90,174,238,.15) !important; font-size: 1.7rem !important; }
+.kpi.emerald .kpi-ico { background: rgba(52,232,176,.15) !important; font-size: 1.7rem !important; }
+.kpi-top { align-items: center !important; gap: 12px !important; }
+
+
+/* ══ KPI SVG ICONS ════════════════════════════════════════════════ */
+.kpi-ico {
+  width: 48px !important; height: 48px !important;
+  border-radius: 12px !important;
+  display: flex !important; align-items: center !important; justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+.kpi-ico svg { width: 22px; height: 22px; }
+.kpi.copper  .kpi-ico { background: rgba(200,132,58,.18) !important; color: var(--copper-light); }
+.kpi.ruby    .kpi-ico { background: rgba(238,96,96,.15)  !important; color: var(--ruby); }
+.kpi.sapphire .kpi-ico{ background: rgba(90,174,238,.15) !important; color: var(--sapphire); }
+.kpi.emerald .kpi-ico { background: rgba(52,232,176,.15) !important; color: var(--emerald); }
+.kpi-top { align-items: center !important; }
+
 </style>
 </head>
 <body>
@@ -550,22 +584,22 @@ body { font-size: 0.9375rem; }
       <div class="page active" id="page-dashboard">
         <div class="kpi-row">
           <div class="kpi copper" onclick="goToRegistre('')" style="cursor:pointer">
-            <div class="kpi-top"><div class="kpi-lbl">Total</div><div class="kpi-ico">📋</div></div>
+            <div class="kpi-top"><div class="kpi-lbl">Total</div><div class="kpi-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 17 7 11 12 14 17 7 22 9"/><circle cx="22" cy="9" r="1.5" fill="currentColor" stroke="none"/><line x1="2" y1="21" x2="22" y2="21" stroke-width="1.2" opacity=".4"/></svg></div></div>
             <div class="kpi-val" id="kpi-total">—</div>
             <div class="kpi-sub">Voir le registre →</div>
           </div>
           <div class="kpi ruby" onclick="goToRegistre('À traiter')" style="cursor:pointer">
-            <div class="kpi-top"><div class="kpi-lbl">À traiter</div><div class="kpi-ico">🔴</div></div>
+            <div class="kpi-top"><div class="kpi-lbl">À traiter</div><div class="kpi-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 10"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg></div></div>
             <div class="kpi-val" id="kpi-ouvert">—</div>
             <div class="kpi-sub">Voir le registre →</div>
           </div>
           <div class="kpi sapphire" onclick="goToRegistre('En cours')" style="cursor:pointer">
-            <div class="kpi-top"><div class="kpi-lbl">En cours</div><div class="kpi-ico">🔄</div></div>
+            <div class="kpi-top"><div class="kpi-lbl">En cours</div><div class="kpi-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 19.5 6.5 19.5 17.5 12 22 4.5 17.5 4.5 6.5"/><polyline points="13 8 10 13 14 13 11 18"/></svg></div></div>
             <div class="kpi-val" id="kpi-cours">—</div>
             <div class="kpi-sub">Voir le registre →</div>
           </div>
           <div class="kpi emerald" onclick="goToRegistre('Résolu')" style="cursor:pointer">
-            <div class="kpi-top"><div class="kpi-lbl">Résolues</div><div class="kpi-ico">✅</div></div>
+            <div class="kpi-top"><div class="kpi-lbl">Résolues</div><div class="kpi-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><polyline points="9 12 11 14.2 15.5 9.5"/><line x1="12" y1="2" x2="12" y2="4" stroke-width="1.2" opacity=".5"/><line x1="12" y1="20" x2="12" y2="22" stroke-width="1.2" opacity=".5"/><line x1="2" y1="12" x2="4" y2="12" stroke-width="1.2" opacity=".5"/><line x1="20" y1="12" x2="22" y2="12" stroke-width="1.2" opacity=".5"/><line x1="4.9" y1="4.9" x2="6.3" y2="6.3" stroke-width="1.2" opacity=".35"/><line x1="17.7" y1="17.7" x2="19.1" y2="19.1" stroke-width="1.2" opacity=".35"/><line x1="17.7" y1="6.3" x2="19.1" y2="4.9" stroke-width="1.2" opacity=".35"/><line x1="4.9" y1="19.1" x2="6.3" y2="17.7" stroke-width="1.2" opacity=".35"/></svg></div></div>
             <div class="kpi-val" id="kpi-resolu">—</div>
             <div class="kpi-sub">Voir le registre →</div>
           </div>
