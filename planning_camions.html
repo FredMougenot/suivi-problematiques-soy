@@ -359,7 +359,7 @@ const SLOTS = [
   {idx:8, h:'18:00', lbl:'18h00',             defDesc:'',               defType:'CHAUFFÉE'},
   {idx:9, h:'19:00', lbl:'19h00',             defDesc:'',               defType:'CHAUFFÉE'},
 ];
-const DESC_OPTS = ['','Camion vide','Stock palette','Stock 1 commande','Stock 2 grains'];
+const DESC_OPTS = ['','-','Camion vide','Stock palette','Stock 1 commande','Stock 2 grains'];
 const DESTS = ['GH','ADVANTECH','PROACTIVE','LJDERY','AUCUN REPARTIR BOBTAIL'];
 
 let curDate = todayStr();
@@ -405,6 +405,16 @@ function goToday(){ curDate=todayStr(); refreshDateUI(); load(); }
 
 // ── LOAD ──────────────────────────────────────────────────────────
 window.addEventListener('load',()=>{ refreshDateUI(); load(); });
+// Filet de sécurité : si load() ne déclenche pas les charts (ex: erreur réseau)
+// on tente un refresh autonome après 2s
+setTimeout(()=>{
+  const el=document.getElementById('cv-today');
+  if(el && el.getContext('2d')){
+    const ctx=el.getContext('2d');
+    const px=ctx.getImageData(80,80,1,1).data;
+    if(px[0]===0&&px[1]===0&&px[2]===0) refreshCharts();
+  }
+}, 2000);
 
 async function load(){
   document.getElementById('spinner').style.display='flex';
@@ -434,9 +444,11 @@ function render(){
   SLOTS.forEach(s => {
     if(!rows[s.idx]) rows[s.idx]={slot_index:s.idx};
     if(!rows[s.idx].type_camion) rows[s.idx].type_camion=s.defType||'CHAUFFÉE';
-    // Description : weekend override pour 07h30, sinon défaut du slot
+    // Description : overrides weekend
     if(_isWeekend && s.idx===_wkDescIdx){
       if(!rows[s.idx].description) rows[s.idx].description='Stock palette';
+    } else if(_isWeekend && (s.idx===4 || s.idx===5)){
+      if(!rows[s.idx].description) rows[s.idx].description='-';
     } else {
       if(!rows[s.idx].description && s.defDesc) rows[s.idx].description=s.defDesc;
     }
@@ -668,7 +680,8 @@ function updCharg(sel){
 // ── GRAPHIQUES ────────────────────────────────────────────────────
 
 async function refreshCharts(){
-  const seuil = parseInt(document.getElementById('retard-seuil').value)||30;
+  let seuil = 30;
+  try { seuil = parseInt(document.getElementById('retard-seuil').value)||30; } catch(e){}
 
   // Période aujourd'hui
   const today = curDate;
@@ -712,9 +725,12 @@ function fmtDateLbl(s){
 }
 
 async function fetchPeriod(start, end){
-  const {data} = await sb.from('planning_camions').select('*')
-    .gte('date_jour', start).lte('date_jour', end);
-  return data||[];
+  try {
+    const {data, error} = await sb.from('planning_camions').select('*')
+      .gte('date_jour', start).lte('date_jour', end);
+    if(error) return [];
+    return data||[];
+  } catch(e){ return []; }
 }
 
 function analyzeData(data, seuil){
@@ -824,6 +840,7 @@ function drawChart(key, data, seuil){
     </div>`;
   }).join('');
 }
+
 
 
 
