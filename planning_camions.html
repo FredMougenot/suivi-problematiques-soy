@@ -359,7 +359,7 @@ const SLOTS = [
   {idx:8, h:'18:00', lbl:'18h00',             defDesc:'',               defType:'CHAUFFÉE'},
   {idx:9, h:'19:00', lbl:'19h00',             defDesc:'',               defType:'CHAUFFÉE'},
 ];
-const DESC_OPTS = ['','-','Camion vide','Stock palette','Stock 1 commande','Stock 2 grains'];
+const DESC_OPTS = ['','Camion vide','Stock palette','Stock 1 commande','Stock 2 grains'];
 const DESTS = ['GH','ADVANTECH','PROACTIVE','LJDERY','AUCUN REPARTIR BOBTAIL'];
 
 let curDate = todayStr();
@@ -405,31 +405,22 @@ function goToday(){ curDate=todayStr(); refreshDateUI(); load(); }
 
 // ── LOAD ──────────────────────────────────────────────────────────
 window.addEventListener('load',()=>{ refreshDateUI(); load(); });
-// Filet de sécurité : si load() ne déclenche pas les charts (ex: erreur réseau)
-// on tente un refresh autonome après 2s
-setTimeout(()=>{
-  const el=document.getElementById('cv-today');
-  if(el && el.getContext('2d')){
-    const ctx=el.getContext('2d');
-    const px=ctx.getImageData(80,80,1,1).data;
-    if(px[0]===0&&px[1]===0&&px[2]===0) refreshCharts();
-  }
-}, 2000);
 
 async function load(){
   document.getElementById('spinner').style.display='flex';
   document.getElementById('tbl').style.display='none';
   rows={};
-  const {data,error}=await sb.from('planning_camions').select('*')
-    .eq('date_jour',curDate).order('slot_index');
-  if(error && error.code!=='PGRST116')
-    toast('Erreur chargement: '+error.message,'error');
-  (data||[]).forEach(r=>{ rows[r.slot_index]=r; });
+  try {
+    const {data,error}=await sb.from('planning_camions').select('*')
+      .eq('date_jour',curDate).order('slot_index');
+    if(error && error.code!=='PGRST116')
+      toast('Erreur chargement: '+error.message,'error');
+    (data||[]).forEach(r=>{ rows[r.slot_index]=r; });
+  } catch(e){ toast('Connexion impossible.','error'); }
   render();
   document.getElementById('spinner').style.display='none';
   document.getElementById('tbl').style.display='block';
-  // Rafraîchir les graphiques après affichage du tableau
-  refreshCharts();
+  try { await refreshCharts(); } catch(e){ console.warn('Charts:',e); }
 }
 
 // ── RENDER ─────────────────────────────────────────────────────────
@@ -443,12 +434,20 @@ function render(){
 
   SLOTS.forEach(s => {
     if(!rows[s.idx]) rows[s.idx]={slot_index:s.idx};
-    if(!rows[s.idx].type_camion) rows[s.idx].type_camion=s.defType||'CHAUFFÉE';
+    if(!rows[s.idx].type_camion){
+      // Weekend : pas de type pour les camions de 6h (annulés)
+      if(_isWeekend && (s.idx===0||s.idx===1)) rows[s.idx].type_camion='';
+      else rows[s.idx].type_camion=s.defType||'CHAUFFÉE';
+    }
     // Description : overrides weekend
-    if(_isWeekend && s.idx===_wkDescIdx){
-      if(!rows[s.idx].description) rows[s.idx].description='Stock palette';
-    } else if(_isWeekend && (s.idx===4 || s.idx===5)){
-      if(!rows[s.idx].description) rows[s.idx].description='-';
+    if(_isWeekend){
+      if(s.idx===3){  // 09h00 → Stock palette
+        if(!rows[s.idx].description) rows[s.idx].description='Stock palette';
+      } else if(s.idx===2||s.idx===4||s.idx===5){ // 07h30, 11h30, 14h → tiret
+        if(!rows[s.idx].description) rows[s.idx].description='—';
+      } else {
+        if(!rows[s.idx].description && s.defDesc) rows[s.idx].description=s.defDesc;
+      }
     } else {
       if(!rows[s.idx].description && s.defDesc) rows[s.idx].description=s.defDesc;
     }
@@ -511,7 +510,9 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
     <td><input class="ci" style="max-width:95px" value="${esc(r.num_arrivee||'')}" placeholder="N° arrivée" oninput="fchg(${idx},'num_arrivee',this.value)"></td>
     <td>
       <select class="cs desc-sel" style="min-width:150px" onchange="fchg(${idx},'description',this.value)">
-        ${DESC_OPTS.map(o=>`<option value="${esc(o)}"${r.description===o||(!r.description&&o==='')?' selected':''}>${esc(o)||'—'}</option>`).join('')}
+        <option value="" ${!r.description?'selected':''}>—</option>
+        ${DESC_OPTS.map(o=>`<option value="${esc(o)}"${r.description===o?' selected':''}>${esc(o)}</option>`).join('')}
+        ${r.description==='—'?`<option value="—" selected>—</option>`:''}
       </select>
     </td>
     <td><select class="cs" style="min-width:95px" onchange="fchg(${idx},'dest_arrivee',this.value)">
@@ -840,6 +841,8 @@ function drawChart(key, data, seuil){
     </div>`;
   }).join('');
 }
+
+
 
 
 
