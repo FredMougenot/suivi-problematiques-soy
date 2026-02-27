@@ -418,6 +418,8 @@ async function load(){
   render();
   document.getElementById('spinner').style.display='none';
   document.getElementById('tbl').style.display='block';
+  // Rafraîchir les graphiques après affichage du tableau
+  refreshCharts();
 }
 
 // ── RENDER ─────────────────────────────────────────────────────────
@@ -647,13 +649,6 @@ function updCharg(sel){
 
 // ── GRAPHIQUES ────────────────────────────────────────────────────
 
-// Appeler refreshCharts après chaque load
-const _origRender = render;
-function render(){
-  _origRender();
-  refreshCharts();
-}
-
 async function refreshCharts(){
   const seuil = parseInt(document.getElementById('retard-seuil').value)||30;
 
@@ -812,8 +807,7 @@ function drawChart(key, data, seuil){
   }).join('');
 }
 
-// Lancer les charts au démarrage
-window.addEventListener('load', ()=>{ setTimeout(refreshCharts, 800); });
+
 
 </script>
 
