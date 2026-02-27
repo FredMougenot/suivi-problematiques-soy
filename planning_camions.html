@@ -425,13 +425,31 @@ async function load(){
 // ── RENDER ─────────────────────────────────────────────────────────
 function render(){
   // Appliquer les valeurs par défaut des slots fixes si pas encore de données
+  // Déterminer si la date affichée est un samedi (6) ou dimanche (0)
+  const _dow = new Date(curDate+'T00:00:00').getDay();
+  const _isWeekend = _dow===0 || _dow===6;
+  const _wkAnnule  = [0,1,7,8,9];   // slots annulés le weekend
+  const _wkDescIdx = 2;              // 07h30 → Stock palette le weekend
+
   SLOTS.forEach(s => {
     if(!rows[s.idx]) rows[s.idx]={slot_index:s.idx};
     if(!rows[s.idx].type_camion) rows[s.idx].type_camion=s.defType||'CHAUFFÉE';
-    if(!rows[s.idx].description && s.defDesc) rows[s.idx].description=s.defDesc;
+    // Description : weekend override pour 07h30, sinon défaut du slot
+    if(_isWeekend && s.idx===_wkDescIdx){
+      if(!rows[s.idx].description) rows[s.idx].description='Stock palette';
+    } else {
+      if(!rows[s.idx].description && s.defDesc) rows[s.idx].description=s.defDesc;
+    }
     if(!rows[s.idx].dest_arrivee) rows[s.idx].dest_arrivee='SOY';
     if(!rows[s.idx].statut) rows[s.idx].statut='ATTENTE';
     if(!rows[s.idx].chargement) rows[s.idx].chargement='ATTENTE';
+    // Weekend : annuler automatiquement les slots hors service
+    if(_isWeekend && _wkAnnule.includes(s.idx)){
+      if(!rows[s.idx]._weekendOverridden){
+        rows[s.idx].statut_ligne='Annulé';
+        rows[s.idx]._weekendOverridden=true;
+      }
+    }
   });
 
   const extras=Object.keys(rows).map(Number).filter(i=>i>=10).sort((a,b)=>a-b);
@@ -806,6 +824,7 @@ function drawChart(key, data, seuil){
     </div>`;
   }).join('');
 }
+
 
 
 
