@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Critères des piliers — SOY</title>
+<link rel="stylesheet" href="soy-shared.css">
+<style>
+/* ══ PAGE CRITÈRES PILIERS ══════════════════════════════════════ */
+.cp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:20px;margin-top:24px;}
+@media(max-width:600px){.cp-grid{grid-template-columns:1fr;}}
+
+.cp-card{
+  background:var(--bg-raised);border:1px solid var(--text-faint);
+  border-radius:var(--r-lg);padding:24px;position:relative;overflow:hidden;
+  transition:border-color .2s, box-shadow .2s;
+}
+.cp-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--copper),transparent);
+}
+.cp-card:hover{border-color:rgba(200,132,58,.35);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+
+.cp-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.cp-pilier-name{
+  font-family:'Outfit',sans-serif;font-size:1rem;font-weight:800;
+  color:var(--copper-light);letter-spacing:.04em;
+}
+.cp-badge{
+  font-size:.6rem;font-weight:800;padding:3px 10px;border-radius:20px;
+  background:var(--copper-dim);border:1px solid rgba(200,132,58,.3);
+  color:var(--copper);letter-spacing:.1em;text-transform:uppercase;
+}
+
+.cp-textarea{
+  width:100%;background:var(--bg-float);border:1px solid var(--text-faint);
+  color:var(--text-primary);border-radius:var(--r-md);
+  padding:14px;font-size:.86rem;font-family:'Outfit',sans-serif;
+  resize:vertical;min-height:120px;outline:none;
+  transition:border-color .15s;line-height:1.65;
+}
+.cp-textarea:focus{border-color:var(--copper);box-shadow:0 0 0 2px var(--copper-glow);}
+.cp-textarea::placeholder{color:var(--text-faint);}
+
+.cp-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;}
+.cp-status{font-size:.72rem;color:var(--text-muted);font-style:italic;}
+.cp-status.saved{color:var(--emerald);}
+.cp-btn{
+  padding:8px 18px;border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--copper),var(--copper-light));
+  color:#0F1118;font-size:.8rem;font-weight:800;
+  border:none;cursor:pointer;transition:opacity .15s, transform .1s;
+}
+.cp-btn:hover{opacity:.88;transform:translateY(-1px);}
+.cp-btn:active{transform:none;}
+.cp-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+
+.page-header{margin-bottom:4px;}
+.page-eyebrow{font-size:.62rem;font-weight:800;color:var(--copper);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;}
+.page-title{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--text-primary);}
+.page-sub{font-size:.84rem;color:var(--text-muted);margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+
+  <!-- TOPBAR -->
+  <div class="tool-topbar">
+    <a class="tool-back" href="index.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Retour
+    </a>
+    <div class="tool-title">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--copper)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Critères des piliers
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="tool-main">
+    <div class="page-header">
+      <div class="page-eyebrow">Outils · Configuration</div>
+      <div class="page-title">Critères des piliers</div>
+      <div class="page-sub">Définissez les critères d'évaluation pour chaque pilier. Ces textes s'affichent lors du survol des indicateurs dans le tableau de bord.</div>
+    </div>
+
+    <div class="cp-grid" id="cp-grid">
+      <!-- Cartes générées par JS -->
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toasts" id="toasts"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const PILIERS = ['SST','Qualite','Couts','Delais','Motivation','Environnement'];
+
+// ── TOAST ─────────────────────────────────────────────────────────
+function toast(msg, type='info'){
+  const c=document.getElementById('toasts');
+  const el=document.createElement('div');
+  el.className=`toast-item toast-${type}`;
+  el.textContent=msg;
+  c.appendChild(el);
+  setTimeout(()=>el.classList.add('show'),10);
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),300);},3200);
+}
+
+// ── CHARGER CRITÈRES ──────────────────────────────────────────────
+async function loadCriteres(){
+  try {
+    const {data, error} = await sb.from('piliers_criteres').select('*');
+    const map = {};
+    if(!error && data) data.forEach(r => map[r.pilier] = r.critere||'');
+    renderCards(map);
+  } catch(e){
+    renderCards({});
+    toast('Connexion impossible','error');
+  }
+}
+
+// ── RENDU CARTES ──────────────────────────────────────────────────
+function renderCards(map){
+  document.getElementById('cp-grid').innerHTML = PILIERS.map(p => `
+    <div class="cp-card" id="card-${p}">
+      <div class="cp-card-header">
+        <div class="cp-pilier-name">${p}</div>
+        <div class="cp-badge">Pilier</div>
+      </div>
+      <textarea class="cp-textarea" id="ta-${p}" placeholder="Saisissez le critère pour le pilier ${p}…">${esc(map[p]||'')}</textarea>
+      <div class="cp-footer">
+        <span class="cp-status" id="st-${p}">Non sauvegardé</span>
+        <button class="cp-btn" id="btn-${p}" onclick="saveCritere('${p}')">Sauvegarder</button>
+      </div>
+    </div>
+  `).join('');
+
+  // Marquer comme sauvegardé les piliers qui ont déjà un critère
+  PILIERS.forEach(p => {
+    if(map[p]) {
+      document.getElementById('st-'+p).textContent = 'Sauvegardé';
+      document.getElementById('st-'+p).className = 'cp-status saved';
+    }
+    // Détecter les modifications
+    document.getElementById('ta-'+p).addEventListener('input', () => {
+      document.getElementById('st-'+p).textContent = 'Modifié — non sauvegardé';
+      document.getElementById('st-'+p).className = 'cp-status';
+    });
+  });
+}
+
+// ── SAUVEGARDER ───────────────────────────────────────────────────
+async function saveCritere(pilier){
+  const texte = document.getElementById('ta-'+pilier).value.trim();
+  const btn = document.getElementById('btn-'+pilier);
+  const st = document.getElementById('st-'+pilier);
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    const {error} = await sb.from('piliers_criteres')
+      .upsert({pilier, critere: texte, updated_at: new Date().toISOString()}, {onConflict:'pilier'});
+    if(error){ toast('Erreur: '+error.message, 'error'); }
+    else {
+      st.textContent = 'Sauvegardé ✓';
+      st.className = 'cp-status saved';
+      toast('Critère "'+pilier+'" sauvegardé.', 'success');
+    }
+  } catch(e){ toast('Erreur réseau.','error'); }
+  btn.disabled = false; btn.textContent = 'Sauvegarder';
+}
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+window.addEventListener('load', loadCriteres);
+</script>
+</body>
+</html>

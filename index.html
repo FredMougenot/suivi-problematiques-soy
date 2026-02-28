@@ -543,6 +543,14 @@ body { font-size: 0.9375rem; }
 .cm-save-btn:hover { opacity: .88; }
 .cm-save-btn.visible { display: inline-block; }
 
+
+.cm-edit-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: .78rem; font-weight: 600; color: var(--text-muted);
+  text-decoration: none; transition: color .15s;
+}
+.cm-edit-link:hover { color: var(--copper-light); }
+
 </style>
 </head>
 <body>
@@ -655,6 +663,12 @@ body { font-size: 0.9375rem; }
         <span class="sb-ico">⊕</span> Nouvelle saisie
       </div>
       <div class="sb-sec">Outils</div>
+      <div class="sb-item" onclick="window.location.href='criteres_piliers.html'">
+        <span class="sb-ico">◆</span> Critères des piliers
+      </div>
+      <div class="sb-item" onclick="window.location.href='inventaire_cyclique.html'">
+        <span class="sb-ico">⊞</span> Inventaire cyclique
+      </div>
       <div class="sb-item" onclick="window.location.href='planning_camions.html'">
         <span class="sb-ico">🚛</span> Planification camions
       </div>
@@ -1351,35 +1365,28 @@ window.addEventListener('load',()=>setTimeout(init,800));
 
 
 
-// ── CRITÈRES PILIERS ──────────────────────────────────────────────
-let critereCache = {};   // cache local {pilier: critere_text}
-let critereActif = null; // pilier actuellement ouvert
+// ── CRITÈRES PILIERS (lecture seule dans le dashboard) ──────────
+let critereCache = {};
+let critereActif = null;
 
 async function openCritere(pilier){
   critereActif = pilier;
   document.getElementById('cm-title').textContent = pilier;
-  document.getElementById('cm-body').textContent = 'Chargement…';
-  document.getElementById('cm-body').className = 'cm-body loading';
-  document.getElementById('cm-edit-zone').classList.remove('open');
-  document.getElementById('cm-save-btn').classList.remove('visible');
-  document.getElementById('cm-edit-btn').style.display = 'inline-flex';
+  const body = document.getElementById('cm-body');
+  body.textContent = 'Chargement…';
+  body.className = 'cm-body loading';
   document.getElementById('critere-overlay').classList.add('open');
 
-  // Cache local d'abord
   if(critereCache[pilier] !== undefined){
-    afficherCritere(critereCache[pilier]);
-    return;
+    afficherCritere(critereCache[pilier]); return;
   }
-
   try {
     const {data, error} = await sb.from('piliers_criteres')
       .select('critere').eq('pilier', pilier).single();
-    const texte = (!error && data) ? (data.critere || '') : '';
+    const texte = (!error && data) ? (data.critere||'') : '';
     critereCache[pilier] = texte;
     afficherCritere(texte);
-  } catch(e){
-    afficherCritere('');
-  }
+  } catch(e){ afficherCritere(''); }
 }
 
 function afficherCritere(texte){
@@ -1388,95 +1395,22 @@ function afficherCritere(texte){
   if(texte){
     body.innerHTML = texte.split('\n').join('<br>');
   } else {
-    body.innerHTML = '<span style="color:var(--text-muted);font-style:italic">Aucun critère défini pour ce pilier. Cliquez sur "Modifier" pour en ajouter un.</span>';
+    body.innerHTML = '<span style="color:var(--text-muted);font-style:italic">Aucun critère défini. Rendez-vous dans <strong>Outils → Critères des piliers</strong> pour en ajouter un.</span>';
   }
-}
-
-function toggleEditCritere(){
-  const zone = document.getElementById('cm-edit-zone');
-  const saveBtn = document.getElementById('cm-save-btn');
-  const editBtn = document.getElementById('cm-edit-btn');
-  const isOpen = zone.classList.contains('open');
-  if(!isOpen){
-    const texte = critereCache[critereActif] || '';
-    document.getElementById('cm-textarea').value = texte;
-    zone.classList.add('open');
-    saveBtn.classList.add('visible');
-    editBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Annuler';
-    document.getElementById('cm-textarea').focus();
-  } else {
-    zone.classList.remove('open');
-    saveBtn.classList.remove('visible');
-    editBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Modifier le critère';
-  }
-}
-
-async function saveCritere(){
-  const texte = document.getElementById('cm-textarea').value.trim();
-  const btn = document.getElementById('cm-save-btn');
-  btn.textContent = '…'; btn.disabled = true;
-
-  try {
-    // Upsert : insert si n'existe pas, update si existe
-    const {error} = await sb.from('piliers_criteres')
-      .upsert({pilier: critereActif, critere: texte, updated_at: new Date().toISOString()},
-              {onConflict: 'pilier'});
-    if(error){ toast('Erreur: ' + error.message, 'error'); }
-    else {
-      critereCache[critereActif] = texte;
-      afficherCritere(texte);
-      toggleEditCritere();
-      toast('Critère de ' + critereActif + ' sauvegardé.', 'success');
-    }
-  } catch(e){ toast('Erreur réseau.', 'error'); }
-
-  btn.textContent = 'Sauvegarder'; btn.disabled = false;
 }
 
 function closeCritere(e){
-  if(e.target === document.getElementById('critere-overlay')) closeCritereBtn();
+  if(e.target===document.getElementById('critere-overlay')) closeCritereBtn();
 }
 function closeCritereBtn(){
   document.getElementById('critere-overlay').classList.remove('open');
   critereActif = null;
 }
 
-
-
-async function doChangePwd(){
-  const curPwd=document.getElementById('p-pwd0').value;
-  const newPwd=document.getElementById('p-pwd1').value;
-  const cfmPwd=document.getElementById('p-pwd2').value;
-  if(!curPwd){toast('Entrez votre mot de passe actuel.','error');return;}
-  if(newPwd.length<8){toast('Le nouveau mot de passe doit contenir au moins 8 caracteres.','error');return;}
-  if(newPwd!==cfmPwd){toast('Les deux nouveaux mots de passe ne correspondent pas.','error');return;}
-  const pbtn=document.getElementById('btn-pwd-update');
-  if(pbtn){pbtn.disabled=true;pbtn.textContent='Verification...';}
-  const {error:authErr}=await sb.auth.signInWithPassword({email:currentUser.email,password:curPwd});
-  if(authErr){
-    if(pbtn){pbtn.disabled=false;pbtn.textContent='Mettre a jour';}
-    toast('Mot de passe actuel incorrect.','error');return;
-  }
-  if(pbtn)pbtn.textContent='Mise a jour...';
-  const {error}=await sb.auth.updateUser({password:newPwd});
-  if(pbtn){pbtn.disabled=false;pbtn.textContent='Mettre a jour';}
-  if(error){toast('Erreur: '+error.message,'error');return;}
-  document.getElementById('p-pwd0').value='';
-  document.getElementById('p-pwd1').value='';
-  document.getElementById('p-pwd2').value='';
-  const pbar=document.getElementById('p-pwd-bar');
-  const plbl=document.getElementById('p-pwd-lbl');
-  if(pbar)pbar.style.width='0%';
-  if(plbl){plbl.textContent='Entrez un mot de passe';plbl.style.color='var(--text-muted)';}
-  const pmsg=document.getElementById('pwd-ok');
-  if(pmsg){pmsg.classList.add('show');setTimeout(()=>pmsg.classList.remove('show'),3000);}
-  toast('Mot de passe mis a jour avec succes.','success');
-}
-
 </script>
 
 
-<!-- ═══ MODAL CRITÈRE PILIER ═══ -->
+<!-- ═══ MODAL CRITÈRE PILIER (lecture seule) ═══ -->
 <div class="critere-overlay" id="critere-overlay" onclick="closeCritere(event)">
   <div class="critere-modal">
     <div class="cm-header">
@@ -1487,15 +1421,11 @@ async function doChangePwd(){
       <button class="cm-close" onclick="closeCritereBtn()">✕</button>
     </div>
     <div class="cm-body" id="cm-body">Chargement…</div>
-    <div class="cm-edit-zone" id="cm-edit-zone">
-      <textarea class="cm-textarea" id="cm-textarea" placeholder="Saisissez le critère de ce pilier…"></textarea>
-    </div>
     <div class="cm-footer">
-      <button class="cm-edit-btn" id="cm-edit-btn" onclick="toggleEditCritere()">
+      <a class="cm-edit-link" href="criteres_piliers.html">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        Modifier le critère
-      </button>
-      <button class="cm-save-btn" id="cm-save-btn" onclick="saveCritere()">Sauvegarder</button>
+        Modifier dans Outils
+      </a>
     </div>
   </div>
 </div>

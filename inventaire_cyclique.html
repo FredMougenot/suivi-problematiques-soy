@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Inventaire Cyclique — SOY</title>
+<link rel="stylesheet" href="soy-shared.css">
+<style>
+/* ══ INVENTAIRE CYCLIQUE ════════════════════════════════════════ */
+.ic-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+.page-eyebrow{font-size:.62rem;font-weight:800;color:var(--copper);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;}
+.page-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--text-primary);}
+.page-sub{font-size:.82rem;color:var(--text-muted);margin-top:4px;}
+
+/* Navigation date */
+.date-nav{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.date-lbl{font-size:.9rem;font-weight:700;color:var(--text-primary);background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:8px 16px;min-width:220px;text-align:center;}
+.nav-btn{width:34px;height:34px;border-radius:var(--r-sm);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.nav-btn:hover{border-color:var(--copper);color:var(--copper-light);}
+.btn-today{padding:7px 14px;border-radius:var(--r-sm);background:var(--copper-dim);border:1px solid rgba(200,132,58,.3);color:var(--copper-light);font-size:.78rem;font-weight:700;cursor:pointer;transition:all .15s;}
+.btn-today:hover{background:rgba(200,132,58,.2);}
+
+/* Bouton ajouter */
+.btn-add{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 18px;border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--copper),var(--copper-light));
+  color:#0F1118;font-size:.82rem;font-weight:800;border:none;cursor:pointer;
+  transition:opacity .15s,transform .1s;white-space:nowrap;
+}
+.btn-add:hover{opacity:.88;transform:translateY(-1px);}
+.btn-add:active{transform:none;}
+
+/* Table inventaire */
+.ic-tbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;-webkit-overflow-scrolling:touch;position:relative;}
+.ic-tbl-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--copper),transparent);}
+.ic-tbl{width:100%;border-collapse:collapse;min-width:1100px;}
+.ic-tbl thead tr{background:var(--bg-float);border-bottom:1px solid var(--text-faint);}
+.ic-tbl thead th{padding:11px 12px;font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);text-align:center;white-space:nowrap;}
+.ic-tbl thead th:first-child{text-align:left;padding-left:16px;}
+.ic-tbl tbody tr{border-bottom:1px solid rgba(44,51,80,.5);transition:background .1s;}
+.ic-tbl tbody tr:hover{background:var(--bg-hover);}
+.ic-tbl tbody tr:last-child{border-bottom:none;}
+.ic-tbl tbody td{padding:8px 10px;font-size:.84rem;color:var(--text-primary);vertical-align:middle;text-align:center;}
+.ic-tbl tbody td:first-child{text-align:left;padding-left:16px;}
+
+/* Groupes de colonnes */
+.th-group{background:var(--bg-active) !important;color:var(--copper) !important;font-size:.58rem !important;letter-spacing:.12em !important;border-bottom:1px solid rgba(200,132,58,.2) !important;}
+
+/* Inputs numérique */
+.ni{
+  background:var(--bg-float);border:1px solid var(--text-faint);
+  color:var(--text-primary);border-radius:var(--r-sm);
+  padding:5px 8px;font-size:.82rem;font-family:'Outfit',sans-serif;
+  outline:none;transition:border-color .15s;width:90px;text-align:center;
+}
+.ni:focus{border-color:var(--copper);}
+.ni-item{
+  background:transparent;border:none;border-bottom:1px solid var(--text-faint);
+  color:var(--text-primary);font-size:.84rem;font-family:'Outfit',sans-serif;
+  outline:none;padding:4px 6px;width:160px;text-align:left;
+  transition:border-color .15s;
+}
+.ni-item:focus{border-color:var(--copper);}
+
+/* Colonnes calculées */
+.td-calc{font-weight:700;font-size:.85rem;}
+.td-total{
+  font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;
+  color:var(--text-primary);
+}
+.td-ecart-pos{color:var(--emerald);font-weight:700;}
+.td-ecart-neg{color:var(--ruby);font-weight:700;}
+.td-ecart-zero{color:var(--text-muted);font-weight:600;}
+
+/* Ligne numéro */
+.item-num{font-weight:800;color:var(--text-muted);font-size:.78rem;min-width:24px;}
+
+/* Bouton sauver */
+.btn-sv{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 11px;border-radius:var(--r-sm);
+  background:var(--copper-dim);border:1px solid rgba(200,132,58,.3);
+  color:var(--copper-light);font-size:.74rem;font-weight:700;
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.btn-sv:hover{background:rgba(200,132,58,.2);}
+.btn-rm{
+  width:26px;height:26px;border-radius:var(--r-sm);
+  background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.2);
+  color:var(--ruby);font-size:.8rem;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:all .15s;margin-left:4px;
+}
+.btn-rm:hover{background:rgba(224,85,85,.18);}
+
+/* Spinner */
+.spinner{display:none;align-items:center;justify-content:center;padding:40px;}
+.sp-ring{width:32px;height:32px;border:2px solid var(--text-faint);border-top-color:var(--copper);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Totaux bas de tableau */
+.ic-tbl tfoot tr{background:var(--bg-float);border-top:2px solid rgba(200,132,58,.3);}
+.ic-tbl tfoot td{padding:10px 12px;font-weight:800;font-size:.84rem;color:var(--copper-light);}
+
+@media(max-width:1100px){
+  .ic-header-row{flex-direction:column;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+
+  <!-- TOPBAR -->
+  <div class="tool-topbar">
+    <a class="tool-back" href="index.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Retour
+    </a>
+    <div class="tool-title">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--copper)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      Inventaire Cyclique
+    </div>
+    <span style="font-size:.72rem;color:var(--text-muted);margin-left:auto;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--copper-dim);border:1px solid rgba(200,132,58,.2);color:var(--copper);">Qualité</span>
+  </div>
+
+  <!-- MAIN -->
+  <div class="tool-main">
+    <div class="ic-header-row">
+      <div>
+        <div class="page-eyebrow">Outils · Qualité</div>
+        <div class="page-title">Inventaire Cyclique</div>
+        <div class="page-sub">Suivi journalier des stocks par entrepôt · Calcul automatique des écarts</div>
+      </div>
+      <button class="btn-add" onclick="addItem()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Ajouter un item
+      </button>
+    </div>
+
+    <!-- Navigation date -->
+    <div class="date-nav">
+      <button class="nav-btn" onclick="changeDate(-1)">&#8592;</button>
+      <div class="date-lbl" id="date-lbl">—</div>
+      <button class="nav-btn" onclick="changeDate(1)">&#8594;</button>
+      <button class="btn-today" onclick="goToday()">Aujourd'hui</button>
+    </div>
+
+    <!-- Tableau -->
+    <div class="ic-tbl-wrap">
+      <div class="spinner" id="spinner"><div class="sp-ring"></div></div>
+      <table class="ic-tbl" id="ic-tbl" style="display:none">
+        <thead>
+          <tr>
+            <th rowspan="2" style="text-align:center">#</th>
+            <th rowspan="2" style="text-align:left;min-width:160px">Item</th>
+            <th rowspan="2">Poids unitaire<br><small style="font-weight:400;font-size:.58rem">(kg)</small></th>
+            <th colspan="2" class="th-group">Entrepôt 1</th>
+            <th colspan="2" class="th-group">Entrepôt 2</th>
+            <th rowspan="2">Total<br><small style="font-weight:400;font-size:.58rem">(kg)</small></th>
+            <th rowspan="2">ERP<br><small style="font-weight:400;font-size:.58rem">(kg)</small></th>
+            <th rowspan="2">Écart<br><small style="font-weight:400;font-size:.58rem">(kg)</small></th>
+            <th rowspan="2"></th>
+          </tr>
+          <tr>
+            <th class="th-group">Qté Entrepôt 1</th>
+            <th class="th-group">Balance 1</th>
+            <th class="th-group">Qté Entrepôt 2</th>
+            <th class="th-group">Balance 2</th>
+          </tr>
+        </thead>
+        <tbody id="ic-tbody"></tbody>
+        <tfoot id="ic-tfoot"></tfoot>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toasts" id="toasts"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let curDate = new Date().toISOString().slice(0,10);
+let rows = {};      // {item_index: rowData}
+let nextExtra = 100; // index pour items ajoutés dynamiquement
+
+// Items de base fixes (toujours présents)
+const BASE_ITEMS = [
+  {idx:0, label:'Item 1'},
+  {idx:1, label:'Item 2'},
+  {idx:2, label:'Item 3'},
+];
+
+// ── TOAST ─────────────────────────────────────────────────────────
+function toast(msg, type='info'){
+  const c=document.getElementById('toasts');
+  const el=document.createElement('div');
+  el.className='toast-item toast-'+type;
+  el.textContent=msg;
+  c.appendChild(el);
+  setTimeout(()=>el.classList.add('show'),10);
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),300);},3200);
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── DATE ──────────────────────────────────────────────────────────
+function refreshDateUI(){
+  const d = new Date(curDate+'T00:00:00');
+  const opts = {weekday:'long',day:'2-digit',month:'long',year:'numeric'};
+  document.getElementById('date-lbl').textContent =
+    d.toLocaleDateString('fr-CA', opts).replace(/^\w/, c=>c.toUpperCase());
+}
+function changeDate(delta){
+  const d = new Date(curDate+'T00:00:00');
+  d.setDate(d.getDate()+delta);
+  curDate = d.toISOString().slice(0,10);
+  refreshDateUI(); load();
+}
+function goToday(){
+  curDate = new Date().toISOString().slice(0,10);
+  refreshDateUI(); load();
+}
+
+// ── CALCULS ───────────────────────────────────────────────────────
+function calcRow(r){
+  const pu   = parseFloat(r.poids_unitaire)||0;
+  const q1   = parseFloat(r.qte_e1)||0;
+  const b1   = parseFloat(r.balance1)||0;
+  const q2   = parseFloat(r.qte_e2)||0;
+  const b2   = parseFloat(r.balance2)||0;
+  const erp  = parseFloat(r.erp)||0;
+  // Total = (q1 * pu + b1) + (q2 * pu + b2)
+  const total = (q1 * pu + b1) + (q2 * pu + b2);
+  const ecart = total - erp;
+  return {total, ecart};
+}
+
+function fmtNum(n){
+  if(isNaN(n)||n===null||n===undefined) return '—';
+  return n.toFixed(2).replace(/\.?0+$/, '').replace(/\B(?=(\d{3})+(?!\d))/g,'\u202f');
+}
+
+// ── RENDU ─────────────────────────────────────────────────────────
+function render(){
+  // Appliquer défauts sur les items de base
+  BASE_ITEMS.forEach(it => {
+    if(!rows[it.idx]) rows[it.idx] = {item_index: it.idx};
+    if(!rows[it.idx].label) rows[it.idx].label = it.label;
+  });
+
+  const extras = Object.keys(rows).map(Number).filter(i=>i>=100).sort((a,b)=>a-b);
+  const all = [
+    ...BASE_ITEMS.map(it => ({idx:it.idx, extra:false})),
+    ...extras.map(i => ({idx:i, extra:true})),
+  ];
+
+  let totalTotal=0, totalErp=0, totalEcart=0;
+  let html = '';
+  all.forEach((entry, pos) => {
+    const r = rows[entry.idx]||{};
+    const {total, ecart} = calcRow(r);
+    if(!isNaN(total)) totalTotal += total;
+    if(!isNaN(parseFloat(r.erp))) totalErp += parseFloat(r.erp)||0;
+    if(!isNaN(ecart)) totalEcart += ecart;
+
+    const ecartCls = ecart > 0 ? 'td-ecart-pos' : ecart < 0 ? 'td-ecart-neg' : 'td-ecart-zero';
+    const ecartPfx = ecart > 0 ? '+' : '';
+
+    html += `<tr id="ictr${entry.idx}">
+      <td style="text-align:center"><span class="item-num">${pos+1}</span></td>
+      <td><input class="ni-item" id="lbl${entry.idx}" value="${esc(r.label||'')}" placeholder="Nom de l'item…" oninput="fchg(${entry.idx},'label',this.value)"></td>
+      <td><input class="ni" id="pu${entry.idx}" type="number" step="0.001" value="${r.poids_unitaire||''}" placeholder="0" oninput="fchg(${entry.idx},'poids_unitaire',this.value)"></td>
+      <td><input class="ni" type="number" step="0.01" value="${r.qte_e1||''}" placeholder="0" oninput="fchg(${entry.idx},'qte_e1',this.value)"></td>
+      <td><input class="ni" type="number" step="0.01" value="${r.balance1||''}" placeholder="0" oninput="fchg(${entry.idx},'balance1',this.value)"></td>
+      <td><input class="ni" type="number" step="0.01" value="${r.qte_e2||''}" placeholder="0" oninput="fchg(${entry.idx},'qte_e2',this.value)"></td>
+      <td><input class="ni" type="number" step="0.01" value="${r.balance2||''}" placeholder="0" oninput="fchg(${entry.idx},'balance2',this.value)"></td>
+      <td class="td-total" id="tot${entry.idx}">${isNaN(total)?'—':fmtNum(total)}</td>
+      <td><input class="ni" type="number" step="0.01" value="${r.erp||''}" placeholder="0" oninput="fchg(${entry.idx},'erp',this.value)"></td>
+      <td class="td-calc ${ecartCls}" id="eca${entry.idx}">${isNaN(ecart)||(!r.erp&&!r.qte_e1&&!r.qte_e2)?'—':ecartPfx+fmtNum(ecart)}</td>
+      <td style="white-space:nowrap">
+        <button class="btn-sv" onclick="saveRow(${entry.idx})">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+          Sauver
+        </button>
+        ${entry.extra ? `<button class="btn-rm" onclick="delRow(${entry.idx})" title="Supprimer">✕</button>` : ''}
+      </td>
+    </tr>`;
+  });
+
+  document.getElementById('ic-tbody').innerHTML = html;
+
+  // Pied de tableau — totaux
+  const ecartTotCls = totalEcart>0?'td-ecart-pos':totalEcart<0?'td-ecart-neg':'td-ecart-zero';
+  document.getElementById('ic-tfoot').innerHTML = `<tr>
+    <td colspan="7" style="text-align:right;padding-left:16px;color:var(--text-muted);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;">Totaux</td>
+    <td class="td-total">${fmtNum(totalTotal)}</td>
+    <td style="font-weight:700">${fmtNum(totalErp)}</td>
+    <td class="${ecartTotCls}">${totalEcart>0?'+':''}${fmtNum(totalEcart)}</td>
+    <td></td>
+  </tr>`;
+}
+
+// ── CHANGEMENT DE CHAMP ───────────────────────────────────────────
+function fchg(idx, field, val){
+  if(!rows[idx]) rows[idx]={item_index:idx};
+  rows[idx][field] = val;
+  // Recalcul en temps réel
+  const {total, ecart} = calcRow(rows[idx]);
+  const totEl = document.getElementById('tot'+idx);
+  const ecaEl = document.getElementById('eca'+idx);
+  if(totEl) totEl.textContent = isNaN(total)?'—':fmtNum(total);
+  if(ecaEl){
+    const r = rows[idx];
+    const hasData = r.qte_e1||r.qte_e2||r.erp;
+    ecaEl.className = 'td-calc '+(ecart>0?'td-ecart-pos':ecart<0?'td-ecart-neg':'td-ecart-zero');
+    ecaEl.textContent = (!hasData||isNaN(ecart))?'—':(ecart>0?'+':'')+fmtNum(ecart);
+  }
+}
+
+// ── AJOUTER ITEM ──────────────────────────────────────────────────
+function addItem(){
+  const idx = nextExtra++;
+  rows[idx] = {item_index:idx, label:'Nouvel item'};
+  render();
+  // Focus sur le label du nouvel item
+  setTimeout(()=>{
+    const el = document.getElementById('lbl'+idx);
+    if(el){el.focus();el.select();}
+  },50);
+}
+
+// ── SUPPRIMER ITEM ────────────────────────────────────────────────
+async function delRow(idx){
+  if(!confirm('Supprimer cet item?')) return;
+  try {
+    await sb.from('inventaire_cyclique').delete()
+      .eq('date_jour',curDate).eq('item_index',idx);
+  } catch(e){}
+  delete rows[idx];
+  render();
+  toast('Item supprimé.','info');
+}
+
+// ── SAUVEGARDER ───────────────────────────────────────────────────
+async function saveRow(idx){
+  const r = rows[idx]||{};
+  const {total, ecart} = calcRow(r);
+  const payload = {
+    date_jour: curDate,
+    item_index: idx,
+    label: r.label||'',
+    poids_unitaire: parseFloat(r.poids_unitaire)||null,
+    qte_e1: parseFloat(r.qte_e1)||null,
+    balance1: parseFloat(r.balance1)||null,
+    qte_e2: parseFloat(r.qte_e2)||null,
+    balance2: parseFloat(r.balance2)||null,
+    erp: parseFloat(r.erp)||null,
+    total_calcule: isNaN(total)?null:total,
+    ecart_calcule: isNaN(ecart)?null:ecart,
+    updated_at: new Date().toISOString(),
+  };
+  try {
+    const {error} = await sb.from('inventaire_cyclique')
+      .upsert(payload, {onConflict:'date_jour,item_index'});
+    if(error) toast('Erreur: '+error.message,'error');
+    else toast('Item "'+(r.label||'#'+idx)+'" sauvegardé.','success');
+  } catch(e){ toast('Erreur réseau.','error'); }
+}
+
+// ── CHARGER ───────────────────────────────────────────────────────
+async function load(){
+  document.getElementById('spinner').style.display='flex';
+  document.getElementById('ic-tbl').style.display='none';
+  rows={};
+  try {
+    const {data,error} = await sb.from('inventaire_cyclique').select('*')
+      .eq('date_jour',curDate).order('item_index');
+    if(error && error.code!=='PGRST116') toast('Erreur: '+error.message,'error');
+    (data||[]).forEach(r=>{ rows[r.item_index]=r; });
+    // Mettre à jour nextExtra si des items ajoutés existent
+    const maxIdx = Math.max(...Object.keys(rows).map(Number).filter(i=>i>=100), 99);
+    nextExtra = maxIdx+1;
+  } catch(e){ toast('Connexion impossible.','error'); }
+  render();
+  document.getElementById('spinner').style.display='none';
+  document.getElementById('ic-tbl').style.display='table';
+}
+
+window.addEventListener('load', ()=>{ refreshDateUI(); load(); });
+</script>
+</body>
+</html>
