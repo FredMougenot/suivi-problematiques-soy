@@ -195,7 +195,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .srch-inp:focus{border-color:var(--copper);background:var(--bg-float);box-shadow:0 0 0 2px var(--copper-glow);}
 
 /* TABLE */
-.tbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;-webkit-overflow-scrolling:touch;box-shadow:var(--shadow-sm);}
+.tbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;touch-action:pan-x;box-shadow:var(--shadow-sm);}
 .dtbl{width:100%;border-collapse:collapse;min-width:900px;}
 .dtbl thead th{padding:11px 15px;text-align:left;font-size:.63rem;font-weight:800;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;background:var(--bg-float);border-bottom:1px solid var(--text-faint);white-space:nowrap;}
 .dtbl thead th:first-child{padding-left:18px;}
@@ -1000,7 +1000,8 @@ body { font-size: 0.9375rem; }
         <div class="fg"><label class="fg-lbl">Valeur réelle</label><input id="edit-reel" class="fg-inp" type="number" placeholder="0"></div>
         <div class="fg"><label class="fg-lbl">Résultat</label><input id="edit-resultat" class="fg-inp" placeholder="…"></div>
         <div class="fg"><label class="fg-lbl">Pilier</label><select id="m-pilier" class="fg-sel"></select></div>
-        <<script>
+        <div class="fg"><label class="fg-lbl">Date prévue</label><input id="edit-date-prevue" class="fg-inp" type="date"></div>
+        <script>
 const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const { createClient } = supabase;
@@ -1101,6 +1102,30 @@ document.addEventListener('DOMContentLoaded',()=>{
   const p=document.getElementById('auth-password');
   if(p) p.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
   document.querySelectorAll('.overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});});
+
+  // Délégation tactile pour les boutons du tableau (fix Android)
+  ['prob-tbody','admin-tbody'].forEach(tbodyId=>{
+    const tbody=document.getElementById(tbodyId);
+    if(!tbody)return;
+    tbody.addEventListener('click',e=>{
+      const btn=e.target.closest('button[data-action]');
+      if(!btn)return;
+      const id=parseInt(btn.dataset.id);
+      const action=btn.dataset.action;
+      if(action==='edit') openEdit(id);
+      else if(action==='cloturer') cloturerProb(id);
+    });
+    // Support tactile explicite Android
+    tbody.addEventListener('touchend',e=>{
+      const btn=e.target.closest('button[data-action]');
+      if(!btn)return;
+      e.preventDefault();
+      const id=parseInt(btn.dataset.id);
+      const action=btn.dataset.action;
+      if(action==='edit') openEdit(id);
+      else if(action==='cloturer') cloturerProb(id);
+    },{passive:false});
+  });
 });
 
 function evalSetupPwd(pwd){ evalPwd(pwd,'setup-pwd-bar','setup-pwd-lbl'); }
@@ -1160,7 +1185,7 @@ function renderTable(data){
   document.getElementById('prob-tbody').innerHTML=probs.length===0?'<tr><td colspan="10"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique trouvee.</div></div></td></tr>':probs.map(p=>{
     const datePrevue = p.date_prevue ? `<span style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.date_prevue)}</span>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
     const dateResolue = p.date_resolue ? `<span style="font-size:.78rem;color:var(--emerald)">${fmtDate(p.date_resolue)}</span>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
-    return `<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,65))}${(p.description||'').length>65?'...':''}</small></div></td><td><span class="badge bd">${esc(p.pilier||'')}</span></td><td style="font-size:.82rem;color:var(--text-secondary)">${esc(p.responsable||'')}</td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td><td>${datePrevue}</td><td>${dateResolue}</td>${isAdmin?`<td><button class="ab ab-e" onclick="openEdit(${p.id})">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" onclick="cloturerProb(${p.id})">Cloturer</button>`:''}</td>`:'<td></td>'}</tr>`;
+    return `<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,65))}${(p.description||'').length>65?'...':''}</small></div></td><td><span class="badge bd">${esc(p.pilier||'')}</span></td><td style="font-size:.82rem;color:var(--text-secondary)">${esc(p.responsable||'')}</td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td><td>${datePrevue}</td><td>${dateResolue}</td>${isAdmin?`<td><button class="ab ab-e" data-id="${p.id}" data-action="edit">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" data-id="${p.id}" data-action="cloturer">Cloturer</button>`:''}</td>`:'<td></td>'}</tr>`;
   }).join('');
 }
 function filterTable(){
@@ -1175,7 +1200,7 @@ function renderAdminTable(){
   document.getElementById('admin-tbody').innerHTML=allProblems.length===0?'<tr><td colspan="10"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique.</div></div></td></tr>':allProblems.map(p=>{
     const datePrevue=p.date_prevue?`<span style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.date_prevue)}</span>`:'<span style="color:var(--text-faint);font-size:.75rem">—</span>';
     const dateResolue=p.date_resolue?`<span style="font-size:.78rem;color:var(--emerald)">${fmtDate(p.date_resolue)}</span>`:'<span style="color:var(--text-faint);font-size:.75rem">—</span>';
-    return `<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td class="c-title">${esc(p.intitule)}</td><td><span class="badge bd">${esc(p.pilier||'')}</span></td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${esc(p.soumis_par||'')}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td><td>${datePrevue}</td><td>${dateResolue}</td><td><button class="ab ab-e" onclick="openEdit(${p.id})">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" onclick="cloturerProb(${p.id})">Cloturer</button>`:''}</td></tr>`;
+    return `<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td class="c-title">${esc(p.intitule)}</td><td><span class="badge bd">${esc(p.pilier||'')}</span></td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${esc(p.soumis_par||'')}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td><td>${datePrevue}</td><td>${dateResolue}</td><td><button class="ab ab-e" data-id="${p.id}" data-action="edit">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" data-id="${p.id}" data-action="cloturer">Cloturer</button>`:''}</td></tr>`;
   }).join('');
 }
 async function submitNouvelleProb(){
@@ -1427,18 +1452,6 @@ function closeCritereBtn(){
 
 
 
-</script>('open');
-  critereActif = null;
-}
-
-
-</script>ere(e){
-  if(e.target===document.getElementById('critere-overlay')) closeCritereBtn();
-}
-function closeCritereBtn(){
-  document.getElementById('critere-overlay').classList.remove('open');
-  critereActif = null;
-}
 
 </script>
 
