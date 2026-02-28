@@ -40,7 +40,7 @@ a{color:inherit;text-decoration:none;}
 ::-webkit-scrollbar-thumb:hover{background:var(--text-muted);}
 body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px;}
 
-/* LOADING */ 
+/* LOADING */
 #loading-screen{position:fixed;inset:0;z-index:9999;background:var(--bg-void);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;transition:opacity .6s,visibility .6s;}
 #loading-screen.hidden{opacity:0;visibility:hidden;pointer-events:none;}
 .ls-ring{width:66px;height:66px;border:1px solid rgba(184,115,51,.28);border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;}
@@ -175,13 +175,13 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .stat-card:hover{border-color:var(--text-muted);}
 .stat-lbl{font-size:.65rem;font-weight:700;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
 .stat-lbl::before{content:'';width:14px;height:1px;background:var(--copper);}
-.dept-row{display:flex;align-items:center;gap:12px;margin-bottom:11px;}
-.dept-row:last-child{margin-bottom:0;}
-.dept-n{font-size:.78rem;font-weight:500;color:var(--text-secondary);width:94px;flex-shrink:0;}
-.dept-track{flex:1;height:3px;background:var(--bg-active);border-radius:3px;overflow:hidden;}
-.dept-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--copper),var(--copper-light));transition:width .8s var(--ease-out);position:relative;}
-.dept-fill::after{content:'';position:absolute;right:0;top:-2.5px;width:7px;height:7px;border-radius:50%;background:var(--copper-light);box-shadow:0 0 6px rgba(184,115,51,.5);}
-.dept-cnt{font-size:.76rem;font-weight:700;color:var(--text-muted);width:20px;text-align:right;}
+.pilier-row{display:flex;align-items:center;gap:12px;margin-bottom:11px;}
+.pilier-row:last-child{margin-bottom:0;}
+.pilier-n{font-size:.78rem;font-weight:500;color:var(--text-secondary);width:94px;flex-shrink:0;}
+.pilier-track{flex:1;height:3px;background:var(--bg-active);border-radius:3px;overflow:hidden;}
+.pilier-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--copper),var(--copper-light));transition:width .8s var(--ease-out);position:relative;}
+.pilier-fill::after{content:'';position:absolute;right:0;top:-2.5px;width:7px;height:7px;border-radius:50%;background:var(--copper-light);box-shadow:0 0 6px rgba(184,115,51,.5);}
+.pilier-cnt{font-size:.76rem;font-weight:700;color:var(--text-muted);width:20px;text-align:right;}
 
 /* FILTERS */
 .filters{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
@@ -368,8 +368,8 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 
 .sec-s{font-size:.8rem;color:var(--text-secondary);margin-top:3px;}
 .stat-lbl{font-size:.8rem;font-weight:700;color:var(--text-primary);margin-bottom:14px;}
-.dept-n{font-size:.82rem;color:var(--text-secondary);}
-.dept-cnt{font-size:.82rem;font-weight:700;color:var(--text-primary);}
+.pilier-n{font-size:.82rem;color:var(--text-secondary);}
+.pilier-cnt{font-size:.82rem;font-weight:700;color:var(--text-primary);}
 
 .sec-h{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
 .sb-item-logout{color:var(--ruby) !important;}
@@ -643,8 +643,8 @@ body { font-size: 0.9375rem; }
         </div>
         <div class="stat-row">
           <div class="stat-card">
-            <div class="stat-lbl">Par département</div>
-            <div id="dept-stats"><div class="empty"><div class="empty-ico">📊</div></div></div>
+            <div class="stat-lbl">Par pilier</div>
+            <div id="pilier-stats"><div class="empty"><div class="empty-ico">📊</div></div></div>
           </div>
           <div class="stat-card">
             <div class="stat-lbl">Par priorité</div>
@@ -656,7 +656,7 @@ body { font-size: 0.9375rem; }
         </div>
         <div class="tbl-wrap">
           <table class="dtbl">
-            <thead><tr><th>ID</th><th>Intitulé</th><th>Département</th><th>Priorité</th><th>Statut</th><th>Date</th></tr></thead>
+            <thead><tr><th>ID</th><th>Intitulé</th><th>Pilier</th><th>Priorité</th><th>Statut</th><th>Date</th></tr></thead>
             <tbody id="recent-tbody"><tr><td colspan="6"><div class="empty"><div class="empty-ico">📋</div><div class="empty-txt">Chargement…</div></div></td></tr></tbody>
           </table>
         </div>
@@ -678,7 +678,7 @@ body { font-size: 0.9375rem; }
             <span class="srch-ico">⌕</span>
             <input type="text" class="srch-inp" id="search-input" placeholder="Rechercher…" oninput="filterTable()">
           </div>
-          <select class="fsel" id="filter-dept" onchange="filterTable()"><option value="">Tous les départements</option></select>
+          <select class="fsel" id="filter-pilier" onchange="filterTable()"><option value="">Tous les piliers</option></select>
           <select class="fsel" id="filter-statut" onchange="filterTable()">
             <option value="">Tous les statuts</option>
             <option value="À traiter">À traiter</option><option value="En cours">En cours</option>
@@ -692,7 +692,7 @@ body { font-size: 0.9375rem; }
         </div>
         <div class="tbl-wrap">
           <table class="dtbl">
-            <thead><tr><th>ID</th><th>Intitulé / Description</th><th>Département</th><th>Responsable</th><th>Priorité</th><th>Statut</th><th>Date</th><th class="admin-only" id="th-actions" style="display:none">Actions</th></tr></thead>
+            <thead><tr><th>ID</th><th>Intitulé / Description</th><th>Pilier</th><th>Responsable</th><th>Priorité</th><th>Statut</th><th>Date</th><th class="admin-only" id="th-actions" style="display:none">Actions</th></tr></thead>
             <tbody id="prob-tbody"></tbody>
           </table>
         </div>
@@ -706,7 +706,7 @@ body { font-size: 0.9375rem; }
         <div class="form-card">
           <div class="fg-grid">
             <div class="fg full"><label class="fg-lbl req">Intitulé</label><input type="text" id="n-intitule" class="fg-inp" placeholder="Titre court et descriptif"></div>
-            <div class="fg"><label class="fg-lbl req">Département</label><select id="n-dept" class="fg-sel"></select></div>
+            <div class="fg"><label class="fg-lbl req">Pilier</label><select id="n-pilier" class="fg-sel"></select></div>
             <div class="fg"><label class="fg-lbl req">Priorité</label>
               <select id="n-priorite" class="fg-sel">
                 <option value="">— Sélectionner —</option>
@@ -732,7 +732,7 @@ body { font-size: 0.9375rem; }
         </div>
         <div class="tbl-wrap">
           <table class="dtbl">
-            <thead><tr><th>ID</th><th>Intitulé</th><th>Département</th><th>Priorité</th><th>Statut</th><th>Soumis par</th><th>Date</th><th>Actions</th></tr></thead>
+            <thead><tr><th>ID</th><th>Intitulé</th><th>Pilier</th><th>Priorité</th><th>Statut</th><th>Soumis par</th><th>Date</th><th>Actions</th></tr></thead>
             <tbody id="admin-tbody"></tbody>
           </table>
         </div>
@@ -877,7 +877,7 @@ body { font-size: 0.9375rem; }
     <div class="modal-bd">
       <div class="fg-grid">
         <div class="fg full"><label class="fg-lbl req">Intitulé</label><input type="text" id="m-intitule" class="fg-inp" placeholder="Titre de la problématique"></div>
-        <div class="fg"><label class="fg-lbl req">Département</label><select id="m-dept" class="fg-sel"></select></div>
+        <div class="fg"><label class="fg-lbl req">Pilier</label><select id="m-pilier" class="fg-sel"></select></div>
         <div class="fg"><label class="fg-lbl req">Priorité</label>
           <select id="m-priorite" class="fg-sel">
             <option value="">— Sélectionner —</option>
@@ -942,7 +942,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null, isAdmin = false, allProblems = [];
-const depts = ['SST','Qualite','Couts','Delais','Motivation','Environnement'];
+const piliers = ['SST','Qualite','Couts','Delais','Motivation','Environnement'];
 
 async function init() {
   try {
@@ -984,7 +984,7 @@ function showApp(){
   document.getElementById('auth-page').style.display='none';
   document.getElementById('setup-page').style.display='none';
   document.getElementById('app').style.display='block';
-  updateUserUI(); populateDepts();
+  updateUserUI(); populatePiliers();
   if (isAdmin) enableAdmin(); else enableUser();
 }
 async function checkRole(){
@@ -1006,11 +1006,11 @@ function enableUser(){
   document.getElementById('btn-new-top').style.display='';
   document.getElementById('nav-nouvelle').style.display='';
 }
-function populateDepts(){
-  ['filter-dept','m-dept','n-dept'].forEach(id=>{
+function populatePiliers(){
+  ['filter-pilier','m-pilier','n-pilier'].forEach(id=>{
     const s=document.getElementById(id); if(!s) return;
-    s.innerHTML=id==='filter-dept'?'<option value="">Tous les departements</option>':'<option value="">Selectionner</option>';
-    depts.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;s.appendChild(o);});
+    s.innerHTML=id==='filter-pilier'?'<option value="">Tous les piliers</option>':'<option value="">Selectionner</option>';
+    piliers.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;s.appendChild(o);});
   });
 }
 async function doLogin(){
@@ -1078,68 +1078,68 @@ function renderDash(){
   if(badge){ouvert>0?(badge.style.display='',badge.textContent=ouvert):badge.style.display='none';}
   // Seulement les problématiques actives (À traiter + En cours)
   const actifs=actives.filter(p=>p.statut==='À traiter'||p.statut==='En cours');
-  const dc={};depts.forEach(d=>dc[d]=0);
-  actifs.forEach(p=>{if(p.departement)dc[p.departement]=(dc[p.departement]||0)+1;});
+  const dc={};piliers.forEach(d=>dc[d]=0);
+  actifs.forEach(p=>{if(p.pilier)dc[p.pilier]=(dc[p.pilier]||0)+1;});
   const maxD=Math.max(...Object.values(dc),1);
-  document.getElementById('dept-stats').innerHTML=depts.map(d=>`<div class="dept-row"><div class="dept-n">${d}</div><div class="dept-track"><div class="dept-fill" style="width:${(dc[d]/maxD*100).toFixed(0)}%"></div></div><div class="dept-cnt">${dc[d]}</div></div>`).join('');
+  document.getElementById('pilier-stats').innerHTML=piliers.map(d=>`<div class="pilier-row"><div class="pilier-n">${d}</div><div class="pilier-track"><div class="pilier-fill" style="width:${(dc[d]/maxD*100).toFixed(0)}%"></div></div><div class="pilier-cnt">${dc[d]}</div></div>`).join('');
   const prios=['Critique','Haute','Moyenne','Basse'];
   const pc={};prios.forEach(p=>pc[p]=0);
   actifs.forEach(p=>{if(p.priorite)pc[p.priorite]=(pc[p.priorite]||0)+1;});
   const maxP=Math.max(...Object.values(pc),1);
   const pcols={Critique:'var(--ruby)',Haute:'var(--amber)',Moyenne:'var(--sapphire)',Basse:'var(--emerald)'};
-  document.getElementById('prio-stats').innerHTML=prios.map(p=>`<div class="dept-row"><div class="dept-n"><span class="badge bp${p[0]}">${p}</span></div><div class="dept-track"><div class="dept-fill" style="width:${(pc[p]/maxP*100).toFixed(0)}%;background:${pcols[p]}"></div></div><div class="dept-cnt">${pc[p]}</div></div>`).join('');
+  document.getElementById('prio-stats').innerHTML=prios.map(p=>`<div class="pilier-row"><div class="pilier-n"><span class="badge bp${p[0]}">${p}</span></div><div class="pilier-track"><div class="pilier-fill" style="width:${(pc[p]/maxP*100).toFixed(0)}%;background:${pcols[p]}"></div></div><div class="pilier-cnt">${pc[p]}</div></div>`).join('');
   const recent=allProblems.slice(0,5);
-  document.getElementById('recent-tbody').innerHTML=recent.length===0?'<tr><td colspan="6"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique.</div></div></td></tr>':recent.map(p=>`<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td class="c-title">${esc(p.intitule)}</td><td><span class="badge bd">${esc(p.departement||'')}</span></td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td></tr>`).join('');
+  document.getElementById('recent-tbody').innerHTML=recent.length===0?'<tr><td colspan="6"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique.</div></div></td></tr>':recent.map(p=>`<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td class="c-title">${esc(p.intitule)}</td><td><span class="badge bd">${esc(p.pilier||'')}</span></td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td></tr>`).join('');
 }
 function renderTable(data){
   const probs=data||allProblems;
-  document.getElementById('prob-tbody').innerHTML=probs.length===0?'<tr><td colspan="8"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique trouvee.</div></div></td></tr>':probs.map(p=>`<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,65))}${(p.description||'').length>65?'...':''}</small></div></td><td><span class="badge bd">${esc(p.departement||'')}</span></td><td style="font-size:.82rem;color:var(--text-secondary)">${esc(p.responsable||'')}</td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td>${isAdmin?`<td><button class="ab ab-e" onclick="openEdit(${p.id})">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" onclick="cloturerProb(${p.id})">Cloturer</button>`:''}</td>`:'<td></td>'}</tr>`).join('');
+  document.getElementById('prob-tbody').innerHTML=probs.length===0?'<tr><td colspan="8"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique trouvee.</div></div></td></tr>':probs.map(p=>`<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,65))}${(p.description||'').length>65?'...':''}</small></div></td><td><span class="badge bd">${esc(p.pilier||'')}</span></td><td style="font-size:.82rem;color:var(--text-secondary)">${esc(p.responsable||'')}</td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td>${isAdmin?`<td><button class="ab ab-e" onclick="openEdit(${p.id})">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" onclick="cloturerProb(${p.id})">Cloturer</button>`:''}</td>`:'<td></td>'}</tr>`).join('');
 }
 function filterTable(){
   const q=document.getElementById('search-input').value.toLowerCase();
-  const dept=document.getElementById('filter-dept').value;
+  const pilier=document.getElementById('filter-pilier').value;
   const stat=document.getElementById('filter-statut').value;
   const prio=document.getElementById('filter-priorite').value;
-  renderTable(allProblems.filter(p=>(!q||(p.intitule||'').toLowerCase().includes(q)||(p.description||'').toLowerCase().includes(q))&&(!dept||p.departement===dept)&&(!stat||p.statut===stat)&&(!prio||p.priorite===prio)));
+  renderTable(allProblems.filter(p=>(!q||(p.intitule||'').toLowerCase().includes(q)||(p.description||'').toLowerCase().includes(q))&&(!pilier||p.pilier===pilier)&&(!stat||p.statut===stat)&&(!prio||p.priorite===prio)));
 }
 function renderAdminTable(){
   if(!isAdmin)return;
-  document.getElementById('admin-tbody').innerHTML=allProblems.length===0?'<tr><td colspan="8"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique.</div></div></td></tr>':allProblems.map(p=>`<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td class="c-title">${esc(p.intitule)}</td><td><span class="badge bd">${esc(p.departement||'')}</span></td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${esc(p.soumis_par||'')}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td><td><button class="ab ab-e" onclick="openEdit(${p.id})">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" onclick="cloturerProb(${p.id})">Cloturer</button>`:''}</td></tr>`).join('');
+  document.getElementById('admin-tbody').innerHTML=allProblems.length===0?'<tr><td colspan="8"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique.</div></div></td></tr>':allProblems.map(p=>`<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td class="c-title">${esc(p.intitule)}</td><td><span class="badge bd">${esc(p.pilier||'')}</span></td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${esc(p.soumis_par||'')}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td><td><button class="ab ab-e" onclick="openEdit(${p.id})">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" onclick="cloturerProb(${p.id})">Cloturer</button>`:''}</td></tr>`).join('');
 }
 async function submitNouvelleProb(){
   const intitule=document.getElementById('n-intitule').value.trim();
-  const dept=document.getElementById('n-dept').value;
+  const pilier=document.getElementById('n-pilier').value;
   const prio=document.getElementById('n-priorite').value;
   const resp=document.getElementById('n-responsable').value.trim();
   const desc=document.getElementById('n-description').value.trim();
-  if(!intitule||!dept||!prio||!desc){toast('Champs obligatoires manquants.','error');return;}
+  if(!intitule||!pilier||!prio||!desc){toast('Champs obligatoires manquants.','error');return;}
   const nbtn=document.querySelector('#page-nouvelle .btn-sub');
   if(nbtn){nbtn.disabled=true;nbtn.textContent='Envoi...';}
-  const {error}=await sb.from('problematiques').insert([{intitule,departement:dept,priorite:prio,responsable:resp||null,description:desc,statut:'À traiter',soumis_par:currentUser.email}]);
+  const {error}=await sb.from('problematiques').insert([{intitule,pilier:pilier,priorite:prio,responsable:resp||null,description:desc,statut:'À traiter',soumis_par:currentUser.email}]);
   if(nbtn){nbtn.disabled=false;nbtn.textContent='Soumettre';}
   if(error){toast('Erreur: '+error.message,'error');return;}
   toast('Problematique soumise.','success');
-  ['n-intitule','n-dept','n-priorite','n-responsable','n-description'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['n-intitule','n-pilier','n-priorite','n-responsable','n-description'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   await loadAll(); showPage('problematiques');
 }
 function openModalNouvel(){
   ['m-intitule','m-responsable','m-description'].forEach(id=>document.getElementById(id).value='');
-  const ms=document.getElementById('m-dept');
+  const ms=document.getElementById('m-pilier');
   ms.innerHTML='<option value="">Selectionner</option>';
-  depts.forEach(d=>{const mo=document.createElement('option');mo.value=d;mo.textContent=d;ms.appendChild(mo);});
+  piliers.forEach(d=>{const mo=document.createElement('option');mo.value=d;mo.textContent=d;ms.appendChild(mo);});
   document.getElementById('modal-nouvel').classList.add('open');
 }
 async function submitModal(){
   const mintitule=document.getElementById('m-intitule').value.trim();
-  const mdept=document.getElementById('m-dept').value;
+  const mpilier=document.getElementById('m-pilier').value;
   const mprio=document.getElementById('m-priorite').value;
   const mstat=document.getElementById('m-statut').value;
   const mresp=document.getElementById('m-responsable').value.trim();
   const mdesc=document.getElementById('m-description').value.trim();
-  if(!mintitule||!mdept||!mprio||!mdesc){toast('Champs obligatoires manquants.','error');return;}
+  if(!mintitule||!mpilier||!mprio||!mdesc){toast('Champs obligatoires manquants.','error');return;}
   const mbtn=document.getElementById('btn-submit-modal');
   if(mbtn){mbtn.disabled=true;mbtn.textContent='Creation...';}
-  const {error}=await sb.from('problematiques').insert([{intitule:mintitule,departement:mdept,priorite:mprio,statut:mstat,responsable:mresp||null,description:mdesc,soumis_par:currentUser.email}]);
+  const {error}=await sb.from('problematiques').insert([{intitule:mintitule,pilier:mpilier,priorite:mprio,statut:mstat,responsable:mresp||null,description:mdesc,soumis_par:currentUser.email}]);
   if(mbtn){mbtn.disabled=false;mbtn.textContent='Creer';}
   if(error){toast('Erreur: '+error.message,'error');return;}
   closeModal('modal-nouvel'); toast('Problematique creee.','success'); await loadAll();
