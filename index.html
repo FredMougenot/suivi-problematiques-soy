@@ -467,6 +467,82 @@ body { font-size: 0.9375rem; }
   color: var(--text-primary);
   letter-spacing: -.01em;
 }
+
+/* ══ PILIER CRITÈRES ═════════════════════════════════════════════ */
+.pilier-row { position: relative; }
+.pilier-info {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--bg-active); border: 1px solid var(--text-faint);
+  color: var(--text-muted); font-size: .65rem; font-weight: 800;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; margin-left: 6px;
+  transition: all .15s; vertical-align: middle;
+  font-family: 'Outfit', sans-serif;
+}
+.pilier-info:hover {
+  background: var(--copper-dim); border-color: var(--copper);
+  color: var(--copper-light);
+}
+
+/* Modal critère */
+.critere-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.65);
+  z-index: 800; display: none; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.critere-overlay.open { display: flex; }
+.critere-modal {
+  background: var(--bg-float); border: 1px solid var(--text-faint);
+  border-radius: var(--r-lg); padding: 28px; width: 480px; max-width: 95vw;
+  box-shadow: 0 16px 48px rgba(0,0,0,.6); position: relative;
+}
+.critere-modal::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--copper), transparent);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+}
+.cm-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 18px; }
+.cm-title-wrap {}
+.cm-eyebrow { font-size: .62rem; font-weight: 800; color: var(--copper); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 4px; }
+.cm-title { font-family: 'Outfit', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--text-primary); }
+.cm-close {
+  width: 28px; height: 28px; border-radius: var(--r-sm);
+  background: var(--bg-raised); border: 1px solid var(--text-faint);
+  color: var(--text-muted); cursor: pointer; display: flex;
+  align-items: center; justify-content: center; font-size: .9rem;
+  transition: all .15s; flex-shrink: 0;
+}
+.cm-close:hover { border-color: var(--ruby); color: var(--ruby); }
+.cm-body { font-size: .88rem; color: var(--text-secondary); line-height: 1.7; min-height: 60px; }
+.cm-body.loading { color: var(--text-muted); font-style: italic; }
+.cm-edit-zone { margin-top: 18px; border-top: 1px solid var(--text-faint); padding-top: 16px; display: none; }
+.cm-edit-zone.open { display: block; }
+.cm-textarea {
+  width: 100%; background: var(--bg-raised); border: 1px solid var(--text-faint);
+  color: var(--text-primary); border-radius: var(--r-md);
+  padding: 12px 14px; font-size: .86rem; font-family: 'Outfit', sans-serif;
+  resize: vertical; min-height: 100px; outline: none;
+  transition: border-color .15s; line-height: 1.6;
+}
+.cm-textarea:focus { border-color: var(--copper); }
+.cm-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+.cm-edit-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: .78rem; font-weight: 600; color: var(--text-muted);
+  background: none; border: none; cursor: pointer; padding: 0;
+  transition: color .15s;
+}
+.cm-edit-btn:hover { color: var(--copper-light); }
+.cm-save-btn {
+  padding: 8px 18px; border-radius: var(--r-md);
+  background: linear-gradient(135deg, var(--copper), var(--copper-light));
+  color: #0F1118; font-size: .82rem; font-weight: 700;
+  border: none; cursor: pointer; transition: opacity .15s;
+  display: none;
+}
+.cm-save-btn:hover { opacity: .88; }
+.cm-save-btn.visible { display: inline-block; }
+
 </style>
 </head>
 <body>
@@ -875,68 +951,7 @@ body { font-size: 0.9375rem; }
       <button class="modal-x" onclick="closeModal('modal-nouvel')">✕</button>
     </div>
     <div class="modal-bd">
-      <div class="fg-grid">
-        <div class="fg full"><label class="fg-lbl req">Intitulé</label><input type="text" id="m-intitule" class="fg-inp" placeholder="Titre de la problématique"></div>
-        <div class="fg"><label class="fg-lbl req">Pilier</label><select id="m-pilier" class="fg-sel"></select></div>
-        <div class="fg"><label class="fg-lbl req">Priorité</label>
-          <select id="m-priorite" class="fg-sel">
-            <option value="">— Sélectionner —</option>
-            <option value="Critique">Critique</option><option value="Haute">Haute</option>
-            <option value="Moyenne">Moyenne</option><option value="Basse">Basse</option>
-          </select>
-        </div>
-        <div class="fg"><label class="fg-lbl">Statut initial</label>
-          <select id="m-statut" class="fg-sel"><option value="À traiter">À traiter</option><option value="En cours">En cours</option></select>
-        </div>
-        <div class="fg"><label class="fg-lbl">Responsable</label><input type="text" id="m-responsable" class="fg-inp" placeholder="Nom du responsable"></div>
-        <div class="fg full"><label class="fg-lbl req">Description</label><textarea id="m-description" class="fg-ta" placeholder="Description détaillée…"></textarea></div>
-      </div>
-    </div>
-    <div class="modal-ft">
-      <button class="btn-can" onclick="closeModal('modal-nouvel')">Annuler</button>
-      <button class="btn-sub" id="btn-submit-modal" onclick="submitModal()">⊕ Créer</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL MODIFIER -->
-<div class="overlay" id="modal-edit">
-  <div class="modal">
-    <div class="modal-hd">
-      <div><div class="modal-t">Modifier la problématique</div><div class="modal-s" id="edit-subtitle">—</div></div>
-      <button class="modal-x" onclick="closeModal('modal-edit')">✕</button>
-    </div>
-    <div class="modal-bd">
-      <input type="hidden" id="edit-id">
-      <div class="fg-grid">
-        <div class="fg"><label class="fg-lbl">Statut</label>
-          <select id="edit-statut" class="fg-sel">
-            <option value="À traiter">À traiter</option><option value="En cours">En cours</option>
-            <option value="Résolu">Résolu</option><option value="Annulé">Annulé</option><option value="Clôturé">Clôturé</option>
-          </select>
-        </div>
-        <div class="fg"><label class="fg-lbl">Priorité</label>
-          <select id="edit-priorite" class="fg-sel">
-            <option value="Critique">Critique</option><option value="Haute">Haute</option>
-            <option value="Moyenne">Moyenne</option><option value="Basse">Basse</option>
-          </select>
-        </div>
-        <div class="fg"><label class="fg-lbl">Responsable</label><input type="text" id="edit-responsable" class="fg-inp"></div>
-        <div class="fg"><label class="fg-lbl">Seuil cible</label><input type="number" id="edit-seuil" class="fg-inp" placeholder="ex: 5.0" step="0.01"></div>
-        <div class="fg"><label class="fg-lbl">Valeur réelle</label><input type="number" id="edit-reel" class="fg-inp" placeholder="ex: 4.2" step="0.01"></div>
-        <div class="fg full"><label class="fg-lbl">Résultat / Notes</label><textarea id="edit-resultat" class="fg-ta" placeholder="Décrivez le résultat…" style="min-height:70px"></textarea></div>
-      </div>
-    </div>
-    <div class="modal-ft">
-      <button class="btn-can" onclick="closeModal('modal-edit')">Annuler</button>
-      <button class="btn-sub" onclick="saveEdit()">Enregistrer</button>
-    </div>
-  </div>
-</div>
-
-<div class="toasts" id="toasts"></div>
-
-<script>
+      <div cla<script>
 const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const { createClient } = supabase;
@@ -1081,7 +1096,7 @@ function renderDash(){
   const dc={};piliers.forEach(d=>dc[d]=0);
   actifs.forEach(p=>{if(p.pilier)dc[p.pilier]=(dc[p.pilier]||0)+1;});
   const maxD=Math.max(...Object.values(dc),1);
-  document.getElementById('pilier-stats').innerHTML=piliers.map(d=>`<div class="pilier-row"><div class="pilier-n">${d}</div><div class="pilier-track"><div class="pilier-fill" style="width:${(dc[d]/maxD*100).toFixed(0)}%"></div></div><div class="pilier-cnt">${dc[d]}</div></div>`).join('');
+  document.getElementById('pilier-stats').innerHTML=piliers.map(d=>`<div class="pilier-row"><div class="pilier-n">${d}<span class="pilier-info" onclick="openCritere('${d}')" title="Voir le critère">?</span></div><div class="pilier-track"><div class="pilier-fill" style="width:${(dc[d]/maxD*100).toFixed(0)}%"></div></div><div class="pilier-cnt">${dc[d]}</div></div>`).join('');
   const prios=['Critique','Haute','Moyenne','Basse'];
   const pc={};prios.forEach(p=>pc[p]=0);
   actifs.forEach(p=>{if(p.priorite)pc[p.priorite]=(pc[p.priorite]||0)+1;});
@@ -1300,6 +1315,190 @@ window.addEventListener('load',()=>setTimeout(init,800));
 
 
 
+
+// ── CRITÈRES PILIERS ──────────────────────────────────────────────
+let critereCache = {};   // cache local {pilier: critere_text}
+let critereActif = null; // pilier actuellement ouvert
+
+async function openCritere(pilier){
+  critereActif = pilier;
+  document.getElementById('cm-title').textContent = pilier;
+  document.getElementById('cm-body').textContent = 'Chargement…';
+  document.getElementById('cm-body').className = 'cm-body loading';
+  document.getElementById('cm-edit-zone').classList.remove('open');
+  document.getElementById('cm-save-btn').classList.remove('visible');
+  document.getElementById('cm-edit-btn').style.display = 'inline-flex';
+  document.getElementById('critere-overlay').classList.add('open');
+
+  // Cache local d'abord
+  if(critereCache[pilier] !== undefined){
+    afficherCritere(critereCache[pilier]);
+    return;
+  }
+
+  try {
+    const {data, error} = await sb.from('piliers_criteres')
+      .select('critere').eq('pilier', pilier).single();
+    const texte = (!error && data) ? (data.critere || '') : '';
+    critereCache[pilier] = texte;
+    afficherCritere(texte);
+  } catch(e){
+    afficherCritere('');
+  }
+}
+
+function afficherCritere(texte){
+  const body = document.getElementById('cm-body');
+  body.className = 'cm-body';
+  if(texte){
+    body.innerHTML = texte.split('\n').join('<br>');
+  } else {
+    body.innerHTML = '<span style="color:var(--text-muted);font-style:italic">Aucun critère défini pour ce pilier. Cliquez sur "Modifier" pour en ajouter un.</span>';
+  }
+}
+
+function toggleEditCritere(){
+  const zone = document.getElementById('cm-edit-zone');
+  const saveBtn = document.getElementById('cm-save-btn');
+  const editBtn = document.getElementById('cm-edit-btn');
+  const isOpen = zone.classList.contains('open');
+  if(!isOpen){
+    const texte = critereCache[critereActif] || '';
+    document.getElementById('cm-textarea').value = texte;
+    zone.classList.add('open');
+    saveBtn.classList.add('visible');
+    editBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Annuler';
+    document.getElementById('cm-textarea').focus();
+  } else {
+    zone.classList.remove('open');
+    saveBtn.classList.remove('visible');
+    editBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Modifier le critère';
+  }
+}
+
+async function saveCritere(){
+  const texte = document.getElementById('cm-textarea').value.trim();
+  const btn = document.getElementById('cm-save-btn');
+  btn.textContent = '…'; btn.disabled = true;
+
+  try {
+    // Upsert : insert si n'existe pas, update si existe
+    const {error} = await sb.from('piliers_criteres')
+      .upsert({pilier: critereActif, critere: texte, updated_at: new Date().toISOString()},
+              {onConflict: 'pilier'});
+    if(error){ toast('Erreur: ' + error.message, 'error'); }
+    else {
+      critereCache[critereActif] = texte;
+      afficherCritere(texte);
+      toggleEditCritere();
+      toast('Critère de ' + critereActif + ' sauvegardé.', 'success');
+    }
+  } catch(e){ toast('Erreur réseau.', 'error'); }
+
+  btn.textContent = 'Sauvegarder'; btn.disabled = false;
+}
+
+function closeCritere(e){
+  if(e.target === document.getElementById('critere-overlay')) closeCritereBtn();
+}
+function closeCritereBtn(){
+  document.getElementById('critere-overlay').classList.remove('open');
+  critereActif = null;
+}
+
+
+</script>onst curPwd=document.getElementById('p-pwd0').value;
+  const newPwd=document.getElementById('p-pwd1').value;
+  const cfmPwd=document.getElementById('p-pwd2').value;
+  if(!curPwd){toast('Entrez votre mot de passe actuel.','error');return;}
+  if(newPwd.length<8){toast('Le nouveau mot de passe doit contenir au moins 8 caracteres.','error');return;}
+  if(newPwd!==cfmPwd){toast('Les deux nouveaux mots de passe ne correspondent pas.','error');return;}
+  const pbtn=document.getElementById('btn-pwd-update');
+  if(pbtn){pbtn.disabled=true;pbtn.textContent='Verification...';}
+  const {error:authErr}=await sb.auth.signInWithPassword({email:currentUser.email,password:curPwd});
+  if(authErr){
+    if(pbtn){pbtn.disabled=false;pbtn.textContent='Mettre a jour';}
+    toast('Mot de passe actuel incorrect.','error');return;
+  }
+  if(pbtn)pbtn.textContent='Mise a jour...';
+  const {error}=await sb.auth.updateUser({password:newPwd});
+  if(pbtn){pbtn.disabled=false;pbtn.textContent='Mettre a jour';}
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  document.getElementById('p-pwd0').value='';
+  document.getElementById('p-pwd1').value='';
+  document.getElementById('p-pwd2').value='';
+  const pbar=document.getElementById('p-pwd-bar');
+  const plbl=document.getElementById('p-pwd-lbl');
+  if(pbar)pbar.style.width='0%';
+  if(plbl){plbl.textContent='Entrez un mot de passe';plbl.style.color='var(--text-muted)';}
+  const pmsg=document.getElementById('pwd-ok');
+  if(pmsg){pmsg.classList.add('show');setTimeout(()=>pmsg.classList.remove('show'),3000);}
+  toast('Mot de passe mis a jour avec succes.','success');
+}
+function evalPwd(pwd,barId,lblId){
+  const score=[pwd.length>=8,/[A-Z]/.test(pwd),/[0-9]/.test(pwd),/[^A-Za-z0-9]/.test(pwd)].filter(Boolean).length;
+  const colors=['var(--text-faint)','var(--ruby)','var(--amber)','var(--amber)','var(--emerald)'];
+  const labels=['Entrez un mot de passe','Tres faible','Faible','Correct','Fort'];
+  const ebar=document.getElementById(barId);
+  const elbl=document.getElementById(lblId);
+  if(ebar){ebar.style.width=(score*25)+'%';ebar.style.background=colors[score];}
+  if(elbl){elbl.textContent=pwd.length===0?labels[0]:labels[score];elbl.style.color=pwd.length===0?'var(--text-muted)':colors[score];}
+}
+function toggleEye(inputId,icon){
+  const inp=document.getElementById(inputId);if(!inp)return;
+  inp.type=inp.type==='password'?'text':'password';
+  icon.textContent=inp.type==='password'?'O':'X';
+}
+function toast(msg,type='info'){
+  const tel=document.createElement('div');
+  tel.className='toast '+type;tel.textContent=msg;
+  document.getElementById('toasts').appendChild(tel);
+  setTimeout(()=>tel.remove(),4000);
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtDate(d){return d?new Date(d).toLocaleDateString('fr-CA',{day:'2-digit',month:'short',year:'numeric'}):''}
+function fmtId(id){return String(id||'').padStart(4,'0').slice(-4);}
+function bStat(s){
+  const labels={'À traiter':'À traiter','En cours':'En cours','Résolu':'Résolu','Annulé':'Annulé','Clôturé':'Clôturé'};
+  const cls={'À traiter':'bt','En cours':'bc','Résolu':'br','Annulé':'ban','Clôturé':'bcl'};
+  return `<span class="badge ${cls[s]||'ban'}">${labels[s]||esc(s||'')}</span>`;
+}
+function bPrio(p){const m={Critique:'bpC',Haute:'bpH',Moyenne:'bpM',Basse:'bpB'};return `<span class="badge ${m[p]||'bpB'}">${esc(p||'')}</span>`;}
+
+window.addEventListener('load',()=>setTimeout(init,800));
+
+
+
+
+
+
+
+
 </script>
+
+<!-- ═══ MODAL CRITÈRE PILIER ═══ -->
+<div class="critere-overlay" id="critere-overlay" onclick="closeCritere(event)">
+  <div class="critere-modal">
+    <div class="cm-header">
+      <div class="cm-title-wrap">
+        <div class="cm-eyebrow">Critère du pilier</div>
+        <div class="cm-title" id="cm-title">—</div>
+      </div>
+      <button class="cm-close" onclick="closeCritereBtn()">✕</button>
+    </div>
+    <div class="cm-body" id="cm-body">Chargement…</div>
+    <div class="cm-edit-zone" id="cm-edit-zone">
+      <textarea class="cm-textarea" id="cm-textarea" placeholder="Saisissez le critère de ce pilier…"></textarea>
+    </div>
+    <div class="cm-footer">
+      <button class="cm-edit-btn" id="cm-edit-btn" onclick="toggleEditCritere()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Modifier le critère
+      </button>
+      <button class="cm-save-btn" id="cm-save-btn" onclick="saveCritere()">Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
