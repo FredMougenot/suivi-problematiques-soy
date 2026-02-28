@@ -951,7 +951,42 @@ body { font-size: 0.9375rem; }
       <button class="modal-x" onclick="closeModal('modal-nouvel')">✕</button>
     </div>
     <div class="modal-bd">
-      <div cla<script>
+              <div class="fg-grid">
+          <div class="fg full"><label class="fg-lbl req">Intitulé</label><input id="n-intitule" class="fg-inp" placeholder="Titre de la problématique…"></div>
+          <div class="fg"><label class="fg-lbl req">Pilier</label><select id="n-pilier" class="fg-sel"></select></div>
+          <div class="fg"><label class="fg-lbl req">Priorité</label><select id="n-priorite" class="fg-sel"><option value="">Sélectionner</option><option>Critique</option><option>Haute</option><option>Moyenne</option><option>Basse</option></select></div>
+          <div class="fg"><label class="fg-lbl">Responsable</label><input id="n-responsable" class="fg-inp" placeholder="Nom…"></div>
+          <div class="fg full"><label class="fg-lbl req">Description</label><textarea id="n-description" class="fg-inp" rows="3" placeholder="Décrivez la problématique…"></textarea></div>
+        </div>
+        <div class="modal-ft"><button class="btn-sub" onclick="submitNouvelleProb()">&#8853; Soumettre</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDIT -->
+<div class="overlay" id="modal-edit">
+  <div class="modal">
+    <div class="modal-hd">
+      <div><div class="modal-t">Modifier</div><div class="modal-s" id="edit-subtitle"></div></div>
+      <button class="modal-x" onclick="closeModal('modal-edit')">✕</button>
+    </div>
+    <div class="modal-bd">
+      <input type="hidden" id="edit-id">
+      <div class="fg-grid">
+        <div class="fg"><label class="fg-lbl">Statut</label><select id="edit-statut" class="fg-sel"><option>À traiter</option><option>En cours</option><option>Résolu</option><option>Annulé</option></select></div>
+        <div class="fg"><label class="fg-lbl">Priorité</label><select id="edit-priorite" class="fg-sel"><option>Critique</option><option>Haute</option><option>Moyenne</option><option>Basse</option></select></div>
+        <div class="fg"><label class="fg-lbl">Responsable</label><input id="edit-responsable" class="fg-inp" placeholder="Nom…"></div>
+        <div class="fg"><label class="fg-lbl">Seuil visé</label><input id="edit-seuil" class="fg-inp" type="number" placeholder="0"></div>
+        <div class="fg"><label class="fg-lbl">Valeur réelle</label><input id="edit-reel" class="fg-inp" type="number" placeholder="0"></div>
+        <div class="fg"><label class="fg-lbl">Résultat</label><input id="edit-resultat" class="fg-inp" placeholder="…"></div>
+        <div class="fg"><label class="fg-lbl">Pilier</label><select id="m-pilier" class="fg-sel"></select></div>
+      </div>
+      <div class="modal-ft"><button class="btn-sub" onclick="saveEdit()">&#10003; Enregistrer</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
 const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const { createClient } = supabase;
@@ -960,13 +995,6 @@ let currentUser = null, isAdmin = false, allProblems = [];
 const piliers = ['SST','Qualite','Couts','Delais','Motivation','Environnement'];
 
 async function init() {
-  // Timeout de sécurité : si getSession() bloque plus de 6s (cookies tiers bloqués),
-  // on affiche l'écran de connexion quand même
-  const safetyTimer = setTimeout(() => {
-    hideLoading();
-    showAuth();
-  }, 6000);
-
   try {
     const hash = window.location.hash;
     if (hash && hash.includes('access_token')) {
@@ -975,7 +1003,6 @@ async function init() {
       if (tok) {
         const {data,error} = await sb.auth.setSession({access_token:tok,refresh_token:ref});
         window.history.replaceState({},document.title,window.location.pathname);
-        clearTimeout(safetyTimer);
         hideLoading();
         if (!error && data.session) {
           currentUser = data.session.user;
@@ -983,16 +1010,13 @@ async function init() {
           else { await checkRole(); showApp(); await loadAll(); }
           return;
         }
-        showAuth();
-        return;
       }
     }
     const {data:{session}} = await sb.auth.getSession();
-    clearTimeout(safetyTimer);
     hideLoading();
     if (session) { currentUser=session.user; await checkRole(); showApp(); await loadAll(); }
     else showAuth();
-  } catch(e) { clearTimeout(safetyTimer); hideLoading(); showAuth(); }
+  } catch(e) { hideLoading(); showAuth(); }
 }
 
 function hideLoading(){ document.getElementById('loading-screen').classList.add('hidden'); }
@@ -1419,7 +1443,8 @@ function closeCritereBtn(){
 
 
 
-</script>onst curPwd=document.getElementById('p-pwd0').value;
+async function doChangePwd(){
+  const curPwd=document.getElementById('p-pwd0').value;
   const newPwd=document.getElementById('p-pwd1').value;
   const cfmPwd=document.getElementById('p-pwd2').value;
   if(!curPwd){toast('Entrez votre mot de passe actuel.','error');return;}
@@ -1447,46 +1472,9 @@ function closeCritereBtn(){
   if(pmsg){pmsg.classList.add('show');setTimeout(()=>pmsg.classList.remove('show'),3000);}
   toast('Mot de passe mis a jour avec succes.','success');
 }
-function evalPwd(pwd,barId,lblId){
-  const score=[pwd.length>=8,/[A-Z]/.test(pwd),/[0-9]/.test(pwd),/[^A-Za-z0-9]/.test(pwd)].filter(Boolean).length;
-  const colors=['var(--text-faint)','var(--ruby)','var(--amber)','var(--amber)','var(--emerald)'];
-  const labels=['Entrez un mot de passe','Tres faible','Faible','Correct','Fort'];
-  const ebar=document.getElementById(barId);
-  const elbl=document.getElementById(lblId);
-  if(ebar){ebar.style.width=(score*25)+'%';ebar.style.background=colors[score];}
-  if(elbl){elbl.textContent=pwd.length===0?labels[0]:labels[score];elbl.style.color=pwd.length===0?'var(--text-muted)':colors[score];}
-}
-function toggleEye(inputId,icon){
-  const inp=document.getElementById(inputId);if(!inp)return;
-  inp.type=inp.type==='password'?'text':'password';
-  icon.textContent=inp.type==='password'?'O':'X';
-}
-function toast(msg,type='info'){
-  const tel=document.createElement('div');
-  tel.className='toast '+type;tel.textContent=msg;
-  document.getElementById('toasts').appendChild(tel);
-  setTimeout(()=>tel.remove(),4000);
-}
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function fmtDate(d){return d?new Date(d).toLocaleDateString('fr-CA',{day:'2-digit',month:'short',year:'numeric'}):''}
-function fmtId(id){return String(id||'').padStart(4,'0').slice(-4);}
-function bStat(s){
-  const labels={'À traiter':'À traiter','En cours':'En cours','Résolu':'Résolu','Annulé':'Annulé','Clôturé':'Clôturé'};
-  const cls={'À traiter':'bt','En cours':'bc','Résolu':'br','Annulé':'ban','Clôturé':'bcl'};
-  return `<span class="badge ${cls[s]||'ban'}">${labels[s]||esc(s||'')}</span>`;
-}
-function bPrio(p){const m={Critique:'bpC',Haute:'bpH',Moyenne:'bpM',Basse:'bpB'};return `<span class="badge ${m[p]||'bpB'}">${esc(p||'')}</span>`;}
-
-window.addEventListener('load',()=>setTimeout(init,800));
-
-
-
-
-
-
-
 
 </script>
+
 
 <!-- ═══ MODAL CRITÈRE PILIER ═══ -->
 <div class="critere-overlay" id="critere-overlay" onclick="closeCritere(event)">
