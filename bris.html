@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Bris — Expédition SOY</title>
+<link rel="stylesheet" href="soy-shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ── Page Bris ───────────────────────────────────────────── */
+.date-nav{display:flex;align-items:center;justify-content:center;gap:10px;padding:18px 28px 0;}
+.date-arr{width:34px;height:34px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .15s;}
+.date-arr:hover{border-color:var(--copper);color:var(--copper-light);}
+.date-lbl{font-size:1rem;font-weight:700;color:var(--text-primary);padding:7px 22px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);min-width:260px;text-align:center;}
+.today-chip{font-size:.65rem;font-weight:700;color:var(--copper-light);background:var(--copper-dim);border:1px solid rgba(200,132,58,.25);padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle;}
+
+/* Table Bris */
+.bris-outer{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.bris-tbl{width:100%;border-collapse:collapse;min-width:980px;}
+.bris-tbl thead tr{background:var(--bg-float);border-bottom:2px solid var(--text-faint);}
+.bris-tbl thead th{padding:12px 13px;font-size:.6rem;font-weight:800;color:var(--copper);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;text-align:left;}
+.bris-tbl thead th.th-c{text-align:center;}
+.bris-tbl tbody tr{border-bottom:1px solid var(--text-faint);transition:background .1s;}
+.bris-tbl tbody tr:last-child{border-bottom:none;}
+.bris-tbl tbody tr:hover td{background:rgba(200,132,58,.022);}
+.bris-tbl tbody td{padding:9px 13px;font-size:.84rem;color:var(--text-primary);vertical-align:middle;}
+
+/* Inputs */
+.ii{background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-sm);padding:6px 9px;font-size:.82rem;font-family:'Outfit',sans-serif;outline:none;transition:border-color .15s;}
+.ii:focus{border-color:var(--copper);}
+.ii-wide{width:180px;}
+.ii-num{width:80px;text-align:right;}
+.ii-cost{width:90px;text-align:right;}
+.ii-comment{width:200px;}
+.ii-date{width:130px;}
+
+/* Checkbox étapes */
+.step-cell{text-align:center;}
+.step-chk{
+  width:22px;height:22px;border-radius:5px;cursor:pointer;
+  appearance:none;-webkit-appearance:none;
+  background:var(--bg-float);border:2px solid var(--text-faint);
+  transition:all .15s;position:relative;flex-shrink:0;
+}
+.step-chk:checked{background:var(--emerald);border-color:var(--emerald);}
+.step-chk:checked::after{
+  content:'✓';position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  color:#0F1118;font-size:.75rem;font-weight:900;
+}
+/* Étape destruction = rouge */
+.step-dest:checked{background:var(--ruby);border-color:var(--ruby);}
+/* Étape finalisé = amber */
+.step-fin:checked{background:var(--amber);border-color:var(--amber);}
+
+/* Input date finalisation */
+.date-fin{
+  background:var(--bg-float);border:1px solid var(--text-faint);
+  color:var(--text-primary);border-radius:var(--r-sm);
+  padding:5px 7px;font-size:.78rem;font-family:'Outfit',sans-serif;
+  outline:none;transition:border-color .15s;width:130px;
+}
+.date-fin:focus{border-color:var(--amber);}
+.date-fin:disabled{opacity:.35;cursor:not-allowed;}
+
+/* Bouton sauver */
+.btn-sv{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:var(--r-sm);background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;font-size:.73rem;font-weight:700;border:none;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.btn-sv:hover{opacity:.85;}
+.btn-sv:disabled{opacity:.35;cursor:default;}
+.btn-rm{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:var(--r-sm);background:transparent;border:1px solid var(--text-faint);color:var(--text-muted);cursor:pointer;font-size:.72rem;margin-left:4px;transition:all .15s;}
+.btn-rm:hover{border-color:var(--ruby);color:var(--ruby);background:var(--ruby-bg);}
+
+/* Ligne numéro */
+.row-num{font-size:.78rem;font-weight:700;color:var(--text-muted);text-align:center;}
+
+/* Stats bar */
+.stats-bar{display:flex;gap:10px;padding:16px 28px 0;flex-wrap:wrap;}
+.sp{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);font-size:.8rem;font-weight:600;}
+.sp-dot{width:8px;height:8px;border-radius:50%;}
+.sp-val{color:var(--text-primary);margin-right:2px;}
+.sp-lbl{color:var(--text-muted);}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.overlay.open{display:flex;}
+.modal{background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-lg);padding:26px;width:400px;max-width:95vw;box-shadow:0 16px 48px rgba(0,0,0,.6);position:relative;}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--copper),transparent);border-radius:var(--r-lg) var(--r-lg) 0 0;}
+.modal-title{font-size:1.05rem;font-weight:700;color:var(--text-primary);margin-bottom:18px;display:flex;align-items:center;gap:9px;}
+.fg{margin-bottom:13px;}
+.fg label{display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:6px;}
+.fg input{width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;transition:border-color .15s;}
+.fg input:focus{border-color:var(--copper);}
+.m-acts{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
+.btn-cx{padding:8px 16px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);font-size:.84rem;font-weight:600;cursor:pointer;}
+.btn-cx:hover{color:var(--text-primary);}
+.btn-ok{padding:8px 18px;border-radius:var(--r-md);background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;font-size:.84rem;font-weight:700;border:none;cursor:pointer;}
+.btn-ok:hover{opacity:.88;}
+
+/* Total coût */
+.total-bar{display:flex;align-items:center;gap:8px;padding:14px 18px;margin-top:14px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);}
+.total-lbl{font-size:.72rem;font-weight:700;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;}
+.total-val{font-family:'Outfit',sans-serif;font-size:1.3rem;font-weight:700;color:var(--ruby);}
+
+@media(max-width:1100px){.date-nav,.stats-bar{padding-left:10px;padding-right:10px;}}
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+
+<!-- TOPBAR -->
+<div class="tool-topbar">
+  <a href="index.html" class="tool-back">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Retour
+  </a>
+  <div class="tool-title">🔧 Suivi des Bris</div>
+  <button class="btn-ghost" onclick="goToday()" style="font-size:.78rem;padding:6px 13px;">Aujourd'hui</button>
+  <button class="btn-copper" onclick="openModal()" style="font-size:.78rem;padding:6px 14px;">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Ajouter un bris
+  </button>
+</div>
+
+<!-- DATE NAV -->
+<div class="date-nav">
+  <button class="date-arr" onclick="changeDay(-1)">&#8592;</button>
+  <div class="date-lbl" id="date-lbl">—</div>
+  <button class="date-arr" onclick="changeDay(1)">&#8594;</button>
+</div>
+
+<!-- STATS -->
+<div class="stats-bar" id="stats-bar">
+  <div class="sp"><div class="sp-dot" style="background:var(--ruby)"></div><span class="sp-val" id="st-total">0</span><span class="sp-lbl">bris</span></div>
+  <div class="sp"><div class="sp-dot" style="background:var(--amber)"></div><span class="sp-val" id="st-retenu">0</span><span class="sp-lbl">retenus</span></div>
+  <div class="sp"><div class="sp-dot" style="background:var(--emerald)"></div><span class="sp-val" id="st-fin">0</span><span class="sp-lbl">finalisés</span></div>
+  <div class="sp" style="margin-left:auto"><span class="sp-lbl">Coût total :</span>&nbsp;<span class="sp-val" id="st-cout" style="color:var(--ruby)">0.00 $</span></div>
+</div>
+
+<!-- MAIN -->
+<div class="tool-main" style="padding-top:16px;">
+  <div id="spinner" class="spinner" style="display:flex"><div class="spin"></div> Chargement…</div>
+
+  <div id="bris-wrap" style="display:none">
+    <div class="bris-outer">
+      <table class="bris-tbl">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Item</th>
+            <th>Quantité</th>
+            <th>Coût ($)</th>
+            <th class="th-c">Étape 1<br><small style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-muted)">Retenu</small></th>
+            <th class="th-c">Étape 2<br><small style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-muted)">Destruction</small></th>
+            <th class="th-c">Étape 3<br><small style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-muted)">Date finalisation</small></th>
+            <th>Commentaires</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="bris-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="total-bar">
+      <span class="total-lbl">Coût total journée :</span>
+      <span class="total-val" id="total-cout">0.00 $</span>
+    </div>
+  </div>
+</div>
+
+</div><!-- /tool-wrap -->
+
+<!-- MODAL -->
+<div class="overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--copper-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Ajouter un bris
+    </div>
+    <div class="fg"><label>Item / Description</label><input type="text" id="m-item" placeholder="Ex: Palette bois, Fourche chariot…"></div>
+    <div class="fg"><label>Quantité</label><input type="number" id="m-qte" placeholder="1" min="0" step="1"></div>
+    <div class="fg"><label>Coût estimé ($)</label><input type="number" id="m-cout" placeholder="0.00" min="0" step="0.01"></div>
+    <div class="m-acts">
+      <button class="btn-cx" onclick="closeModal()">Annuler</button>
+      <button class="btn-ok" onclick="confirmAdd()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+let curDate = todayStr();
+let rows = {}; // id -> row
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function isToday(){ return curDate === todayStr(); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmt(v){ return parseFloat(v||0).toLocaleString('fr-CA',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+function toast(msg, type='info'){
+  const t = document.createElement('div');
+  t.className = 'toast-item toast-' + type; t.textContent = msg;
+  document.getElementById('toasts').appendChild(t);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},4000);
+}
+
+// ── DATE ────────────────────────────────────────────────────
+function updateDateUI(){
+  const d = new Date(curDate+'T00:00:00');
+  const lbl = d.toLocaleDateString('fr-CA',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('date-lbl').innerHTML = lbl + (isToday()?'<span class="today-chip">Aujourd\'hui</span>':'');
+}
+function changeDay(d){ const dt=new Date(curDate+'T00:00:00'); dt.setDate(dt.getDate()+d); curDate=dt.toISOString().slice(0,10); updateDateUI(); load(); }
+function goToday(){ curDate=todayStr(); updateDateUI(); load(); }
+
+// ── LOAD ────────────────────────────────────────────────────
+window.addEventListener('load',()=>{ updateDateUI(); load(); });
+
+async function load(){
+  document.getElementById('spinner').style.display='flex';
+  document.getElementById('bris-wrap').style.display='none';
+  rows={};
+  try{
+    const {data,error}=await sb.from('bris').select('*').eq('date_jour',curDate).order('created_at');
+    if(error && error.code!=='PGRST116') throw error;
+    (data||[]).forEach(r=>{ rows[r.id]=r; });
+  }catch(e){ toast('Erreur: '+e.message,'error'); }
+  render();
+  document.getElementById('spinner').style.display='none';
+  document.getElementById('bris-wrap').style.display='block';
+}
+
+// ── RENDER ──────────────────────────────────────────────────
+function render(){
+  const list = Object.values(rows).sort((a,b)=> new Date(a.created_at)-new Date(b.created_at));
+  const svgSave = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+
+  document.getElementById('bris-tbody').innerHTML = list.map((r,i)=>`
+    <tr id="brow-${r.id}">
+      <td class="row-num">${i+1}</td>
+      <td><input class="ii ii-wide" value="${esc(r.item||'')}" placeholder="Item…" oninput="fchg(${r.id},'item',this.value)"></td>
+      <td><input class="ii ii-num" type="number" min="0" step="1" value="${r.quantite||''}" placeholder="0" oninput="fchg(${r.id},'quantite',this.value)"></td>
+      <td><input class="ii ii-cost" type="number" min="0" step="0.01" value="${r.cout||''}" placeholder="0.00" oninput="fchg(${r.id},'cout',this.value);updateTotal()"></td>
+      <td class="step-cell">
+        <input type="checkbox" class="step-chk" ${r.etape1?'checked':''} onchange="fchg(${r.id},'etape1',this.checked)">
+      </td>
+      <td class="step-cell">
+        <input type="checkbox" class="step-chk step-dest" ${r.etape2?'checked':''} onchange="fchg(${r.id},'etape2',this.checked)">
+      </td>
+      <td class="step-cell">
+        <input type="date" class="date-fin" value="${r.date_finalisation||''}" ${!r.etape2?'disabled':''} onchange="fchg(${r.id},'date_finalisation',this.value)">
+      </td>
+      <td><input class="ii ii-comment" value="${esc(r.commentaires||'')}" placeholder="Commentaires…" oninput="fchg(${r.id},'commentaires',this.value)"></td>
+      <td>
+        <button class="btn-sv" id="bsv-${r.id}" onclick="saveRow(${r.id})">${svgSave} Sauver</button>
+        <button class="btn-rm" onclick="delRow(${r.id})" title="Supprimer">✕</button>
+      </td>
+    </tr>`).join('');
+
+  // Activer/désactiver la date finalisation selon étape2
+  list.forEach(r=>{
+    const chk = document.querySelector(`#brow-${r.id} .step-dest`);
+    const dateInp = document.querySelector(`#brow-${r.id} .date-fin`);
+    if(chk && dateInp){
+      chk.addEventListener('change', ()=>{ dateInp.disabled = !chk.checked; });
+    }
+  });
+
+  updateStats(list);
+  updateTotal(list);
+}
+
+// ── CHAMPS ──────────────────────────────────────────────────
+function fchg(id, field, val){
+  if(!rows[id]) return;
+  rows[id][field] = val;
+}
+
+// ── STATS ───────────────────────────────────────────────────
+function updateStats(list){
+  list = list || Object.values(rows);
+  document.getElementById('st-total').textContent  = list.length;
+  document.getElementById('st-retenu').textContent = list.filter(r=>r.etape1).length;
+  document.getElementById('st-fin').textContent    = list.filter(r=>r.date_finalisation).length;
+  const totalCout = list.reduce((s,r)=>s+parseFloat(r.cout||0)*parseFloat(r.quantite||1),0);
+  const coutFmt = fmt(totalCout)+' $';
+  document.getElementById('st-cout').textContent = coutFmt;
+  document.getElementById('total-cout').textContent = coutFmt;
+}
+
+function updateTotal(){
+  updateStats(Object.values(rows));
+}
+
+// ── SAVE ────────────────────────────────────────────────────
+async function saveRow(id){
+  const r = rows[id]; if(!r) return;
+  const btn = document.getElementById('bsv-'+id);
+  if(btn){ btn.disabled=true; btn.textContent='…'; }
+
+  const payload = {
+    date_jour:         curDate,
+    item:              r.item||'',
+    quantite:          parseFloat(r.quantite)||null,
+    cout:              parseFloat(r.cout)||null,
+    etape1:            !!r.etape1,
+    etape2:            !!r.etape2,
+    date_finalisation: r.date_finalisation||null,
+    commentaires:      r.commentaires||null,
+    updated_at:        new Date().toISOString(),
+  };
+
+  const {error} = await sb.from('bris').update(payload).eq('id',id);
+  const svgSave = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+  if(btn){ btn.disabled=false; btn.innerHTML=svgSave+' Sauver'; }
+  if(error){ toast('Erreur: '+error.message,'error'); return; }
+  toast('Bris sauvegardé ✓','success');
+}
+
+// ── DELETE ──────────────────────────────────────────────────
+async function delRow(id){
+  if(!confirm('Supprimer ce bris ?')) return;
+  const {error} = await sb.from('bris').delete().eq('id',id);
+  if(error){ toast('Erreur: '+error.message,'error'); return; }
+  delete rows[id]; render();
+  toast('Supprimé.','info');
+}
+
+// ── MODAL ───────────────────────────────────────────────────
+function openModal(){
+  document.getElementById('m-item').value='';
+  document.getElementById('m-qte').value='';
+  document.getElementById('m-cout').value='';
+  document.getElementById('modal').classList.add('open');
+  setTimeout(()=>document.getElementById('m-item').focus(),50);
+}
+function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('modal').addEventListener('click',e=>{
+    if(e.target===document.getElementById('modal')) closeModal();
+  });
+});
+
+async function confirmAdd(){
+  const item = document.getElementById('m-item').value.trim();
+  if(!item){ toast('Veuillez entrer un item.','error'); return; }
+  const qte  = parseFloat(document.getElementById('m-qte').value)||1;
+  const cout = parseFloat(document.getElementById('m-cout').value)||null;
+
+  const payload = {
+    date_jour: curDate,
+    item, quantite: qte, cout,
+    etape1: false, etape2: false,
+    date_finalisation: null, commentaires: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+
+  const {data,error} = await sb.from('bris').insert([payload]).select().single();
+  if(error){ toast('Erreur: '+error.message,'error'); return; }
+  rows[data.id] = data;
+  closeModal(); render();
+  const tr = document.getElementById('brow-'+data.id);
+  if(tr) tr.scrollIntoView({behavior:'smooth',block:'center'});
+  toast('Bris ajouté ✓','success');
+}
+</script>
+</body>
+</html>

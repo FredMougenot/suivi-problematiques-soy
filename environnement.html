@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Environnement — Expédition SOY</title>
+<link rel="stylesheet" href="soy-shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ── Page Environnement ─────────────────────────────────── */
+.date-nav{display:flex;align-items:center;justify-content:center;gap:10px;padding:18px 28px 0;}
+.date-arr{width:34px;height:34px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .15s;}
+.date-arr:hover{border-color:var(--copper);color:var(--copper-light);}
+.date-lbl{font-size:1rem;font-weight:700;color:var(--text-primary);padding:7px 22px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);min-width:260px;text-align:center;}
+.today-chip{font-size:.65rem;font-weight:700;color:var(--copper-light);background:var(--copper-dim);border:1px solid rgba(200,132,58,.25);padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle;}
+
+/* Table env */
+.env-outer{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.env-tbl{width:100%;border-collapse:collapse;min-width:640px;}
+.env-tbl thead tr{background:var(--bg-float);border-bottom:2px solid var(--text-faint);}
+.env-tbl thead th{padding:13px 16px;font-size:.6rem;font-weight:800;color:var(--copper);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;text-align:left;}
+.env-tbl thead th.th-c{text-align:center;width:120px;}
+.env-tbl tbody tr{border-bottom:1px solid var(--text-faint);transition:background .1s;}
+.env-tbl tbody tr:last-child{border-bottom:none;}
+.env-tbl tbody td{padding:12px 16px;font-size:.86rem;color:var(--text-primary);vertical-align:middle;}
+
+/* Vérification label */
+.verif-label{font-size:.88rem;color:var(--text-primary);font-weight:500;line-height:1.4;}
+
+/* Cases à cocher conformité */
+.chk-cell{text-align:center;}
+.chk-wrap{display:inline-flex;align-items:center;gap:6px;}
+.conf-chk{
+  width:22px;height:22px;border-radius:5px;cursor:pointer;
+  appearance:none;-webkit-appearance:none;
+  background:var(--bg-float);border:2px solid var(--text-faint);
+  transition:all .15s;position:relative;flex-shrink:0;
+}
+/* Conforme → vert */
+.conf-chk.chk-ok:checked{background:var(--emerald);border-color:var(--emerald);}
+.conf-chk.chk-ok:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#0F1118;font-size:.75rem;font-weight:900;}
+/* Non conforme → rouge */
+.conf-chk.chk-nc:checked{background:var(--ruby);border-color:var(--ruby);}
+.conf-chk.chk-nc:checked::after{content:'✕';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.75rem;font-weight:900;}
+
+/* Ligne non conforme highlight */
+.row-nc td{background:rgba(224,85,85,.04)!important;}
+
+/* Bouton problématique */
+.btn-prob{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 11px;border-radius:var(--r-sm);
+  background:var(--ruby-bg);border:1px solid rgba(224,85,85,.35);
+  color:var(--ruby);font-size:.73rem;font-weight:700;
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.btn-prob:hover{background:rgba(224,85,85,.18);border-color:var(--ruby);}
+.btn-prob.hidden{visibility:hidden;pointer-events:none;}
+
+/* Bouton sauver ligne */
+.btn-sv{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:var(--r-sm);background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;font-size:.73rem;font-weight:700;border:none;cursor:pointer;white-space:nowrap;transition:all .15s;margin-left:4px;}
+.btn-sv:hover{opacity:.85;}
+.btn-sv:disabled{opacity:.35;cursor:default;}
+
+/* Stats bar */
+.stats-bar{display:flex;gap:10px;padding:16px 28px 0;flex-wrap:wrap;}
+.sp{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);font-size:.8rem;font-weight:600;}
+.sp-dot{width:8px;height:8px;border-radius:50%;}
+.sp-val{color:var(--text-primary);margin-right:2px;}
+.sp-lbl{color:var(--text-muted);}
+
+/* Bouton ajout vérification */
+.btn-add-verif{
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:14px;padding:8px 16px;border-radius:var(--r-md);
+  background:var(--bg-raised);border:1px solid var(--text-faint);
+  color:var(--text-secondary);font-size:.8rem;font-weight:600;
+  cursor:pointer;transition:all .15s;
+}
+.btn-add-verif:hover{border-color:var(--copper);color:var(--copper-light);}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.overlay.open{display:flex;}
+.modal{background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-lg);padding:26px;width:460px;max-width:95vw;box-shadow:0 16px 48px rgba(0,0,0,.6);position:relative;}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--copper),transparent);border-radius:var(--r-lg) var(--r-lg) 0 0;}
+.modal-title{font-size:1.05rem;font-weight:700;color:var(--text-primary);margin-bottom:6px;display:flex;align-items:center;gap:9px;}
+.modal-sub{font-size:.8rem;color:var(--text-muted);margin-bottom:18px;}
+.fg{margin-bottom:13px;}
+.fg label{display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:6px;}
+.fg input,.fg select,.fg textarea{
+  width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);
+  color:var(--text-primary);border-radius:var(--r-md);
+  padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;
+  outline:none;transition:border-color .15s;
+}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--ruby);}
+.fg textarea{resize:vertical;min-height:70px;line-height:1.5;}
+.fg select option{background:var(--bg-raised);}
+.m-acts{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
+.btn-cx{padding:8px 16px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);font-size:.84rem;font-weight:600;cursor:pointer;}
+.btn-ok-ruby{padding:8px 18px;border-radius:var(--r-md);background:var(--ruby);color:#fff;font-size:.84rem;font-weight:700;border:none;cursor:pointer;transition:opacity .15s;}
+.btn-ok-ruby:hover{opacity:.85;}
+.btn-ok-copper{padding:8px 18px;border-radius:var(--r-md);background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;font-size:.84rem;font-weight:700;border:none;cursor:pointer;}
+.btn-ok-copper:hover{opacity:.88;}
+
+/* Label nc dans modal */
+.nc-badge{display:inline-block;padding:3px 10px;border-radius:20px;background:var(--ruby-bg);border:1px solid rgba(224,85,85,.35);color:var(--ruby);font-size:.75rem;font-weight:700;}
+
+@media(max-width:1100px){.date-nav,.stats-bar{padding-left:10px;padding-right:10px;}}
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+
+<!-- TOPBAR -->
+<div class="tool-topbar">
+  <a href="index.html" class="tool-back">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Retour
+  </a>
+  <div class="tool-title">🌿 Vérification Environnement</div>
+  <button class="btn-ghost" onclick="goToday()" style="font-size:.78rem;padding:6px 13px;">Aujourd'hui</button>
+</div>
+
+<!-- DATE NAV -->
+<div class="date-nav">
+  <button class="date-arr" onclick="changeDay(-1)">&#8592;</button>
+  <div class="date-lbl" id="date-lbl">—</div>
+  <button class="date-arr" onclick="changeDay(1)">&#8594;</button>
+</div>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="sp"><div class="sp-dot" style="background:var(--emerald)"></div><span class="sp-val" id="st-conf">0</span><span class="sp-lbl">conformes</span></div>
+  <div class="sp"><div class="sp-dot" style="background:var(--ruby)"></div><span class="sp-val" id="st-nc">0</span><span class="sp-lbl">non conformes</span></div>
+  <div class="sp"><div class="sp-dot" style="background:var(--text-faint)"></div><span class="sp-val" id="st-pend">0</span><span class="sp-lbl">non vérifiées</span></div>
+</div>
+
+<!-- MAIN -->
+<div class="tool-main" style="padding-top:16px;">
+  <div id="spinner" class="spinner" style="display:flex"><div class="spin"></div> Chargement…</div>
+
+  <div id="env-wrap" style="display:none">
+    <div class="env-outer">
+      <table class="env-tbl">
+        <thead>
+          <tr>
+            <th style="width:50%">Vérification</th>
+            <th class="th-c">✓ Conforme</th>
+            <th class="th-c">✕ Non conforme</th>
+            <th class="th-c" style="width:200px">Action</th>
+          </tr>
+        </thead>
+        <tbody id="env-tbody"></tbody>
+      </table>
+    </div>
+
+    <button class="btn-add-verif" onclick="openAddVerif()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Ajouter une vérification
+    </button>
+  </div>
+</div>
+
+</div><!-- /tool-wrap -->
+
+<!-- MODAL PROBLÉMATIQUE -->
+<div class="overlay" id="modal-prob">
+  <div class="modal">
+    <div class="modal-title">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ruby)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Créer une problématique
+    </div>
+    <div class="modal-sub">
+      Non-conformité : <span class="nc-badge" id="mp-verif-label">—</span>
+    </div>
+    <div class="fg">
+      <label>Intitulé <span style="color:var(--ruby)">*</span></label>
+      <input type="text" id="mp-intitule" placeholder="Titre court et descriptif">
+    </div>
+    <div class="fg">
+      <label>Priorité <span style="color:var(--ruby)">*</span></label>
+      <select id="mp-priorite">
+        <option value="">Sélectionner</option>
+        <option>Critique</option>
+        <option>Haute</option>
+        <option selected>Moyenne</option>
+        <option>Basse</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Responsable</label>
+      <input type="text" id="mp-responsable" placeholder="Nom du responsable">
+    </div>
+    <div class="fg">
+      <label>Description</label>
+      <textarea id="mp-description" placeholder="Détails sur la non-conformité…"></textarea>
+    </div>
+    <div class="m-acts">
+      <button class="btn-cx" onclick="closeModalProb()">Annuler</button>
+      <button class="btn-ok-ruby" onclick="submitProb()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Créer la problématique
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AJOUT VÉRIFICATION -->
+<div class="overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-title">Ajouter une vérification</div>
+    <div class="fg"><label>Libellé de la vérification</label><input type="text" id="ma-label" placeholder="Ex: Zone de chargement dégagée…"></div>
+    <div class="m-acts">
+      <button class="btn-cx" onclick="closeAddVerif()">Annuler</button>
+      <button class="btn-ok-copper" onclick="confirmAddVerif()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2b3JLbLOKDnHpTUqJc66ET-8Kug';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+// Vérifications fixes toujours présentes
+const VERIFS_FIXES = [
+  'Portes et accès dégagés',
+  'Zones de déchets conformes',
+  'Contenants identifiés et fermés',
+  'Planchers propres et secs',
+  'Éclairage fonctionnel',
+  'Extincteurs accessibles',
+  'Matières dangereuses sécurisées',
+  'Bacs de récupération en ordre',
+];
+
+let curDate = todayStr();
+let rows = {}; // verif_key -> row (conforme, non_conforme, id)
+let activeVerifLabel = '';
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function isToday(){ return curDate === todayStr(); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function toast(msg, type='info'){
+  const t = document.createElement('div');
+  t.className = 'toast-item toast-' + type; t.textContent = msg;
+  document.getElementById('toasts').appendChild(t);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},4000);
+}
+
+// ── DATE ────────────────────────────────────────────────────
+function updateDateUI(){
+  const d = new Date(curDate+'T00:00:00');
+  const lbl = d.toLocaleDateString('fr-CA',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('date-lbl').innerHTML = lbl+(isToday()?'<span class="today-chip">Aujourd\'hui</span>':'');
+}
+function changeDay(d){ const dt=new Date(curDate+'T00:00:00'); dt.setDate(dt.getDate()+d); curDate=dt.toISOString().slice(0,10); updateDateUI(); load(); }
+function goToday(){ curDate=todayStr(); updateDateUI(); load(); }
+
+// ── LOAD ────────────────────────────────────────────────────
+window.addEventListener('load',()=>{ updateDateUI(); load(); });
+
+async function load(){
+  document.getElementById('spinner').style.display='flex';
+  document.getElementById('env-wrap').style.display='none';
+  rows={};
+  try{
+    const {data,error}=await sb.from('environnement_verif').select('*').eq('date_jour',curDate);
+    if(error && error.code!=='PGRST116') throw error;
+    (data||[]).forEach(r=>{ rows[r.verif_key]=r; });
+  }catch(e){ toast('Erreur: '+e.message,'error'); }
+  render();
+  document.getElementById('spinner').style.display='none';
+  document.getElementById('env-wrap').style.display='block';
+}
+
+// ── RENDER ──────────────────────────────────────────────────
+function render(){
+  // Construire liste : fixes + extras depuis DB
+  const extras = Object.values(rows)
+    .filter(r=>!VERIFS_FIXES.includes(r.verif_key) && r.verif_key.startsWith('extra_'))
+    .sort((a,b)=>a.verif_key.localeCompare(b.verif_key));
+
+  const allVerifs = [
+    ...VERIFS_FIXES.map(v=>({key:v, label:v, fixed:true})),
+    ...extras.map(r=>({key:r.verif_key, label:r.label||r.verif_key, fixed:false}))
+  ];
+
+  const svgSave = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+
+  let html = '';
+  allVerifs.forEach(v=>{
+    const r = rows[v.key] || {};
+    const isNC = !!r.non_conforme;
+    const rowCls = isNC ? 'row-nc' : '';
+
+    html += `<tr id="erow-${v.key.replace(/[^a-z0-9]/gi,'_')}" class="${rowCls}">
+      <td class="verif-label">${esc(v.label)}</td>
+      <td class="chk-cell">
+        <input type="checkbox" class="conf-chk chk-ok"
+          ${r.conforme?'checked':''}
+          onchange="setConf('${v.key}','conforme',this.checked)">
+      </td>
+      <td class="chk-cell">
+        <input type="checkbox" class="conf-chk chk-nc"
+          ${r.non_conforme?'checked':''}
+          onchange="setConf('${v.key}','non_conforme',this.checked)">
+      </td>
+      <td class="chk-cell">
+        <button class="btn-prob${isNC?'':' hidden'}"
+          id="btnp-${v.key.replace(/[^a-z0-9]/gi,'_')}"
+          onclick="openModalProb('${v.key}','${esc(v.label)}')">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Créer problématique
+        </button>
+        <button class="btn-sv" id="bsv-${v.key.replace(/[^a-z0-9]/gi,'_')}"
+          onclick="saveRow('${v.key}')">${svgSave} Sauver</button>
+      </td>
+    </tr>`;
+  });
+
+  document.getElementById('env-tbody').innerHTML = html;
+  updateStats(allVerifs);
+}
+
+// ── CASE À COCHER — exclusion mutuelle ──────────────────────
+function setConf(key, field, val){
+  if(!rows[key]) rows[key]={verif_key:key, date_jour:curDate};
+  // Exclusion mutuelle
+  if(val){
+    rows[key]['conforme']     = field==='conforme';
+    rows[key]['non_conforme'] = field==='non_conforme';
+  } else {
+    rows[key][field] = false;
+  }
+  // Sync les deux checkboxes dans le DOM
+  const rowId = key.replace(/[^a-z0-9]/gi,'_');
+  const tr = document.getElementById('erow-'+rowId);
+  if(tr){
+    const chkOk = tr.querySelector('.chk-ok');
+    const chkNc = tr.querySelector('.chk-nc');
+    if(chkOk) chkOk.checked = !!rows[key].conforme;
+    if(chkNc) chkNc.checked = !!rows[key].non_conforme;
+    // Highlight ligne NC
+    tr.className = rows[key].non_conforme ? 'row-nc' : '';
+    // Bouton problématique
+    const btnP = document.getElementById('btnp-'+rowId);
+    if(btnP) btnP.className = 'btn-prob'+(rows[key].non_conforme?'':' hidden');
+  }
+  updateStats();
+}
+
+// ── STATS ───────────────────────────────────────────────────
+function updateStats(allVerifs){
+  const vals = Object.values(rows);
+  const conf = vals.filter(r=>r.conforme).length;
+  const nc   = vals.filter(r=>r.non_conforme).length;
+  const total = (allVerifs||[]).length || VERIFS_FIXES.length;
+  document.getElementById('st-conf').textContent = conf;
+  document.getElementById('st-nc').textContent   = nc;
+  document.getElementById('st-pend').textContent = Math.max(0, total - conf - nc);
+}
+
+// ── SAVE ────────────────────────────────────────────────────
+async function saveRow(key){
+  const r = rows[key]||{};
+  const rowId = key.replace(/[^a-z0-9]/gi,'_');
+  const btn = document.getElementById('bsv-'+rowId);
+  if(btn){ btn.disabled=true; btn.textContent='…'; }
+
+  const payload = {
+    date_jour:     curDate,
+    verif_key:     key,
+    label:         r.label || key,
+    conforme:      !!r.conforme,
+    non_conforme:  !!r.non_conforme,
+    updated_at:    new Date().toISOString(),
+  };
+
+  let error;
+  if(r.id){
+    ({error}=await sb.from('environnement_verif').update(payload).eq('id',r.id));
+  } else {
+    const {data:saved,error:err}=await sb.from('environnement_verif')
+      .insert([payload]).select().single();
+    error=err;
+    if(!error && saved) rows[key]={...rows[key],...saved};
+  }
+
+  const svgSave='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+  if(btn){ btn.disabled=false; btn.innerHTML=svgSave+' Sauver'; }
+  if(error){ toast('Erreur: '+error.message,'error'); return; }
+  toast('Sauvegardé ✓','success');
+}
+
+// ── MODAL PROBLÉMATIQUE ──────────────────────────────────────
+function openModalProb(key, label){
+  activeVerifLabel = label;
+  document.getElementById('mp-verif-label').textContent = label;
+  document.getElementById('mp-intitule').value = 'NC - ' + label;
+  document.getElementById('mp-priorite').value = 'Haute';
+  document.getElementById('mp-responsable').value = '';
+  document.getElementById('mp-description').value = '';
+  document.getElementById('modal-prob').classList.add('open');
+  setTimeout(()=>document.getElementById('mp-intitule').focus(),50);
+}
+function closeModalProb(){ document.getElementById('modal-prob').classList.remove('open'); }
+
+async function submitProb(){
+  const intitule  = document.getElementById('mp-intitule').value.trim();
+  const priorite  = document.getElementById('mp-priorite').value;
+  const resp      = document.getElementById('mp-responsable').value.trim();
+  const desc      = document.getElementById('mp-description').value.trim();
+  if(!intitule||!priorite){ toast('Champs obligatoires manquants.','error'); return; }
+
+  const btn = document.querySelector('#modal-prob .btn-ok-ruby');
+  btn.disabled=true; btn.textContent='Envoi…';
+
+  const {error}=await sb.from('problematiques').insert([{
+    intitule,
+    pilier:'Environnement',
+    priorite,
+    responsable:resp||null,
+    description: desc || ('Non-conformité détectée : ' + activeVerifLabel),
+    statut:'À traiter',
+    soumis_par:'environnement_tool',
+  }]);
+
+  btn.disabled=false; btn.textContent='Créer la problématique';
+  if(error){ toast('Erreur: '+error.message,'error'); return; }
+  closeModalProb();
+  toast('Problématique créée dans le registre ✓','success');
+}
+
+// ── MODAL AJOUT VÉRIFICATION ─────────────────────────────────
+function openAddVerif(){
+  document.getElementById('ma-label').value='';
+  document.getElementById('modal-add').classList.add('open');
+  setTimeout(()=>document.getElementById('ma-label').focus(),50);
+}
+function closeAddVerif(){ document.getElementById('modal-add').classList.remove('open'); }
+
+async function confirmAddVerif(){
+  const label = document.getElementById('ma-label').value.trim();
+  if(!label){ toast('Veuillez entrer un libellé.','error'); return; }
+
+  const key = 'extra_' + Date.now();
+  rows[key]={verif_key:key,label,date_jour:curDate,conforme:false,non_conforme:false};
+  closeAddVerif();
+  render();
+  // Auto-save la nouvelle ligne
+  await saveRow(key);
+}
+
+// Fermer modals sur clic overlay
+document.addEventListener('DOMContentLoaded',()=>{
+  ['modal-prob','modal-add'].forEach(id=>{
+    document.getElementById(id).addEventListener('click',e=>{
+      if(e.target===document.getElementById(id)){
+        document.getElementById(id).classList.remove('open');
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
