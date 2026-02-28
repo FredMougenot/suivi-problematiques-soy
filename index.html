@@ -960,6 +960,13 @@ let currentUser = null, isAdmin = false, allProblems = [];
 const piliers = ['SST','Qualite','Couts','Delais','Motivation','Environnement'];
 
 async function init() {
+  // Timeout de sécurité : si getSession() bloque plus de 6s (cookies tiers bloqués),
+  // on affiche l'écran de connexion quand même
+  const safetyTimer = setTimeout(() => {
+    hideLoading();
+    showAuth();
+  }, 6000);
+
   try {
     const hash = window.location.hash;
     if (hash && hash.includes('access_token')) {
@@ -968,6 +975,7 @@ async function init() {
       if (tok) {
         const {data,error} = await sb.auth.setSession({access_token:tok,refresh_token:ref});
         window.history.replaceState({},document.title,window.location.pathname);
+        clearTimeout(safetyTimer);
         hideLoading();
         if (!error && data.session) {
           currentUser = data.session.user;
@@ -975,13 +983,16 @@ async function init() {
           else { await checkRole(); showApp(); await loadAll(); }
           return;
         }
+        showAuth();
+        return;
       }
     }
     const {data:{session}} = await sb.auth.getSession();
+    clearTimeout(safetyTimer);
     hideLoading();
     if (session) { currentUser=session.user; await checkRole(); showApp(); await loadAll(); }
     else showAuth();
-  } catch(e) { hideLoading(); showAuth(); }
+  } catch(e) { clearTimeout(safetyTimer); hideLoading(); showAuth(); }
 }
 
 function hideLoading(){ document.getElementById('loading-screen').classList.add('hidden'); }
@@ -1405,6 +1416,7 @@ function closeCritereBtn(){
   document.getElementById('critere-overlay').classList.remove('open');
   critereActif = null;
 }
+
 
 
 </script>onst curPwd=document.getElementById('p-pwd0').value;
