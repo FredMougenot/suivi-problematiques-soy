@@ -195,8 +195,8 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .srch-inp:focus{border-color:var(--copper);background:var(--bg-float);box-shadow:0 0 0 2px var(--copper-glow);}
 
 /* TABLE */
-.tbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-sm);}
-.dtbl{width:100%;border-collapse:collapse;}
+.tbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;-webkit-overflow-scrolling:touch;box-shadow:var(--shadow-sm);}
+.dtbl{width:100%;border-collapse:collapse;min-width:900px;}
 .dtbl thead th{padding:11px 15px;text-align:left;font-size:.63rem;font-weight:800;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;background:var(--bg-float);border-bottom:1px solid var(--text-faint);white-space:nowrap;}
 .dtbl thead th:first-child{padding-left:18px;}
 .dtbl tbody td{padding:12px 15px;font-size:.83rem;color:var(--text-secondary);border-bottom:1px solid rgba(255,255,255,.025);vertical-align:middle;transition:background var(--t-fast);}
@@ -788,7 +788,7 @@ body { font-size: 0.9375rem; }
         </div>
         <div class="tbl-wrap">
           <table class="dtbl">
-            <thead><tr><th>ID</th><th>Intitulé / Description</th><th>Pilier</th><th>Responsable</th><th>Priorité</th><th>Statut</th><th>Date</th><th class="admin-only" id="th-actions" style="display:none">Actions</th></tr></thead>
+            <thead><tr><th>ID</th><th>Intitulé / Description</th><th>Pilier</th><th>Responsable</th><th>Priorité</th><th>Statut</th><th>Soumis le</th><th>Date prévue</th><th>Date résolue</th><th class="admin-only" id="th-actions" style="display:none">Actions</th></tr></thead>
             <tbody id="prob-tbody"></tbody>
           </table>
         </div>
@@ -828,7 +828,7 @@ body { font-size: 0.9375rem; }
         </div>
         <div class="tbl-wrap">
           <table class="dtbl">
-            <thead><tr><th>ID</th><th>Intitulé</th><th>Pilier</th><th>Priorité</th><th>Statut</th><th>Soumis par</th><th>Date</th><th>Actions</th></tr></thead>
+            <thead><tr><th>ID</th><th>Intitulé</th><th>Pilier</th><th>Priorité</th><th>Statut</th><th>Soumis par</th><th>Soumis le</th><th>Date prévue</th><th>Date résolue</th><th>Actions</th></tr></thead>
             <tbody id="admin-tbody"></tbody>
           </table>
         </div>
@@ -1000,13 +1000,7 @@ body { font-size: 0.9375rem; }
         <div class="fg"><label class="fg-lbl">Valeur réelle</label><input id="edit-reel" class="fg-inp" type="number" placeholder="0"></div>
         <div class="fg"><label class="fg-lbl">Résultat</label><input id="edit-resultat" class="fg-inp" placeholder="…"></div>
         <div class="fg"><label class="fg-lbl">Pilier</label><select id="m-pilier" class="fg-sel"></select></div>
-      </div>
-      <div class="modal-ft"><button class="btn-sub" onclick="saveEdit()">&#10003; Enregistrer</button></div>
-    </div>
-  </div>
-</div>
-
-<script>
+        <<script>
 const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const { createClient } = supabase;
@@ -1163,7 +1157,11 @@ function renderDash(){
 }
 function renderTable(data){
   const probs=data||allProblems;
-  document.getElementById('prob-tbody').innerHTML=probs.length===0?'<tr><td colspan="8"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique trouvee.</div></div></td></tr>':probs.map(p=>`<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,65))}${(p.description||'').length>65?'...':''}</small></div></td><td><span class="badge bd">${esc(p.pilier||'')}</span></td><td style="font-size:.82rem;color:var(--text-secondary)">${esc(p.responsable||'')}</td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td>${isAdmin?`<td><button class="ab ab-e" onclick="openEdit(${p.id})">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" onclick="cloturerProb(${p.id})">Cloturer</button>`:''}</td>`:'<td></td>'}</tr>`).join('');
+  document.getElementById('prob-tbody').innerHTML=probs.length===0?'<tr><td colspan="10"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique trouvee.</div></div></td></tr>':probs.map(p=>{
+    const datePrevue = p.date_prevue ? `<span style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.date_prevue)}</span>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+    const dateResolue = p.date_resolue ? `<span style="font-size:.78rem;color:var(--emerald)">${fmtDate(p.date_resolue)}</span>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+    return `<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,65))}${(p.description||'').length>65?'...':''}</small></div></td><td><span class="badge bd">${esc(p.pilier||'')}</span></td><td style="font-size:.82rem;color:var(--text-secondary)">${esc(p.responsable||'')}</td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td><td>${datePrevue}</td><td>${dateResolue}</td>${isAdmin?`<td><button class="ab ab-e" onclick="openEdit(${p.id})">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" onclick="cloturerProb(${p.id})">Cloturer</button>`:''}</td>`:'<td></td>'}</tr>`;
+  }).join('');
 }
 function filterTable(){
   const q=document.getElementById('search-input').value.toLowerCase();
@@ -1174,7 +1172,11 @@ function filterTable(){
 }
 function renderAdminTable(){
   if(!isAdmin)return;
-  document.getElementById('admin-tbody').innerHTML=allProblems.length===0?'<tr><td colspan="8"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique.</div></div></td></tr>':allProblems.map(p=>`<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td class="c-title">${esc(p.intitule)}</td><td><span class="badge bd">${esc(p.pilier||'')}</span></td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${esc(p.soumis_par||'')}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td><td><button class="ab ab-e" onclick="openEdit(${p.id})">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" onclick="cloturerProb(${p.id})">Cloturer</button>`:''}</td></tr>`).join('');
+  document.getElementById('admin-tbody').innerHTML=allProblems.length===0?'<tr><td colspan="10"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique.</div></div></td></tr>':allProblems.map(p=>{
+    const datePrevue=p.date_prevue?`<span style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.date_prevue)}</span>`:'<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+    const dateResolue=p.date_resolue?`<span style="font-size:.78rem;color:var(--emerald)">${fmtDate(p.date_resolue)}</span>`:'<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+    return `<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td class="c-title">${esc(p.intitule)}</td><td><span class="badge bd">${esc(p.pilier||'')}</span></td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${esc(p.soumis_par||'')}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td><td>${datePrevue}</td><td>${dateResolue}</td><td><button class="ab ab-e" onclick="openEdit(${p.id})">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" onclick="cloturerProb(${p.id})">Cloturer</button>`:''}</td></tr>`;
+  }).join('');
 }
 async function submitNouvelleProb(){
   const intitule=document.getElementById('n-intitule').value.trim();
@@ -1224,17 +1226,27 @@ function openEdit(id){
   document.getElementById('edit-seuil').value=ep.seuil||'';
   document.getElementById('edit-reel').value=ep.reel||'';
   document.getElementById('edit-resultat').value=ep.resultat||'';
+  document.getElementById('edit-date-prevue').value=ep.date_prevue||'';
   document.getElementById('modal-edit').classList.add('open');
 }
 async function saveEdit(){
   const eid=parseInt(document.getElementById('edit-id').value);
+  const newStatut=document.getElementById('edit-statut').value;
+  const prevProb=allProblems.find(x=>x.id===eid)||{};
+  // Auto date_resolue si passage à Résolu
+  const wasResolu = prevProb.statut==='Résolu';
+  const nowResolu = newStatut==='Résolu';
+  const dateResolue = nowResolu ? (prevProb.date_resolue || new Date().toISOString().slice(0,10)) : (wasResolu&&!nowResolu?null:prevProb.date_resolue);
+  const datePrevue = document.getElementById('edit-date-prevue').value || prevProb.date_prevue || null;
   const {error}=await sb.from('problematiques').update({
-    statut:document.getElementById('edit-statut').value,
+    statut:newStatut,
     priorite:document.getElementById('edit-priorite').value,
     responsable:document.getElementById('edit-responsable').value.trim()||null,
     seuil:document.getElementById('edit-seuil').value?parseFloat(document.getElementById('edit-seuil').value):null,
     reel:document.getElementById('edit-reel').value?parseFloat(document.getElementById('edit-reel').value):null,
     resultat:document.getElementById('edit-resultat').value.trim()||null,
+    date_prevue:datePrevue,
+    date_resolue:dateResolue,
     updated_at:new Date().toISOString(),
   }).eq('id',eid);
   if(error){toast('Erreur: '+error.message,'error');return;}
@@ -1406,6 +1418,21 @@ function afficherCritere(texte){
 }
 
 function closeCritere(e){
+  if(e.target===document.getElementById('critere-overlay')) closeCritereBtn();
+}
+function closeCritereBtn(){
+  document.getElementById('critere-overlay').classList.remove('open');
+  critereActif = null;
+}
+
+
+
+</script>('open');
+  critereActif = null;
+}
+
+
+</script>ere(e){
   if(e.target===document.getElementById('critere-overlay')) closeCritereBtn();
 }
 function closeCritereBtn(){
