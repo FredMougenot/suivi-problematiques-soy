@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SST — Expédition SOY</title>
+<link rel="stylesheet" href="soy-shared.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+.date-nav{display:flex;align-items:center;justify-content:center;gap:10px;padding:18px 28px 0;}
+.date-arr{width:34px;height:34px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .15s;}
+.date-arr:hover{border-color:var(--copper);color:var(--copper-light);}
+.date-lbl{font-size:1rem;font-weight:700;color:var(--text-primary);padding:7px 22px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);min-width:260px;text-align:center;}
+.today-chip{font-size:.65rem;font-weight:700;color:var(--copper-light);background:var(--copper-dim);border:1px solid rgba(200,132,58,.25);padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle;}
+
+.sst-outer{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;}
+.sst-tbl{width:100%;border-collapse:collapse;min-width:700px;}
+.sst-tbl thead tr{background:var(--bg-float);border-bottom:2px solid var(--text-faint);}
+.sst-tbl thead th{padding:12px 14px;font-size:.6rem;font-weight:800;color:var(--copper);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;text-align:left;}
+.sst-tbl tbody tr{border-bottom:1px solid var(--text-faint);transition:background .1s;}
+.sst-tbl tbody tr:last-child{border-bottom:none;}
+.sst-tbl tbody tr:hover td{background:rgba(200,132,58,.022);}
+.sst-tbl tbody td{padding:9px 14px;font-size:.84rem;color:var(--text-primary);vertical-align:middle;}
+
+.ii{background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-sm);padding:6px 9px;font-size:.82rem;font-family:'Outfit',sans-serif;outline:none;transition:border-color .15s;}
+.ii:focus{border-color:var(--copper);}
+.ii-wide{width:220px;}
+.ii-med{width:140px;}
+.ii-num{width:80px;text-align:right;}
+
+.btn-sv{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:var(--r-sm);background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;font-size:.73rem;font-weight:700;border:none;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.btn-sv:hover{opacity:.85;}
+.btn-sv:disabled{opacity:.35;cursor:default;}
+.btn-rm{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:var(--r-sm);background:transparent;border:1px solid var(--text-faint);color:var(--text-muted);cursor:pointer;font-size:.72rem;margin-left:4px;transition:all .15s;}
+.btn-rm:hover{border-color:var(--ruby);color:var(--ruby);background:var(--ruby-bg);}
+.row-num{font-size:.78rem;font-weight:700;color:var(--text-muted);text-align:center;}
+
+.stats-bar{display:flex;gap:10px;padding:16px 28px 0;flex-wrap:wrap;}
+.sp{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);font-size:.8rem;font-weight:600;}
+.sp-dot{width:8px;height:8px;border-radius:50%;}
+.sp-val{color:var(--text-primary);margin-right:2px;}
+.sp-lbl{color:var(--text-muted);}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.overlay.open{display:flex;}
+.modal{background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-lg);padding:26px;width:420px;max-width:95vw;box-shadow:0 16px 48px rgba(0,0,0,.6);position:relative;}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--copper),transparent);border-radius:var(--r-lg) var(--r-lg) 0 0;}
+.modal-title{font-size:1.05rem;font-weight:700;color:var(--text-primary);margin-bottom:18px;}
+.fg{margin-bottom:13px;}
+.fg label{display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:6px;}
+.fg input,.fg select,.fg textarea{width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;transition:border-color .15s;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--copper);}
+.fg textarea{resize:vertical;min-height:70px;}
+.fg select option{background:var(--bg-raised);}
+.m-acts{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
+.btn-cx{padding:8px 16px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);font-size:.84rem;font-weight:600;cursor:pointer;}
+.btn-ok{padding:8px 18px;border-radius:var(--r-md);background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;font-size:.84rem;font-weight:700;border:none;cursor:pointer;}
+.btn-ok:hover{opacity:.88;}
+
+.sev-badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.7rem;font-weight:700;}
+.sev-faible{background:var(--emerald-bg);color:var(--emerald);border:1px solid rgba(45,212,160,.3);}
+.sev-moyen{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(232,164,58,.3);}
+.sev-grave{background:var(--ruby-bg);color:var(--ruby);border:1px solid rgba(224,85,85,.3);}
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+  <div class="tool-topbar">
+    <a href="index.html" class="tool-back">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Retour
+    </a>
+    <div class="tool-title">🦺 <span id="page-title">SST</span></div>
+    <button class="btn-ghost" onclick="goToday()" style="font-size:.78rem;padding:6px 13px;">Aujourd'hui</button>
+    <button class="btn-copper" onclick="openModal()" style="font-size:.78rem;padding:6px 14px;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Ajouter un incident
+    </button>
+  </div>
+
+  <div class="date-nav">
+    <button class="date-arr" onclick="changeDay(-1)">&#8592;</button>
+    <div class="date-lbl" id="date-lbl">—</div>
+    <button class="date-arr" onclick="changeDay(1)">&#8594;</button>
+  </div>
+
+  <div class="stats-bar">
+    <div class="sp"><div class="sp-dot" style="background:var(--ruby)"></div><span class="sp-val" id="st-total">0</span><span class="sp-lbl">incidents</span></div>
+    <div class="sp"><div class="sp-dot" style="background:var(--ruby)"></div><span class="sp-val" id="st-grave">0</span><span class="sp-lbl">graves</span></div>
+    <div class="sp"><div class="sp-dot" style="background:var(--amber)"></div><span class="sp-val" id="st-moyen">0</span><span class="sp-lbl">moyens</span></div>
+    <div class="sp"><div class="sp-dot" style="background:var(--emerald)"></div><span class="sp-val" id="st-faible">0</span><span class="sp-lbl">faibles</span></div>
+  </div>
+
+  <div class="tool-main" style="padding-top:16px;">
+    <div id="spinner" class="spinner" style="display:flex"><div class="spin"></div> Chargement…</div>
+    <div id="sst-wrap" style="display:none">
+      <div class="sst-outer">
+        <table class="sst-tbl">
+          <thead>
+            <tr>
+              <th style="width:36px;text-align:center">#</th>
+              <th>Description de l'incident</th>
+              <th>Lieu</th>
+              <th>Personne impliquée</th>
+              <th>Sévérité</th>
+              <th>Action corrective</th>
+              <th>Commentaires</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="sst-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">🦺 Ajouter un incident SST</div>
+    <div class="fg"><label>Description <span style="color:var(--ruby)">*</span></label><textarea id="m-desc" placeholder="Décrivez l'incident…"></textarea></div>
+    <div class="fg"><label>Lieu</label><input type="text" id="m-lieu" placeholder="Ex: Zone de chargement"></div>
+    <div class="fg"><label>Personne impliquée</label><input type="text" id="m-personne" placeholder="Nom"></div>
+    <div class="fg"><label>Sévérité</label>
+      <select id="m-severite">
+        <option value="Faible">Faible</option>
+        <option value="Moyen" selected>Moyen</option>
+        <option value="Grave">Grave</option>
+      </select>
+    </div>
+    <div class="m-acts">
+      <button class="btn-cx" onclick="closeModal()">Annuler</button>
+      <button class="btn-ok" onclick="confirmAdd()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+const SB_URL='https://xppzmdmnuztozgukrcta.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+let curDate=todayStr(), rows={};
+
+function todayStr(){return new Date().toISOString().slice(0,10);}
+function isToday(){return curDate===todayStr();}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(msg,type='info'){const t=document.createElement('div');t.className='toast-item toast-'+type;t.textContent=msg;document.getElementById('toasts').appendChild(t);requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},4000);}
+
+function updateDateUI(){
+  const d=new Date(curDate+'T00:00:00');
+  const lbl=d.toLocaleDateString('fr-CA',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('date-lbl').innerHTML=lbl+(isToday()?'<span class="today-chip">Aujourd\'hui</span>':'');
+}
+function changeDay(d){const dt=new Date(curDate+'T00:00:00');dt.setDate(dt.getDate()+d);curDate=dt.toISOString().slice(0,10);updateDateUI();load();}
+function goToday(){curDate=todayStr();updateDateUI();load();}
+
+window.addEventListener('load',()=>{
+  updateDateUI(); load();
+  // Charger le nom dynamique
+  sb.from('piliers_criteres_lignes').select('intitule').eq('pilier','SST').eq('row_index',0).single()
+    .then(({data})=>{ if(data&&data.intitule) document.getElementById('page-title').textContent=data.intitule; })
+    .catch(()=>{});
+});
+
+async function load(){
+  document.getElementById('spinner').style.display='flex';
+  document.getElementById('sst-wrap').style.display='none';
+  rows={};
+  try{
+    const {data,error}=await sb.from('sst_incidents').select('*').eq('date_jour',curDate).order('created_at');
+    if(error&&error.code!=='PGRST116') throw error;
+    (data||[]).forEach(r=>{rows[r.id]=r;});
+  }catch(e){toast('Erreur: '+e.message,'error');}
+  render();
+  document.getElementById('spinner').style.display='none';
+  document.getElementById('sst-wrap').style.display='block';
+}
+
+function sevBadge(s){const m={Faible:'sev-faible',Moyen:'sev-moyen',Grave:'sev-grave'};return `<span class="sev-badge ${m[s]||'sev-moyen'}">${esc(s)}</span>`;}
+
+function render(){
+  const list=Object.values(rows).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+  const svgSv='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+  document.getElementById('sst-tbody').innerHTML=list.map((r,i)=>`
+    <tr id="row-${r.id}">
+      <td class="row-num">${i+1}</td>
+      <td><input class="ii ii-wide" value="${esc(r.description||'')}" placeholder="Incident…" oninput="fchg(${r.id},'description',this.value)"></td>
+      <td><input class="ii ii-med" value="${esc(r.lieu||'')}" placeholder="Lieu…" oninput="fchg(${r.id},'lieu',this.value)"></td>
+      <td><input class="ii ii-med" value="${esc(r.personne||'')}" placeholder="Nom…" oninput="fchg(${r.id},'personne',this.value)"></td>
+      <td>
+        <select class="ii" style="width:100px" onchange="fchg(${r.id},'severite',this.value)">
+          ${['Faible','Moyen','Grave'].map(s=>`<option${r.severite===s?' selected':''}>${s}</option>`).join('')}
+        </select>
+      </td>
+      <td><input class="ii ii-wide" value="${esc(r.action_corrective||'')}" placeholder="Action…" oninput="fchg(${r.id},'action_corrective',this.value)"></td>
+      <td><input class="ii ii-med" value="${esc(r.commentaires||'')}" placeholder="…" oninput="fchg(${r.id},'commentaires',this.value)"></td>
+      <td>
+        <button class="btn-sv" id="bsv-${r.id}" onclick="saveRow(${r.id})">${svgSv} Sauver</button>
+        <button class="btn-rm" onclick="delRow(${r.id})">✕</button>
+      </td>
+    </tr>`).join('');
+  updateStats(list);
+}
+
+function fchg(id,field,val){if(rows[id])rows[id][field]=val;}
+
+function updateStats(list){
+  document.getElementById('st-total').textContent=list.length;
+  document.getElementById('st-grave').textContent=list.filter(r=>r.severite==='Grave').length;
+  document.getElementById('st-moyen').textContent=list.filter(r=>r.severite==='Moyen').length;
+  document.getElementById('st-faible').textContent=list.filter(r=>r.severite==='Faible').length;
+}
+
+async function saveRow(id){
+  const r=rows[id];if(!r)return;
+  const btn=document.getElementById('bsv-'+id);
+  if(btn){btn.disabled=true;btn.textContent='…';}
+  const payload={date_jour:curDate,description:r.description||'',lieu:r.lieu||null,personne:r.personne||null,severite:r.severite||'Moyen',action_corrective:r.action_corrective||null,commentaires:r.commentaires||null,updated_at:new Date().toISOString()};
+  const {error}=await sb.from('sst_incidents').update(payload).eq('id',id);
+  const svgSv='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+  if(btn){btn.disabled=false;btn.innerHTML=svgSv+' Sauver';}
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  toast('Sauvegardé ✓','success');
+}
+
+async function delRow(id){
+  if(!confirm('Supprimer cet incident ?'))return;
+  const {error}=await sb.from('sst_incidents').delete().eq('id',id);
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  delete rows[id];render();toast('Supprimé.','info');
+}
+
+function openModal(){
+  ['m-desc','m-lieu','m-personne'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('m-severite').value='Moyen';
+  document.getElementById('modal').classList.add('open');
+  setTimeout(()=>document.getElementById('m-desc').focus(),50);
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
+});
+
+async function confirmAdd(){
+  const desc=document.getElementById('m-desc').value.trim();
+  if(!desc){toast('Description requise.','error');return;}
+  const payload={date_jour:curDate,description:desc,lieu:document.getElementById('m-lieu').value.trim()||null,personne:document.getElementById('m-personne').value.trim()||null,severite:document.getElementById('m-severite').value,action_corrective:null,commentaires:null,created_at:new Date().toISOString(),updated_at:new Date().toISOString()};
+  const {data,error}=await sb.from('sst_incidents').insert([payload]).select().single();
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  rows[data.id]=data;closeModal();render();
+  document.getElementById('row-'+data.id)?.scrollIntoView({behavior:'smooth',block:'center'});
+  toast('Incident ajouté ✓','success');
+}
+</script>
+</body>
+</html>

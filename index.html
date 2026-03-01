@@ -677,17 +677,23 @@ body { font-size: 0.9375rem; }
       <div class="sb-item" onclick="window.location.href='criteres_piliers.html'">
         <span class="sb-ico">◆</span> Critères des piliers
       </div>
+      <div class="sb-item" onclick="window.location.href='sst.html'">
+        <span class="sb-ico">🦺</span> <span id="nav-outil-SST">SST</span>
+      </div>
       <div class="sb-item" onclick="window.location.href='inventaire_cyclique.html'">
-        <span class="sb-ico">⊞</span> Inventaire cyclique
+        <span class="sb-ico">⊞</span> <span id="nav-outil-Qualite">Inventaire cyclique</span>
       </div>
       <div class="sb-item" onclick="window.location.href='bris.html'">
-        <span class="sb-ico">🔧</span> Bris
-      </div>
-      <div class="sb-item" onclick="window.location.href='environnement.html'">
-        <span class="sb-ico">🌿</span> Environnement
+        <span class="sb-ico">🔧</span> <span id="nav-outil-Couts">Bris</span>
       </div>
       <div class="sb-item" onclick="window.location.href='planning_camions.html'">
-        <span class="sb-ico">🚛</span> Planification camions
+        <span class="sb-ico">🚛</span> <span id="nav-outil-Delais">Planification camions</span>
+      </div>
+      <div class="sb-item" onclick="window.location.href='irritants.html'">
+        <span class="sb-ico">💬</span> <span id="nav-outil-Motivation">Gestion des irritants</span>
+      </div>
+      <div class="sb-item" onclick="window.location.href='environnement.html'">
+        <span class="sb-ico">🌿</span> <span id="nav-outil-Environnement">Non-conformité</span>
       </div>
       <div class="sb-sec">Mon compte</div>
       <div class="sb-item" onclick="showPage('profil')" id="nav-profil">
@@ -991,19 +997,22 @@ body { font-size: 0.9375rem; }
               <div class="fg-grid">
           <div class="fg full"><label class="fg-lbl req">Intitulé</label><input id="n-intitule" class="fg-inp" placeholder="Titre de la problématique…"></div>
           <div class="fg"><label class="fg-lbl req">Pilier</label><select id="n-pilier" class="fg-sel"></select></div>
-          <div class="fg"><label class="fg-lbl req">Priorité</label><select id="n-priorite" class="fg-sel"><option value="">Sélectionner</option><option>Critique</option><option>Haute</option><option>Moyenne</option><option>Basse</option></select></div>
-          <div class="fg"><label class="fg-lbl">Responsable</label><input id="n-responsable" class="fg-inp" placeholder="Nom…"></div>
-          <div class="fg full"><label class="fg-lbl req">Description</label><textarea id="n-description" class="fg-inp" rows="3" placeholder="Décrivez la problématique…"></textarea></div>
-        </div>
-        <div class="modal-ft"><button class="btn-sub" onclick="submitNouvelleProb()">&#8853; Soumettre</button></div>
-    </div>
-  </div>
-<<script>
+          <div class="fg"><label class="fg-lbl req">Priorité</label><select id="n-priorite" class="fg-sel"><option value="">Sélectionner</option><option>Critique</option><option>Haute</option><option>Moyenne</option><option>Basse</option<script>
 const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null, isAdmin = false, allProblems = [];
+
+// Mapping pilier → {spanId, defaut} pour noms dynamiques des outils
+const OUTILS_PILIERS = {
+  SST:          {spanId:'nav-outil-SST',         defaut:'SST'},
+  Qualite:      {spanId:'nav-outil-Qualite',      defaut:'Inventaire cyclique'},
+  Couts:        {spanId:'nav-outil-Couts',        defaut:'Bris'},
+  Delais:       {spanId:'nav-outil-Delais',       defaut:'Planification camions'},
+  Motivation:   {spanId:'nav-outil-Motivation',   defaut:'Gestion des irritants'},
+  Environnement:{spanId:'nav-outil-Environnement',defaut:'Non-conformité'},
+};
 let dashDate = new Date().toISOString().slice(0,10);
 const piliers = ['SST','Qualite','Couts','Delais','Motivation','Environnement'];
 
@@ -1051,6 +1060,7 @@ function showApp(){
   dashDate = new Date().toISOString().slice(0,10);
   dashUpdateDateUI();
   if (isAdmin) enableAdmin(); else enableUser();
+  loadOutilsNoms();
 }
 async function checkRole(){
   try { const {data}=await sb.from('admins').select('email').eq('email',currentUser.email).single(); isAdmin=!!data; }
@@ -1152,6 +1162,23 @@ async function loadAll(){
     allProblems=data||[];
     renderDash(); renderTable(); renderAdminTable();
   }catch(e){toast('Connexion impossible.','error');}
+}
+
+async function loadOutilsNoms(){
+  // Charge la première ligne (row_index=0) de chaque pilier pour nommer les outils
+  try{
+    const {data,error}=await sb.from('piliers_criteres_lignes')
+      .select('pilier,intitule').eq('row_index',0);
+    if(error||!data) return;
+    data.forEach(r=>{
+      const cfg=OUTILS_PILIERS[r.pilier];
+      if(!cfg) return;
+      const el=document.getElementById(cfg.spanId);
+      if(el && r.intitule && r.intitule.trim()){
+        el.textContent=r.intitule.trim();
+      }
+    });
+  }catch(e){ /* silencieux — noms par défaut restent */ }
 }
 // ── Navigation date dashboard ────────────────────────────
 function dashUpdateDateUI(){
@@ -1469,6 +1496,25 @@ function afficherCritere(texte){
   body.className = 'cm-body';
   if(texte){
     body.innerHTML = texte.split('\n').join('<br>');
+  } else {
+    body.innerHTML = '<span style="color:var(--text-muted);font-style:italic">Aucun critère défini. Rendez-vous dans <strong>Outils → Critères des piliers</strong> pour en ajouter un.</span>';
+  }
+}
+
+function closeCritere(e){
+  if(e.target===document.getElementById('critere-overlay')) closeCritereBtn();
+}
+function closeCritereBtn(){
+  document.getElementById('critere-overlay').classList.remove('open');
+  critereActif = null;
+}
+
+
+
+
+
+
+</script>ML = texte.split('\n').join('<br>');
   } else {
     body.innerHTML = '<span style="color:var(--text-muted);font-style:italic">Aucun critère défini. Rendez-vous dans <strong>Outils → Critères des piliers</strong> pour en ajouter un.</span>';
   }
