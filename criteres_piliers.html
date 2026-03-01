@@ -119,9 +119,7 @@
 }
 .ci-seuil:focus{border-color:var(--copper);}
 .ci-seuil::placeholder{color:var(--text-faint);}
-.th-seuil-vert{color:var(--emerald) !important;}
-.th-seuil-orange{color:var(--amber) !important;}
-.th-seuil-rouge{color:var(--ruby) !important;}
+
 .seuil-hint{font-size:.62rem;color:var(--text-muted);margin:10px 16px 14px;padding:8px 12px;background:var(--bg-float);border-radius:var(--r-sm);border-left:2px solid var(--copper);line-height:1.6;}
 </style>
 </head>
@@ -250,16 +248,16 @@ function renderSection(p){
               <th>#</th>
               <th class="th-intitule">Intitulé</th>
               <th class="th-objectif">Objectif</th>
-              <th class="th-seuil th-seuil-vert">😊 Vert<br><span style="font-size:.5rem;font-weight:400;color:var(--text-muted)">≤ valeur</span></th>
-              <th class="th-seuil th-seuil-orange">😐 Orange<br><span style="font-size:.5rem;font-weight:400;color:var(--text-muted)">≤ valeur</span></th>
-              <th class="th-seuil th-seuil-rouge">😟 Rouge<br><span style="font-size:.5rem;font-weight:400;color:var(--text-muted)">> valeur</span></th>
+              <th class="th-seuil th-seuil-vert"><svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#2DD4A0" opacity="0.15"/><circle cx="12" cy="12" r="10" fill="none" stroke="#2DD4A0" stroke-width="1.5"/><circle cx="9" cy="9.5" r="1.2" fill="#2DD4A0"/><circle cx="15" cy="9.5" r="1.2" fill="#2DD4A0"/><path d="M8.5 14c.8 2 6.2 2 7 0" fill="none" stroke="#2DD4A0" stroke-width="1.5" stroke-linecap="round"/></svg><br><span style="font-size:.5rem;font-weight:400;color:var(--text-muted)">≤ valeur</span></th>
+              <th class="th-seuil th-seuil-orange"><svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#E8A43A" opacity="0.15"/><circle cx="12" cy="12" r="10" fill="none" stroke="#E8A43A" stroke-width="1.5"/><circle cx="9" cy="9.5" r="1.2" fill="#E8A43A"/><circle cx="15" cy="9.5" r="1.2" fill="#E8A43A"/><line x1="8.5" y1="14.5" x2="15.5" y2="14.5" stroke="#E8A43A" stroke-width="1.5" stroke-linecap="round"/></svg><br><span style="font-size:.5rem;font-weight:400;color:var(--text-muted)">≤ valeur</span></th>
+              <th class="th-seuil th-seuil-rouge"><svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#E05555" opacity="0.15"/><circle cx="12" cy="12" r="10" fill="none" stroke="#E05555" stroke-width="1.5"/><line x1="7.5" y1="8" x2="10.5" y2="9.5" stroke="#E05555" stroke-width="1.5" stroke-linecap="round"/><line x1="16.5" y1="8" x2="13.5" y2="9.5" stroke="#E05555" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="10.5" r="1.2" fill="#E05555"/><circle cx="15" cy="10.5" r="1.2" fill="#E05555"/><path d="M8.5 16.5c.8-2 6.2-2 7 0" fill="none" stroke="#E05555" stroke-width="1.5" stroke-linecap="round"/></svg><br><span style="font-size:.5rem;font-weight:400;color:var(--text-muted)">&gt; valeur</span></th>
               <th class="th-act"></th>
             </tr>
           </thead>
           <tbody id="tbody-${p}">${rowsHtml}</tbody>
         </table>
       </div>
-      <div class="seuil-hint">💡 Les seuils définissent le smiley affiché sur le tableau de bord : 😊 si la valeur réelle ≤ seuil vert · 😐 si ≤ seuil orange · 😟 au-delà.</div>
+      <div class="seuil-hint">💡 Les seuils définissent le smiley affiché sur le tableau de bord : <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#2DD4A0" opacity="0.15"/><circle cx="12" cy="12" r="10" fill="none" stroke="#2DD4A0" stroke-width="1.5"/><circle cx="9" cy="9.5" r="1.2" fill="#2DD4A0"/><circle cx="15" cy="9.5" r="1.2" fill="#2DD4A0"/><path d="M8.5 14c.8 2 6.2 2 7 0" fill="none" stroke="#2DD4A0" stroke-width="1.5" stroke-linecap="round"/></svg> si la valeur réelle ≤ première limite · <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#E8A43A" opacity="0.15"/><circle cx="12" cy="12" r="10" fill="none" stroke="#E8A43A" stroke-width="1.5"/><circle cx="9" cy="9.5" r="1.2" fill="#E8A43A"/><circle cx="15" cy="9.5" r="1.2" fill="#E8A43A"/><line x1="8.5" y1="14.5" x2="15.5" y2="14.5" stroke="#E8A43A" stroke-width="1.5" stroke-linecap="round"/></svg> si ≤ deuxième limite · <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#E05555" opacity="0.15"/><circle cx="12" cy="12" r="10" fill="none" stroke="#E05555" stroke-width="1.5"/><line x1="7.5" y1="8" x2="10.5" y2="9.5" stroke="#E05555" stroke-width="1.5" stroke-linecap="round"/><line x1="16.5" y1="8" x2="13.5" y2="9.5" stroke="#E05555" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="10.5" r="1.2" fill="#E05555"/><circle cx="15" cy="10.5" r="1.2" fill="#E05555"/><path d="M8.5 16.5c.8-2 6.2-2 7 0" fill="none" stroke="#E05555" stroke-width="1.5" stroke-linecap="round"/></svg> au-delà.</div>
       <button class="btn-add-row" onclick="addRow('${p}')">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Ajouter une ligne
