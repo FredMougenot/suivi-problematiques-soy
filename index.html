@@ -563,6 +563,13 @@ body { font-size: 0.9375rem; }
 
 
 .admin-only{display:none;}
+
+/* ── SMILEYS PILIER ──────────────────────────────────── */
+.pilier-cnt{display:flex;align-items:center;gap:5px;}
+.pilier-smiley{font-size:1.1rem;line-height:1;flex-shrink:0;}
+.pilier-smiley.green{filter:drop-shadow(0 0 3px rgba(45,212,160,.5));}
+.pilier-smiley.orange{filter:drop-shadow(0 0 3px rgba(232,164,58,.5));}
+.pilier-smiley.red{filter:drop-shadow(0 0 3px rgba(224,85,85,.5));}
 </style>
 </head>
 <body>
@@ -1025,11 +1032,12 @@ body { font-size: 0.9375rem; }
 <script>
 
 
+
 const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-let currentUser = null, isAdmin = false, allProblems = [];
+let currentUser = null, isAdmin = false, allProblems = [], criteresSeuils = {};
 
 // Mapping pilier → {spanId, defaut} pour noms dynamiques des outils
 const OUTILS_PILIERS = {
@@ -1184,9 +1192,17 @@ async function submitSetupPwd(){
 
 async function loadAll(){
   try{
+    // Charger les problématiques
     const {data,error}=await sb.from('problematiques').select('*').order('created_at',{ascending:false});
     if(error){toast('Erreur: '+error.message,'error');return;}
     allProblems=data||[];
+    // Charger les seuils depuis piliers_criteres_lignes (row_index=0 par pilier)
+    try{
+      const {data:sd}=await sb.from('piliers_criteres_lignes')
+        .select('pilier,seuil_vert,seuil_orange,seuil_rouge').eq('row_index',0);
+      criteresSeuils={};
+      (sd||[]).forEach(r=>{ criteresSeuils[r.pilier]={v:r.seuil_vert,o:r.seuil_orange,r:r.seuil_rouge}; });
+    }catch(e){}
     renderDash(); renderTable(); renderAdminTable();
   }catch(e){toast('Connexion impossible.','error');}
 }
@@ -1255,7 +1271,19 @@ function renderDash(){
   const dc={};piliers.forEach(d=>dc[d]=0);
   actifs.forEach(p=>{if(p.pilier)dc[p.pilier]=(dc[p.pilier]||0)+1;});
   const maxD=Math.max(...Object.values(dc),1);
-  document.getElementById('pilier-stats').innerHTML=piliers.map(d=>`<div class="pilier-row"><div class="pilier-n">${d}<span class="pilier-info" onclick="openCritere('${d}')" title="Voir le critère">?</span></div><div class="pilier-track"><div class="pilier-fill" style="width:${(dc[d]/maxD*100).toFixed(0)}%"></div></div><div class="pilier-cnt">${dc[d]}</div></div>`).join('');
+  document.getElementById('pilier-stats').innerHTML=piliers.map(d=>{
+    const cnt=dc[d];
+    const s=criteresSeuils[d];
+    let smiley='';
+    if(s && (s.v!=null||s.o!=null||s.r!=null)){
+      const sv=s.v!=null?Number(s.v):null;
+      const so=s.o!=null?Number(s.o):null;
+      if(sv!=null && cnt<=sv)        smiley='<span class="pilier-smiley green" title="Objectif atteint">😊</span>';
+      else if(so!=null && cnt<=so)   smiley='<span class="pilier-smiley orange" title="Attention">😐</span>';
+      else                           smiley='<span class="pilier-smiley red" title="Dépassement">😟</span>';
+    }
+    return `<div class="pilier-row"><div class="pilier-n">${d}<span class="pilier-info" onclick="openCritere('${d}')" title="Voir le critère">?</span></div><div class="pilier-track"><div class="pilier-fill" style="width:${(dc[d]/maxD*100).toFixed(0)}%"></div></div><div class="pilier-cnt">${cnt}${smiley}</div></div>`;
+  }).join('');
   const prios=['Critique','Haute','Moyenne','Basse'];
   const pc={};prios.forEach(p=>pc[p]=0);
   actifs.forEach(p=>{if(p.priorite)pc[p.priorite]=(pc[p.priorite]||0)+1;});
@@ -1550,6 +1578,7 @@ function closeCritereBtn(){
   document.getElementById('critere-overlay').classList.remove('open');
   critereActif = null;
 }
+
 
 
 

@@ -106,6 +106,23 @@
 
 /* Ligne vide */
 .ps-empty{padding:20px;text-align:center;font-size:.82rem;color:var(--text-muted);font-style:italic;}
+
+/* ── COLONNES SEUIL ─────────────────────────────────── */
+.ps-table{min-width:720px;}
+.ps-table thead th.th-seuil{width:80px;text-align:center;line-height:1.3;}
+.ps-table tbody td.td-seuil{text-align:center;padding:7px 8px;}
+.ci-seuil{
+  width:68px;background:var(--bg-float);border:1px solid var(--text-faint);
+  color:var(--text-primary);border-radius:var(--r-sm);
+  padding:5px 6px;font-size:.8rem;font-family:'Outfit',sans-serif;
+  outline:none;text-align:center;transition:border-color .15s;
+}
+.ci-seuil:focus{border-color:var(--copper);}
+.ci-seuil::placeholder{color:var(--text-faint);}
+.th-seuil-vert{color:var(--emerald) !important;}
+.th-seuil-orange{color:var(--amber) !important;}
+.th-seuil-rouge{color:var(--ruby) !important;}
+.seuil-hint{font-size:.62rem;color:var(--text-muted);margin:10px 16px 14px;padding:8px 12px;background:var(--bg-float);border-radius:var(--r-sm);border-left:2px solid var(--copper);line-height:1.6;}
 </style>
 </head>
 <body>
@@ -191,7 +208,7 @@ function renderAll(){
 function renderSection(p){
   const list = rows[p]||[];
   const rowsHtml = list.length === 0
-    ? `<tr><td colspan="4" class="ps-empty">Aucune ligne. Cliquez sur « + Ajouter une ligne ».</td></tr>`
+    ? `<tr><td colspan="7" class="ps-empty">Aucune ligne. Cliquez sur « + Ajouter une ligne ».</td></tr>`
     : list.map((r,i) => `
         <tr id="cr-row-${p}-${r._local_id||r.id||i}">
           <td><span class="row-num">${i+1}</span></td>
@@ -201,6 +218,15 @@ function renderSection(p){
           <td><input class="ci-inp" value="${esc(r.objectif||'')}"
             placeholder="Ex: 0 accident par mois…"
             oninput="fchg('${p}',${i},'objectif',this.value);markDirty('${p}')"></td>
+          <td class="td-seuil"><input class="ci-seuil" type="number" min="0" value="${r.seuil_vert!=null?esc(r.seuil_vert):''}"
+            placeholder="—"
+            oninput="fchg('${p}',${i},'seuil_vert',this.value===''?null:Number(this.value));markDirty('${p}')"></td>
+          <td class="td-seuil"><input class="ci-seuil" type="number" min="0" value="${r.seuil_orange!=null?esc(r.seuil_orange):''}"
+            placeholder="—"
+            oninput="fchg('${p}',${i},'seuil_orange',this.value===''?null:Number(this.value));markDirty('${p}')"></td>
+          <td class="td-seuil"><input class="ci-seuil" type="number" min="0" value="${r.seuil_rouge!=null?esc(r.seuil_rouge):''}"
+            placeholder="—"
+            oninput="fchg('${p}',${i},'seuil_rouge',this.value===''?null:Number(this.value));markDirty('${p}')"></td>
           <td style="text-align:center">
             <button class="btn-rm-row" onclick="removeRow('${p}',${i})" title="Supprimer">✕</button>
           </td>
@@ -224,12 +250,16 @@ function renderSection(p){
               <th>#</th>
               <th class="th-intitule">Intitulé</th>
               <th class="th-objectif">Objectif</th>
+              <th class="th-seuil th-seuil-vert">😊 Vert<br><span style="font-size:.5rem;font-weight:400;color:var(--text-muted)">≤ valeur</span></th>
+              <th class="th-seuil th-seuil-orange">😐 Orange<br><span style="font-size:.5rem;font-weight:400;color:var(--text-muted)">≤ valeur</span></th>
+              <th class="th-seuil th-seuil-rouge">😟 Rouge<br><span style="font-size:.5rem;font-weight:400;color:var(--text-muted)">> valeur</span></th>
               <th class="th-act"></th>
             </tr>
           </thead>
           <tbody id="tbody-${p}">${rowsHtml}</tbody>
         </table>
       </div>
+      <div class="seuil-hint">💡 Les seuils définissent le smiley affiché sur le tableau de bord : 😊 si la valeur réelle ≤ seuil vert · 😐 si ≤ seuil orange · 😟 au-delà.</div>
       <button class="btn-add-row" onclick="addRow('${p}')">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Ajouter une ligne
@@ -312,8 +342,11 @@ async function saveSection(pilier){
     const payload = {
       pilier,
       row_index: i,
-      intitule:  r.intitule||'',
-      objectif:  r.objectif||'',
+      intitule:     r.intitule||'',
+      objectif:     r.objectif||'',
+      seuil_vert:   r.seuil_vert   != null ? Number(r.seuil_vert)   : null,
+      seuil_orange: r.seuil_orange != null ? Number(r.seuil_orange) : null,
+      seuil_rouge:  r.seuil_rouge  != null ? Number(r.seuil_rouge)  : null,
       updated_at: new Date().toISOString(),
     };
     if(r.id && !String(r._local_id||'').startsWith('new_')){
