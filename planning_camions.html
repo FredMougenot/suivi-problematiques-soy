@@ -253,24 +253,26 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 
 /* ── TABLEAUX BILAN ───────────────────────────────────── */
 .bilan-section{padding:0 28px 32px;}
-.bilan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:18px;}
+.bilan-stack{display:flex;flex-direction:column;gap:12px;margin-top:18px;}
 .bilan-card{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow:hidden;}
 .bilan-card::before{content:'';display:block;height:2px;background:linear-gradient(90deg,var(--copper),var(--copper-light));}
-.bilan-card-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px;}
+.bilan-card-head{display:flex;align-items:center;justify-content:space-between;padding:10px 18px 8px;}
 .bilan-eyebrow{font-size:.6rem;font-weight:800;color:var(--copper);letter-spacing:.13em;text-transform:uppercase;}
 .bilan-period{font-size:.75rem;font-weight:600;color:var(--text-secondary);}
-.bilan-tbl{width:100%;border-collapse:collapse;}
-.bilan-tbl th{padding:7px 14px;font-size:.58rem;font-weight:800;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;text-align:left;background:var(--bg-float);border-bottom:1px solid var(--text-faint);}
-.bilan-tbl td{padding:9px 14px;font-size:.85rem;font-weight:600;color:var(--text-primary);border-bottom:1px solid rgba(255,255,255,.04);}
-.bilan-tbl tr:last-child td{border-bottom:none;}
+.bilan-tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.bilan-tbl{width:100%;border-collapse:collapse;min-width:600px;}
+.bilan-tbl th{padding:7px 18px;font-size:.58rem;font-weight:800;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;text-align:left;background:var(--bg-float);border-top:1px solid var(--text-faint);}
+.bilan-tbl td{padding:11px 18px;font-size:.92rem;font-weight:600;color:var(--text-primary);}
+.bilan-tbl th:not(:last-child),.bilan-tbl td:not(:last-child){border-right:1px solid var(--text-faint);}
 .bilan-taux{font-size:1.15rem;font-weight:800;}
 .taux-ok{color:var(--emerald);}
 .taux-warn{color:var(--amber);}
 .taux-bad{color:var(--ruby);}
-.obj-chip{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700;background:var(--copper-dim);color:var(--copper-light);border:1px solid rgba(200,132,58,.25);}
-.tol-chip{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700;background:rgba(74,158,232,.1);color:var(--sapphire);border:1px solid rgba(74,158,232,.2);}
-@media(max-width:900px){.bilan-grid{grid-template-columns:1fr;}}
+.obj-chip{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.78rem;font-weight:700;background:var(--copper-dim);color:var(--copper-light);border:1px solid rgba(200,132,58,.25);}
+.tol-chip{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.78rem;font-weight:700;background:rgba(74,158,232,.1);color:var(--sapphire);border:1px solid rgba(74,158,232,.2);}
+@media(max-width:900px){.bilan-section{padding:0 10px 28px;}}
 </style>
+
 
 
 </head>
@@ -324,6 +326,21 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
         <th>Type camion</th>
         <th>N° commande</th>
         
+        <th>Description</th>
+        <th>Destination</th>
+        <th>Statut arrivée</th>
+        <th>Destination départ</th>
+        <th>N° départ</th>
+        <th>Chargement</th>
+        <th>Heure réelle</th>
+        <th>GH court</th>
+        <th>Actions</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</main>
+
 <script>
 
 
@@ -898,11 +915,12 @@ function drawChart(key, data, seuil){
 
 
 
+
 </script>
--  SECTION BILAN                                              -->
+<!-- ═══════════════════════════════════════════════════════════TION BILAN                                              -->
 <!-- ════════════════════════════════════════════════════════════ -->
 <section class="bilan-section">
-  <div class="bilan-grid">
+  <div class="bilan-stack">
 
     <!-- Bilan journée -->
     <div class="bilan-card">
@@ -910,19 +928,26 @@ function drawChart(key, data, seuil){
         <div class="bilan-eyebrow">Bilan journée</div>
         <div class="bilan-period" id="bl-day-period">—</div>
       </div>
-      <table class="bilan-tbl">
-        <thead><tr>
-          <th>Indicateur</th><th>Valeur</th>
-        </tr></thead>
-        <tbody>
-          <tr><td>Total camions</td><td id="bl-day-total">—</td></tr>
-          <tr><td>À l'heure</td><td id="bl-day-ontime">—</td></tr>
-          <tr><td>En retard</td><td id="bl-day-late">—</td></tr>
-          <tr><td>Taux de réussite</td><td id="bl-day-taux">—</td></tr>
-          <tr><td>Objectif</td><td id="bl-day-obj">—</td></tr>
-          <tr><td>Tolérance</td><td id="bl-day-tol">—</td></tr>
-        </tbody>
-      </table>
+      <div class="bilan-tbl-wrap">
+        <table class="bilan-tbl">
+          <thead><tr>
+            <th>Total camions</th>
+            <th>À l'heure</th>
+            <th>En retard</th>
+            <th>Taux de réussite</th>
+            <th>Objectif</th>
+            <th>Tolérance</th>
+          </tr></thead>
+          <tbody><tr>
+            <td id="bl-day-total">—</td>
+            <td id="bl-day-ontime">—</td>
+            <td id="bl-day-late">—</td>
+            <td id="bl-day-taux">—</td>
+            <td id="bl-day-obj">—</td>
+            <td id="bl-day-tol">—</td>
+          </tr></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Bilan semaine -->
@@ -931,19 +956,26 @@ function drawChart(key, data, seuil){
         <div class="bilan-eyebrow">Bilan semaine</div>
         <div class="bilan-period" id="bl-week-period">—</div>
       </div>
-      <table class="bilan-tbl">
-        <thead><tr>
-          <th>Indicateur</th><th>Valeur</th>
-        </tr></thead>
-        <tbody>
-          <tr><td>Total camions</td><td id="bl-week-total">—</td></tr>
-          <tr><td>À l'heure</td><td id="bl-week-ontime">—</td></tr>
-          <tr><td>En retard</td><td id="bl-week-late">—</td></tr>
-          <tr><td>Taux de réussite</td><td id="bl-week-taux">—</td></tr>
-          <tr><td>Objectif</td><td id="bl-week-obj">—</td></tr>
-          <tr><td>Tolérance</td><td id="bl-week-tol">—</td></tr>
-        </tbody>
-      </table>
+      <div class="bilan-tbl-wrap">
+        <table class="bilan-tbl">
+          <thead><tr>
+            <th>Total camions</th>
+            <th>À l'heure</th>
+            <th>En retard</th>
+            <th>Taux de réussite</th>
+            <th>Objectif</th>
+            <th>Tolérance</th>
+          </tr></thead>
+          <tbody><tr>
+            <td id="bl-week-total">—</td>
+            <td id="bl-week-ontime">—</td>
+            <td id="bl-week-late">—</td>
+            <td id="bl-week-taux">—</td>
+            <td id="bl-week-obj">—</td>
+            <td id="bl-week-tol">—</td>
+          </tr></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Bilan mois -->
@@ -952,19 +984,26 @@ function drawChart(key, data, seuil){
         <div class="bilan-eyebrow">Bilan mois</div>
         <div class="bilan-period" id="bl-month-period">—</div>
       </div>
-      <table class="bilan-tbl">
-        <thead><tr>
-          <th>Indicateur</th><th>Valeur</th>
-        </tr></thead>
-        <tbody>
-          <tr><td>Total camions</td><td id="bl-month-total">—</td></tr>
-          <tr><td>À l'heure</td><td id="bl-month-ontime">—</td></tr>
-          <tr><td>En retard</td><td id="bl-month-late">—</td></tr>
-          <tr><td>Taux de réussite</td><td id="bl-month-taux">—</td></tr>
-          <tr><td>Objectif</td><td id="bl-month-obj">—</td></tr>
-          <tr><td>Tolérance</td><td id="bl-month-tol">—</td></tr>
-        </tbody>
-      </table>
+      <div class="bilan-tbl-wrap">
+        <table class="bilan-tbl">
+          <thead><tr>
+            <th>Total camions</th>
+            <th>À l'heure</th>
+            <th>En retard</th>
+            <th>Taux de réussite</th>
+            <th>Objectif</th>
+            <th>Tolérance</th>
+          </tr></thead>
+          <tbody><tr>
+            <td id="bl-month-total">—</td>
+            <td id="bl-month-ontime">—</td>
+            <td id="bl-month-late">—</td>
+            <td id="bl-month-taux">—</td>
+            <td id="bl-month-obj">—</td>
+            <td id="bl-month-tol">—</td>
+          </tr></tbody>
+        </table>
+      </div>
     </div>
 
   </div>
