@@ -565,11 +565,12 @@ body { font-size: 0.9375rem; }
 .admin-only{display:none;}
 
 /* ── SMILEYS PILIER ──────────────────────────────────── */
-.pilier-cnt{display:flex;align-items:center;gap:5px;}
-.pilier-smiley{font-size:1.1rem;line-height:1;flex-shrink:0;}
-.pilier-smiley.green{filter:drop-shadow(0 0 3px rgba(45,212,160,.5));}
-.pilier-smiley.orange{filter:drop-shadow(0 0 3px rgba(232,164,58,.5));}
-.pilier-smiley.red{filter:drop-shadow(0 0 3px rgba(224,85,85,.5));}
+.pilier-cnt{display:flex;align-items:center;gap:6px;}
+.face-svg{flex-shrink:0;vertical-align:middle;transition:transform .2s;}
+.pilier-row:hover .face-svg{transform:scale(1.15);}
+.face-green{filter:drop-shadow(0 0 4px rgba(45,212,160,.45));}
+.face-orange{filter:drop-shadow(0 0 4px rgba(232,164,58,.45));}
+.face-red{filter:drop-shadow(0 0 4px rgba(224,85,85,.45));}
 </style>
 </head>
 <body>
@@ -1033,6 +1034,7 @@ body { font-size: 0.9375rem; }
 
 
 
+
 const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const { createClient } = supabase;
@@ -1278,9 +1280,9 @@ function renderDash(){
     if(s && (s.v!=null||s.o!=null||s.r!=null)){
       const sv=s.v!=null?Number(s.v):null;
       const so=s.o!=null?Number(s.o):null;
-      if(sv!=null && cnt<=sv)        smiley='<span class="pilier-smiley green" title="Objectif atteint">😊</span>';
-      else if(so!=null && cnt<=so)   smiley='<span class="pilier-smiley orange" title="Attention">😐</span>';
-      else                           smiley='<span class="pilier-smiley red" title="Dépassement">😟</span>';
+      if(sv!=null && cnt<=sv)        smiley='<svg class="face-svg face-green" viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10" fill="#2DD4A0" opacity="0.15"/> <circle cx="12" cy="12" r="10" fill="none" stroke="#2DD4A0" stroke-width="1.5"/> <circle cx="9" cy="9.5" r="1.2" fill="#2DD4A0"/> <circle cx="15" cy="9.5" r="1.2" fill="#2DD4A0"/> <path d="M8.5 14c.8 2 6.2 2 7 0" fill="none" stroke="#2DD4A0" stroke-width="1.5" stroke-linecap="round"/></svg>';
+      else if(so!=null && cnt<=so)   smiley='<svg class="face-svg face-orange" viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10" fill="#E8A43A" opacity="0.15"/> <circle cx="12" cy="12" r="10" fill="none" stroke="#E8A43A" stroke-width="1.5"/> <circle cx="9" cy="9.5" r="1.2" fill="#E8A43A"/> <circle cx="15" cy="9.5" r="1.2" fill="#E8A43A"/> <line x1="8.5" y1="14.5" x2="15.5" y2="14.5" stroke="#E8A43A" stroke-width="1.5" stroke-linecap="round"/></svg>';
+      else                           smiley='<svg class="face-svg face-red" viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10" fill="#E05555" opacity="0.15"/> <circle cx="12" cy="12" r="10" fill="none" stroke="#E05555" stroke-width="1.5"/> <line x1="7.5" y1="8" x2="10.5" y2="9.5" stroke="#E05555" stroke-width="1.5" stroke-linecap="round"/> <line x1="16.5" y1="8" x2="13.5" y2="9.5" stroke="#E05555" stroke-width="1.5" stroke-linecap="round"/> <circle cx="9" cy="10.5" r="1.2" fill="#E05555"/> <circle cx="15" cy="10.5" r="1.2" fill="#E05555"/> <path d="M8.5 16.5c.8-2 6.2-2 7 0" fill="none" stroke="#E05555" stroke-width="1.5" stroke-linecap="round"/></svg>';
     }
     return `<div class="pilier-row"><div class="pilier-n">${d}<span class="pilier-info" onclick="openCritere('${d}')" title="Voir le critère">?</span></div><div class="pilier-track"><div class="pilier-fill" style="width:${(dc[d]/maxD*100).toFixed(0)}%"></div></div><div class="pilier-cnt">${cnt}${smiley}</div></div>`;
   }).join('');
@@ -1578,6 +1580,7 @@ function closeCritereBtn(){
   document.getElementById('critere-overlay').classList.remove('open');
   critereActif = null;
 }
+
 
 
 
