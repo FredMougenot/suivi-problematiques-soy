@@ -552,6 +552,16 @@ body { font-size: 0.9375rem; }
 }
 .cm-edit-link:hover { color: var(--copper-light); }
 
+
+/* ── Dashboard date nav ─────────────────────────────────── */
+.dash-date-nav{display:flex;align-items:center;gap:10px;padding:18px 0 4px;}
+.dash-date-arr{width:30px;height:30px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:all .15s;flex-shrink:0;}
+.dash-date-arr:hover{border-color:var(--copper);color:var(--copper-light);}
+.dash-date-lbl{font-size:.88rem;font-weight:700;color:var(--text-primary);padding:6px 16px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);min-width:220px;text-align:center;cursor:default;}
+.dash-today-chip{font-size:.62rem;font-weight:700;color:var(--copper-light);background:var(--copper-dim);border:1px solid rgba(200,132,58,.25);padding:1px 7px;border-radius:20px;margin-left:6px;vertical-align:middle;}
+.dash-today-btn{padding:5px 12px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);font-size:.76rem;font-weight:600;cursor:pointer;transition:all .15s;}
+.dash-today-btn:hover{border-color:var(--copper);color:var(--copper-light);}
+
 </style>
 </head>
 <body>
@@ -716,6 +726,12 @@ body { font-size: 0.9375rem; }
 
       <!-- DASHBOARD -->
       <div class="page active" id="page-dashboard">
+        <div class="dash-date-nav">
+          <button class="dash-date-arr" onclick="dashChangeDay(-1)">&#8592;</button>
+          <div class="dash-date-lbl" id="dash-date-lbl">—</div>
+          <button class="dash-date-arr" onclick="dashChangeDay(1)">&#8594;</button>
+          <button class="dash-today-btn" onclick="dashGoToday()">Aujourd'hui</button>
+        </div>
         <div class="kpi-row">
           <div class="kpi copper" onclick="goToRegistre('')" style="cursor:pointer">
             <div class="kpi-top"><div class="kpi-lbl">Total</div><div class="kpi-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 17 7 11 12 14 17 7 22 9"/><circle cx="22" cy="9" r="1.5" fill="currentColor" stroke="none"/><line x1="2" y1="21" x2="22" y2="21" stroke-width="1.2" opacity=".4"/></svg></div></div>
@@ -982,32 +998,13 @@ body { font-size: 0.9375rem; }
         <div class="modal-ft"><button class="btn-sub" onclick="submitNouvelleProb()">&#8853; Soumettre</button></div>
     </div>
   </div>
-</div>
-
-<!-- MODAL EDIT -->
-<div class="overlay" id="modal-edit">
-  <div class="modal">
-    <div class="modal-hd">
-      <div><div class="modal-t">Modifier</div><div class="modal-s" id="edit-subtitle"></div></div>
-      <button class="modal-x" onclick="closeModal('modal-edit')">✕</button>
-    </div>
-    <div class="modal-bd">
-      <input type="hidden" id="edit-id">
-      <div class="fg-grid">
-        <div class="fg"><label class="fg-lbl">Statut</label><select id="edit-statut" class="fg-sel"><option>À traiter</option><option>En cours</option><option>Résolu</option><option>Annulé</option></select></div>
-        <div class="fg"><label class="fg-lbl">Priorité</label><select id="edit-priorite" class="fg-sel"><option>Critique</option><option>Haute</option><option>Moyenne</option><option>Basse</option></select></div>
-        <div class="fg"><label class="fg-lbl">Responsable</label><input id="edit-responsable" class="fg-inp" placeholder="Nom…"></div>
-        <div class="fg"><label class="fg-lbl">Seuil visé</label><input id="edit-seuil" class="fg-inp" type="number" placeholder="0"></div>
-        <div class="fg"><label class="fg-lbl">Valeur réelle</label><input id="edit-reel" class="fg-inp" type="number" placeholder="0"></div>
-        <div class="fg"><label class="fg-lbl">Résultat</label><input id="edit-resultat" class="fg-inp" placeholder="…"></div>
-        <div class="fg"><label class="fg-lbl">Pilier</label><select id="m-pilier" class="fg-sel"></select></div>
-        <div class="fg"><label class="fg-lbl">Date prévue</label><input id="edit-date-prevue" class="fg-inp" type="date"></div>
-        <script>
+<<script>
 const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null, isAdmin = false, allProblems = [];
+let dashDate = new Date().toISOString().slice(0,10);
 const piliers = ['SST','Qualite','Couts','Delais','Motivation','Environnement'];
 
 async function init() {
@@ -1051,6 +1048,8 @@ function showApp(){
   document.getElementById('setup-page').style.display='none';
   document.getElementById('app').style.display='block';
   updateUserUI(); populatePiliers();
+  dashDate = new Date().toISOString().slice(0,10);
+  dashUpdateDateUI();
   if (isAdmin) enableAdmin(); else enableUser();
 }
 async function checkRole(){
@@ -1154,8 +1153,40 @@ async function loadAll(){
     renderDash(); renderTable(); renderAdminTable();
   }catch(e){toast('Connexion impossible.','error');}
 }
+// ── Navigation date dashboard ────────────────────────────
+function dashUpdateDateUI(){
+  const d = new Date(dashDate+'T00:00:00');
+  const lbl = d.toLocaleDateString('fr-CA',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  const today = new Date().toISOString().slice(0,10);
+  const el = document.getElementById('dash-date-lbl');
+  if(el) el.innerHTML = lbl + (dashDate===today ? '<span class="dash-today-chip">Aujourd\'hui</span>' : '');
+}
+function dashChangeDay(delta){
+  const d = new Date(dashDate+'T00:00:00');
+  d.setDate(d.getDate()+delta);
+  dashDate = d.toISOString().slice(0,10);
+  dashUpdateDateUI(); renderDash();
+}
+function dashGoToday(){
+  dashDate = new Date().toISOString().slice(0,10);
+  dashUpdateDateUI(); renderDash();
+}
+
 function renderDash(){
-  const actives=allProblems.filter(p=>p.statut!=='Clôturé');
+  dashUpdateDateUI();
+  // Filtre : problématiques actives à dashDate
+  // = créées le jour même ou avant, ET (pas clôturées OU clôturées/résolues après dashDate)
+  const d = dashDate;
+  const actives = allProblems.filter(p=>{
+    const created = (p.created_at||'').slice(0,10);
+    if(created > d) return false; // pas encore créée ce jour-là
+    // Si clôturée/annulée, ne compter que si résolution APRÈS la date
+    if(p.statut==='Clôturé'||p.statut==='Annulé'){
+      const resolved = (p.date_resolue||p.updated_at||'').slice(0,10);
+      return resolved > d;
+    }
+    return true;
+  });
   const total=actives.length;
   const ouvert=actives.filter(p=>p.statut==='À traiter').length;
   const cours=actives.filter(p=>p.statut==='En cours').length;
@@ -1166,7 +1197,6 @@ function renderDash(){
   document.getElementById('kpi-resolu').textContent=resolu;
   const badge=document.getElementById('badge-ouvert');
   if(badge){ouvert>0?(badge.style.display='',badge.textContent=ouvert):badge.style.display='none';}
-  // Seulement les problématiques actives (À traiter + En cours)
   const actifs=actives.filter(p=>p.statut==='À traiter'||p.statut==='En cours');
   const dc={};piliers.forEach(d=>dc[d]=0);
   actifs.forEach(p=>{if(p.pilier)dc[p.pilier]=(dc[p.pilier]||0)+1;});
@@ -1178,8 +1208,9 @@ function renderDash(){
   const maxP=Math.max(...Object.values(pc),1);
   const pcols={Critique:'var(--ruby)',Haute:'var(--amber)',Moyenne:'var(--sapphire)',Basse:'var(--emerald)'};
   document.getElementById('prio-stats').innerHTML=prios.map(p=>`<div class="pilier-row"><div class="pilier-n"><span class="badge bp${p[0]}">${p}</span></div><div class="pilier-track"><div class="pilier-fill" style="width:${(pc[p]/maxP*100).toFixed(0)}%;background:${pcols[p]}"></div></div><div class="pilier-cnt">${pc[p]}</div></div>`).join('');
-  const recent=allProblems.slice(0,5);
-  document.getElementById('recent-tbody').innerHTML=recent.length===0?'<tr><td colspan="6"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique.</div></div></td></tr>':recent.map(p=>`<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td class="c-title">${esc(p.intitule)}</td><td><span class="badge bd">${esc(p.pilier||'')}</span></td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td></tr>`).join('');
+  // Nouveautés = problématiques créées À la date sélectionnée
+  const recent=allProblems.filter(p=>(p.created_at||'').slice(0,10)===d).slice(0,5);
+  document.getElementById('recent-tbody').innerHTML=recent.length===0?`<tr><td colspan="6"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problématique créée ce jour.</div></div></td></tr>`:recent.map(p=>`<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td class="c-title">${esc(p.intitule)}</td><td><span class="badge bd">${esc(p.pilier||'')}</span></td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td></tr>`).join('');
 }
 function renderTable(data){
   const probs=data||allProblems;
@@ -1398,6 +1429,64 @@ function bStat(s){
   return `<span class="badge ${cls[s]||'ban'}">${labels[s]||esc(s||'')}</span>`;
 }
 function bPrio(p){const m={Critique:'bpC',Haute:'bpH',Moyenne:'bpM',Basse:'bpB'};return `<span class="badge ${m[p]||'bpB'}">${esc(p||'')}</span>`;}
+
+window.addEventListener('load',()=>setTimeout(init,800));
+
+
+
+
+
+
+
+
+
+// ── CRITÈRES PILIERS (lecture seule dans le dashboard) ──────────
+let critereCache = {};
+let critereActif = null;
+
+async function openCritere(pilier){
+  critereActif = pilier;
+  document.getElementById('cm-title').textContent = pilier;
+  const body = document.getElementById('cm-body');
+  body.textContent = 'Chargement…';
+  body.className = 'cm-body loading';
+  document.getElementById('critere-overlay').classList.add('open');
+
+  if(critereCache[pilier] !== undefined){
+    afficherCritere(critereCache[pilier]); return;
+  }
+  try {
+    const {data, error} = await sb.from('piliers_criteres')
+      .select('critere').eq('pilier', pilier).single();
+    const texte = (!error && data) ? (data.critere||'') : '';
+    critereCache[pilier] = texte;
+    afficherCritere(texte);
+  } catch(e){ afficherCritere(''); }
+}
+
+function afficherCritere(texte){
+  const body = document.getElementById('cm-body');
+  body.className = 'cm-body';
+  if(texte){
+    body.innerHTML = texte.split('\n').join('<br>');
+  } else {
+    body.innerHTML = '<span style="color:var(--text-muted);font-style:italic">Aucun critère défini. Rendez-vous dans <strong>Outils → Critères des piliers</strong> pour en ajouter un.</span>';
+  }
+}
+
+function closeCritere(e){
+  if(e.target===document.getElementById('critere-overlay')) closeCritereBtn();
+}
+function closeCritereBtn(){
+  document.getElementById('critere-overlay').classList.remove('open');
+  critereActif = null;
+}
+
+
+
+
+
+</script>yenne:'bpM',Basse:'bpB'};return `<span class="badge ${m[p]||'bpB'}">${esc(p||'')}</span>`;}
 
 window.addEventListener('load',()=>setTimeout(init,800));
 
