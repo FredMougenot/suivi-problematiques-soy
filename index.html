@@ -821,7 +821,7 @@ body { font-size: 0.9375rem; }
         <div class="form-card">
           <div class="fg-grid">
             <div class="fg full"><label class="fg-lbl req">Intitulé</label><input type="text" id="n-intitule" class="fg-inp" placeholder="Titre court et descriptif"></div>
-            <div class="fg"><label class="fg-lbl req">Pilier</label><select id="n-pilier" class="fg-sel"></select></div>
+            <div class="fg"><label class="fg-lbl req">Pilier</label><select id="n-pilier" class="fg-sel" onchange="onPilierChange(this.value)"></select></div>
             <div class="fg"><label class="fg-lbl req">Priorité</label>
               <select id="n-priorite" class="fg-sel">
                 <option value="">— Sélectionner —</option>
@@ -832,6 +832,8 @@ body { font-size: 0.9375rem; }
               </select>
             </div>
             <div class="fg full"><label class="fg-lbl">Responsable souhaité</label><input type="text" id="n-responsable" class="fg-inp" placeholder="Nom du responsable suggéré"></div>
+            <div class="fg" id="fg-n-date-prevue" style="display:none"><label class="fg-lbl">Date prévue</label><input type="date" id="n-date-prevue" class="fg-inp"></div>
+            <div class="fg" id="fg-n-date-resolue" style="display:none"><label class="fg-lbl">Date résolue</label><input type="date" id="n-date-resolue" class="fg-inp"></div>
             <div class="fg full"><label class="fg-lbl req">Description détaillée</label><textarea id="n-description" class="fg-ta" placeholder="Décrivez la problématique, le contexte, les actions déjà tentées…"></textarea></div>
           </div>
           <div class="form-acts">
@@ -984,6 +986,7 @@ body { font-size: 0.9375rem; }
           <select id="edit-pilier" class="fg-sel">
             <option>SST</option><option>Qualite</option><option>Couts</option>
             <option>Delais</option><option>Motivation</option><option>Environnement</option>
+            <option>Informations</option>
           </select>
         </div>
         <div class="fg"><label class="fg-lbl">Priorité</label>
@@ -1045,6 +1048,7 @@ body { font-size: 0.9375rem; }
 
 
 
+
 const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const { createClient } = supabase;
@@ -1061,7 +1065,7 @@ const OUTILS_PILIERS = {
   Environnement:{spanId:'nav-outil-Environnement',defaut:'Non-conformité'},
 };
 let dashDate = new Date().toISOString().slice(0,10);
-const piliers = ['SST','Qualite','Couts','Delais','Motivation','Environnement'];
+const piliers = ['SST','Qualite','Couts','Delais','Motivation','Environnement','Informations'];
 
 async function init() {
   try {
@@ -1329,6 +1333,31 @@ function renderAdminTable(){
     return `<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td class="c-title">${esc(p.intitule)}</td><td><span class="badge bd">${esc(p.pilier||'')}</span></td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${esc(p.soumis_par||'')}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td><td>${datePrevue}</td><td>${dateResolue}</td><td><button class="ab ab-e" data-id="${p.id}" data-action="edit">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" data-id="${p.id}" data-action="cloturer">Cloturer</button>`:''}</td></tr>`;
   }).join('');
 }
+async function onPilierChange(val){
+  const isInfo = val==='Informations';
+  // Afficher/cacher les champs date
+  ['fg-n-date-prevue','fg-n-date-resolue'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display=isInfo?'':'none';
+  });
+  if(isInfo){
+    // Priorité forcée à Basse
+    const np=document.getElementById('n-priorite');
+    if(np) np.value='Basse';
+    // Date prévue et résolue = aujourd'hui
+    const today=new Date().toISOString().slice(0,10);
+    const dp=document.getElementById('n-date-prevue');
+    const dr=document.getElementById('n-date-resolue');
+    if(dp) dp.value=today;
+    if(dr) dr.value=today;
+  } else {
+    // Réinitialiser les dates si on change de pilier
+    const dp=document.getElementById('n-date-prevue');
+    const dr=document.getElementById('n-date-resolue');
+    if(dp) dp.value='';
+    if(dr) dr.value='';
+  }
+}
 async function submitNouvelleProb(){
   const intitule=document.getElementById('n-intitule').value.trim();
   const pilier=document.getElementById('n-pilier').value;
@@ -1336,13 +1365,29 @@ async function submitNouvelleProb(){
   const resp=document.getElementById('n-responsable').value.trim();
   const desc=document.getElementById('n-description').value.trim();
   if(!intitule||!pilier||!prio||!desc){toast('Champs obligatoires manquants.','error');return;}
+  const today=new Date().toISOString().slice(0,10);
+  const datePrevue  = pilier==='Informations' ? today : (document.getElementById('n-date-prevue')?.value||null);
+  const dateResolue = pilier==='Informations' ? today : (document.getElementById('n-date-resolue')?.value||null);
   const nbtn=document.querySelector('#page-nouvelle .btn-sub');
   if(nbtn){nbtn.disabled=true;nbtn.textContent='Envoi...';}
-  const {error}=await sb.from('problematiques').insert([{intitule,pilier:pilier,priorite:prio,responsable:resp||null,description:desc,statut:'À traiter',soumis_par:currentUser.email}]);
+  const {error}=await sb.from('problematiques').insert([{
+    intitule, pilier, priorite:prio,
+    responsable:resp||null, description:desc,
+    statut:'À traiter',
+    date_prevue:datePrevue,
+    date_resolue:dateResolue,
+    soumis_par:currentUser.email
+  }]);
   if(nbtn){nbtn.disabled=false;nbtn.textContent='Soumettre';}
   if(error){toast('Erreur: '+error.message,'error');return;}
-  toast('Problematique soumise.','success');
-  ['n-intitule','n-pilier','n-priorite','n-responsable','n-description'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  toast('Problématique soumise.','success');
+  ['n-intitule','n-pilier','n-priorite','n-responsable','n-description','n-date-prevue','n-date-resolue'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  // Remettre les champs date en hidden
+  ['fg-n-date-prevue','fg-n-date-resolue'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display='none';
+  });
   await loadAll(); showPage('problematiques');
 }
 function openModalNouvel(){
@@ -1590,6 +1635,7 @@ function closeCritereBtn(){
   document.getElementById('critere-overlay').classList.remove('open');
   critereActif = null;
 }
+
 
 
 
