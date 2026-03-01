@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paramètres</title>
+    <link rel="stylesheet" href="./soy-shared.css">
+    <style>
+        .parametres-container {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .parametres-header {
+            margin-bottom: 2rem;
+        }
+
+        .parametres-header h1 {
+            font-size: 2rem;
+            margin: 0;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .parametres-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+        }
+
+        .parametres-table thead {
+            background-color: #f5f5f5;
+        }
+
+        .parametres-table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e0e0e0;
+            color: #333;
+        }
+
+        .parametres-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+            color: #555;
+        }
+
+        .parametres-table tbody tr:hover {
+            background-color: #f9f9f9;
+            transition: background-color 0.2s ease;
+        }
+
+        .parametres-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .item-column {
+            font-weight: 500;
+            width: 60%;
+        }
+
+        .recurrence-column {
+            width: 40%;
+        }
+
+        .recurrence-select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            background-color: #fff;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+        }
+
+        .recurrence-select:hover {
+            border-color: #999;
+        }
+
+        .recurrence-select:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 3px rgba(76, 175, 80, 0.3);
+        }
+
+        .action-buttons {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-save {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background-color: #45a049;
+        }
+
+        .btn-reset {
+            background-color: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-reset:hover {
+            background-color: #e0e0e0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .message {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .message.active {
+            display: block;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="parametres-container">
+        <div class="parametres-header">
+            <h1>Paramètres</h1>
+            <p>Gérez la récurrence de vos items</p>
+        </div>
+
+        <div class="loading" id="loading">
+            <p>Chargement des paramètres...</p>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="parametres-table" id="parametresTable">
+                <thead>
+                    <tr>
+                        <th class="item-column">Item</th>
+                        <th class="recurrence-column">Récurrence (jours)</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-save" id="saveBtn">Enregistrer les modifications</button>
+            <button class="btn btn-reset" id="resetBtn">Réinitialiser</button>
+        </div>
+
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_KEY = 'YOUR_SUPABASE_KEY';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const recurrenceOptions = [30, 60, 90];
+        const itemCount = 200;
+
+        // Charger les données au démarrage
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadParametres();
+            attachEventListeners();
+        });
+
+        async function loadParametres() {
+            const loading = document.getElementById('loading');
+            loading.classList.add('active');
+
+            try {
+                const { data, error } = await supabase
+                    .from('parametres')
+                    .select('*')
+                    .order('item_number', { ascending: true });
+
+                if (error) throw error;
+
+                renderTable(data || []);
+            } catch (error) {
+                console.error('Erreur lors du chargement:', error);
+                showMessage('Erreur lors du chargement des données', 'error');
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            const dataMap = new Map(data.map(item => [item.item_number, item]));
+
+            for (let i = 1; i <= itemCount; i++) {
+                const existing = dataMap.get(i);
+                const recurrence = existing ? existing.recurrence : 30;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="item-column">Item ${i}</td>
+                    <td class="recurrence-column">
+                        <select class="recurrence-select" data-item="${i}">
+                            ${recurrenceOptions.map(option => `
+                                <option value="${option}" ${recurrence === option ? 'selected' : ''}>
+                                    ${option} jours
+                                </option>
+                            `).join('')}
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            }
+        }
+
+        function attachEventListeners() {
+            document.getElementById('saveBtn').addEventListener('click', saveParametres);
+            document.getElementById('resetBtn').addEventListener('click', loadParametres);
+        }
+
+        async function saveParametres() {
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Enregistrement...';
+
+            try {
+                const selects = document.querySelectorAll('.recurrence-select');
+                const data = [];
+
+                selects.forEach(select => {
+                    const itemNumber = parseInt(select.dataset.item);
+                    const recurrence = parseInt(select.value);
+                    data.push({
+                        item_number: itemNumber,
+                        recurrence: recurrence
+                    });
+                });
+
+                // Supprimer les anciennes données et insérer les nouvelles
+                const { error: deleteError } = await supabase
+                    .from('parametres')
+                    .delete()
+                    .neq('item_number', -1); // Supprime tous les enregistrements
+
+                if (deleteError) throw deleteError;
+
+                // Insérer les nouvelles données
+                const { error: insertError } = await supabase
+                    .from('parametres')
+                    .insert(data);
+
+                if (insertError) throw insertError;
+
+                showMessage('Paramètres enregistrés avec succès!', 'success');
+            } catch (error) {
+                console.error('Erreur lors de l\'enregistrement:', error);
+                showMessage('Erreur lors de l\'enregistrement des données', 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Enregistrer les modifications';
+            }
+        }
+
+        function showMessage(text, type) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.className = `message active ${type}`;
+
+            setTimeout(() => {
+                message.classList.remove('active');
+            }, 5000);
+        }
+    </script>
+
+    <!-- Charger la librairie Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</body>
+</html>
