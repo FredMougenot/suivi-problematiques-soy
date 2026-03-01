@@ -2,12 +2,11 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Suivi Problématiques — Expédition SOY</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Expédition SOY · Suivi des problématiques</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg-void:#06070B;--bg-deep:#0B0D13;--bg-base:#0F1118;
@@ -45,24 +44,24 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 #loading-screen.hidden{opacity:0;visibility:hidden;pointer-events:none;}
 .ls-ring{width:66px;height:66px;border:1px solid rgba(184,115,51,.28);border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;}
 .ls-ring::before{content:'';position:absolute;inset:-6px;border:1px solid rgba(184,115,51,.08);border-radius:50%;animation:spin 3s linear infinite;}
-@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}
 .ls-inner{font-family:'Playfair Display',serif;font-style:italic;font-size:1.4rem;color:var(--copper-light);}
 .ls-name{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:600;color:var(--text-primary);letter-spacing:.12em;text-transform:uppercase;}
 .ls-sub{font-size:.62rem;font-weight:500;color:var(--text-muted);letter-spacing:.25em;text-transform:uppercase;}
 .ls-bar{width:100px;height:1px;background:var(--text-faint);border-radius:1px;overflow:hidden;}
 .ls-bar-fill{height:100%;background:linear-gradient(90deg,var(--copper),var(--copper-light));animation:barAnim 1.6s ease infinite;}
-@keyframes barAnim{0%{width:0;margin-left:0}50%{width:60%;margin-left:0}100%{width:0;margin-left:100%}}
+@keyframes barAnim{0%{width:0;margin-left:0}50%{width:60%;margin-left:0}100%{width:0;margin-left:100%}
 
 /* AUTH */
 #auth-page{display:none;min-height:100vh;position:relative;overflow:hidden;background:var(--bg-void);}
 .auth-glow{position:absolute;pointer-events:none;border-radius:50%;}
 .auth-glow:nth-child(1){top:-20%;left:60%;width:700px;height:700px;background:radial-gradient(circle,rgba(184,115,51,.06),transparent 65%);animation:breathe 6s ease-in-out infinite;}
 .auth-glow:nth-child(2){bottom:-10%;left:-10%;width:500px;height:500px;background:radial-gradient(circle,rgba(184,115,51,.04),transparent 65%);animation:breathe 8s ease-in-out infinite reverse;}
-@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.1);opacity:.7}}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.1);opacity:.7}
 .auth-grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(184,115,51,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(184,115,51,.025) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 0%,transparent 100%);}
 .auth-wrap{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
 .auth-panel{width:100%;max-width:440px;animation:panelIn .8s var(--ease-out) forwards;opacity:0;}
-@keyframes panelIn{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+@keyframes panelIn{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}
 .auth-logo-zone{text-align:center;margin-bottom:44px;padding-bottom:32px;border-bottom:1px solid var(--text-faint);position:relative;}
 .auth-logo-zone::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:48px;height:1px;background:var(--copper);}
 .auth-monogram{display:inline-flex;align-items:center;justify-content:center;width:60px;height:60px;border:1px solid rgba(184,115,51,.25);border-radius:50%;margin-bottom:18px;position:relative;}
@@ -133,7 +132,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 /* PAGES */
 .page{display:none;animation:pgIn .3s var(--ease-out);}
 .page.active{display:block;}
-@keyframes pgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}
 
 /* KPI */
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:26px;}
@@ -253,12 +252,12 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 
 /* MODAL */
 .overlay{position:fixed;inset:0;z-index:900;background:rgba(7,8,12,.82);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:24px;}
-@media(max-width:640px){.overlay{padding:0;align-items:flex-end;}.modal{max-width:100%;width:100%;border-radius:var(--r-xl) var(--r-xl) 0 0;max-height:92dvh;max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}.modal-bd{padding:16px 18px;}.modal-hd{padding:16px 18px 0;}.modal-ft{padding:10px 18px 24px;}.fg-grid{grid-template-columns:1fr;}}
+@media(max-width:640px){.overlay{padding:0;align-items:flex-end;}.modal{max-width:100%;width:100%;border-radius:var(--r-xl) var(--r-xl) 0 0;max-height:92dvh;max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}.modal-bd{padding:16px 18px;}.modal-hd{padding:16px 18px 0;}.modal-ft{padding:10px 18px 24px;}.fg-grid{grid-template-columns:1fr;}
 .overlay.open{display:flex;animation:fadeIn .2s var(--ease);}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}
 .modal{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-xl);box-shadow:var(--shadow-xl);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;animation:modalIn .25s var(--ease-out);position:relative;}
 .modal::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--copper),transparent);border-radius:var(--r-xl) var(--r-xl) 0 0;}
-@keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}
 .modal-hd{padding:26px 30px 20px;border-bottom:1px solid var(--text-faint);display:flex;align-items:flex-start;justify-content:space-between;gap:16px;}
 .modal-t{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:600;color:var(--text-primary);}
 .modal-s{font-size:.78rem;color:var(--text-muted);margin-top:4px;font-weight:300;}
@@ -272,7 +271,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .toast{display:flex;align-items:center;gap:11px;padding:12px 16px;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);box-shadow:var(--shadow-lg);font-size:.82rem;font-weight:400;color:var(--text-primary);min-width:270px;max-width:350px;animation:toastIn .3s var(--ease-out);border-left:2px solid var(--copper);}
 .toast.success{border-left-color:var(--emerald);}
 .toast.error{border-left-color:var(--ruby);}
-@keyframes toastIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
+@keyframes toastIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}
 
 /* ── PAGE PROFIL ───────────────────────────────────── */
 .profil-layout{display:grid;grid-template-columns:260px 1fr;gap:22px;align-items:start;}
@@ -562,6 +561,8 @@ body { font-size: 0.9375rem; }
 .dash-today-btn{padding:5px 12px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);font-size:.76rem;font-weight:600;cursor:pointer;transition:all .15s;}
 .dash-today-btn:hover{border-color:var(--copper);color:var(--copper-light);}
 
+
+.admin-only{display:none;}
 </style>
 </head>
 <body>
@@ -574,56 +575,51 @@ body { font-size: 0.9375rem; }
   <div class="ls-bar"><div class="ls-bar-fill"></div></div>
 </div>
 
-<!-- AUTH -->
-
-<!-- PAGE CRÉATION MOT DE PASSE (première connexion via invitation) -->
-<div id="setup-page">
+<!-- SETUP MOT DE PASSE -->
+<div id="setup-page" style="display:none">
   <div class="auth-glow"></div>
   <div class="auth-glow"></div>
   <div class="auth-grid"></div>
-  <div class="setup-wrap">
-    <div class="setup-panel">
-      <div class="setup-logo">
-        <div class="setup-monogram"><span class="setup-letter">S</span></div>
-        <div class="setup-brand">Expédition SOY</div>
-        <div class="setup-tagline">Bienvenue · Première connexion</div>
+  <div class="auth-wrap">
+    <div class="auth-panel">
+      <div class="auth-logo-zone">
+        <div class="auth-monogram"><span class="auth-letter">S</span></div>
+        <div class="auth-name">Expédition SOY</div>
+        <div class="auth-tagline">Bienvenue · Première connexion</div>
       </div>
       <div id="setup-form">
-        <div class="setup-h">Créer votre mot de passe</div>
-        <div class="setup-p">Bienvenue ! Vous avez été invité à rejoindre l'application. Choisissez un mot de passe sécurisé pour votre compte.</div>
+        <div class="auth-h">Créer votre mot de passe</div>
+        <div class="auth-p">Bienvenue ! Choisissez un mot de passe sécurisé pour votre compte.</div>
         <div class="fld">
           <label class="fld-lbl">Nouveau mot de passe</label>
           <div style="position:relative">
-            <input type="password" id="setup-pwd1" class="fld-inp" style="padding-right:40px"
-              placeholder="Minimum 8 caractères"
-              oninput="evalSetupPwd(this.value)">
-            <span class="pwd-eye" style="position:absolute;right:12px;top:50%;transform:translateY(-50%)" onclick="toggleEye('setup-pwd1',this)">👁</span>
+            <input type="password" id="setup-pwd1" class="fld-inp" placeholder="Minimum 8 caractères" oninput="evalSetupPwd(this.value)">
+            <span class="pwd-eye" onclick="toggleEye('setup-pwd1',this)">👁</span>
           </div>
-          <div class="pwd-bar-wrap" style="margin-top:8px"><div class="pwd-bar-fill" id="setup-pwd-bar"></div></div>
-          <div class="pwd-bar-label" id="setup-pwd-lbl" style="color:var(--text-muted);font-size:.68rem;margin-top:5px">Entrez un mot de passe</div>
+          <div class="pwd-bar-wrap"><div class="pwd-bar-fill" id="setup-pwd-bar"></div></div>
+          <div class="pwd-bar-label" id="setup-pwd-lbl">Entrez un mot de passe</div>
         </div>
         <div class="fld">
           <label class="fld-lbl">Confirmer le mot de passe</label>
           <div style="position:relative">
-            <input type="password" id="setup-pwd2" class="fld-inp" style="padding-right:40px"
-              placeholder="Répétez le mot de passe">
-            <span class="pwd-eye" style="position:absolute;right:12px;top:50%;transform:translateY(-50%)" onclick="toggleEye('setup-pwd2',this)">👁</span>
+            <input type="password" id="setup-pwd2" class="fld-inp" placeholder="Répétez le mot de passe">
+            <span class="pwd-eye" onclick="toggleEye('setup-pwd2',this)">👁</span>
           </div>
         </div>
         <button class="btn-auth" id="btn-setup-submit" onclick="submitSetupPwd()">Confirmer et accéder</button>
         <div class="auth-err" id="setup-err" style="display:none"></div>
       </div>
-      <div class="setup-success" id="setup-success">
+      <div class="setup-success" id="setup-success" style="display:none">
         <div class="setup-success-ico">✅</div>
         <div class="setup-success-t">Mot de passe créé avec succès</div>
-        <div class="setup-success-p">Votre compte est maintenant actif. Redirection en cours…</div>
+        <div class="setup-success-p">Redirection en cours…</div>
       </div>
     </div>
   </div>
 </div>
 
-
-<div id="auth-page">
+<!-- AUTH -->
+<div id="auth-page" style="display:none">
   <div class="auth-glow"></div>
   <div class="auth-glow"></div>
   <div class="auth-grid"></div>
@@ -635,7 +631,7 @@ body { font-size: 0.9375rem; }
         <div class="auth-tagline">Suivi des problématiques · Système de gestion</div>
       </div>
       <div class="auth-h">Connexion</div>
-      <div class="auth-p">Accès réservé aux membres autorisés. Entrez vos identifiants pour continuer.</div>
+      <div class="auth-p">Accès réservé aux membres autorisés.</div>
       <div class="fld">
         <label class="fld-lbl">Adresse courriel</label>
         <input type="email" id="auth-email" class="fld-inp" placeholder="votre@courriel.com" autocomplete="email">
@@ -651,7 +647,7 @@ body { font-size: 0.9375rem; }
 </div>
 
 <!-- APP -->
-<div id="app">
+<div id="app" style="display:none">
   <nav class="sidebar">
     <div class="sb-brand">
       <div class="sb-logo-row">
@@ -670,7 +666,7 @@ body { font-size: 0.9375rem; }
         <span class="sb-ico">◉</span> Problématiques
         <span class="sb-badge" id="badge-ouvert" style="display:none">0</span>
       </div>
-      <div class="sb-item admin-only" onclick="showPage('nouvelle')" id="nav-nouvelle" style="display:none">
+      <div class="sb-item admin-only" onclick="showPage('nouvelle')" id="nav-nouvelle">
         <span class="sb-ico">⊕</span> Nouvelle saisie
       </div>
       <div class="sb-sec">Outils</div>
@@ -702,8 +698,8 @@ body { font-size: 0.9375rem; }
       <div class="sb-item sb-item-logout" onclick="doLogout()">
         <span class="sb-ico">⏻</span> Déconnexion
       </div>
-      <div class="sb-sec admin-only" id="nav-admin-section" style="display:none">Administration</div>
-      <div class="sb-item admin-only" onclick="showPage('admin')" id="nav-admin" style="display:none">
+      <div class="sb-sec admin-only" id="nav-admin-section">Administration</div>
+      <div class="sb-item admin-only" onclick="showPage('admin')" id="nav-admin">
         <span class="sb-ico">⚙</span> Gestion complète
       </div>
     </div>
@@ -724,7 +720,7 @@ body { font-size: 0.9375rem; }
       <div id="topbar-title">Tableau de bord</div>
       <div class="tb-acts">
         <button class="btn-ghost" onclick="loadAll()">↻ Actualiser</button>
-        <button class="btn-copper user-only" id="btn-new-top" onclick="openModalNouvel()" style="display:none">⊕ Soumettre une problématique</button>
+        <button class="btn-copper" id="btn-new-top" onclick="openModalNouvel()" style="display:none">⊕ Soumettre une problématique</button>
       </div>
     </div>
 
@@ -740,22 +736,22 @@ body { font-size: 0.9375rem; }
         </div>
         <div class="kpi-row">
           <div class="kpi copper" onclick="goToRegistre('')" style="cursor:pointer">
-            <div class="kpi-top"><div class="kpi-lbl">Total</div><div class="kpi-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 17 7 11 12 14 17 7 22 9"/><circle cx="22" cy="9" r="1.5" fill="currentColor" stroke="none"/><line x1="2" y1="21" x2="22" y2="21" stroke-width="1.2" opacity=".4"/></svg></div></div>
+            <div class="kpi-top"><div class="kpi-lbl">Total actif</div></div>
             <div class="kpi-val" id="kpi-total">—</div>
             <div class="kpi-sub">Voir le registre →</div>
           </div>
           <div class="kpi ruby" onclick="goToRegistre('À traiter')" style="cursor:pointer">
-            <div class="kpi-top"><div class="kpi-lbl">À traiter</div><div class="kpi-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 10"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg></div></div>
+            <div class="kpi-top"><div class="kpi-lbl">À traiter</div></div>
             <div class="kpi-val" id="kpi-ouvert">—</div>
             <div class="kpi-sub">Voir le registre →</div>
           </div>
           <div class="kpi sapphire" onclick="goToRegistre('En cours')" style="cursor:pointer">
-            <div class="kpi-top"><div class="kpi-lbl">En cours</div><div class="kpi-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 19.5 6.5 19.5 17.5 12 22 4.5 17.5 4.5 6.5"/><polyline points="13 8 10 13 14 13 11 18"/></svg></div></div>
+            <div class="kpi-top"><div class="kpi-lbl">En cours</div></div>
             <div class="kpi-val" id="kpi-cours">—</div>
             <div class="kpi-sub">Voir le registre →</div>
           </div>
           <div class="kpi emerald" onclick="goToRegistre('Résolu')" style="cursor:pointer">
-            <div class="kpi-top"><div class="kpi-lbl">Résolues</div><div class="kpi-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><polyline points="9 12 11 14.2 15.5 9.5"/><line x1="12" y1="2" x2="12" y2="4" stroke-width="1.2" opacity=".5"/><line x1="12" y1="20" x2="12" y2="22" stroke-width="1.2" opacity=".5"/><line x1="2" y1="12" x2="4" y2="12" stroke-width="1.2" opacity=".5"/><line x1="20" y1="12" x2="22" y2="12" stroke-width="1.2" opacity=".5"/><line x1="4.9" y1="4.9" x2="6.3" y2="6.3" stroke-width="1.2" opacity=".35"/><line x1="17.7" y1="17.7" x2="19.1" y2="19.1" stroke-width="1.2" opacity=".35"/><line x1="17.7" y1="6.3" x2="19.1" y2="4.9" stroke-width="1.2" opacity=".35"/><line x1="4.9" y1="19.1" x2="6.3" y2="17.7" stroke-width="1.2" opacity=".35"/></svg></div></div>
+            <div class="kpi-top"><div class="kpi-lbl">Résolues</div></div>
             <div class="kpi-val" id="kpi-resolu">—</div>
             <div class="kpi-sub">Voir le registre →</div>
           </div>
@@ -763,20 +759,20 @@ body { font-size: 0.9375rem; }
         <div class="stat-row">
           <div class="stat-card">
             <div class="stat-lbl">Par pilier</div>
-            <div id="pilier-stats"><div class="empty"><div class="empty-ico">📊</div></div></div>
+            <div id="pilier-stats"></div>
           </div>
           <div class="stat-card">
             <div class="stat-lbl">Par priorité</div>
-            <div id="prio-stats"><div class="empty"><div class="empty-ico">⚑</div></div></div>
+            <div id="prio-stats"></div>
           </div>
         </div>
         <div class="sec-h">
-          <div><div class="sec-t">Nouveautés</div><div class="sec-s">Les 5 dernières problématiques</div></div>
+          <div><div class="sec-t">Nouveautés</div><div class="sec-s">Problématiques créées ce jour</div></div>
         </div>
         <div class="tbl-wrap">
           <table class="dtbl">
             <thead><tr><th>ID</th><th>Intitulé</th><th>Pilier</th><th>Priorité</th><th>Statut</th><th>Date</th></tr></thead>
-            <tbody id="recent-tbody"><tr><td colspan="6"><div class="empty"><div class="empty-ico">📋</div><div class="empty-txt">Chargement…</div></div></td></tr></tbody>
+            <tbody id="recent-tbody"></tbody>
           </table>
         </div>
       </div>
@@ -788,9 +784,7 @@ body { font-size: 0.9375rem; }
             <div class="sec-t">Registre des problématiques</div>
             <div class="sec-s">Toutes les problématiques soumises</div>
           </div>
-          <button class="btn-add-prob" onclick="showPage('nouvelle')">
-            ＋ Soumettre une problématique
-          </button>
+          <button class="btn-add-prob" onclick="showPage('nouvelle')">＋ Soumettre</button>
         </div>
         <div class="filters">
           <div class="srch-wrap">
@@ -800,24 +794,26 @@ body { font-size: 0.9375rem; }
           <select class="fsel" id="filter-pilier" onchange="filterTable()"><option value="">Tous les piliers</option></select>
           <select class="fsel" id="filter-statut" onchange="filterTable()">
             <option value="">Tous les statuts</option>
-            <option value="À traiter">À traiter</option><option value="En cours">En cours</option>
-            <option value="Résolu">Résolu</option><option value="Annulé">Annulé</option><option value="Clôturé">Clôturé</option>
+            <option>À traiter</option><option>En cours</option><option>Résolu</option><option>Annulé</option><option>Clôturé</option>
           </select>
           <select class="fsel" id="filter-priorite" onchange="filterTable()">
             <option value="">Toutes les priorités</option>
-            <option value="Critique">Critique</option><option value="Haute">Haute</option>
-            <option value="Moyenne">Moyenne</option><option value="Basse">Basse</option>
+            <option>Critique</option><option>Haute</option><option>Moyenne</option><option>Basse</option>
           </select>
         </div>
-        <div class="tbl-wrap">
-          <table class="dtbl">
-            <thead><tr><th>ID</th><th>Intitulé / Description</th><th>Pilier</th><th>Responsable</th><th>Priorité</th><th>Statut</th><th>Soumis le</th><th>Date prévue</th><th>Date résolue</th><th class="admin-only" id="th-actions" style="display:none">Actions</th></tr></thead>
+        <div class="tbl-wrap" style="touch-action:pan-x">
+          <table class="dtbl" style="min-width:900px">
+            <thead><tr>
+              <th>ID</th><th>Intitulé / Description</th><th>Pilier</th><th>Responsable</th>
+              <th>Priorité</th><th>Statut</th><th>Soumis le</th><th>Date prévue</th><th>Date résolue</th>
+              <th class="admin-only" id="th-actions">Actions</th>
+            </tr></thead>
             <tbody id="prob-tbody"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- NOUVELLE -->
+      <!-- NOUVELLE SAISIE -->
       <div class="page" id="page-nouvelle">
         <div class="sec-h" style="margin-bottom:24px">
           <div><div class="sec-t">Soumettre une problématique</div><div class="sec-s">Les champs ✦ sont obligatoires</div></div>
@@ -829,8 +825,10 @@ body { font-size: 0.9375rem; }
             <div class="fg"><label class="fg-lbl req">Priorité</label>
               <select id="n-priorite" class="fg-sel">
                 <option value="">— Sélectionner —</option>
-                <option value="Critique">Critique</option><option value="Haute">Haute</option>
-                <option value="Moyenne">Moyenne</option><option value="Basse">Basse</option>
+                <option value="Critique">Critique</option>
+                <option value="Haute">Haute</option>
+                <option value="Moyenne">Moyenne</option>
+                <option value="Basse">Basse</option>
               </select>
             </div>
             <div class="fg full"><label class="fg-lbl">Responsable souhaité</label><input type="text" id="n-responsable" class="fg-inp" placeholder="Nom du responsable suggéré"></div>
@@ -849,26 +847,23 @@ body { font-size: 0.9375rem; }
           <div><div class="sec-t">Gestion — Vue administrateur</div><div class="sec-s">Modifier, clôturer, gérer toutes les problématiques</div></div>
           <button class="btn-copper" onclick="openModalNouvel()">⊕ Nouvelle problématique</button>
         </div>
-        <div class="tbl-wrap">
-          <table class="dtbl">
-            <thead><tr><th>ID</th><th>Intitulé</th><th>Pilier</th><th>Priorité</th><th>Statut</th><th>Soumis par</th><th>Soumis le</th><th>Date prévue</th><th>Date résolue</th><th>Actions</th></tr></thead>
+        <div class="tbl-wrap" style="touch-action:pan-x">
+          <table class="dtbl" style="min-width:900px">
+            <thead><tr>
+              <th>ID</th><th>Intitulé</th><th>Pilier</th><th>Priorité</th><th>Statut</th>
+              <th>Soumis par</th><th>Soumis le</th><th>Date prévue</th><th>Date résolue</th><th>Actions</th>
+            </tr></thead>
             <tbody id="admin-tbody"></tbody>
           </table>
         </div>
       </div>
 
-
       <!-- PROFIL -->
       <div class="page" id="page-profil">
         <div class="sec-h" style="margin-bottom:24px">
-          <div>
-            <div class="sec-t">Mon profil</div>
-            <div class="sec-s">Vos informations personnelles et votre sécurité</div>
-          </div>
+          <div><div class="sec-t">Mon profil</div><div class="sec-s">Vos informations personnelles et votre sécurité</div></div>
         </div>
         <div class="profil-layout">
-
-          <!-- Carte identité -->
           <div class="profil-id-card">
             <div class="profil-avatar-zone">
               <div class="profil-big-av" id="pav">?</div>
@@ -877,53 +872,24 @@ body { font-size: 0.9375rem; }
               <div class="profil-role" id="prolbadge">—</div>
             </div>
             <div class="profil-meta">
-              <div class="profil-meta-row">
-                <span class="profil-meta-lbl">Rôle</span>
-                <span class="profil-meta-val" id="prolrole">—</span>
-              </div>
-              <div class="profil-meta-row">
-                <span class="profil-meta-lbl">Membre depuis</span>
-                <span class="profil-meta-val" id="prolsince">—</span>
-              </div>
-              <div class="profil-meta-row">
-                <span class="profil-meta-lbl">Statut</span>
-                <span class="profil-meta-val" style="color:var(--emerald)">● Actif</span>
-              </div>
+              <div class="profil-meta-row"><span class="profil-meta-lbl">Rôle</span><span class="profil-meta-val" id="prolrole">—</span></div>
+              <div class="profil-meta-row"><span class="profil-meta-lbl">Membre depuis</span><span class="profil-meta-val" id="prolsince">—</span></div>
+              <div class="profil-meta-row"><span class="profil-meta-lbl">Statut</span><span class="profil-meta-val" style="color:var(--emerald)">● Actif</span></div>
             </div>
           </div>
-
-          <!-- Sections -->
           <div class="profil-sections">
-
-            <!-- Informations personnelles -->
             <div class="profil-section">
-              <div class="profil-section-head">
-                <div class="profil-section-title">Informations personnelles</div>
-              </div>
+              <div class="profil-section-head"><div class="profil-section-title">Informations personnelles</div></div>
               <div class="profil-section-body">
                 <div class="profil-form-2" style="margin-bottom:16px">
-                  <div class="fg">
-                    <label class="fg-lbl">Prénom</label>
-                    <input type="text" id="p-prenom" class="fg-inp" placeholder="Votre prénom">
-                  </div>
-                  <div class="fg">
-                    <label class="fg-lbl">Nom</label>
-                    <input type="text" id="p-nom" class="fg-inp" placeholder="Votre nom">
-                  </div>
+                  <div class="fg"><label class="fg-lbl">Prénom</label><input type="text" id="p-prenom" class="fg-inp" placeholder="Votre prénom"></div>
+                  <div class="fg"><label class="fg-lbl">Nom</label><input type="text" id="p-nom" class="fg-inp" placeholder="Votre nom"></div>
                 </div>
                 <div class="profil-form-1" style="margin-bottom:16px">
-                  <div class="fg">
-                    <label class="fg-lbl">Titre / Poste</label>
-                    <input type="text" id="p-poste" class="fg-inp" placeholder="ex: Responsable qualité">
-                  </div>
+                  <div class="fg"><label class="fg-lbl">Titre / Poste</label><input type="text" id="p-poste" class="fg-inp" placeholder="ex: Responsable qualité"></div>
                 </div>
                 <div class="profil-form-1">
-                  <div class="fg">
-                    <label class="fg-lbl">Courriel</label>
-                    <input type="email" id="p-email" class="fg-inp" disabled
-                      style="opacity:.45;cursor:not-allowed"
-                      title="L'adresse courriel ne peut pas être modifiée ici">
-                  </div>
+                  <div class="fg"><label class="fg-lbl">Courriel</label><input type="email" id="p-email" class="fg-inp" disabled style="opacity:.45;cursor:not-allowed"></div>
                 </div>
                 <div class="profil-actions">
                   <span class="profil-ok-msg" id="info-ok">✓ Informations enregistrées</span>
@@ -931,44 +897,24 @@ body { font-size: 0.9375rem; }
                 </div>
               </div>
             </div>
-
-            <!-- Changer le mot de passe -->
             <div class="profil-section">
-              <div class="profil-section-head">
-                <div class="profil-section-title">Changer le mot de passe</div>
-              </div>
+              <div class="profil-section-head"><div class="profil-section-title">Changer le mot de passe</div></div>
               <div class="profil-section-body">
                 <div class="profil-form-1" style="margin-bottom:16px">
-                  <div class="fg">
-                    <label class="fg-lbl req">Mot de passe actuel</label>
-                    <div class="pwd-wrap-input">
-                      <input type="password" id="p-pwd0" class="fg-inp"
-                        placeholder="Votre mot de passe actuel">
-                      <span class="pwd-eye" onclick="toggleEye('p-pwd0',this)">👁</span>
-                    </div>
+                  <div class="fg"><label class="fg-lbl req">Mot de passe actuel</label>
+                    <div class="pwd-wrap-input"><input type="password" id="p-pwd0" class="fg-inp" placeholder="Votre mot de passe actuel"><span class="pwd-eye" onclick="toggleEye('p-pwd0',this)">👁</span></div>
                   </div>
                 </div>
                 <div class="profil-form-1" style="margin-bottom:16px">
-                  <div class="fg">
-                    <label class="fg-lbl req">Nouveau mot de passe</label>
-                    <div class="pwd-wrap-input">
-                      <input type="password" id="p-pwd1" class="fg-inp"
-                        placeholder="Minimum 8 caractères"
-                        oninput="evalPwd(this.value,'p-pwd-bar','p-pwd-lbl')">
-                      <span class="pwd-eye" onclick="toggleEye('p-pwd1',this)">👁</span>
-                    </div>
+                  <div class="fg"><label class="fg-lbl req">Nouveau mot de passe</label>
+                    <div class="pwd-wrap-input"><input type="password" id="p-pwd1" class="fg-inp" placeholder="Minimum 8 caractères" oninput="evalPwd(this.value,'p-pwd-bar','p-pwd-lbl')"><span class="pwd-eye" onclick="toggleEye('p-pwd1',this)">👁</span></div>
                     <div class="pwd-bar-wrap"><div class="pwd-bar-fill" id="p-pwd-bar"></div></div>
-                    <div class="pwd-bar-label" id="p-pwd-lbl" style="color:var(--text-muted)">Entrez un mot de passe</div>
+                    <div class="pwd-bar-label" id="p-pwd-lbl">Entrez un mot de passe</div>
                   </div>
                 </div>
                 <div class="profil-form-1">
-                  <div class="fg">
-                    <label class="fg-lbl req">Confirmer le nouveau mot de passe</label>
-                    <div class="pwd-wrap-input">
-                      <input type="password" id="p-pwd2" class="fg-inp"
-                        placeholder="Répétez le nouveau mot de passe">
-                      <span class="pwd-eye" onclick="toggleEye('p-pwd2',this)">👁</span>
-                    </div>
+                  <div class="fg"><label class="fg-lbl req">Confirmer le nouveau mot de passe</label>
+                    <div class="pwd-wrap-input"><input type="password" id="p-pwd2" class="fg-inp" placeholder="Répétez le nouveau mot de passe"><span class="pwd-eye" onclick="toggleEye('p-pwd2',this)">👁</span></div>
                   </div>
                 </div>
                 <div class="profil-actions">
@@ -977,16 +923,18 @@ body { font-size: 0.9375rem; }
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
 
-          </div><!-- /profil-sections -->
-        </div><!-- /profil-layout -->
-      </div><!-- /page-profil -->
-
-    </div>
+    </div><!-- /content -->
   </main>
-</div>
+</div><!-- /app -->
 
-<!-- MODAL NOUVELLE -->
+<!-- TOASTS -->
+<div class="toasts" id="toasts"></div>
+
+<!-- MODAL NOUVELLE PROBLÉMATIQUE -->
 <div class="overlay" id="modal-nouvel">
   <div class="modal">
     <div class="modal-hd">
@@ -994,24 +942,88 @@ body { font-size: 0.9375rem; }
       <button class="modal-x" onclick="closeModal('modal-nouvel')">✕</button>
     </div>
     <div class="modal-bd">
-              <div class="fg-grid">
-          <div class="fg full"><label class="fg-lbl req">Intitulé</label><input id="n-intitule" class="fg-inp" placeholder="Titre de la problématique…"></div>
-          <div class="fg"><label class="fg-lbl req">Pilier</label><select id="n-pilier" class="fg-sel"></select></div>
-          <div class="fg"><label class="fg-lbl req">Priorité</label><select id="n-priorite" class="fg-sel"><option value="">Sélectionner</option><option>Critique</option><option>Haute</option><option>Moyenne</option><option>Basse
-              </select>
-            </div>
-            <div class="fg full"><label class="fg-lbl">Responsable souhaité</label><input type="text" id="n-responsable" class="fg-inp" placeholder="Nom du responsable suggéré"></div>
-            <div class="fg full"><label class="fg-lbl req">Description détaillée</label><textarea id="n-description" class="fg-ta" placeholder="Décrivez la problématique, le contexte, les actions déjà tentées…"></textarea></div>
-          </div>
-          <div class="form-acts">
-            <button class="btn-can" onclick="resetForm()">Réinitialiser</button>
-            <button class="btn-sub" onclick="submitNouvelleProb()">⊕ Soumettre</button>
-          </div>
+      <div class="fg-grid">
+        <div class="fg full"><label class="fg-lbl req">Intitulé</label><input id="m-intitule" class="fg-inp" placeholder="Titre de la problématique…"></div>
+        <div class="fg"><label class="fg-lbl req">Pilier</label><select id="m-pilier" class="fg-sel"></select></div>
+        <div class="fg"><label class="fg-lbl req">Priorité</label>
+          <select id="m-priorite" class="fg-sel">
+            <option value="">Sélectionner</option>
+            <option>Critique</option><option>Haute</option><option>Moyenne</option><option>Basse</option>
+          </select>
         </div>
+        <div class="fg"><label class="fg-lbl">Statut</label>
+          <select id="m-statut" class="fg-sel">
+            <option value="À traiter">À traiter</option><option value="En cours">En cours</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fg-lbl">Responsable</label><input id="m-responsable" class="fg-inp" placeholder="Nom…"></div>
+        <div class="fg full"><label class="fg-lbl req">Description</label><textarea id="m-description" class="fg-ta" placeholder="Contexte, impact, actions déjà tentées…"></textarea></div>
       </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-can" onclick="closeModal('modal-nouvel')">Annuler</button>
+      <button class="btn-sub" id="btn-submit-modal" onclick="submitModal()">Créer</button>
+    </div>
+  </div>
+</div>
 
+<!-- MODAL MODIFICATION -->
+<div class="overlay" id="modal-edit">
+  <div class="modal">
+    <div class="modal-hd">
+      <div><div class="modal-t">Modifier</div><div class="modal-s" id="edit-subtitle"></div></div>
+      <button class="modal-x" onclick="closeModal('modal-edit')">✕</button>
+    </div>
+    <div class="modal-bd">
+      <input type="hidden" id="edit-id">
+      <div class="fg-grid">
+        <div class="fg"><label class="fg-lbl">Statut</label>
+          <select id="edit-statut" class="fg-sel">
+            <option>À traiter</option><option>En cours</option><option>Résolu</option><option>Annulé</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fg-lbl">Priorité</label>
+          <select id="edit-priorite" class="fg-sel">
+            <option>Critique</option><option>Haute</option><option>Moyenne</option><option>Basse</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fg-lbl">Responsable</label><input id="edit-responsable" class="fg-inp" placeholder="Nom…"></div>
+        <div class="fg"><label class="fg-lbl">Date prévue</label><input id="edit-date-prevue" class="fg-inp" type="date"></div>
+        <div class="fg"><label class="fg-lbl">Seuil visé</label><input id="edit-seuil" class="fg-inp" type="number" placeholder="0"></div>
+        <div class="fg"><label class="fg-lbl">Valeur réelle</label><input id="edit-reel" class="fg-inp" type="number" placeholder="0"></div>
+        <div class="fg full"><label class="fg-lbl">Résultat</label><input id="edit-resultat" class="fg-inp" placeholder="…"></div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-can" onclick="closeModal('modal-edit')">Annuler</button>
+      <button class="btn-sub" onclick="saveEdit()">Enregistrer</button>
+    </div>
+  </div>
+</div>
 
+<!-- MODAL CRITÈRE PILIER -->
+<div class="critere-overlay" id="critere-overlay" onclick="closeCritere(event)">
+  <div class="critere-modal">
+    <div class="cm-header">
+      <div class="cm-title-wrap">
+        <div class="cm-eyebrow">Critère du pilier</div>
+        <div class="cm-title" id="cm-title">—</div>
+      </div>
+      <button class="cm-close" onclick="closeCritereBtn()">✕</button>
+    </div>
+    <div class="cm-body" id="cm-body">Chargement…</div>
+    <div class="cm-footer">
+      <a class="cm-edit-link" href="criteres_piliers.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Modifier dans Outils
+      </a>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+
 
 const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
@@ -1546,31 +1558,8 @@ function closeCritereBtn(){
 
 
 
+
+
 </script>
-
-
-
-<!-- ═══ MODAL CRITÈRE PILIER (lecture seule) ═══ -->
-<div class="critere-overlay" id="critere-overlay" onclick="closeCritere(event)">
-  <div class="critere-modal">
-    <div class="cm-header">
-      <div class="cm-title-wrap">
-        <div class="cm-eyebrow">Critère du pilier</div>
-        <div class="cm-title" id="cm-title">—</div>
-      </div>
-      <button class="cm-close" onclick="closeCritereBtn()">✕</button>
-    </div>
-    <div class="cm-body" id="cm-body">Chargement…</div>
-    <div class="cm-footer">
-      <a class="cm-edit-link" href="criteres_piliers.html">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        Modifier dans Outils
-      </a>
-    </div>
-  </div>
-</div>
-
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </body>
 </html>
