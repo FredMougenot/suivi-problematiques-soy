@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 :root {
   --bg-void:#06070B;--bg-deep:#0B0D13;--bg-base:#0F1118;
@@ -272,6 +272,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 @media(max-width:900px){.bilan-grid{grid-template-columns:1fr;}}
 </style>
 
+
 </head>
 <body>
 
@@ -321,11 +322,15 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
         <th>Heure planifiée</th>
         <th>Statut ligne</th>
         <th>Type camion</th>
-        <th>N° <script>
+        <th>N° commande</th>
+        
+<script>
+
+
 
 const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
-const sb = supabase.createClient(SB_URL, SB_KEY);
+let sb;
 
 // 10 slots fixes quotidiens
 const SLOTS = [
@@ -385,7 +390,29 @@ function changeDay(delta){
 function goToday(){ curDate=todayStr(); refreshDateUI(); load(); }
 
 // ── LOAD ──────────────────────────────────────────────────────────
-window.addEventListener('load',()=>{ refreshDateUI(); load(); });
+function initApp(){
+  sb = supabase.createClient(SB_URL, SB_KEY);
+  refreshDateUI();
+  load();
+  setTimeout(()=>{
+    const sp = document.getElementById('spinner');
+    if(sp && sp.style.display !== 'none'){
+      sp.style.display = 'none';
+      const tbl = document.getElementById('tbl');
+      if(tbl) tbl.style.display = 'block';
+    }
+  }, 8000);
+}
+
+function waitForSupabaseAndInit(){
+  if(typeof supabase !== 'undefined' && supabase.createClient){
+    try{ initApp(); } catch(e){ console.error('initApp error:', e); }
+  } else {
+    setTimeout(waitForSupabaseAndInit, 50);
+  }
+}
+
+window.addEventListener('load', waitForSupabaseAndInit);
 
 async function load(){
   document.getElementById('spinner').style.display='flex';
@@ -869,11 +896,10 @@ function drawChart(key, data, seuil){
 
 
 
+
+
 </script>
-
-
-<!-- ════════════════════════════════════════════════════════════ -->
-<!--  SECTION BILAN                                              -->
+-  SECTION BILAN                                              -->
 <!-- ════════════════════════════════════════════════════════════ -->
 <section class="bilan-section">
   <div class="bilan-grid">
@@ -1021,5 +1047,7 @@ function drawChart(key, data, seuil){
   </div>
 </section>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </body>
 </html>
