@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 :root{
   --bg-void:#06070B;--bg-deep:#0B0D13;--bg-base:#0F1118;
@@ -997,7 +997,22 @@ body { font-size: 0.9375rem; }
               <div class="fg-grid">
           <div class="fg full"><label class="fg-lbl req">Intitulé</label><input id="n-intitule" class="fg-inp" placeholder="Titre de la problématique…"></div>
           <div class="fg"><label class="fg-lbl req">Pilier</label><select id="n-pilier" class="fg-sel"></select></div>
-          <div class="fg"><label class="fg-lbl req">Priorité</label><select id="n-priorite" class="fg-sel"><option value="">Sélectionner</option><option>Critique</option><option>Haute</option><option>Moyenne</option><option>Basse</option<script>
+          <div class="fg"><label class="fg-lbl req">Priorité</label><select id="n-priorite" class="fg-sel"><option value="">Sélectionner</option><option>Critique</option><option>Haute</option><option>Moyenne</option><option>Basse
+              </select>
+            </div>
+            <div class="fg full"><label class="fg-lbl">Responsable souhaité</label><input type="text" id="n-responsable" class="fg-inp" placeholder="Nom du responsable suggéré"></div>
+            <div class="fg full"><label class="fg-lbl req">Description détaillée</label><textarea id="n-description" class="fg-ta" placeholder="Décrivez la problématique, le contexte, les actions déjà tentées…"></textarea></div>
+          </div>
+          <div class="form-acts">
+            <button class="btn-can" onclick="resetForm()">Réinitialiser</button>
+            <button class="btn-sub" onclick="submitNouvelleProb()">⊕ Soumettre</button>
+          </div>
+        </div>
+      </div>
+
+
+<script>
+
 const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const { createClient } = supabase;
@@ -1457,7 +1472,22 @@ function bStat(s){
 }
 function bPrio(p){const m={Critique:'bpC',Haute:'bpH',Moyenne:'bpM',Basse:'bpB'};return `<span class="badge ${m[p]||'bpB'}">${esc(p||'')}</span>`;}
 
-window.addEventListener('load',()=>setTimeout(init,800));
+// Init robuste : attend que le SDK Supabase soit disponible
+function waitForSupabaseAndInit(){
+  if(typeof supabase !== 'undefined' && supabase.createClient){
+    try{ init(); }catch(e){ document.getElementById('loading-screen').classList.add('hidden'); showAuth(); }
+  } else {
+    setTimeout(waitForSupabaseAndInit, 50);
+  }
+}
+// Garde-fou absolu : si après 8s la page n'a pas chargé, on cache le loading
+window.addEventListener('load', ()=>{
+  setTimeout(()=>{
+    const ls = document.getElementById('loading-screen');
+    if(ls && !ls.classList.contains('hidden')){ ls.classList.add('hidden'); showAuth(); }
+  }, 8000);
+  waitForSupabaseAndInit();
+});
 
 
 
@@ -1512,84 +1542,12 @@ function closeCritereBtn(){
 
 
 
-
-
-</script>ML = texte.split('\n').join('<br>');
-  } else {
-    body.innerHTML = '<span style="color:var(--text-muted);font-style:italic">Aucun critère défini. Rendez-vous dans <strong>Outils → Critères des piliers</strong> pour en ajouter un.</span>';
-  }
-}
-
-function closeCritere(e){
-  if(e.target===document.getElementById('critere-overlay')) closeCritereBtn();
-}
-function closeCritereBtn(){
-  document.getElementById('critere-overlay').classList.remove('open');
-  critereActif = null;
-}
-
-
-
-
-
-</script>yenne:'bpM',Basse:'bpB'};return `<span class="badge ${m[p]||'bpB'}">${esc(p||'')}</span>`;}
-
-window.addEventListener('load',()=>setTimeout(init,800));
-
-
-
-
-
-
-
-
-
-// ── CRITÈRES PILIERS (lecture seule dans le dashboard) ──────────
-let critereCache = {};
-let critereActif = null;
-
-async function openCritere(pilier){
-  critereActif = pilier;
-  document.getElementById('cm-title').textContent = pilier;
-  const body = document.getElementById('cm-body');
-  body.textContent = 'Chargement…';
-  body.className = 'cm-body loading';
-  document.getElementById('critere-overlay').classList.add('open');
-
-  if(critereCache[pilier] !== undefined){
-    afficherCritere(critereCache[pilier]); return;
-  }
-  try {
-    const {data, error} = await sb.from('piliers_criteres')
-      .select('critere').eq('pilier', pilier).single();
-    const texte = (!error && data) ? (data.critere||'') : '';
-    critereCache[pilier] = texte;
-    afficherCritere(texte);
-  } catch(e){ afficherCritere(''); }
-}
-
-function afficherCritere(texte){
-  const body = document.getElementById('cm-body');
-  body.className = 'cm-body';
-  if(texte){
-    body.innerHTML = texte.split('\n').join('<br>');
-  } else {
-    body.innerHTML = '<span style="color:var(--text-muted);font-style:italic">Aucun critère défini. Rendez-vous dans <strong>Outils → Critères des piliers</strong> pour en ajouter un.</span>';
-  }
-}
-
-function closeCritere(e){
-  if(e.target===document.getElementById('critere-overlay')) closeCritereBtn();
-}
-function closeCritereBtn(){
-  document.getElementById('critere-overlay').classList.remove('open');
-  critereActif = null;
-}
 
 
 
 
 </script>
+
 
 
 <!-- ═══ MODAL CRITÈRE PILIER (lecture seule) ═══ -->
@@ -1612,5 +1570,7 @@ function closeCritereBtn(){
   </div>
 </div>
 
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </body>
 </html>
