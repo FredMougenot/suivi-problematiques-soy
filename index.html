@@ -977,17 +977,21 @@ body { font-size: 0.9375rem; }
 
 <!-- MODAL MODIFICATION -->
 <div class="overlay" id="modal-edit">
-  <div class="modal">
+  <div class="modal" style="max-width:600px">
     <div class="modal-hd">
-      <div><div class="modal-t">Modifier</div><div class="modal-s" id="edit-subtitle"></div></div>
+      <div><div class="modal-t">Modifier la problématique</div><div class="modal-s" id="edit-subtitle"></div></div>
       <button class="modal-x" onclick="closeModal('modal-edit')">✕</button>
     </div>
     <div class="modal-bd">
       <input type="hidden" id="edit-id">
       <div class="fg-grid">
-        <div class="fg"><label class="fg-lbl">Statut</label>
-          <select id="edit-statut" class="fg-sel">
-            <option>À traiter</option><option>En cours</option><option>Résolu</option><option>Annulé</option>
+        <div class="fg full"><label class="fg-lbl">Intitulé</label>
+          <input id="edit-intitule" class="fg-inp" placeholder="Intitulé de la problématique…">
+        </div>
+        <div class="fg"><label class="fg-lbl">Pilier</label>
+          <select id="edit-pilier" class="fg-sel">
+            <option>SST</option><option>Qualite</option><option>Couts</option>
+            <option>Delais</option><option>Motivation</option><option>Environnement</option>
           </select>
         </div>
         <div class="fg"><label class="fg-lbl">Priorité</label>
@@ -995,11 +999,25 @@ body { font-size: 0.9375rem; }
             <option>Critique</option><option>Haute</option><option>Moyenne</option><option>Basse</option>
           </select>
         </div>
-        <div class="fg"><label class="fg-lbl">Responsable</label><input id="edit-responsable" class="fg-inp" placeholder="Nom…"></div>
-        <div class="fg"><label class="fg-lbl">Date prévue</label><input id="edit-date-prevue" class="fg-inp" type="date"></div>
-        <div class="fg"><label class="fg-lbl">Seuil visé</label><input id="edit-seuil" class="fg-inp" type="number" placeholder="0"></div>
-        <div class="fg"><label class="fg-lbl">Valeur réelle</label><input id="edit-reel" class="fg-inp" type="number" placeholder="0"></div>
-        <div class="fg full"><label class="fg-lbl">Résultat</label><input id="edit-resultat" class="fg-inp" placeholder="…"></div>
+        <div class="fg"><label class="fg-lbl">Statut</label>
+          <select id="edit-statut" class="fg-sel">
+            <option>À traiter</option><option>En cours</option><option>Résolu</option><option>Annulé</option><option>Clôturé</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fg-lbl">Responsable</label>
+          <input id="edit-responsable" class="fg-inp" placeholder="Nom…">
+        </div>
+        <div class="fg"><label class="fg-lbl">Date prévue</label>
+          <input id="edit-date-prevue" class="fg-inp" type="date">
+        </div>
+        <div class="fg"><label class="fg-lbl">Date résolue</label>
+          <input id="edit-date-resolue" class="fg-inp" type="date">
+        </div>
+        <div class="fg full"><label class="fg-lbl">Description</label>
+          <textarea id="edit-description" class="fg-inp" rows="4"
+            style="resize:vertical;min-height:80px;font-family:inherit;font-size:.86rem;line-height:1.5"
+            placeholder="Description détaillée…"></textarea>
+        </div>
       </div>
     </div>
     <div class="modal-ft">
@@ -1360,38 +1378,38 @@ async function submitModal(){
 function openEdit(id){
   const ep=allProblems.find(x=>x.id===id);if(!ep)return;
   document.getElementById('edit-id').value=id;
-  document.getElementById('edit-subtitle').textContent=ep.intitule;
-  document.getElementById('edit-statut').value=ep.statut||'À traiter';
+  document.getElementById('edit-subtitle').textContent='#'+String(id).padStart(4,'0');
+  document.getElementById('edit-intitule').value=ep.intitule||'';
+  document.getElementById('edit-pilier').value=ep.pilier||'SST';
   document.getElementById('edit-priorite').value=ep.priorite||'Moyenne';
+  document.getElementById('edit-statut').value=ep.statut||'À traiter';
   document.getElementById('edit-responsable').value=ep.responsable||'';
-  document.getElementById('edit-seuil').value=ep.seuil||'';
-  document.getElementById('edit-reel').value=ep.reel||'';
-  document.getElementById('edit-resultat').value=ep.resultat||'';
   document.getElementById('edit-date-prevue').value=ep.date_prevue||'';
+  document.getElementById('edit-date-resolue').value=ep.date_resolue||'';
+  document.getElementById('edit-description').value=ep.description||'';
   document.getElementById('modal-edit').classList.add('open');
 }
 async function saveEdit(){
   const eid=parseInt(document.getElementById('edit-id').value);
   const newStatut=document.getElementById('edit-statut').value;
   const prevProb=allProblems.find(x=>x.id===eid)||{};
-  // Auto date_resolue si passage à Résolu
-  const wasResolu = prevProb.statut==='Résolu';
-  const nowResolu = newStatut==='Résolu';
-  const dateResolue = nowResolu ? (prevProb.date_resolue || new Date().toISOString().slice(0,10)) : (wasResolu&&!nowResolu?null:prevProb.date_resolue);
-  const datePrevue = document.getElementById('edit-date-prevue').value || prevProb.date_prevue || null;
+  const wasResolu=prevProb.statut==='Résolu';
+  const nowResolu=newStatut==='Résolu';
+  const drField=document.getElementById('edit-date-resolue').value||null;
+  const dateResolue=drField||(nowResolu?(prevProb.date_resolue||new Date().toISOString().slice(0,10)):(wasResolu&&!nowResolu?null:prevProb.date_resolue));
   const {error}=await sb.from('problematiques').update({
-    statut:newStatut,
-    priorite:document.getElementById('edit-priorite').value,
-    responsable:document.getElementById('edit-responsable').value.trim()||null,
-    seuil:document.getElementById('edit-seuil').value?parseFloat(document.getElementById('edit-seuil').value):null,
-    reel:document.getElementById('edit-reel').value?parseFloat(document.getElementById('edit-reel').value):null,
-    resultat:document.getElementById('edit-resultat').value.trim()||null,
-    date_prevue:datePrevue,
-    date_resolue:dateResolue,
-    updated_at:new Date().toISOString(),
+    intitule:    document.getElementById('edit-intitule').value.trim()||prevProb.intitule,
+    pilier:      document.getElementById('edit-pilier').value,
+    statut:      newStatut,
+    priorite:    document.getElementById('edit-priorite').value,
+    responsable: document.getElementById('edit-responsable').value.trim()||null,
+    description: document.getElementById('edit-description').value.trim()||null,
+    date_prevue: document.getElementById('edit-date-prevue').value||null,
+    date_resolue:dateResolue||null,
+    updated_at:  new Date().toISOString(),
   }).eq('id',eid);
   if(error){toast('Erreur: '+error.message,'error');return;}
-  closeModal('modal-edit'); toast('Modifications enregistrees.','success'); await loadAll();
+  closeModal('modal-edit'); toast('Modifications enregistrées.','success'); await loadAll();
 }
 async function cloturerProb(id){
   if(!confirm('Cloturer cette problematique ?'))return;
