@@ -1,319 +1,512 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paramètres</title>
-    <link rel="stylesheet" href="./soy-shared.css">
-    <style>
-        .parametres-container {
-            padding: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paramètres — Inventaire Cyclique — SOY</title>
+<link rel="stylesheet" href="soy-shared.css">
+<style>
+/* ══ PARAMÈTRES INVENTAIRE ══════════════════════════════════════ */
 
-        .parametres-header {
-            margin-bottom: 2rem;
-        }
+.page-header{margin-bottom:28px;}
+.page-eyebrow{font-size:.62rem;font-weight:800;color:var(--copper);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;}
+.page-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--text-primary);}
+.page-sub{font-size:.82rem;color:var(--text-muted);margin-top:4px;}
 
-        .parametres-header h1 {
-            font-size: 2rem;
-            margin: 0;
-        }
+/* Barre d'actions */
+.actions-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px;}
+.actions-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 
-        .table-wrapper {
-            overflow-x: auto;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
+.btn-add{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;font-size:.82rem;font-weight:800;border:none;cursor:pointer;transition:opacity .15s,transform .1s;white-space:nowrap;}
+.btn-add:hover{opacity:.88;transform:translateY(-1px);}
+.btn-save-all{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);background:var(--emerald-bg);border:1px solid rgba(45,212,160,.3);color:var(--emerald);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn-save-all:hover{background:rgba(45,212,160,.15);}
 
-        .parametres-table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: #fff;
-        }
+/* Compteur */
+.item-count{font-size:.78rem;color:var(--text-muted);font-weight:600;padding:5px 12px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:20px;}
 
-        .parametres-table thead {
-            background-color: #f5f5f5;
-        }
+/* Table */
+.param-tbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow:hidden;position:relative;}
+.param-tbl-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--copper),transparent);pointer-events:none;}
+.param-tbl{width:100%;border-collapse:collapse;}
+.param-tbl thead tr{background:var(--bg-float);border-bottom:1px solid var(--text-faint);}
+.param-tbl thead th{padding:12px 16px;font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:var(--text-muted);text-align:left;white-space:nowrap;}
+.param-tbl thead th:first-child{width:48px;text-align:center;}
+.param-tbl thead th:last-child{width:80px;text-align:center;}
+.param-tbl tbody tr{border-bottom:1px solid rgba(44,51,80,.5);transition:background .1s;}
+.param-tbl tbody tr:hover{background:var(--bg-hover);}
+.param-tbl tbody tr:last-child{border-bottom:none;}
+.param-tbl tbody td{padding:8px 12px;font-size:.86rem;color:var(--text-primary);vertical-align:middle;}
+.param-tbl tbody td:first-child{text-align:center;color:var(--text-muted);font-size:.76rem;font-weight:700;}
+.param-tbl tbody td:last-child{text-align:center;}
 
-        .parametres-table th {
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-            border-bottom: 2px solid #e0e0e0;
-            color: #333;
-        }
+/* Inputs dans la table */
+.inp-item{background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text-primary);font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;padding:4px 6px;width:100%;transition:border-color .15s;}
+.inp-item:hover{border-bottom-color:var(--text-faint);}
+.inp-item:focus{border-bottom-color:var(--copper);}
+.sel-rec{background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-sm);padding:5px 10px;font-size:.82rem;font-family:'Outfit',sans-serif;outline:none;cursor:pointer;transition:border-color .15s;width:110px;}
+.sel-rec:focus{border-color:var(--copper);}
+.sel-rec option{background:var(--bg-float);}
 
-        .parametres-table td {
-            padding: 1rem;
-            border-bottom: 1px solid #e0e0e0;
-            color: #555;
-        }
+/* Badge récurrence */
+.rec-30{color:var(--emerald);font-weight:700;}
+.rec-60{color:var(--amber);font-weight:700;}
+.rec-90{color:var(--sapphire);font-weight:700;}
 
-        .parametres-table tbody tr:hover {
-            background-color: #f9f9f9;
-            transition: background-color 0.2s ease;
-        }
+/* Bouton supprimer */
+.btn-rm{width:28px;height:28px;border-radius:var(--r-sm);background:transparent;border:1px solid transparent;color:var(--text-muted);font-size:.85rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;}
+.btn-rm:hover{background:rgba(224,85,85,.1);border-color:rgba(224,85,85,.3);color:var(--ruby);}
 
-        .parametres-table tbody tr:last-child td {
-            border-bottom: none;
-        }
+/* Spinner */
+.spinner{display:flex;align-items:center;justify-content:center;padding:50px;gap:12px;color:var(--text-muted);font-size:.88rem;}
+.sp-ring{width:24px;height:24px;border:2px solid var(--text-faint);border-top-color:var(--copper);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-        .item-column {
-            font-weight: 500;
-            width: 60%;
-        }
+/* Toast */
+.toast-bar{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+.toast{padding:11px 18px;border-radius:var(--r-md);font-size:.82rem;font-weight:600;border:1px solid;animation:tin .2s var(--ease);max-width:320px;pointer-events:auto;}
+.toast.ok{background:rgba(45,212,160,.12);color:var(--emerald);border-color:rgba(45,212,160,.3);}
+.toast.err{background:rgba(224,85,85,.12);color:var(--ruby);border-color:rgba(224,85,85,.3);}
+@keyframes tin{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
 
-        .recurrence-column {
-            width: 40%;
-        }
-
-        .recurrence-select {
-            padding: 0.5rem 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 0.95rem;
-            background-color: #fff;
-            cursor: pointer;
-            transition: border-color 0.2s ease;
-        }
-
-        .recurrence-select:hover {
-            border-color: #999;
-        }
-
-        .recurrence-select:focus {
-            outline: none;
-            border-color: #4CAF50;
-            box-shadow: 0 0 3px rgba(76, 175, 80, 0.3);
-        }
-
-        .action-buttons {
-            margin-top: 2rem;
-            display: flex;
-            gap: 1rem;
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 4px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-save {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        .btn-save:hover {
-            background-color: #45a049;
-        }
-
-        .btn-reset {
-            background-color: #f0f0f0;
-            color: #333;
-            border: 1px solid #ddd;
-        }
-
-        .btn-reset:hover {
-            background-color: #e0e0e0;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 2rem;
-            color: #666;
-        }
-
-        .loading.active {
-            display: block;
-        }
-
-        .message {
-            margin-top: 1rem;
-            padding: 1rem;
-            border-radius: 4px;
-            display: none;
-        }
-
-        .message.active {
-            display: block;
-        }
-
-        .message.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .message.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-    </style>
+@media(max-width:700px){.actions-bar{flex-direction:column;align-items:flex-start;}.param-tbl{min-width:480px;}.param-tbl-wrap{overflow-x:auto;}}
+</style>
 </head>
 <body>
-    <div class="parametres-container">
-        <div class="parametres-header">
-            <h1>Paramètres</h1>
-            <p>Gérez la récurrence de vos items</p>
-        </div>
+<div class="tool-wrap">
 
-        <div class="loading" id="loading">
-            <p>Chargement des paramètres...</p>
-        </div>
+  <!-- TOPBAR -->
+  <div class="tool-topbar">
+    <a class="tool-back" href="inventaire_cyclique.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Inventaire cyclique
+    </a>
+    <div class="tool-title">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--copper)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Paramètres — Inventaire cyclique
+    </div>
+    <span style="margin-left:auto;font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--copper-dim);border:1px solid rgba(200,132,58,.2);color:var(--copper);">Qualité</span>
+  </div>
 
-        <div class="table-wrapper">
-            <table class="parametres-table" id="parametresTable">
-                <thead>
-                    <tr>
-                        <th class="item-column">Item</th>
-                        <th class="recurrence-column">Récurrence (jours)</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                </tbody>
-            </table>
-        </div>
+  <!-- CONTENU -->
+  <div class="tool-main">
 
-        <div class="action-buttons">
-            <button class="btn btn-save" id="saveBtn">Enregistrer les modifications</button>
-            <button class="btn btn-reset" id="resetBtn">Réinitialiser</button>
-        </div>
-
-        <div class="message" id="message"></div>
+    <div class="page-header">
+      <div class="page-eyebrow">Configuration</div>
+      <div class="page-title">Liste des items à vérifier</div>
+      <div class="page-sub">Définissez les items et leur fréquence de vérification. Les modifications sont sauvegardées dans Supabase.</div>
     </div>
 
-    <script>
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-        const SUPABASE_KEY = 'YOUR_SUPABASE_KEY';
-        
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <div class="actions-bar">
+      <div class="actions-left">
+        <button class="btn-add" onclick="addRow()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter un item
+        </button>
+        <button class="btn-save-all" onclick="saveAll()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Tout sauvegarder
+        </button>
+      </div>
+      <div class="item-count" id="item-count">— items</div>
+    </div>
 
-        const recurrenceOptions = [30, 60, 90];
-        const itemCount = 200;
+    <div id="spinner" class="spinner">
+      <div class="sp-ring"></div> Chargement…
+    </div>
 
-        // Charger les données au démarrage
-        document.addEventListener('DOMContentLoaded', async () => {
-            await loadParametres();
-            attachEventListeners();
-        });
+    <div class="param-tbl-wrap" id="tbl-wrap" style="display:none">
+      <table class="param-tbl">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Item</th>
+            <th>Récurrence</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
 
-        async function loadParametres() {
-            const loading = document.getElementById('loading');
-            loading.classList.add('active');
+  </div>
+</div>
 
-            try {
-                const { data, error } = await supabase
-                    .from('parametres')
-                    .select('*')
-                    .order('item_number', { ascending: true });
+<div class="toast-bar" id="toasts"></div>
 
-                if (error) throw error;
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+let sb;
 
-                renderTable(data || []);
-            } catch (error) {
-                console.error('Erreur lors du chargement:', error);
-                showMessage('Erreur lors du chargement des données', 'error');
-            } finally {
-                loading.classList.remove('active');
-            }
-        }
+// ── ITEMS PAR DÉFAUT (200 items) ────────────────────────────────
+const DEFAULT_ITEMS = [
+  // Réception & Expédition
+  ["Quai de réception — propreté générale", 30],
+  ["Quai d'expédition — propreté générale", 30],
+  ["Portes de quai — état et fonctionnement", 60],
+  ["Niveleurs de quai — état et lubrification", 60],
+  ["Joints de quai — usure et étanchéité", 90],
+  ["Sellettes de quai — état", 60],
+  ["Signalisation de quai — lisibilité", 30],
+  ["Zone de tri — organisation", 30],
+  ["Palettes disponibles — stock et état", 30],
+  ["Banderoleuse — fonctionnement et film", 30],
+  // Entrepôt — allées
+  ["Allée principale A — dégagement", 30],
+  ["Allée principale B — dégagement", 30],
+  ["Allée principale C — dégagement", 30],
+  ["Allée secondaire 1 — dégagement", 30],
+  ["Allée secondaire 2 — dégagement", 30],
+  ["Marquage au sol — lisibilité", 60],
+  ["Signalisation de sécurité — présence", 30],
+  ["Miroirs de sécurité — propreté et angle", 30],
+  ["Éclairage allée A — fonctionnement", 60],
+  ["Éclairage allée B — fonctionnement", 60],
+  // Rayonnages
+  ["Rayonnage zone A — intégrité structurelle", 60],
+  ["Rayonnage zone B — intégrité structurelle", 60],
+  ["Rayonnage zone C — intégrité structurelle", 60],
+  ["Rayonnage zone D — intégrité structurelle", 60],
+  ["Protecteurs de rayonnage — présence", 60],
+  ["Étiquettes de capacité — lisibilité", 90],
+  ["Ancrages au sol — inspection", 90],
+  ["Lisses — déformation visible", 60],
+  ["Montants — impact ou déformation", 60],
+  ["Filets anti-chute — état", 60],
+  // Équipements de manutention
+  ["Chariot élévateur #1 — inspection quotidienne", 30],
+  ["Chariot élévateur #2 — inspection quotidienne", 30],
+  ["Chariot élévateur #3 — inspection quotidienne", 30],
+  ["Transpalette électrique #1 — batterie", 30],
+  ["Transpalette électrique #2 — batterie", 30],
+  ["Transpalette manuel #1 — fourches et galets", 30],
+  ["Transpalette manuel #2 — fourches et galets", 30],
+  ["Chargeurs de batterie — état et câblage", 60],
+  ["Station de charge — propreté", 30],
+  ["Gerbeur — état général", 60],
+  // Sécurité
+  ["Extincteurs — inspection visuelle", 30],
+  ["Boyaux d'incendie — accès dégagé", 30],
+  ["Sorties d'urgence — dégagement", 30],
+  ["Panneaux d'urgence — éclairage", 30],
+  ["Trousse de premiers soins — inventaire", 30],
+  ["Douche oculaire — test de fonctionnement", 30],
+  ["Rince-oeil portatif — date d'expiration", 60],
+  ["Absorbants pour déversements — disponibilité", 30],
+  ["Pictogrammes SST — présence et lisibilité", 60],
+  ["Liste des numéros d'urgence — affichage", 30],
+  // Zone de charge des batteries
+  ["Ventilation zone de charge — fonctionnement", 30],
+  ["Bacs de rétention — propreté et intégrité", 60],
+  ["Eau distillée — niveau disponible", 30],
+  ["Densimètre — disponibilité", 60],
+  ["Registre de charge — tenu à jour", 30],
+  ["Câbles de charge — état visuel", 30],
+  ["Armoire électrique — fermeture et propreté", 60],
+  ["EPI zone chimique — disponibilité", 30],
+  ["Fiche de données de sécurité — affichage", 60],
+  ["Thermomètre zone charge — fonctionnement", 60],
+  // Bureaux et zones communes
+  ["Salle de réunion — propreté", 30],
+  ["Vestiaires hommes — propreté", 30],
+  ["Vestiaires femmes — propreté", 30],
+  ["Toilettes — propreté et approvisionnement", 30],
+  ["Cuisine / salle de repos — propreté", 30],
+  ["Réfrigérateur commun — propreté", 60],
+  ["Collecteurs de déchets — vidange", 30],
+  ["Recyclage — bacs disponibles", 30],
+  ["Affichage RH — mise à jour", 60],
+  ["Bureau superviseur — ordre", 30],
+  // Informatique et communications
+  ["Terminaux RF — état et fonctionnement", 60],
+  ["Imprimantes d'étiquettes — consommables", 30],
+  ["Ordinateurs postes — mise à jour", 90],
+  ["Réseau WiFi entrepôt — couverture", 60],
+  ["Téléphones fixes — fonctionnement", 60],
+  ["Caméras de surveillance — champ visuel", 60],
+  ["Système d'alarme — test", 90],
+  ["Onduleurs — état batterie", 90],
+  ["Câblage réseau — organisation", 90],
+  ["Serveur local — température et ventilation", 60],
+  // Maintenance bâtiment
+  ["Toiture — inspection visuelle (pas de fuite)", 90],
+  ["Portes extérieures — fermeture et joints", 60],
+  ["Fenêtres — état et propreté", 60],
+  ["Plancher entrepôt — fissures et déformations", 60],
+  ["Peinture de sol — usure", 90],
+  ["Luminaires extérieurs — fonctionnement", 60],
+  ["Gouttières — dégagement", 90],
+  ["Stationnement — dégagement et signalisation", 30],
+  ["Rampe d'accès — état", 60],
+  ["Barrières de sécurité extérieures — état", 60],
+  // Contrôle de la qualité
+  ["Zone de contrôle qualité — organisation", 30],
+  ["Outils de mesure — étalonnage à jour", 90],
+  ["Balance industrielle — vérification", 30],
+  ["Échantillothèque — organisation et étiquetage", 60],
+  ["Registres de non-conformité — tenu à jour", 30],
+  ["Procédures qualité — affichage", 60],
+  ["Rubans de signalisation — stock", 30],
+  ["Zone de quarantaine — identification", 30],
+  ["Documents de lot — accessibilité", 30],
+  ["Fiches techniques produits — à jour", 60],
+  // Gestion des déchets
+  ["Benne à déchets — niveau et accès", 30],
+  ["Bac de recyclage carton — niveau", 30],
+  ["Bac de recyclage plastique — niveau", 30],
+  ["Déchets dangereux — étiquetage et ségrégation", 30],
+  ["Registre des déchets — tenu à jour", 60],
+  ["Aire de déchets — propreté", 30],
+  ["Conteneurs de déchets alimentaires — vidange", 30],
+  ["Papier de bureau — recyclage", 30],
+  ["Huiles usées — conteneur étiqueté", 60],
+  ["Batteries usées — conteneur étiqueté", 60],
+  // Matières premières / produits
+  ["Rotation des stocks FIFO — respect", 30],
+  ["Étiquetage des palettes — conformité", 30],
+  ["Dates de péremption — vérification", 30],
+  ["Températures zone froide — enregistrement", 30],
+  ["Températures zone ambiante — enregistrement", 30],
+  ["Inventaire produits dangereux — liste à jour", 60],
+  ["Zone stockage produits chimiques — ségrégation", 60],
+  ["Produits en surstock — signalement", 30],
+  ["Produits obsolètes — identification", 60],
+  ["Conformité des emballages — inspection", 30],
+  // Outillage et équipements divers
+  ["Outillage général — rangement et état", 30],
+  ["Ciseaux et cutters — protection des lames", 30],
+  ["Échelles et escabeaux — état", 60],
+  ["Balais et équipements de nettoyage — disponibilité", 30],
+  ["Aspirateur industriel — état et sac", 30],
+  ["Nettoyeur haute pression — état", 60],
+  ["Chariot de transport documents — état", 60],
+  ["Système de pesée portable — étalonnage", 60],
+  ["Thermomètre infrarouge — fonctionnement", 60],
+  ["Détecteur de métaux — étalonnage", 90],
+  // Hygiène et salubrité
+  ["Station de lavage des mains — fonctionnement", 30],
+  ["Distributeurs de savon — niveau", 30],
+  ["Distributeurs de désinfectant — niveau", 30],
+  ["Distributeurs de papier — niveau", 30],
+  ["Nettoyage des sols — fréquence respectée", 30],
+  ["Nettoyage des équipements — registre", 30],
+  ["Présence de nuisibles — inspection", 30],
+  ["Appâts anti-nuisibles — état et position", 60],
+  ["Registre de désinfection — tenu à jour", 30],
+  ["Produits de nettoyage — stockage sécurisé", 30],
+  // Ressources humaines / formation
+  ["Tableau d'affichage RH — mise à jour", 30],
+  ["Registre de formation SST — à jour", 60],
+  ["Habilitations chariots — dates de validité", 60],
+  ["Plan d'évacuation — affiché et à jour", 90],
+  ["Exercice d'évacuation — réalisé", 90],
+  ["Registre des accidents — tenu", 30],
+  ["Fiches d'accidentologie — complètes", 60],
+  ["Affectation des EPI — enregistrée", 60],
+  ["Accueil nouveaux employés — réalisé", 30],
+  ["Évaluations de performance — planifiées", 90],
+  // Systèmes de contrôle
+  ["Système WMS — journaux d'erreurs", 30],
+  ["Scanners code-barres — fonctionnement", 30],
+  ["Lecteurs RFID — fonctionnement", 60],
+  ["Système ERP — synchronisation", 30],
+  ["Sauvegardes données — vérification", 30],
+  ["Licences logicielles — dates d'expiration", 90],
+  ["Mots de passe système — politiques respectées", 90],
+  ["Journaux d'accès — revue", 60],
+  ["Alertes automatiques — configuration", 60],
+  ["Rapports automatisés — génération", 30],
+  // Transport et expédition
+  ["Bons de livraison — archivage", 30],
+  ["Étiquettes d'expédition — stock", 30],
+  ["Rubans d'emballage — stock", 30],
+  ["Coin d'emballage — matériaux disponibles", 30],
+  ["Conditionnement produits fragiles — matériaux", 30],
+  ["Pesée des colis — fonctionnement balance", 30],
+  ["Imprimante bordereau — fonctionnement", 30],
+  ["Retours clients — zone identifiée", 30],
+  ["Documents douaniers — modèles à jour", 60],
+  ["Suivi transporteurs — accès aux portails", 60],
+  // Environnement et durabilité
+  ["Consommation électrique — relevé mensuel", 30],
+  ["Consommation gaz — relevé", 60],
+  ["Consommation eau — relevé", 60],
+  ["Éclairage LED — efficacité", 90],
+  ["Thermostat — réglages saisonniers", 60],
+  ["Fuites compresseur d'air — détection", 30],
+  ["Compresseur d'air — pression et filtre", 30],
+  ["Panneaux solaires — inspection", 90],
+  ["Récupération eaux pluviales — état", 90],
+  ["Registre environnemental — tenu à jour", 60],
+  // Inspection finale
+  ["Tour d'entrepôt début de quart", 30],
+  ["Tour d'entrepôt fin de quart", 30],
+  ["Rapport d'inspection quotidien — complété", 30],
+  ["Points d'action ouverts — suivi", 30],
+  ["Réunion de quart — tenue", 30],
+  ["Communication inter-quarts — réalisée", 30],
+  ["Registre de maintenance préventive — à jour", 30],
+  ["Calendrier des audits — respecté", 60],
+  ["Indicateurs KPI — mis à jour", 30],
+  ["Revue de direction — préparée", 90]
 
-        function renderTable(data) {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
+  // Maintenance préventive
+  ["Lubrification des chariots — calendrier respecté", 30],
+  ["Filtres HVAC — remplacement", 60],
+  ["Inspections réglementaires — planifiées", 90],
+  ["Contrats de maintenance — à jour", 90],
+  ["Pièces de rechange critiques — stock", 60],
+  ["Journal de maintenance — tenu à jour", 30],
+  ["Inspection des câbles de levage", 60],
+  ["Vérification des limiteurs de charge", 90],
+  ["Test des alarmes incendie", 30],
+  ["Inspection des systèmes de sprinkleurs", 90]];
 
-            const dataMap = new Map(data.map(item => [item.item_number, item]));
+// État local
+let rows = []; // [{id, item, recurrence, dirty}]
+let nextTmpId = -1;
 
-            for (let i = 1; i <= itemCount; i++) {
-                const existing = dataMap.get(i);
-                const recurrence = existing ? existing.recurrence : 30;
+// ── INIT ────────────────────────────────────────────────────────
+function initApp(){
+  sb = supabase.createClient(SB_URL, SB_KEY);
+  load();
+}
 
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="item-column">Item ${i}</td>
-                    <td class="recurrence-column">
-                        <select class="recurrence-select" data-item="${i}">
-                            ${recurrenceOptions.map(option => `
-                                <option value="${option}" ${recurrence === option ? 'selected' : ''}>
-                                    ${option} jours
-                                </option>
-                            `).join('')}
-                        </select>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            }
-        }
+function waitForSupabaseAndInit(){
+  if(typeof supabase !== 'undefined' && supabase.createClient){
+    try{ initApp(); }catch(e){ showSpinner(false); toast('Erreur init','err'); }
+  } else {
+    setTimeout(waitForSupabaseAndInit, 50);
+  }
+}
+window.addEventListener('load', waitForSupabaseAndInit);
 
-        function attachEventListeners() {
-            document.getElementById('saveBtn').addEventListener('click', saveParametres);
-            document.getElementById('resetBtn').addEventListener('click', loadParametres);
-        }
+// ── CHARGEMENT ──────────────────────────────────────────────────
+async function load(){
+  showSpinner(true);
+  try {
+    const {data, error} = await sb.from('parametres')
+      .select('*').order('id');
+    if(error) throw error;
+    if(data && data.length > 0){
+      rows = data.map(r=>({id:r.id, item:r.item||'', recurrence:r.recurrence||30, dirty:false}));
+    } else {
+      // Pré-remplir avec les 200 items par défaut
+      rows = DEFAULT_ITEMS.map((d,i)=>({id: nextTmpId--, item:d[0], recurrence:d[1], dirty:true}));
+    }
+  } catch(e){
+    toast('Erreur chargement : '+e.message, 'err');
+    rows = DEFAULT_ITEMS.map((d,i)=>({id: nextTmpId--, item:d[0], recurrence:d[1], dirty:true}));
+  }
+  render();
+  showSpinner(false);
+}
 
-        async function saveParametres() {
-            const saveBtn = document.getElementById('saveBtn');
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Enregistrement...';
+// ── RENDU ───────────────────────────────────────────────────────
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-            try {
-                const selects = document.querySelectorAll('.recurrence-select');
-                const data = [];
+function render(){
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = rows.map((r,i) => `
+    <tr id="row-${i}" data-idx="${i}">
+      <td>${i+1}</td>
+      <td><input class="inp-item" value="${esc(r.item)}" placeholder="Nom de l'item…"
+        oninput="markDirty(${i},'item',this.value)"></td>
+      <td>
+        <select class="sel-rec" onchange="markDirty(${i},'recurrence',parseInt(this.value))">
+          <option value="30" ${r.recurrence==30?'selected':''}>30 jours</option>
+          <option value="60" ${r.recurrence==60?'selected':''}>60 jours</option>
+          <option value="90" ${r.recurrence==90?'selected':''}>90 jours</option>
+        </select>
+      </td>
+      <td><button class="btn-rm" onclick="removeRow(${i})" title="Supprimer">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button></td>
+    </tr>`).join('');
+  document.getElementById('item-count').textContent = rows.length + ' item' + (rows.length !== 1 ? 's' : '');
+  document.getElementById('tbl-wrap').style.display = 'block';
+}
 
-                selects.forEach(select => {
-                    const itemNumber = parseInt(select.dataset.item);
-                    const recurrence = parseInt(select.value);
-                    data.push({
-                        item_number: itemNumber,
-                        recurrence: recurrence
-                    });
-                });
+function markDirty(idx, field, val){
+  rows[idx][field] = val;
+  rows[idx].dirty = true;
+}
 
-                // Supprimer les anciennes données et insérer les nouvelles
-                const { error: deleteError } = await supabase
-                    .from('parametres')
-                    .delete()
-                    .neq('item_number', -1); // Supprime tous les enregistrements
+// ── AJOUTER ─────────────────────────────────────────────────────
+function addRow(){
+  rows.push({id: nextTmpId--, item:'', recurrence:30, dirty:true});
+  render();
+  // Focus sur le dernier input
+  setTimeout(()=>{
+    const inputs = document.querySelectorAll('.inp-item');
+    if(inputs.length) inputs[inputs.length-1].focus();
+  }, 50);
+}
 
-                if (deleteError) throw deleteError;
+// ── SUPPRIMER ────────────────────────────────────────────────────
+async function removeRow(idx){
+  const r = rows[idx];
+  if(r.id > 0){
+    // Supprimer de Supabase
+    try {
+      const {error} = await sb.from('parametres').delete().eq('id', r.id);
+      if(error) throw error;
+    } catch(e){
+      toast('Erreur suppression : '+e.message, 'err');
+      return;
+    }
+  }
+  rows.splice(idx, 1);
+  render();
+  toast('Item supprimé', 'ok');
+}
 
-                // Insérer les nouvelles données
-                const { error: insertError } = await supabase
-                    .from('parametres')
-                    .insert(data);
+// ── SAUVEGARDER TOUT ────────────────────────────────────────────
+async function saveAll(){
+  const dirty = rows.filter(r => r.dirty);
+  if(!dirty.length){ toast('Aucune modification à sauvegarder', 'ok'); return; }
 
-                if (insertError) throw insertError;
+  let saved = 0, errors = 0;
+  for(const r of dirty){
+    try {
+      if(r.id > 0){
+        // Update
+        const {error} = await sb.from('parametres')
+          .update({item: r.item, recurrence: r.recurrence})
+          .eq('id', r.id);
+        if(error) throw error;
+      } else {
+        // Insert
+        const {data, error} = await sb.from('parametres')
+          .insert({item: r.item, recurrence: r.recurrence})
+          .select().single();
+        if(error) throw error;
+        r.id = data.id; // remplacer l'id temporaire
+      }
+      r.dirty = false;
+      saved++;
+    } catch(e){
+      errors++;
+    }
+  }
+  if(errors) toast(errors+' erreur(s) lors de la sauvegarde', 'err');
+  else toast(saved+' item(s) sauvegardé(s) ✓', 'ok');
+}
 
-                showMessage('Paramètres enregistrés avec succès!', 'success');
-            } catch (error) {
-                console.error('Erreur lors de l\'enregistrement:', error);
-                showMessage('Erreur lors de l\'enregistrement des données', 'error');
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.textContent = 'Enregistrer les modifications';
-            }
-        }
+// ── UTILITAIRES ─────────────────────────────────────────────────
+function showSpinner(on){
+  document.getElementById('spinner').style.display = on ? 'flex' : 'none';
+}
 
-        function showMessage(text, type) {
-            const message = document.getElementById('message');
-            message.textContent = text;
-            message.className = `message active ${type}`;
-
-            setTimeout(() => {
-                message.classList.remove('active');
-            }, 5000);
-        }
-    </script>
-
-    <!-- Charger la librairie Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+function toast(msg, type='ok'){
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(), 3500);
+}
+</script>
 </body>
 </html>
