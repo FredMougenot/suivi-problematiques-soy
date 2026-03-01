@@ -721,23 +721,23 @@ async function refreshCharts(){
   const weekStart = monday.toISOString().slice(0,10);
   const weekEnd   = sunday.toISOString().slice(0,10);
 
-  // Période mois EN COURS (correction : était mois précédent)
-  const now = new Date();
-  const curMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const curMonthEnd = new Date(now.getFullYear(), now.getMonth()+1, 0);
-  const mStart = curMonth.toISOString().slice(0,10);
+  // Période mois — basé sur curDate (date naviguée) et non la date système
+  const curMonth = new Date(curDate+'T00:00:00');
+  const curMonthStart = new Date(curMonth.getFullYear(), curMonth.getMonth(), 1);
+  const curMonthEnd   = new Date(curMonth.getFullYear(), curMonth.getMonth()+1, 0);
+  const mStart = curMonthStart.toISOString().slice(0,10);
   const mEnd   = curMonthEnd.toISOString().slice(0,10);
 
   // Labels graphiques
   const fmtShort = s => new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{day:'2-digit',month:'short'});
   document.getElementById('ct-today').textContent = fmtDateLbl(today);
   document.getElementById('ct-week').textContent  = fmtShort(weekStart)+' – '+fmtShort(weekEnd);
-  document.getElementById('ct-month').textContent = curMonth.toLocaleDateString('fr-CA',{month:'long',year:'numeric'});
+  document.getElementById('ct-month').textContent = curMonthStart.toLocaleDateString('fr-CA',{month:'long',year:'numeric'});
 
   // Labels bilan
   document.getElementById('bl-day-period').textContent  = fmtDateLbl(today);
   document.getElementById('bl-week-period').textContent = fmtShort(weekStart)+' – '+fmtShort(weekEnd);
-  document.getElementById('bl-month-period').textContent = curMonth.toLocaleDateString('fr-CA',{month:'long',year:'numeric'});
+  document.getElementById('bl-month-period').textContent = curMonthStart.toLocaleDateString('fr-CA',{month:'long',year:'numeric'});
 
   // Charger données
   const [dToday, dWeek, dMonth] = await Promise.all([
