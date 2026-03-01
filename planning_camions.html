@@ -250,7 +250,28 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
   .charts-grid { gap: 14px; }
 }
 
+
+/* ── TABLEAUX BILAN ───────────────────────────────────── */
+.bilan-section{padding:0 28px 32px;}
+.bilan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:18px;}
+.bilan-card{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow:hidden;}
+.bilan-card::before{content:'';display:block;height:2px;background:linear-gradient(90deg,var(--copper),var(--copper-light));}
+.bilan-card-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px;}
+.bilan-eyebrow{font-size:.6rem;font-weight:800;color:var(--copper);letter-spacing:.13em;text-transform:uppercase;}
+.bilan-period{font-size:.75rem;font-weight:600;color:var(--text-secondary);}
+.bilan-tbl{width:100%;border-collapse:collapse;}
+.bilan-tbl th{padding:7px 14px;font-size:.58rem;font-weight:800;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;text-align:left;background:var(--bg-float);border-bottom:1px solid var(--text-faint);}
+.bilan-tbl td{padding:9px 14px;font-size:.85rem;font-weight:600;color:var(--text-primary);border-bottom:1px solid rgba(255,255,255,.04);}
+.bilan-tbl tr:last-child td{border-bottom:none;}
+.bilan-taux{font-size:1.15rem;font-weight:800;}
+.taux-ok{color:var(--emerald);}
+.taux-warn{color:var(--amber);}
+.taux-bad{color:var(--ruby);}
+.obj-chip{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700;background:var(--copper-dim);color:var(--copper-light);border:1px solid rgba(200,132,58,.25);}
+.tol-chip{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700;background:rgba(74,158,232,.1);color:var(--sapphire);border:1px solid rgba(74,158,232,.2);}
+@media(max-width:900px){.bilan-grid{grid-template-columns:1fr;}}
 </style>
+
 </head>
 <body>
 
@@ -300,48 +321,8 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
         <th>Heure planifiée</th>
         <th>Statut ligne</th>
         <th>Type camion</th>
-        <th>N° Arrivée</th>
-        <th>Description</th>
-        <th>Destination arrivée</th>
-        <th>Statut</th>
-        <th>Destination départ</th>
-        <th>N° Départ</th>
-        <th>Chargement</th>
-        <th>Heure réelle</th>
-        <th style="text-align:center">Short GH</th>
-        <th></th>
-      </tr></thead>
-      <tbody id="tbody"></tbody>
-    </table>
-  </div>
-</main>
+        <th>N° <script>
 
-<!-- MODAL -->
-<div class="overlay" id="modal">
-  <div class="modal">
-    <div class="modal-t">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--copper-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-      Ajouter un camion supplémentaire
-    </div>
-    <div class="fg"><label>Heure d'arrivée</label><input class="fi" type="time" id="m-h" value="08:00"></div>
-    <div class="fg"><label>Type de camion</label>
-      <select class="fs" id="m-t"><option value="">— Sélectionner —</option><option>REEFER</option><option>CHAUFFÉE</option></select></div>
-    <div class="fg"><label>N° Camion</label><input class="fi" type="text" id="m-n" placeholder="Ex: 1042"></div>
-    <div class="fg"><label>Destination</label>
-      <select class="fs" id="m-d"><option value="">— Sélectionner —</option>
-        <option>GH</option><option>ADVANTECH</option><option>PROACTIVE</option>
-        <option>LJDERY</option><option>AUCUN REPARTIR BOBTAIL</option>
-      </select></div>
-    <div class="m-acts">
-      <button class="btn-cx" onclick="closeModal()">Annuler</button>
-      <button class="btn-ok" onclick="confirmAdd()">Ajouter</button>
-    </div>
-  </div>
-</div>
-
-<div id="toasts"></div>
-
-<script>
 const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const sb = supabase.createClient(SB_URL, SB_KEY);
@@ -696,18 +677,23 @@ async function refreshCharts(){
   const weekStart = monday.toISOString().slice(0,10);
   const weekEnd   = sunday.toISOString().slice(0,10);
 
-  // Période mois précédent
+  // Période mois EN COURS (correction : était mois précédent)
   const now = new Date();
-  const prevMonth = new Date(now.getFullYear(), now.getMonth()-1, 1);
-  const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-  const mStart = prevMonth.toISOString().slice(0,10);
-  const mEnd   = prevMonthEnd.toISOString().slice(0,10);
+  const curMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const curMonthEnd = new Date(now.getFullYear(), now.getMonth()+1, 0);
+  const mStart = curMonth.toISOString().slice(0,10);
+  const mEnd   = curMonthEnd.toISOString().slice(0,10);
 
-  // Labels
+  // Labels graphiques
   const fmtShort = s => new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{day:'2-digit',month:'short'});
   document.getElementById('ct-today').textContent = fmtDateLbl(today);
   document.getElementById('ct-week').textContent  = fmtShort(weekStart)+' – '+fmtShort(weekEnd);
-  document.getElementById('ct-month').textContent = prevMonth.toLocaleDateString('fr-CA',{month:'long',year:'numeric'});
+  document.getElementById('ct-month').textContent = curMonth.toLocaleDateString('fr-CA',{month:'long',year:'numeric'});
+
+  // Labels bilan
+  document.getElementById('bl-day-period').textContent  = fmtDateLbl(today);
+  document.getElementById('bl-week-period').textContent = fmtShort(weekStart)+' – '+fmtShort(weekEnd);
+  document.getElementById('bl-month-period').textContent = curMonth.toLocaleDateString('fr-CA',{month:'long',year:'numeric'});
 
   // Charger données
   const [dToday, dWeek, dMonth] = await Promise.all([
@@ -716,9 +702,42 @@ async function refreshCharts(){
     fetchPeriod(mStart, mEnd),
   ]);
 
+  // Charger objectif depuis piliers_criteres_lignes (pilier Delais, row_index=0)
+  let objVal = '—';
+  try {
+    const {data:objData} = await sb.from('piliers_criteres_lignes')
+      .select('objectif').eq('pilier','Delais').eq('row_index',0).single();
+    if(objData && objData.objectif) objVal = objData.objectif;
+  } catch(e){}
+
+  // Dessiner graphiques
   drawChart('today', dToday, seuil);
   drawChart('week',  dWeek,  seuil);
   drawChart('month', dMonth, seuil);
+
+  // Remplir tableaux bilan
+  fillBilan('day',   dToday, seuil, objVal);
+  fillBilan('week',  dWeek,  seuil, objVal);
+  fillBilan('month', dMonth, seuil, objVal);
+}
+
+function fillBilan(key, data, seuil, objVal){
+  const {onTime, late, total, arrived} = analyzeData(data, seuil);
+  const taux = arrived > 0 ? Math.round(onTime / arrived * 100) : (total === 0 ? null : 100);
+  const tauxStr = taux === null ? '—' : taux + '%';
+  const tauxCls = taux === null ? '' : taux >= 90 ? 'taux-ok' : taux >= 70 ? 'taux-warn' : 'taux-bad';
+
+  document.getElementById('bl-'+key+'-total').textContent  = total;
+  document.getElementById('bl-'+key+'-ontime').textContent = onTime;
+  document.getElementById('bl-'+key+'-late').textContent   = late;
+  document.getElementById('bl-'+key+'-taux').innerHTML =
+    '<span class="bilan-taux '+tauxCls+'">'+tauxStr+'</span>';
+  document.getElementById('bl-'+key+'-obj').innerHTML =
+    objVal !== '—'
+      ? '<span class="obj-chip">'+objVal+'</span>'
+      : '<span style="color:var(--text-faint);font-size:.78rem">Non défini</span>';
+  document.getElementById('bl-'+key+'-tol').innerHTML =
+    '<span class="tol-chip">'+seuil+' min</span>';
 }
 
 function fmtDateLbl(s){
@@ -848,7 +867,82 @@ function drawChart(key, data, seuil){
 
 
 
+
+
 </script>
+
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!--  SECTION BILAN                                              -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<section class="bilan-section">
+  <div class="bilan-grid">
+
+    <!-- Bilan journée -->
+    <div class="bilan-card">
+      <div class="bilan-card-head">
+        <div class="bilan-eyebrow">Bilan journée</div>
+        <div class="bilan-period" id="bl-day-period">—</div>
+      </div>
+      <table class="bilan-tbl">
+        <thead><tr>
+          <th>Indicateur</th><th>Valeur</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>Total camions</td><td id="bl-day-total">—</td></tr>
+          <tr><td>À l'heure</td><td id="bl-day-ontime">—</td></tr>
+          <tr><td>En retard</td><td id="bl-day-late">—</td></tr>
+          <tr><td>Taux de réussite</td><td id="bl-day-taux">—</td></tr>
+          <tr><td>Objectif</td><td id="bl-day-obj">—</td></tr>
+          <tr><td>Tolérance</td><td id="bl-day-tol">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Bilan semaine -->
+    <div class="bilan-card">
+      <div class="bilan-card-head">
+        <div class="bilan-eyebrow">Bilan semaine</div>
+        <div class="bilan-period" id="bl-week-period">—</div>
+      </div>
+      <table class="bilan-tbl">
+        <thead><tr>
+          <th>Indicateur</th><th>Valeur</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>Total camions</td><td id="bl-week-total">—</td></tr>
+          <tr><td>À l'heure</td><td id="bl-week-ontime">—</td></tr>
+          <tr><td>En retard</td><td id="bl-week-late">—</td></tr>
+          <tr><td>Taux de réussite</td><td id="bl-week-taux">—</td></tr>
+          <tr><td>Objectif</td><td id="bl-week-obj">—</td></tr>
+          <tr><td>Tolérance</td><td id="bl-week-tol">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Bilan mois -->
+    <div class="bilan-card">
+      <div class="bilan-card-head">
+        <div class="bilan-eyebrow">Bilan mois</div>
+        <div class="bilan-period" id="bl-month-period">—</div>
+      </div>
+      <table class="bilan-tbl">
+        <thead><tr>
+          <th>Indicateur</th><th>Valeur</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>Total camions</td><td id="bl-month-total">—</td></tr>
+          <tr><td>À l'heure</td><td id="bl-month-ontime">—</td></tr>
+          <tr><td>En retard</td><td id="bl-month-late">—</td></tr>
+          <tr><td>Taux de réussite</td><td id="bl-month-taux">—</td></tr>
+          <tr><td>Objectif</td><td id="bl-month-obj">—</td></tr>
+          <tr><td>Tolérance</td><td id="bl-month-tol">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</section>
 
 <!-- ════════════════════════════════════════════════════════════ -->
 <!--  SECTION INDICATEURS & GRAPHIQUES                           -->
@@ -905,11 +999,11 @@ function drawChart(key, data, seuil){
       <div class="chart-legend" id="cl-week"></div>
     </div>
 
-    <!-- Graphique 3 — Mois précédent -->
+    <!-- Graphique 3 — Mois en cours -->
     <div class="chart-card">
       <div class="chart-header">
         <div class="chart-title-wrap">
-          <div class="chart-eyebrow">Mois précédent</div>
+          <div class="chart-eyebrow">Mois en cours</div>
           <div class="chart-title" id="ct-month">—</div>
         </div>
         <div class="chart-badges" id="cb-month"></div>
