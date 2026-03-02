@@ -345,6 +345,8 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 
 
 
+
+
 const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 let sb;
@@ -567,7 +569,6 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
     <td><input class="ci-t" type="time" value="${esc(r.heure_reelle||'')}" oninput="fchg(${idx},'heure_reelle',this.value)"></td>
     <td><div class="chk${r.short_gh?' on':''}" onclick="togGH(${idx},this)"></div></td>
     <td class="td-act">
-      <button class="btn-sv" id="bsv${idx}" onclick="saveRow(${idx})">${svgSave} Sauver</button>
       ${isExtra?`<button class="btn-rm" onclick="delRow(${idx})" title="Supprimer">✕</button>`:''}
     </td>
   </tr>`;
@@ -591,6 +592,46 @@ function togGH(idx, el){
 }
 
 // ── SAVE ───────────────────────────────────────────────────────────
+async function saveAll(){
+  const btn=document.getElementById('btn-save-all');
+  if(btn){btn.disabled=true;btn.textContent='Sauvegarde…';}
+  const allIdx=[...Object.keys(rows).map(Number), ...SLOTS.map(s=>s.idx)];
+  const unique=[...new Set(allIdx)].sort((a,b)=>a-b);
+  let errors=0;
+  for(const idx of unique){
+    const r=rows[idx];
+    if(!r) continue; // ligne vide non modifiée
+    const slot=SLOTS.find(s=>s.idx===idx);
+    const payload={
+      date_jour:curDate, slot_index:idx,
+      heure_planif:r.heure_planif||(slot?slot.h:'00:00'),
+      statut_ligne:r.statut_ligne||'Actif',
+      type_camion:r.type_camion||null,
+      num_arrivee:r.num_arrivee||null,
+      num_depart:r.num_depart||null,
+      dest_arrivee:r.dest_arrivee||'SOY',
+      destination:r.destination||null,
+      description:r.description||null,
+      statut:r.statut||null,
+      chargement:r.chargement||null,
+      heure_reelle:r.heure_reelle||null,
+      short_gh:r.short_gh||false,
+      updated_at:new Date().toISOString(),
+    };
+    if(r.id){
+      const {error}=await sb.from('planning_camions').update(payload).eq('id',r.id);
+      if(error) errors++;
+    } else {
+      const {data:saved,error}=await sb.from('planning_camions').insert([payload]).select().single();
+      if(error) errors++;
+      else if(saved) rows[idx]={...rows[idx],...saved};
+    }
+  }
+  if(btn){btn.disabled=false;btn.textContent='💾 Sauvegarder tout';}
+  if(errors>0){toast(errors+' erreur(s) lors de la sauvegarde','error');return;}
+  toast('Tableau sauvegardé ✓','success');
+  await refreshCharts();
+}
 async function saveRow(idx){
   const btn=document.getElementById('bsv'+idx);
   if(btn){btn.disabled=true;btn.textContent='…';}
@@ -904,6 +945,8 @@ function drawChart(key, data, seuil){
     </div>`;
   }).join('');
 }
+
+
 
 
 
