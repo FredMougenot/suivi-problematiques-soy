@@ -565,6 +565,8 @@ body { font-size: 0.9375rem; }
 
 /* ── SMILEYS PILIER ──────────────────────────────────── */
 .face-svg{width:18px;height:18px;flex-shrink:0;display:block;}
+.pilier-row-link{cursor:pointer;border-radius:var(--r-sm);transition:background .12s;}
+.pilier-row-link:hover{background:rgba(200,132,58,.07);}
 .face-green{filter:drop-shadow(0 0 4px rgba(45,212,160,.45));}
 .face-orange{filter:drop-shadow(0 0 4px rgba(232,164,58,.45));}
 .face-red{filter:drop-shadow(0 0 4px rgba(224,85,85,.45));}
@@ -1476,6 +1478,17 @@ function goToRegistre(statut){
   showPage('problematiques');
   const sel=document.getElementById('filter-statut');
   if(sel){sel.value=statut;filterTable();}
+}
+function goToPilier(pilier){
+  showPage('problematiques');
+  const fstat=document.getElementById('filter-statut');
+  const fprio=document.getElementById('filter-priorite');
+  const fsrch=document.getElementById('search-input');
+  if(fstat) fstat.value='';
+  if(fprio) fprio.value='';
+  if(fsrch) fsrch.value='';
+  const sel=document.getElementById('filter-pilier');
+  if(sel){sel.value=pilier;filterTable();}
 }
 function loadProfilPage(){
   if(!currentUser)return;
