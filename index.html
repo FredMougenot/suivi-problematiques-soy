@@ -1055,6 +1055,7 @@ body { font-size: 0.9375rem; }
 
 
 
+
 const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const { createClient } = supabase;
@@ -1304,7 +1305,7 @@ function renderDash(){
       else if(so!=null && cnt<=so)   smiley='<svg class="face-svg face-orange" viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10" fill="#E8A43A" opacity="0.15"/> <circle cx="12" cy="12" r="10" fill="none" stroke="#E8A43A" stroke-width="1.5"/> <circle cx="9" cy="9.5" r="1.2" fill="#E8A43A"/> <circle cx="15" cy="9.5" r="1.2" fill="#E8A43A"/> <line x1="8.5" y1="14.5" x2="15.5" y2="14.5" stroke="#E8A43A" stroke-width="1.5" stroke-linecap="round"/></svg>';
       else                           smiley='<svg class="face-svg face-red" viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10" fill="#E05555" opacity="0.15"/> <circle cx="12" cy="12" r="10" fill="none" stroke="#E05555" stroke-width="1.5"/> <line x1="7.5" y1="8" x2="10.5" y2="9.5" stroke="#E05555" stroke-width="1.5" stroke-linecap="round"/> <line x1="16.5" y1="8" x2="13.5" y2="9.5" stroke="#E05555" stroke-width="1.5" stroke-linecap="round"/> <circle cx="9" cy="10.5" r="1.2" fill="#E05555"/> <circle cx="15" cy="10.5" r="1.2" fill="#E05555"/> <path d="M8.5 16.5c.8-2 6.2-2 7 0" fill="none" stroke="#E05555" stroke-width="1.5" stroke-linecap="round"/></svg>';
     }
-    return `<div class="pilier-row"><div class="pilier-n"><span class="pilier-n-txt">${d}</span><span class="pilier-info" onclick="openCritere('${d}')" title="Voir le critère">?</span></div><div class="pilier-track"><div class="pilier-fill" style="width:${(dc[d]/maxD*100).toFixed(0)}%"></div></div><div class="pilier-num">${cnt}</div><div class="pilier-face">${smiley}</div></div>`;
+    return `<div class="pilier-row pilier-row-link" onclick="goToPilier('${d}')" title="Voir problématiques ${d}"><div class="pilier-n"><span style="overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1">${d}</span><span class="pilier-info" onclick="event.stopPropagation();openCritere('${d}')" title="Voir le critère">?</span></div><div class="pilier-track"><div class="pilier-fill" style="width:${(dc[d]/maxD*100).toFixed(0)}%"></div></div><div class="pilier-num">${cnt}</div><div class="pilier-face">${smiley}</div></div>`;
   }).join('');
   const prios=['Critique','Haute','Moyenne','Basse'];
   const pc={};prios.forEach(p=>pc[p]=0);
@@ -1641,6 +1642,7 @@ function closeCritereBtn(){
   document.getElementById('critere-overlay').classList.remove('open');
   critereActif = null;
 }
+
 
 
 
