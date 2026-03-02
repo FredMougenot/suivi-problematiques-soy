@@ -113,7 +113,7 @@
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     Retour
   </a>
-  <div class="tool-title">🔧 Suivi des Bris</div>
+  <div class="tool-title">🔧 <span id="page-title">Suivi des Bris</span></div>
   <button class="btn-ghost" onclick="goToday()" style="font-size:.78rem;padding:6px 13px;">Aujourd'hui</button>
   <button class="btn-copper" onclick="openModal()" style="font-size:.78rem;padding:6px 14px;">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -370,6 +370,26 @@ async function confirmAdd(){
   if(tr) tr.scrollIntoView({behavior:'smooth',block:'center'});
   toast('Bris ajouté ✓','success');
 }
+</script>
+
+<script>
+(function(){
+  const SB_URL='https://xppzmdmnuztozgukrcta.supabase.co';
+  const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+  function waitSB(cb){if(typeof supabase!=='undefined'&&supabase.createClient)cb();else setTimeout(()=>waitSB(cb),50);}
+  waitSB(async()=>{
+    try{
+      const sb=supabase.createClient(SB_URL,SB_KEY);
+      const {data}=await sb.from('piliers_criteres_lignes').select('intitule').eq('pilier','Couts').eq('row_index',0).single();
+      if(data&&data.intitule&&data.intitule.trim()){
+        const t=data.intitule.trim();
+        const el=document.getElementById('page-title');
+        if(el)el.textContent=t;
+        document.title=t+' — Expédition SOY';
+      }
+    }catch(e){}
+  });
+})();
 </script>
 </body>
 </html>
