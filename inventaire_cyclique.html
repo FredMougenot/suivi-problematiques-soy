@@ -133,22 +133,20 @@
 
   <!-- MAIN -->
   <div class="tool-main">
-    <div class="ic-header-row">
-      <div>
-        <div class="page-sub">Suivi journalier des stocks par entrepôt · Calcul automatique des écarts</div>
-      </div>
-      <button class="btn-add" onclick="addItem()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Ajouter un item
-      </button>
-    </div>
-
-    <!-- Navigation date -->
+    <!-- Navigation date — centrée, au-dessus du tableau -->
     <div class="date-nav">
       <button class="nav-btn" onclick="changeDate(-1)">&#8592;</button>
       <div class="date-lbl" id="date-lbl">—</div>
       <button class="nav-btn" onclick="changeDate(1)">&#8594;</button>
       <button class="btn-today" onclick="goToday()">Aujourd'hui</button>
+    </div>
+
+    <!-- Bouton Ajouter collé en haut à gauche du tableau -->
+    <div style="margin-bottom:8px;">
+      <button class="btn-add" onclick="addItem()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Ajouter un item
+      </button>
     </div>
 
     <!-- Tableau -->
