@@ -322,23 +322,25 @@ async function saveVerif(key){
   if(!rows[key]) rows[key]={verif_key:key,date_jour:curDate};
   const r=rows[key];
   const payload={
-    verif_key:key, date_jour:curDate,
-    label: r.label||key,
+    verif_key:key,
+    date_jour:curDate,
+    label:r.label||key,
     conforme:!!r.conforme,
     non_conforme:!!r.non_conforme,
     updated_at:new Date().toISOString(),
   };
-  if(r.id){
-    const {error}=await sb.from('environnement_verif').update(payload).eq('id',r.id);
-    if(error){toast('Erreur: '+error.message,'error');}
-    else toast('Sauvegardé ✓','success');
+  const {data,error}=await sb.from('environnement_verif')
+    .upsert(payload,{onConflict:'verif_key,date_jour'})
+    .select().single();
+  if(error){
+    console.error('saveVerif error',key,error);
+    toast('Erreur: '+error.message,'error');
   } else {
-    payload.created_at=new Date().toISOString();
-    const {data,error}=await sb.from('environnement_verif').insert([payload]).select().single();
-    if(error){toast('Erreur: '+error.message,'error');}
-    else{ rows[key]=data; toast('Sauvegardé ✓','success'); }
+    if(data) rows[key]={...r,...data};
+    toast('Sauvegardé ✓','success');
   }
-  if(btn){btn.disabled=false;btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Sauver';}
+  const svgSave='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+  if(btn){btn.disabled=false;btn.innerHTML=svgSave+' Sauver';}
 }
 
 // ── SAVE ALL ────────────────────────────────────────────────
@@ -352,31 +354,25 @@ async function saveAll(){
   let errors=0;
   for(const key of allKeys){
     const r=rows[key]||{};
-    const conforme     = !!r.conforme;
-    const non_conforme = !!r.non_conforme;
+    // Ne rien écrire si aucune case jamais touchée ET pas encore en base
+    if(!r.id && !r.conforme && !r.non_conforme) continue;
     const payload={
-      verif_key:key, date_jour:curDate,
+      verif_key:key,
+      date_jour:curDate,
       label:r.label||key,
-      conforme,
-      non_conforme,
+      conforme:!!r.conforme,
+      non_conforme:!!r.non_conforme,
       updated_at:new Date().toISOString(),
     };
-    if(r.id){
-      // Ligne existante en base → UPDATE
-      const {error}=await sb.from('environnement_verif').update(payload).eq('id',r.id);
-      if(error) errors++;
-    } else if(conforme || non_conforme){
-      // Nouvelle ligne seulement si une case est cochée → INSERT
-      payload.created_at=new Date().toISOString();
-      const {data,error}=await sb.from('environnement_verif').insert([payload]).select().single();
-      if(error) errors++;
-      else rows[key]={...r,...data};
-    }
-    // Si ni id ni case cochée : rien à sauvegarder
+    const {data,error}=await sb.from('environnement_verif')
+      .upsert(payload,{onConflict:'verif_key,date_jour'})
+      .select().single();
+    if(error){ console.error('saveAll error',key,error); errors++; }
+    else if(data) rows[key]={...r,...data};
   }
   const svgSave='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
   if(btn){btn.disabled=false;btn.innerHTML=svgSave+' Sauvegarder tout';}
-  if(errors) toast(`${errors} erreur(s)`, 'error');
+  if(errors) toast(errors+' erreur(s) — vérifiez la console','error');
   else toast('Tout sauvegardé ✓','success');
 }
 
