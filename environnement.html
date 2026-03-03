@@ -352,24 +352,30 @@ async function saveAll(){
   let errors=0;
   for(const key of allKeys){
     const r=rows[key]||{};
+    const conforme     = !!r.conforme;
+    const non_conforme = !!r.non_conforme;
     const payload={
       verif_key:key, date_jour:curDate,
       label:r.label||key,
-      conforme:!!r.conforme,
-      non_conforme:!!r.non_conforme,
+      conforme,
+      non_conforme,
       updated_at:new Date().toISOString(),
     };
     if(r.id){
+      // Ligne existante en base → UPDATE
       const {error}=await sb.from('environnement_verif').update(payload).eq('id',r.id);
       if(error) errors++;
-    } else {
+    } else if(conforme || non_conforme){
+      // Nouvelle ligne seulement si une case est cochée → INSERT
       payload.created_at=new Date().toISOString();
       const {data,error}=await sb.from('environnement_verif').insert([payload]).select().single();
       if(error) errors++;
       else rows[key]={...r,...data};
     }
+    // Si ni id ni case cochée : rien à sauvegarder
   }
-  if(btn){btn.disabled=false;btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Sauvegarder tout';}
+  const svgSave='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+  if(btn){btn.disabled=false;btn.innerHTML=svgSave+' Sauvegarder tout';}
   if(errors) toast(`${errors} erreur(s)`, 'error');
   else toast('Tout sauvegardé ✓','success');
 }
@@ -411,9 +417,13 @@ async function load(){
   if(wrap) wrap.style.display='none';
   rows={};
   try{
-    const {data,error}=await sb.from('environnement_verif').select('*').eq('date_jour',curDate);
+    const {data,error}=await sb.from('environnement_verif')
+      .select('*').eq('date_jour',curDate).order('updated_at',{ascending:false});
     if(error && error.code!=='PGRST116') throw error;
-    (data||[]).forEach(r=>{ rows[r.verif_key]=r; });
+    // Garder seulement la ligne la plus récente par verif_key (évite les doublons)
+    (data||[]).forEach(r=>{
+      if(!rows[r.verif_key]) rows[r.verif_key]=r;
+    });
   }catch(e){ toast('Erreur: '+e.message,'error'); }
   finally{
     try{render();}catch(re){console.error('render:',re);}
