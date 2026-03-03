@@ -70,13 +70,6 @@
 .sp-lbl{color:var(--text-muted);}
 
 /* Bouton ajout vérification */
-.btn-add-verif{
-  display:inline-flex;align-items:center;gap:6px;
-  margin-top:14px;padding:8px 16px;border-radius:var(--r-md);
-  background:var(--bg-raised);border:1px solid var(--text-faint);
-  color:var(--text-secondary);font-size:.8rem;font-weight:600;
-  cursor:pointer;transition:all .15s;
-}
 .btn-add-verif:hover{border-color:var(--copper);color:var(--copper-light);}
 
 /* Modal */
@@ -134,7 +127,7 @@
 <!-- MAIN -->
 <div class="tool-main" style="padding-top:16px;">
   <div style="margin-bottom:8px;">
-    <button class="btn-add-verif" onclick="openAddVerif()">
+    <button class="btn-copper" onclick="openAddVerif()">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Ajouter une vérification
     </button>
