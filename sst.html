@@ -131,6 +131,8 @@
 
 <script>
 
+
+
 function localToday(){
   const d=new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -170,9 +172,11 @@ async function load(){
     if(error&&error.code!=='PGRST116') throw error;
     (data||[]).forEach(r=>{rows[r.id]=r;});
   }catch(e){toast('Erreur: '+e.message,'error');}
-  render();
-  document.getElementById('spinner').style.display='none';
-  document.getElementById('sst-wrap').style.display='block';
+  finally{
+    try{render();}catch(re){console.error('render:',re);}
+    document.getElementById('spinner').style.display='none';
+    document.getElementById('sst-wrap').style.display='block';
+  }
 }
 
 function sevBadge(s){const m={Faible:'sev-faible',Moyen:'sev-moyen',Grave:'sev-grave'};return `<span class="sev-badge ${m[s]||'sev-moyen'}">${esc(s)}</span>`;}
@@ -203,12 +207,7 @@ function render(){
 
 function fchg(id,field,val){if(rows[id])rows[id][field]=val;}
 
-function updateStats(list){
-  document.getElementById('st-total').textContent=list.length;
-  document.getElementById('st-grave').textContent=list.filter(r=>r.severite==='Grave').length;
-  document.getElementById('st-moyen').textContent=list.filter(r=>r.severite==='Moyen').length;
-  document.getElementById('st-faible').textContent=list.filter(r=>r.severite==='Faible').length;
-}
+function updateStats(list){ /* stats supprimées */ }
 
 async function saveRow(id){
   const r=rows[id];if(!r)return;
@@ -250,6 +249,8 @@ async function confirmAdd(){
   document.getElementById('row-'+data.id)?.scrollIntoView({behavior:'smooth',block:'center'});
   toast('Incident ajouté ✓','success');
 }
+
+
 
 </script>
 </body>

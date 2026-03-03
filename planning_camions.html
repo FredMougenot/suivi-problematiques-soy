@@ -349,6 +349,8 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 
 
 
+
+
 const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 let sb;
@@ -446,10 +448,12 @@ async function load(){
       toast('Erreur chargement: '+error.message,'error');
     (data||[]).forEach(r=>{ rows[r.slot_index]=r; });
   } catch(e){ toast('Connexion impossible.','error'); }
-  render();
-  document.getElementById('spinner').style.display='none';
-  document.getElementById('tbl').style.display='block';
-  try { await refreshCharts(); } catch(e){ console.warn('Charts:',e); }
+  finally{
+    try{render();}catch(re){console.error('render:',re);}
+    document.getElementById('spinner').style.display='none';
+    document.getElementById('tbl').style.display='block';
+    try { await refreshCharts(); } catch(e){ console.warn('Charts:',e); }
+  }
 }
 
 // ── RENDER ─────────────────────────────────────────────────────────
@@ -681,21 +685,7 @@ async function delRow(idx){
 }
 
 // ── STATS ──────────────────────────────────────────────────────────
-function updateStats(){
-  let a=0,w=0,f=0,x=0;
-  const allIdx=[...SLOTS.map(s=>s.idx),...Object.keys(rows).map(Number).filter(i=>i>=10)];
-  allIdx.forEach(i=>{
-    const r=rows[i]||{};
-    if((r.statut_ligne||'Actif')==='Annulé'){x++;return;}
-    if(r.statut==='FAIT') f++;
-    else if(r.statut==='ATTENTE') w++;
-    else a++;
-  });
-  document.getElementById('st-a').textContent=a;
-  document.getElementById('st-w').textContent=w;
-  document.getElementById('st-f').textContent=f;
-  document.getElementById('st-x').textContent=x;
-}
+function updateStats(){ /* stats supprimées */ }
 
 // ── MODAL ──────────────────────────────────────────────────────────
 function openModal(){
@@ -946,6 +936,8 @@ function drawChart(key, data, seuil){
     </div>`;
   }).join('');
 }
+
+
 
 
 

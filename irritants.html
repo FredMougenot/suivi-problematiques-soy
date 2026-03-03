@@ -135,6 +135,8 @@
 
 <script>
 
+
+
 function localToday(){
   const d=new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -173,9 +175,11 @@ async function load(){
     if(error&&error.code!=='PGRST116') throw error;
     (data||[]).forEach(r=>{rows[r.id]=r;});
   }catch(e){toast('Erreur: '+e.message,'error');}
-  render();
-  document.getElementById('spinner').style.display='none';
-  document.getElementById('irr-wrap').style.display='block';
+  finally{
+    try{render();}catch(re){console.error('render:',re);}
+    document.getElementById('spinner').style.display='none';
+    document.getElementById('irr-wrap').style.display='block';
+  }
 }
 
 function render(){
@@ -216,11 +220,7 @@ function toggleResolu(id,checked){
   }
 }
 
-function updateStats(list){
-  document.getElementById('st-total').textContent=list.length;
-  document.getElementById('st-ouvert').textContent=list.filter(r=>!r.resolu).length;
-  document.getElementById('st-resolu').textContent=list.filter(r=>r.resolu).length;
-}
+function updateStats(list){ /* stats supprimées */ }
 
 async function saveRow(id){
   const r=rows[id];if(!r)return;
@@ -262,6 +262,8 @@ async function confirmAdd(){
   document.getElementById('row-'+data.id)?.scrollIntoView({behavior:'smooth',block:'center'});
   toast('Irritant ajouté ✓','success');
 }
+
+
 
 </script>
 </body>
