@@ -333,6 +333,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
         <th>Chargement</th>
         <th>Heure réelle</th>
         <th>GH court</th>
+        <th style="width:44px"></th>
       </tr></thead>
       <tbody id="tbody"></tbody>
     </table>
@@ -591,6 +592,9 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
     </span></td>
     <td><input class="ci-t" type="time" value="${esc(r.heure_reelle||'')}" oninput="fchg(${idx},'heure_reelle',this.value)"></td>
     <td><div class="chk${r.short_gh?' on':''}" onclick="togGH(${idx},this)"></div></td>
+    <td style="text-align:center;width:44px">${isExtra
+      ? '<button onclick="delExtra('+idx+')" style="width:26px;height:26px;border-radius:5px;background:transparent;border:1px solid var(--text-faint);color:var(--text-muted);cursor:pointer;font-size:13px;line-height:1;display:inline-flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.borderColor=\'var(--ruby)\';this.style.color=\'var(--ruby)\'" onmouseout="this.style.borderColor=\'var(--text-faint)\';this.style.color=\'var(--text-muted)\'">&#x2715;</button>'
+      : ''}</td>
   </tr>`;
 }
 
@@ -971,6 +975,18 @@ function drawChart(key, data, seuil){
 
 
 
+
+// ── SUPPRIMER CAMION EXTRA ──────────────────────────────────────────
+async function delExtra(idx){
+  if(!confirm('Supprimer ce camion ?')) return;
+  if(rows[idx] && rows[idx].id){
+    const {error} = await sb.from('planning_camions').delete().eq('id', rows[idx].id);
+    if(error){ toast('Erreur: '+error.message,'error'); return; }
+  }
+  delete rows[idx];
+  render();
+  toast('Camion supprimé','info');
+}
 
 </script>
 <!-- ═══════════════════════════════════════════════════════════TION BILAN                                              -->
