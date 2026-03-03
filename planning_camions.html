@@ -96,7 +96,6 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 .chk.on::after{content:'✓';font-size:.75rem;font-weight:800;color:var(--ruby);}
 
 /* Boutons */
-.td-act{white-space:nowrap;min-width:100px;}
 .btn-sv{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--r-sm);background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;font-size:.75rem;font-weight:700;border:none;cursor:pointer;transition:all var(--t-fast);}
 .btn-sv:hover{opacity:.85;transform:translateY(-1px);}
 .btn-sv:disabled{opacity:.35;cursor:default;transform:none;}
@@ -334,14 +333,24 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
         <th>Chargement</th>
         <th>Heure réelle</th>
         <th>GH court</th>
-        <th>Actions</th>
       </tr></thead>
       <tbody id="tbody"></tbody>
     </table>
   </div>
 </main>
+<div style="display:flex;justify-content:center;padding:18px 0 8px;">
+  <button id="btn-save-all" onclick="saveAll()"
+    style="display:inline-flex;align-items:center;gap:8px;padding:11px 36px;
+           border-radius:var(--r-md);background:linear-gradient(135deg,var(--copper),var(--copper-light));
+           color:#0F1118;font-size:.86rem;font-weight:800;border:none;cursor:pointer;
+           box-shadow:0 4px 16px rgba(184,115,51,.3);transition:opacity .15s,transform .1s;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+    Sauvegarder tout
+  </button>
+</div>
 
 <script>
+
 
 
 
@@ -568,9 +577,6 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
     </span></td>
     <td><input class="ci-t" type="time" value="${esc(r.heure_reelle||'')}" oninput="fchg(${idx},'heure_reelle',this.value)"></td>
     <td><div class="chk${r.short_gh?' on':''}" onclick="togGH(${idx},this)"></div></td>
-    <td class="td-act">
-      ${isExtra?`<button class="btn-rm" onclick="delRow(${idx})" title="Supprimer">✕</button>`:''}
-    </td>
   </tr>`;
 }
 
@@ -945,6 +951,7 @@ function drawChart(key, data, seuil){
     </div>`;
   }).join('');
 }
+
 
 
 

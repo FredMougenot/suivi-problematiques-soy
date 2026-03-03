@@ -149,7 +149,6 @@
             <th style="width:50%">Vérification</th>
             <th class="th-c">✓ Conforme</th>
             <th class="th-c">✕ Non conforme</th>
-            <th class="th-c" style="width:200px">Action</th>
           </tr>
         </thead>
         <tbody id="env-tbody"></tbody>
@@ -232,6 +231,9 @@
 <div class="toasts" id="toasts"></div>
 
 <script>
+
+
+
 
 
 const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
@@ -324,14 +326,7 @@ function render(){
           ${r.non_conforme?'checked':''}
           onchange="setConf('${v.key}','non_conforme',this.checked)">
       </td>
-      <td class="chk-cell">
-        <button class="btn-prob${isNC?'':' hidden'}"
-          id="btnp-${v.key.replace(/[^a-z0-9]/gi,'_')}"
-          onclick="openModalProb('${v.key}','${esc(v.label)}')">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Créer problématique
-        </button>
-      </td>
+
     </tr>`;
   });
 
@@ -359,9 +354,7 @@ function setConf(key, field, val){
     if(chkNc) chkNc.checked = !!rows[key].non_conforme;
     // Highlight ligne NC
     tr.className = rows[key].non_conforme ? 'row-nc' : '';
-    // Bouton problématique
-    const btnP = document.getElementById('btnp-'+rowId);
-    if(btnP) btnP.className = 'btn-prob'+(rows[key].non_conforme?'':' hidden');
+
   }
   updateStats();
 }
@@ -506,6 +499,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
   });
 });
+
+
+
 
 
 </script>
