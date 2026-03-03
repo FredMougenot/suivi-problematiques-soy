@@ -62,6 +62,42 @@
 
 .row-resolu td{opacity:.5;}
 .row-resolu input,.row-resolu select{pointer-events:none;}
+
+/* ── Registre problématiques (partagé avec index_v5) ── */
+.filters{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.fsel{padding:8px 30px 8px 12px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);color:var(--text-secondary);font-size:.8rem;cursor:pointer;transition:all .15s;min-width:150px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234A5168'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;}
+.fsel:focus{border-color:var(--copper);color:var(--text-primary);}
+.fsel option{background:var(--bg-raised);color:var(--text-primary);}
+.srch-wrap{flex:1;min-width:200px;position:relative;}
+.srch-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:.9rem;pointer-events:none;}
+.srch-inp{width:100%;padding:8px 12px 8px 34px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);font-size:.8rem;color:var(--text-primary);transition:all .15s;}
+.srch-inp::placeholder{color:var(--text-muted);}
+.srch-inp:focus{border-color:var(--copper);background:var(--bg-float);}
+.tbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;touch-action:pan-x;}
+.dtbl{width:100%;border-collapse:collapse;min-width:900px;}
+.dtbl thead th{padding:11px 15px;text-align:left;font-size:.63rem;font-weight:800;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;background:var(--bg-float);border-bottom:1px solid var(--text-faint);white-space:nowrap;}
+.dtbl thead th:first-child{padding-left:18px;}
+.dtbl tbody td{padding:12px 15px;font-size:.83rem;color:var(--text-secondary);border-bottom:1px solid rgba(255,255,255,.025);vertical-align:middle;}
+.dtbl tbody td:first-child{padding-left:18px;}
+.dtbl tbody tr:last-child td{border-bottom:none;}
+.dtbl tbody tr:hover td{background:rgba(184,115,51,.04);color:var(--text-primary);}
+.c-id{font-size:.7rem;font-weight:700;color:var(--text-muted);letter-spacing:.06em;}
+.c-title{font-weight:500;color:var(--text-primary);max-width:280px;line-height:1.3;}
+.c-title small{display:block;font-size:.71rem;color:var(--text-muted);font-weight:300;margin-top:2px;line-height:1.4;}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:.68rem;font-weight:700;letter-spacing:.04em;white-space:nowrap;}
+.bt{background:var(--ruby-bg);color:var(--ruby);border:1px solid rgba(224,85,85,.15);}
+.bc{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(232,164,58,.15);}
+.br{background:var(--emerald-bg);color:var(--emerald);border:1px solid rgba(45,212,160,.15);}
+.ban{background:rgba(74,81,104,.2);color:var(--text-muted);border:1px solid rgba(74,81,104,.15);}
+.bcl{background:rgba(74,81,104,.15);color:var(--text-muted);border:1px solid rgba(74,81,104,.1);}
+.bpC{background:var(--ruby-bg);color:var(--ruby);border:1px solid rgba(224,85,85,.15);}
+.bpH{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(232,164,58,.15);}
+.bpM{background:rgba(232,164,58,.06);color:#D4A030;border:1px solid rgba(232,164,58,.1);}
+.bpB{background:var(--emerald-bg);color:var(--emerald);border:1px solid rgba(45,212,160,.15);}
+.empty{text-align:center;padding:56px 24px;color:var(--text-muted);}
+.empty-ico{font-size:2.2rem;margin-bottom:12px;opacity:.5;}
+.empty-txt{font-size:.9rem;}
+
 </style>
 </head>
 <body>
@@ -82,58 +118,43 @@
 
   
   <div class="tool-main" style="padding-top:16px;">
-    <div style="margin-bottom:8px;">
-      <button class="btn-copper" onclick="openModal()" style="font-size:.78rem;padding:6px 14px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Ajouter un irritant</button>
-    </div>
-    <div id="spinner" class="spinner" style="display:flex"><div class="spin"></div> Chargement…</div>
-    <div id="irr-wrap" style="display:none">
-      <div class="irr-outer">
-        <table class="irr-tbl">
-          <thead>
-            <tr>
-              <th style="width:36px;text-align:center">#</th>
-              <th>Description de l'irritant</th>
-              <th>Rapporté par</th>
-              <th>Catégorie</th>
-              <th>Action proposée</th>
-              <th>Commentaires</th>
-              <th style="text-align:center">Résolu</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="irr-tbody"></tbody>
-        </table>
+  <div id="spinner" class="spinner" style="display:flex"><div class="spin"></div> Chargement…</div>
+  <div id="prob-wrap" style="display:none">
+    <div class="filters">
+      <div class="srch-wrap">
+        <span class="srch-ico">⌕</span>
+        <input type="text" class="srch-inp" id="irr-search" placeholder="Rechercher…" oninput="filterProbs()">
       </div>
-    </div>
-  </div>
-</div>
-
-<div class="overlay" id="modal">
-  <div class="modal">
-    <div class="modal-title">💬 Ajouter un irritant</div>
-    <div class="fg"><label>Description <span style="color:var(--ruby)">*</span></label><textarea id="m-desc" placeholder="Décrivez l'irritant…"></textarea></div>
-    <div class="fg"><label>Rapporté par</label><input type="text" id="m-rapporte" placeholder="Nom"></div>
-    <div class="fg"><label>Catégorie</label>
-      <select id="m-categorie">
-        <option value="">— Sélectionner —</option>
-        <option>Communication</option>
-        <option>Équipement</option>
-        <option>Processus</option>
-        <option>Environnement de travail</option>
-        <option>Gestion</option>
-        <option>Autre</option>
+      <select class="fsel" id="irr-statut" onchange="filterProbs()">
+        <option value="">Tous les statuts</option>
+        <option>À traiter</option><option>En cours</option><option>Résolu</option><option>Annulé</option><option>Clôturé</option>
+      </select>
+      <select class="fsel" id="irr-prio" onchange="filterProbs()">
+        <option value="">Toutes les priorités</option>
+        <option>Critique</option><option>Haute</option><option>Moyenne</option><option>Basse</option>
       </select>
     </div>
-    <div class="m-acts">
-      <button class="btn-cx" onclick="closeModal()">Annuler</button>
-      <button class="btn-ok" onclick="confirmAdd()">Ajouter</button>
+    <div class="tbl-wrap" style="touch-action:pan-x">
+      <table class="dtbl">
+        <thead><tr>
+          <th>ID</th><th>Intitulé / Description</th><th>Responsable</th>
+          <th>Priorité</th><th>Statut</th><th>Soumis le</th>
+        </tr></thead>
+        <tbody id="irr-tbody"></tbody>
+      </table>
     </div>
   </div>
+</div></div>
 </div>
+
+
 
 <div class="toasts" id="toasts"></div>
 
 <script>
+
+
+
 
 
 
@@ -182,88 +203,60 @@ async function load(){
   }
 }
 
-function render(){
-  const list=Object.values(rows).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
-  const svgSv='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
-  document.getElementById('irr-tbody').innerHTML=list.map((r,i)=>`
-    <tr id="row-${r.id}" class="${r.resolu?'row-resolu':''}">
-      <td class="row-num">${i+1}</td>
-      <td><input class="ii ii-wide" value="${esc(r.description||'')}" placeholder="Irritant…" oninput="fchg(${r.id},'description',this.value)"></td>
-      <td><input class="ii ii-med" value="${esc(r.rapporte_par||'')}" placeholder="Nom…" oninput="fchg(${r.id},'rapporte_par',this.value)"></td>
-      <td>
-        <select class="ii" style="width:160px" onchange="fchg(${r.id},'categorie',this.value)">
-          <option value="">—</option>
-          ${['Communication','Équipement','Processus','Environnement de travail','Gestion','Autre'].map(c=>`<option${r.categorie===c?' selected':''}>${c}</option>`).join('')}
-        </select>
-      </td>
-      <td><input class="ii ii-wide" value="${esc(r.action_proposee||'')}" placeholder="Action…" oninput="fchg(${r.id},'action_proposee',this.value)"></td>
-      <td><input class="ii ii-med" value="${esc(r.commentaires||'')}" placeholder="…" oninput="fchg(${r.id},'commentaires',this.value)"></td>
-      <td style="text-align:center">
-        <input type="checkbox" class="chk-resolu" ${r.resolu?'checked':''} onchange="toggleResolu(${r.id},this.checked)">
-      </td>
-      <td>
-        <button class="btn-sv" id="bsv-${r.id}" onclick="saveRow(${r.id})">${svgSv} Sauver</button>
-        <button class="btn-rm" onclick="delRow(${r.id})">✕</button>
-      </td>
-    </tr>`).join('');
-  updateStats(list);
-}
-
-function fchg(id,field,val){if(rows[id])rows[id][field]=val;}
-
-function toggleResolu(id,checked){
-  if(rows[id]){
-    rows[id].resolu=checked;
-    const tr=document.getElementById('row-'+id);
-    if(tr) tr.className=checked?'row-resolu':'';
-    updateStats(Object.values(rows));
-  }
-}
-
-function updateStats(list){ /* stats supprimées */ }
-
-async function saveRow(id){
-  const r=rows[id];if(!r)return;
-  const btn=document.getElementById('bsv-'+id);
-  if(btn){btn.disabled=true;btn.textContent='…';}
-  const payload={date_jour:curDate,description:r.description||'',rapporte_par:r.rapporte_par||null,categorie:r.categorie||null,action_proposee:r.action_proposee||null,commentaires:r.commentaires||null,resolu:!!r.resolu,updated_at:new Date().toISOString()};
-  const {error}=await sb.from('irritants').update(payload).eq('id',id);
-  const svgSv='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
-  if(btn){btn.disabled=false;btn.innerHTML=svgSv+' Sauver';}
-  if(error){toast('Erreur: '+error.message,'error');return;}
-  toast('Sauvegardé ✓','success');
-}
-
-async function delRow(id){
-  if(!confirm('Supprimer cet irritant ?'))return;
-  const {error}=await sb.from('irritants').delete().eq('id',id);
-  if(error){toast('Erreur: '+error.message,'error');return;}
-  delete rows[id];render();toast('Supprimé.','info');
-}
-
-function openModal(){
-  ['m-desc','m-rapporte'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('m-categorie').value='';
-  document.getElementById('modal').classList.add('open');
-  setTimeout(()=>document.getElementById('m-desc').focus(),50);
-}
-function closeModal(){document.getElementById('modal').classList.remove('open');}
-document.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
+window.addEventListener('load',()=>{
+  updateDateUI(); loadProbs();
+  sb.from('piliers_criteres_lignes').select('intitule').eq('pilier','Motivation').eq('row_index',0).single()
+    .then(({data})=>{ if(data&&data.intitule) document.getElementById('page-title').textContent=data.intitule; })
+    .catch(()=>{});
 });
 
-async function confirmAdd(){
-  const desc=document.getElementById('m-desc').value.trim();
-  if(!desc){toast('Description requise.','error');return;}
-  const payload={date_jour:curDate,description:desc,rapporte_par:document.getElementById('m-rapporte').value.trim()||null,categorie:document.getElementById('m-categorie').value||null,action_proposee:null,commentaires:null,resolu:false,created_at:new Date().toISOString(),updated_at:new Date().toISOString()};
-  const {data,error}=await sb.from('irritants').insert([payload]).select().single();
-  if(error){toast('Erreur: '+error.message,'error');return;}
-  rows[data.id]=data;closeModal();render();
-  document.getElementById('row-'+data.id)?.scrollIntoView({behavior:'smooth',block:'center'});
-  toast('Irritant ajouté ✓','success');
+// ── Registre problématiques ─────────────────────────────────────
+let allProbs = [];
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtDate(d){return d?new Date(d).toLocaleDateString('fr-CA',{day:'2-digit',month:'short',year:'numeric'}):'';}
+function fmtId(id){return String(id||'').padStart(4,'0').slice(-4);}
+function bPrio(p){const m={Critique:'bpC',Haute:'bpH',Moyenne:'bpM',Basse:'bpB'};return `<span class="badge ${m[p]||'bpB'}">${esc(p||'')}</span>`;}
+function bStat(s){const cls={'À traiter':'bt','En cours':'bc','Résolu':'br','Annulé':'ban','Clôturé':'bcl'};return `<span class="badge ${cls[s]||'ban'}">${esc(s||'')}</span>`;}
+function filterProbs(){
+  const q=document.getElementById('irr-search').value.toLowerCase();
+  const stat=document.getElementById('irr-statut').value;
+  const prio=document.getElementById('irr-prio').value;
+  renderProbs(allProbs.filter(p=>
+    (!q||(p.intitule||'').toLowerCase().includes(q)||(p.description||'').toLowerCase().includes(q))
+    &&(!stat||p.statut===stat)&&(!prio||p.priorite===prio)
+  ));
 }
-
-
+function renderProbs(data){
+  const list=data||allProbs;
+  document.getElementById('irr-tbody').innerHTML=list.length===0
+    ?'<tr><td colspan="6"><div class="empty"><div class="empty-ico">📋</div><div class="empty-txt">Aucune problématique pour ce pilier.</div></div></td></tr>'
+    :list.map(p=>`<tr>
+      <td><span class="c-id">#${fmtId(p.id)}</span></td>
+      <td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,80))+((p.description||'').length>80?'...':'')}</small></div></td>
+      <td style="font-size:.82rem;color:var(--text-secondary)">${esc(p.responsable||'')}</td>
+      <td>${bPrio(p.priorite)}</td>
+      <td>${bStat(p.statut)}</td>
+      <td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td>
+    </tr>`).join('');
+}
+async function loadProbs(){
+  const spinner=document.getElementById('spinner');
+  const wrap=document.getElementById('prob-wrap');
+  if(spinner) spinner.style.display='flex';
+  if(wrap) wrap.style.display='none';
+  try{
+    const {data,error}=await sb.from('problematiques').select('*')
+      .eq('pilier','Motivation').order('created_at',{ascending:false});
+    if(error&&error.code!=='PGRST116') throw error;
+    allProbs=data||[];
+  }catch(e){toast('Erreur: '+e.message,'error');}
+  finally{
+    renderProbs();
+    if(spinner) spinner.style.display='none';
+    if(wrap) wrap.style.display='block';
+  }
+}
 
 </script>
 </body>
