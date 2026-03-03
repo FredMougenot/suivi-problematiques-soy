@@ -310,5 +310,38 @@ function openProbModal(modalId){
 }
 
 </script>
+
+<div class="overlay" id="modal-irr">
+  <div class="modal" style="width:500px">
+    <div class="modal-title">➕ Nouvelle problématique — Motivation</div>
+    <div class="fg"><label>Intitulé <span style="color:var(--ruby)">*</span></label>
+      <input type="text" id="modal-irr-intitule" placeholder="Titre de la problématique…">
+    </div>
+    <div class="fg"><label>Description <span style="color:var(--ruby)">*</span></label>
+      <textarea id="modal-irr-desc" placeholder="Contexte, impact, actions déjà tentées…" style="min-height:80px;resize:vertical;"></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="fg"><label>Priorité <span style="color:var(--ruby)">*</span></label>
+        <select id="modal-irr-priorite">
+          <option value="">— Sélectionner —</option>
+          <option>Critique</option><option>Haute</option><option selected>Moyenne</option><option>Basse</option>
+        </select>
+      </div>
+      <div class="fg"><label>Statut</label>
+        <select id="modal-irr-statut">
+          <option value="À traiter">À traiter</option><option value="En cours">En cours</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label>Responsable</label>
+      <input type="text" id="modal-irr-resp" placeholder="Nom…">
+    </div>
+    <div class="m-acts">
+      <button class="btn-cx" onclick="document.getElementById('modal-irr').classList.remove('open')">Annuler</button>
+      <button class="btn-ok" id="modal-irr-submit" onclick="submitProb('modal-irr','Motivation')">Créer</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
