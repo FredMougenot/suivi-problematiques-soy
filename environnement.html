@@ -97,7 +97,7 @@
               <th>Vérification</th>
               <th class="th-c">Conforme</th>
               <th class="th-c">Non-conforme</th>
-              <th></th>
+              <th style="width:44px"></th>
             </tr>
           </thead>
           <tbody id="env-tbody"></tbody>
@@ -191,7 +191,7 @@ function render(){
     ...extras.map(r=>({key:r.verif_key, label:r.label||r.verif_key, fixed:false}))
   ];
 
-  const svgSave='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+  const svgSave='';
 
   let html = '';
   allVerifs.forEach(v=>{
@@ -210,9 +210,8 @@ function render(){
           ${r.non_conforme?'checked':''}
           onchange="setConf('${v.key}','non_conforme',this.checked)">
       </td>
-      <td>
-        <button class="btn-sv" id="bsv-${v.key.replace(/[^a-z0-9]/gi,'_')}" onclick="saveVerif('${v.key}')">${svgSave} Sauver</button>
-        ${!v.fixed?`<button class="btn-rm" onclick="delVerif('${v.key}')">✕</button>`:''}
+      <td style="text-align:center;width:44px">
+        <button onclick="delVerif('${v.key}')" style="width:26px;height:26px;border-radius:5px;background:transparent;border:1px solid var(--text-faint);color:var(--text-muted);cursor:pointer;font-size:13px;line-height:1;display:inline-flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.borderColor='var(--ruby)';this.style.color='var(--ruby)'" onmouseout="this.style.borderColor='var(--text-faint)';this.style.color='var(--text-muted)'">&#x2715;</button>
       </td>
     </tr>`;
   });
