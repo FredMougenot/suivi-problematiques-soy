@@ -493,9 +493,14 @@ body { font-size: 0.9375rem; }
 .critere-overlay.open { display: flex; }
 .critere-modal {
   background: var(--bg-float); border: 1px solid var(--text-faint);
-  border-radius: var(--r-lg); padding: 28px; width: 480px; max-width: 95vw;
+  border-radius: var(--r-lg); padding: 28px; width: 720px; max-width: 98vw;
+  max-height: 92vh; overflow-y: auto;
   box-shadow: 0 16px 48px rgba(0,0,0,.6); position: relative;
 }
+.cm-prob-row { display:flex; align-items:center; gap:10px; padding:7px 12px; border-bottom:1px solid var(--text-faint); font-size:.82rem; }
+.cm-prob-row:last-child { border-bottom:none; }
+.cm-prob-row.cloturee { opacity:.45; }
+.cm-prob-badge { font-size:.6rem; font-weight:800; padding:2px 7px; border-radius:20px; white-space:nowrap; }
 .critere-modal::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
   background: linear-gradient(90deg, transparent, var(--copper), transparent);
@@ -1030,15 +1035,53 @@ body { font-size: 0.9375rem; }
 
 <!-- MODAL CRITÈRE PILIER -->
 <div class="critere-overlay" id="critere-overlay" onclick="closeCritere(event)">
-  <div class="critere-modal">
+  <div class="critere-modal" style="width:720px;max-width:98vw;">
+    <!-- HEADER -->
     <div class="cm-header">
       <div class="cm-title-wrap">
         <div class="cm-eyebrow">Critère du pilier</div>
         <div class="cm-title" id="cm-title">—</div>
       </div>
-      <button class="cm-close" onclick="closeCritereBtn()">✕</button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <a onclick="openCritereParams()" href="javascript:void(0)" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:#1A1E2A;border:1px solid #2C3350;color:#BEC5D6;font-size:.78rem;font-weight:600;text-decoration:none;transition:all .15s;" onmouseover="this.style.borderColor='#C8843A';this.style.color='#E0A870'" onmouseout="this.style.borderColor='#2C3350';this.style.color='#BEC5D6'">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Paramètres
+        </a>
+        <button class="cm-close" onclick="closeCritereBtn()">✕</button>
+      </div>
     </div>
+
+    <!-- TEXTE CRITÈRE -->
     <div class="cm-body" id="cm-body">Chargement…</div>
+
+    <!-- TOGGLE CLÔTURÉES -->
+    <div style="display:flex;align-items:center;gap:10px;margin:14px 0 10px;">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.8rem;color:var(--text-muted);user-select:none;">
+        <input type="checkbox" id="cm-show-cloture" onchange="renderCmProbs()"
+          style="width:15px;height:15px;accent-color:var(--copper);cursor:pointer;">
+        Afficher les clôturées / résolues
+      </label>
+      <span id="cm-prob-count" style="margin-left:auto;font-size:.75rem;color:var(--text-muted);"></span>
+    </div>
+
+    <!-- LISTE PROBLÉMATIQUES -->
+    <div id="cm-prob-list" style="max-height:180px;overflow-y:auto;border:1px solid var(--text-faint);border-radius:var(--r-md);background:var(--bg-float);margin-bottom:16px;">
+      <div style="padding:12px;color:var(--text-muted);font-size:.82rem;font-style:italic;">Chargement…</div>
+    </div>
+
+    <!-- GRAPHIQUES -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+      <div style="background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:12px;">
+        <div style="font-size:.65rem;font-weight:800;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">Semaine en cours</div>
+        <canvas id="cm-chart-week" height="120"></canvas>
+      </div>
+      <div style="background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:12px;">
+        <div style="font-size:.65rem;font-weight:800;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">Mois en cours</div>
+        <canvas id="cm-chart-month" height="120"></canvas>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
     <div class="cm-footer">
       <a class="cm-edit-link" href="criteres_piliers.html">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -1048,6 +1091,27 @@ body { font-size: 0.9375rem; }
   </div>
 </div>
 
+<!-- MODAL PARAMÈTRES GRAPHIQUE -->
+<div class="overlay" id="modal-critere-params" style="z-index:900;">
+  <div class="modal" style="width:400px;">
+    <div class="modal-title">⚙️ Paramètres du graphique — <span id="mp-pilier-name"></span></div>
+    <p style="font-size:.8rem;color:var(--text-secondary);margin:0 0 14px;">Définissez la ligne de référence affichée sur les graphiques de ce pilier.</p>
+    <div class="fg">
+      <label>Valeur min/max acceptable</label>
+      <input type="number" id="mp-minmax" placeholder="Ex: 5" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;box-sizing:border-box;">
+    </div>
+    <div class="fg">
+      <label>Libellé de la ligne</label>
+      <input type="text" id="mp-label" placeholder="Ex: Objectif max" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;box-sizing:border-box;">
+    </div>
+    <div class="m-acts">
+      <button class="btn-cx" onclick="document.getElementById('modal-critere-params').classList.remove('open')">Annuler</button>
+      <button class="btn-ok" onclick="saveCritereParams()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 
@@ -1625,34 +1689,153 @@ window.addEventListener('load', ()=>{
 let critereCache = {};
 let critereActif = null;
 
-async function openCritere(pilier){
+async // ── PARAMÈTRES GRAPHIQUE CRITÈRE (localStorage) ───────────────────────────────
+function getCritereParams(pilier){
+  try {
+    const saved = localStorage.getItem('critere_params_'+pilier);
+    return saved ? JSON.parse(saved) : {minmax: null, label: 'Objectif'};
+  } catch(e){ return {minmax: null, label: 'Objectif'}; }
+}
+
+function openCritereParams(){
+  const pilier = critereActif;
+  if(!pilier) return;
+  const p = getCritereParams(pilier);
+  document.getElementById('mp-pilier-name').textContent = pilier;
+  document.getElementById('mp-minmax').value = p.minmax !== null ? p.minmax : '';
+  document.getElementById('mp-label').value  = p.label  || 'Objectif';
+  document.getElementById('modal-critere-params').classList.add('open');
+}
+
+function saveCritereParams(){
+  const pilier = critereActif;
+  if(!pilier) return;
+  const val = document.getElementById('mp-minmax').value.trim();
+  const lbl = document.getElementById('mp-label').value.trim() || 'Objectif';
+  const p = { minmax: val !== '' ? Number(val) : null, label: lbl };
+  localStorage.setItem('critere_params_'+pilier, JSON.stringify(p));
+  document.getElementById('modal-critere-params').classList.remove('open');
+  const probs = allProblems.filter(pr => pr.pilier === critereActif);
+  renderCmCharts(probs, p);
+  toast('Paramètres enregistrés ✓','success');
+}
+
+function openCritere(pilier){
   critereActif = pilier;
   document.getElementById('cm-title').textContent = pilier;
-  const body = document.getElementById('cm-body');
-  body.textContent = 'Chargement…';
-  body.className = 'cm-body loading';
+  const bodyEl = document.getElementById('cm-body');
+  bodyEl.textContent = 'Chargement…';
+  bodyEl.className = 'cm-body loading';
+  document.getElementById('cm-show-cloture').checked = false;
   document.getElementById('critere-overlay').classList.add('open');
 
   if(critereCache[pilier] !== undefined){
-    afficherCritere(critereCache[pilier]); return;
+    afficherCritere(critereCache[pilier]);
+  } else {
+    (async()=>{
+      try {
+        const {data, error} = await sb.from('piliers_criteres')
+          .select('critere').eq('pilier', pilier).single();
+        const texte = (!error && data) ? (data.critere||'') : '';
+        critereCache[pilier] = texte;
+        afficherCritere(texte);
+      } catch(e){ afficherCritere(''); }
+    })();
   }
-  try {
-    const {data, error} = await sb.from('piliers_criteres')
-      .select('critere').eq('pilier', pilier).single();
-    const texte = (!error && data) ? (data.critere||'') : '';
-    critereCache[pilier] = texte;
-    afficherCritere(texte);
-  } catch(e){ afficherCritere(''); }
+  renderCmProbs();
 }
 
 function afficherCritere(texte){
-  const body = document.getElementById('cm-body');
-  body.className = 'cm-body';
-  if(texte){
-    body.innerHTML = texte.split('\n').join('<br>');
+  const bodyEl = document.getElementById('cm-body');
+  bodyEl.className = 'cm-body';
+  bodyEl.innerHTML = texte
+    ? texte.split('\n').join('<br>')
+    : '<span style="color:var(--text-muted);font-style:italic">Aucun critère défini. Rendez-vous dans <strong>Outils → Critères des piliers</strong> pour en ajouter un.</span>';
+}
+
+function renderCmProbs(){
+  const pilier = critereActif;
+  if(!pilier) return;
+  const showCloture = document.getElementById('cm-show-cloture').checked;
+  const CLOTUREES = ['Clôturé','Résolu','Annulé'];
+  const all   = allProblems.filter(p => p.pilier === pilier);
+  const shown = showCloture ? all : all.filter(p => !CLOTUREES.includes(p.statut));
+
+  document.getElementById('cm-prob-count').textContent =
+    shown.length + ' / ' + all.length + ' problématique' + (all.length!==1?'s':'');
+
+  const SC = {
+    'À traiter': {bg:'rgba(229,57,53,.15)',  color:'#E05555'},
+    'En cours':       {bg:'rgba(251,192,45,.15)', color:'#E8A43A'},
+    'Clôturé': {bg:'rgba(45,212,160,.15)',color:'#2DD4A0'},
+    'Résolu':    {bg:'rgba(45,212,160,.15)', color:'#2DD4A0'},
+    'Annulé':    {bg:'rgba(120,120,120,.15)',color:'#888'},
+  };
+
+  if(shown.length === 0){
+    document.getElementById('cm-prob-list').innerHTML =
+      '<div style="padding:14px;color:var(--text-muted);font-size:.82rem;font-style:italic;text-align:center;">'
+      +(all.length===0?'Aucune problématique pour ce pilier.':'Toutes les problématiques sont clôturées.')
+      +'</div>';
   } else {
-    body.innerHTML = '<span style="color:var(--text-muted);font-style:italic">Aucun critère défini. Rendez-vous dans <strong>Outils → Critères des piliers</strong> pour en ajouter un.</span>';
+    document.getElementById('cm-prob-list').innerHTML = shown.map(p => {
+      const sc2 = SC[p.statut]||{bg:'rgba(120,120,120,.15)',color:'#888'};
+      const isCl = CLOTUREES.includes(p.statut);
+      return '<div class="cm-prob-row'+(isCl?' cloturee':'')+'"><span class="cm-prob-badge" style="background:'+sc2.bg+';color:'+sc2.color+'">'+esc(p.statut||'—')+'</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(p.intitule||'—')+'</span><span style="font-size:.75rem;color:var(--text-muted);white-space:nowrap;">'+esc(p.priorite||'')+'</span></div>';
+    }).join('');
   }
+  const params = getCritereParams(pilier);
+  renderCmCharts(all, params);
+}
+
+let cmChartWeek=null, cmChartMonth=null;
+
+function renderCmCharts(probs, params){
+  const today = new Date();
+  const dow = today.getDay();
+  const mondayOff = dow===0?-6:1-dow;
+  const monday = new Date(today); monday.setDate(today.getDate()+mondayOff);
+  const weekDays=[], weekLabels=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(monday); d.setDate(monday.getDate()+i);
+    const ds=d.toISOString().slice(0,10);
+    weekDays.push(ds);
+    weekLabels.push(d.toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'}));
+  }
+  const weekData = weekDays.map(d=>probs.filter(p=>(p.created_at||'').slice(0,10)===d).length);
+
+  const yr=today.getFullYear(), mo=today.getMonth();
+  const daysInMonth=new Date(yr,mo+1,0).getDate();
+  const monthDays=[], monthLabels=[];
+  for(let i=1;i<=daysInMonth;i++){
+    monthDays.push(yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(i).padStart(2,'0'));
+    monthLabels.push(String(i));
+  }
+  const monthData = monthDays.map(d=>probs.filter(p=>(p.created_at||'').slice(0,10)===d).length);
+
+  const minmax = params&&params.minmax!==null ? Number(params.minmax) : null;
+  const lineLabel = (params&&params.label)?params.label:'Objectif';
+  const COPPER='#C8843A', BLUE='rgba(99,179,237,.85)', BLUE_BG='rgba(99,179,237,.12)';
+
+  function buildDS(data){
+    const ds=[{label:'Problématiques',data,fill:true,backgroundColor:BLUE_BG,borderColor:BLUE,borderWidth:2,pointRadius:3,pointBackgroundColor:BLUE,tension:0.3}];
+    if(minmax!==null) ds.push({label:lineLabel,data:data.map(()=>minmax),borderColor:COPPER,borderWidth:2,borderDash:[5,4],pointRadius:0,fill:false,tension:0});
+    return ds;
+  }
+
+  const opts={
+    responsive:true,maintainAspectRatio:true,
+    plugins:{legend:{display:minmax!==null,labels:{color:'#BEC5D6',font:{size:10},boxWidth:18}},tooltip:{mode:'index',intersect:false}},
+    scales:{
+      x:{ticks:{color:'#BEC5D6',font:{size:9},maxRotation:0},grid:{color:'rgba(255,255,255,.04)'}},
+      y:{ticks:{color:'#BEC5D6',font:{size:9},stepSize:1,precision:0},grid:{color:'rgba(255,255,255,.06)'},beginAtZero:true}
+    }
+  };
+
+  const cwEl=document.getElementById('cm-chart-week');
+  if(cwEl){ if(cmChartWeek){cmChartWeek.destroy();cmChartWeek=null;} cmChartWeek=new Chart(cwEl,{type:'line',data:{labels:weekLabels,datasets:buildDS(weekData)},options:opts}); }
+  const cmEl=document.getElementById('cm-chart-month');
+  if(cmEl){ if(cmChartMonth){cmChartMonth.destroy();cmChartMonth=null;} cmChartMonth=new Chart(cmEl,{type:'line',data:{labels:monthLabels,datasets:buildDS(monthData)},options:opts}); }
 }
 
 function closeCritere(e){
@@ -1660,9 +1843,10 @@ function closeCritere(e){
 }
 function closeCritereBtn(){
   document.getElementById('critere-overlay').classList.remove('open');
+  if(cmChartWeek){cmChartWeek.destroy();cmChartWeek=null;}
+  if(cmChartMonth){cmChartMonth.destroy();cmChartMonth=null;}
   critereActif = null;
 }
-
 
 
 
