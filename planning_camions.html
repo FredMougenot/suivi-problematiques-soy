@@ -323,16 +323,16 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
         <th>Heure planifiée</th>
         <th>Statut ligne</th>
         <th>Type camion</th>
-        <th>N° arrivée</th>
+        <th>N° commande</th>
+        
         <th>Description</th>
-        <th>Dest. arrivée</th>
+        <th>Destination</th>
         <th>Statut arrivée</th>
         <th>Destination départ</th>
         <th>N° départ</th>
         <th>Chargement</th>
         <th>Heure réelle</th>
         <th>GH court</th>
-        <th style="width:52px;text-align:center">Actions</th>
       </tr></thead>
       <tbody id="tbody"></tbody>
     </table>
@@ -352,16 +352,52 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
            border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);
            color:var(--text-secondary);font-size:.86rem;font-weight:700;cursor:pointer;
            transition:all .15s;" title="Mettre à jour les bilans et graphiques">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-<script>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+    Actualiser bilans
+  </button>
+</div>
+
+<script>
 
 
 
-function rmBtn(idx){
-  return "<button onclick=\"delExtra("+idx+")\" title=\"Supprimer\" "
-       + "style=\"width:24px;height:24px;border-radius:4px;background:transparent;"
-       + "border:1px solid var(--text-faint);color:var(--text-muted);cursor:pointer;"
-       + "font-size:.8rem;display:inline-flex;align-items:center;justify-content:center;"
-       + "transition:all .15s\">&#x2715;</button>";
+
+
+
+
+
+
+
+const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+let sb;
+
+// 10 slots fixes quotidiens
+const SLOTS = [
+  {idx:0, h:'06:00', lbl:'06h00 · Camion A', defDesc:'',               defType:'CHAUFFÉE'},
+  {idx:1, h:'06:00', lbl:'06h00 · Camion B', defDesc:'Stock palette',   defType:'CHAUFFÉE'},
+  {idx:2, h:'07:30', lbl:'07h30',             defDesc:'',               defType:'CHAUFFÉE'},
+  {idx:3, h:'09:00', lbl:'09h00',             defDesc:'',               defType:'CHAUFFÉE'},
+  {idx:4, h:'11:30', lbl:'11h30',             defDesc:'Stock 1 commande',defType:'CHAUFFÉE'},
+  {idx:5, h:'14:00', lbl:'14h00',             defDesc:'Stock 2 grains', defType:'CHAUFFÉE'},
+  {idx:6, h:'15:30', lbl:'15h30',             defDesc:'',               defType:'CHAUFFÉE'},
+  {idx:7, h:'17:00', lbl:'17h00',             defDesc:'',               defType:'CHAUFFÉE'},
+  {idx:8, h:'18:00', lbl:'18h00',             defDesc:'',               defType:'CHAUFFÉE'},
+  {idx:9, h:'19:00', lbl:'19h00',             defDesc:'',               defType:'CHAUFFÉE'},
+];
+const DESC_OPTS = ['','Camion vide','Stock palette','Stock 1 commande','Stock 2 grains'];
+const DESTS = ['GH','ADVANTECH','PROACTIVE','LJDERY','AUCUN REPARTIR BOBTAIL'];
+
+let curDate = todayStr();
+let rows = {};  // idx -> row object
+
+// ── UTILS ──────────────────────────────────────────────────────────
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function isToday(){ return curDate === todayStr(); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function nowHM(){
+  const n=new Date();
+  return n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
 }
 function slotCls(h){
   if(!isToday()) return '';
@@ -555,7 +591,6 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
     </span></td>
     <td><input class="ci-t" type="time" value="${esc(r.heure_reelle||'')}" oninput="fchg(${idx},'heure_reelle',this.value)"></td>
     <td><div class="chk${r.short_gh?' on':''}" onclick="togGH(${idx},this)"></div></td>
-    <td style="text-align:center;width:52px">${isExtra?rmBtn(idx):'<span style="color:var(--text-faint);font-size:.7rem">—</span>'}</td>
   </tr>`;
 }
 
@@ -932,21 +967,6 @@ function drawChart(key, data, seuil){
 
 
 
-
-
-
-
-
-
-async function delExtra(idx){
-  if(rows[idx]?.id){
-    const {error}=await sb.from('planning_camions').delete().eq('id',rows[idx].id);
-    if(error){toast('Erreur: '+error.message,'error');return;}
-  }
-  delete rows[idx];
-  render();
-  toast('Camion supprimé ✓','success');
-}
 
 
 
