@@ -102,6 +102,15 @@
 .total-val{font-family:'Outfit',sans-serif;font-size:1.3rem;font-weight:700;color:var(--ruby);}
 
 @media(max-width:1100px){.date-nav,.stats-bar{padding-left:10px;padding-right:10px;}}
+.btn-add{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 18px;border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--copper),var(--copper-light));
+  color:#0F1118;font-size:.82rem;font-weight:800;border:none;cursor:pointer;
+  transition:opacity .15s,transform .1s;white-space:nowrap;
+}
+.btn-add:hover{opacity:.88;transform:translateY(-1px);}
+.btn-add:active{transform:translateY(0);}
 </style>
 </head>
 <body>
@@ -128,7 +137,10 @@
 <!-- MAIN -->
 <div class="tool-main" style="padding-top:16px;">
   <div style="margin-bottom:8px;">
-    <button class="btn-copper" onclick="openModal()" style="font-size:.78rem;padding:6px 14px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Ajouter un bris</button>
+    <button class="btn-add" onclick="openModal()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Ajouter un bris
+      </button>
   </div>
   <div id="spinner" class="spinner" style="display:flex"><div class="spin"></div> Chargement…</div>
 

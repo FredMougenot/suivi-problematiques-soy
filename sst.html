@@ -97,6 +97,15 @@
 .empty-ico{font-size:2.2rem;margin-bottom:12px;opacity:.5;}
 .empty-txt{font-size:.9rem;}
 
+.btn-add{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 18px;border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--copper),var(--copper-light));
+  color:#0F1118;font-size:.82rem;font-weight:800;border:none;cursor:pointer;
+  transition:opacity .15s,transform .1s;white-space:nowrap;
+}
+.btn-add:hover{opacity:.88;transform:translateY(-1px);}
+.btn-add:active{transform:translateY(0);}
 </style>
 </head>
 <body>
@@ -119,7 +128,26 @@
   <div class="tool-main" style="padding-top:16px;">
   <div id="spinner" class="spinner" style="display:flex"><div class="spin"></div> Chargement…</div>
   <div id="prob-wrap" style="display:none">
-    <!-- Registre des problématiques — filtré sur SST -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
+      <button class="btn-add" onclick="openProbModal('modal-sst')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nouvelle problématique
+      </button>
+      <label style="display:inline-flex;align-items:center;gap:7px;font-size:.8rem;color:var(--text-secondary);cursor:pointer;user-select:none;">
+        <input type="checkbox" id="sst-show-cloture" onchange="filterProbs()" style="width:15px;height:15px;accent-color:var(--copper);cursor:pointer;">
+        Afficher les clôturées
+      </label>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
+      <button class="btn-add" onclick="openProbModal('modal-sst')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nouvelle problématique
+      </button>
+      <label style="display:inline-flex;align-items:center;gap:7px;font-size:.8rem;color:var(--text-secondary);cursor:pointer;user-select:none;">
+        <input type="checkbox" id="sst-cloture" onchange="filterProbs()" style="width:15px;height:15px;accent-color:var(--copper);cursor:pointer;">
+        Afficher les clôturées
+      </label>
+    </div>
     <div class="filters">
       <div class="srch-wrap">
         <span class="srch-ico">⌕</span>
@@ -144,6 +172,8 @@
       </table>
     </div>
   </div>
+</div>
+  </div>
 </div></div>
 </div>
 
@@ -152,6 +182,8 @@
 <div class="toasts" id="toasts"></div>
 
 <script>
+
+
 
 
 
@@ -232,7 +264,8 @@ function filterProbs(){
 }
 
 function renderProbs(data){
-  const list=data||allProbs;
+  const showClo=document.getElementById('sst-cloture')?.checked||false;
+  const list=data!==undefined?data:allProbs.filter(p=>showClo||p.statut!=='Clôturé');
   document.getElementById('sst-tbody').innerHTML=list.length===0
     ?'<tr><td colspan="6"><div class="empty"><div class="empty-ico">📋</div><div class="empty-txt">Aucune problématique pour ce pilier.</div></div></td></tr>'
     :list.map(p=>`<tr>
@@ -263,6 +296,73 @@ async function loadProbs(){
   }
 }
 
+
+async function submitProb(modalId, pilier){
+  const intitule=document.getElementById(modalId+'-intitule').value.trim();
+  const desc=document.getElementById(modalId+'-desc').value.trim();
+  const prio=document.getElementById(modalId+'-priorite').value;
+  const stat=document.getElementById(modalId+'-statut').value;
+  const resp=document.getElementById(modalId+'-resp').value.trim()||null;
+  if(!intitule||!desc||!prio){toast('Champs obligatoires manquants.','error');return;}
+  const btn=document.getElementById(modalId+'-submit');
+  if(btn){btn.disabled=true;btn.textContent='Création...';}
+  const {error}=await sb.from('problematiques').insert([{
+    intitule,pilier,priorite:prio,statut:stat,responsable:resp,description:desc,soumis_par:pilier.toLowerCase()
+  }]);
+  if(btn){btn.disabled=false;btn.textContent='Créer';}
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  document.getElementById(modalId).classList.remove('open');
+  toast('Problématique créée ✓','success');
+  await loadProbs();
+}
+function openProbModal(modalId){
+  document.getElementById(modalId+'-intitule').value='';
+  document.getElementById(modalId+'-desc').value='';
+  document.getElementById(modalId+'-priorite').value='Moyenne';
+  document.getElementById(modalId+'-statut').value='À traiter';
+  document.getElementById(modalId+'-resp').value='';
+  document.getElementById(modalId).classList.add('open');
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const mo=document.getElementById('modal-sst');
+  if(mo) mo.addEventListener('click',e=>{if(e.target===mo)mo.classList.remove('open');});
+});
+
+
 </script>
+
+<div class="overlay" id="modal-sst">
+  <div class="modal" style="width:500px">
+    <div class="modal-title">➕ Nouvelle problématique</div>
+    <div class="fg"><label>Intitulé <span style="color:var(--ruby)">*</span></label>
+      <input type="text" id="modal-sst-intitule" placeholder="Titre de la problématique…" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;transition:border-color .15s;">
+    </div>
+    <div class="fg"><label>Description <span style="color:var(--ruby)">*</span></label>
+      <textarea id="modal-sst-desc" placeholder="Contexte, impact, actions déjà tentées…" style="width:100%;min-height:80px;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;resize:vertical;"></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="fg"><label>Priorité <span style="color:var(--ruby)">*</span></label>
+        <select id="modal-sst-priorite" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
+          <option value="">— Sélectionner —</option>
+          <option>Critique</option><option>Haute</option><option selected>Moyenne</option><option>Basse</option>
+        </select>
+      </div>
+      <div class="fg"><label>Statut</label>
+        <select id="modal-sst-statut" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
+          <option value="À traiter">À traiter</option><option value="En cours">En cours</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label>Responsable</label>
+      <input type="text" id="modal-sst-resp" placeholder="Nom…" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
+    </div>
+    <div class="m-acts">
+      <button class="btn-cx" onclick="document.getElementById('modal-sst').classList.remove('open')">Annuler</button>
+      <button class="btn-ok" id="modal-sst-submit" onclick="submitProb('modal-sst','SST')">Créer</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

@@ -35,7 +35,15 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 .tb-right{display:flex;align-items:center;gap:10px;}
 .btn-today{padding:8px 16px;border-radius:var(--r-md);background:var(--bg-float);border:1px solid rgba(200,132,58,.3);color:var(--copper-light);font-size:.82rem;font-weight:600;cursor:pointer;transition:all var(--t-fast);}
 .btn-today:hover{background:var(--copper-dim);}
-.btn-add{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;font-size:.84rem;font-weight:700;border:none;cursor:pointer;box-shadow:0 2px 12px rgba(200,132,58,.3);transition:all var(--t-fast);}
+.btn-add{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 18px;border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--copper),var(--copper-light));
+  color:#0F1118;font-size:.82rem;font-weight:800;border:none;cursor:pointer;
+  transition:opacity .15s,transform .1s;white-space:nowrap;
+}
+.btn-add:hover{opacity:.88;transform:translateY(-1px);}
+.btn-add:active{transform:translateY(0);}
 .btn-add:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(200,132,58,.45);}
 
 /* DATE NAV */
@@ -304,7 +312,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 
 <!-- TABLE -->
 <div style="padding:8px 0 4px 0;display:flex;justify-content:flex-start;">
-  <button class="btn-add" onclick="openModal()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Ajouter un camion</button>
+  <button class="btn-add" onclick="openModal()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Ajouter un camion</button>
 </div>
 <main class="main">
   <div id="spinner" class="spinner"><div class="spin"></div> Chargement…</div>
@@ -330,7 +338,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
     </table>
   </div>
 </main>
-<div style="display:flex;justify-content:center;padding:18px 0 8px;">
+<div style="display:flex;justify-content:center;gap:12px;padding:18px 0 8px;">
   <button id="btn-save-all" onclick="saveAll()"
     style="display:inline-flex;align-items:center;gap:8px;padding:11px 36px;
            border-radius:var(--r-md);background:linear-gradient(135deg,var(--copper),var(--copper-light));
@@ -339,9 +347,18 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
     Sauvegarder tout
   </button>
+  <button onclick="refreshCharts()"
+    style="display:inline-flex;align-items:center;gap:8px;padding:11px 24px;
+           border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);
+           color:var(--text-secondary);font-size:.86rem;font-weight:700;cursor:pointer;
+           transition:all .15s;" title="Mettre à jour les bilans et graphiques">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+    Actualiser bilans
+  </button>
 </div>
 
 <script>
+
 
 
 
@@ -954,6 +971,7 @@ function drawChart(key, data, seuil){
 
 
 
+
 </script>
 <!-- ═══════════════════════════════════════════════════════════TION BILAN                                              -->
 <!-- ════════════════════════════════════════════════════════════ -->
@@ -1126,5 +1144,33 @@ function drawChart(key, data, seuil){
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<div class="overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">🚚 Ajouter un camion extra</div>
+    <div class="fg"><label>Heure planifiée <span style="color:var(--ruby)">*</span></label>
+      <input type="time" id="m-h" value="08:00" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
+    </div>
+    <div class="fg"><label>Type de camion</label>
+      <select id="m-t" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
+        <option value="">— Sélectionner —</option><option>CHAUFFÉE</option><option>REEFER</option>
+      </select>
+    </div>
+    <div class="fg"><label>N° camion</label>
+      <input type="text" id="m-n" placeholder="Ex: 1234" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
+    </div>
+    <div class="fg"><label>Destination</label>
+      <select id="m-d" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
+        <option value="">— Sélectionner —</option>
+        <option>GH</option><option>ADVANTECH</option><option>PROACTIVE</option><option>LJDERY</option><option>AUCUN REPARTIR BOBTAIL</option>
+      </select>
+    </div>
+    <div class="m-acts">
+      <button class="btn-cx" onclick="closeModal()">Annuler</button>
+      <button class="btn-ok" onclick="confirmAdd()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

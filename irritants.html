@@ -98,6 +98,15 @@
 .empty-ico{font-size:2.2rem;margin-bottom:12px;opacity:.5;}
 .empty-txt{font-size:.9rem;}
 
+.btn-add{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 18px;border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--copper),var(--copper-light));
+  color:#0F1118;font-size:.82rem;font-weight:800;border:none;cursor:pointer;
+  transition:opacity .15s,transform .1s;white-space:nowrap;
+}
+.btn-add:hover{opacity:.88;transform:translateY(-1px);}
+.btn-add:active{transform:translateY(0);}
 </style>
 </head>
 <body>
@@ -120,6 +129,16 @@
   <div class="tool-main" style="padding-top:16px;">
   <div id="spinner" class="spinner" style="display:flex"><div class="spin"></div> Chargement…</div>
   <div id="prob-wrap" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
+      <button class="btn-add" onclick="openProbModal('modal-irr')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nouvelle problématique
+      </button>
+      <label style="display:inline-flex;align-items:center;gap:7px;font-size:.8rem;color:var(--text-secondary);cursor:pointer;user-select:none;">
+        <input type="checkbox" id="irr-cloture" onchange="filterProbs()" style="width:15px;height:15px;accent-color:var(--copper);cursor:pointer;">
+        Afficher les clôturées
+      </label>
+    </div>
     <div class="filters">
       <div class="srch-wrap">
         <span class="srch-ico">⌕</span>
@@ -152,6 +171,7 @@
 <div class="toasts" id="toasts"></div>
 
 <script>
+
 
 
 
@@ -222,13 +242,16 @@ function filterProbs(){
   const q=document.getElementById('irr-search').value.toLowerCase();
   const stat=document.getElementById('irr-statut').value;
   const prio=document.getElementById('irr-prio').value;
+  const showClo=document.getElementById('irr-cloture')?.checked||false;
   renderProbs(allProbs.filter(p=>
-    (!q||(p.intitule||'').toLowerCase().includes(q)||(p.description||'').toLowerCase().includes(q))
+    (showClo||p.statut!=='Clôturé')
+    &&(!q||(p.intitule||'').toLowerCase().includes(q)||(p.description||'').toLowerCase().includes(q))
     &&(!stat||p.statut===stat)&&(!prio||p.priorite===prio)
   ));
 }
 function renderProbs(data){
-  const list=data||allProbs;
+  const showClo=document.getElementById('irr-cloture')?.checked||false;
+  const list=data!==undefined?data:allProbs.filter(p=>showClo||p.statut!=='Clôturé');
   document.getElementById('irr-tbody').innerHTML=list.length===0
     ?'<tr><td colspan="6"><div class="empty"><div class="empty-ico">📋</div><div class="empty-txt">Aucune problématique pour ce pilier.</div></div></td></tr>'
     :list.map(p=>`<tr>
@@ -256,6 +279,34 @@ async function loadProbs(){
     if(spinner) spinner.style.display='none';
     if(wrap) wrap.style.display='block';
   }
+}
+
+
+async function submitProb(modalId, pilier){
+  const intitule=document.getElementById(modalId+'-intitule').value.trim();
+  const desc=document.getElementById(modalId+'-desc').value.trim();
+  const prio=document.getElementById(modalId+'-priorite').value;
+  const stat=document.getElementById(modalId+'-statut').value;
+  const resp=document.getElementById(modalId+'-resp').value.trim()||null;
+  if(!intitule||!desc||!prio){toast('Champs obligatoires manquants.','error');return;}
+  const btn=document.getElementById(modalId+'-submit');
+  if(btn){btn.disabled=true;btn.textContent='Création...';}
+  const {error}=await sb.from('problematiques').insert([{
+    intitule,pilier,priorite:prio,statut:stat,responsable:resp,description:desc,soumis_par:pilier.toLowerCase()
+  }]);
+  if(btn){btn.disabled=false;btn.textContent='Créer';}
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  document.getElementById(modalId).classList.remove('open');
+  toast('Problématique créée ✓','success');
+  await loadProbs();
+}
+function openProbModal(modalId){
+  document.getElementById(modalId+'-intitule').value='';
+  document.getElementById(modalId+'-desc').value='';
+  document.getElementById(modalId+'-priorite').value='Moyenne';
+  document.getElementById(modalId+'-statut').value='À traiter';
+  document.getElementById(modalId+'-resp').value='';
+  document.getElementById(modalId).classList.add('open');
 }
 
 </script>
