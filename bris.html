@@ -189,6 +189,11 @@
 <div class="toasts" id="toasts"></div>
 
 <script>
+
+function localToday(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const sb = supabase.createClient(SB_URL, SB_KEY);
@@ -196,7 +201,7 @@ const sb = supabase.createClient(SB_URL, SB_KEY);
 let curDate = todayStr();
 let rows = {}; // id -> row
 
-function todayStr(){ return new Date().toISOString().slice(0,10); }
+function todayStr(){ return localToday(); }
 function isToday(){ return curDate === todayStr(); }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function fmt(v){ return parseFloat(v||0).toLocaleString('fr-CA',{minimumFractionDigits:2,maximumFractionDigits:2}); }
@@ -370,6 +375,7 @@ async function confirmAdd(){
   if(tr) tr.scrollIntoView({behavior:'smooth',block:'center'});
   toast('Bris ajouté ✓','success');
 }
+
 </script>
 
 <script>

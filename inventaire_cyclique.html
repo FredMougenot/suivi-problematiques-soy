@@ -16,7 +16,7 @@
 .page-sub{font-size:.82rem;color:var(--text-muted);margin-top:4px;}
 
 /* Navigation date */
-.date-nav{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.date-nav{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;justify-content:center;}
 .date-lbl{font-size:.9rem;font-weight:700;color:var(--text-primary);background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:8px 16px;min-width:220px;text-align:center;}
 .nav-btn{width:34px;height:34px;border-radius:var(--r-sm);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all .15s;}
 .nav-btn:hover{border-color:var(--copper);color:var(--copper-light);}
@@ -187,12 +187,17 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+
+function localToday(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let curDate = new Date().toISOString().slice(0,10);
+let curDate = localToday();
 let rows = {};      // {item_index: rowData}
 let nextExtra = 100; // index pour items ajoutés dynamiquement
 
@@ -230,7 +235,7 @@ function changeDate(delta){
   refreshDateUI(); load();
 }
 function goToday(){
-  curDate = new Date().toISOString().slice(0,10);
+  curDate = localToday();
   refreshDateUI(); load();
 }
 
@@ -400,6 +405,7 @@ async function load(){
 }
 
 window.addEventListener('load', ()=>{ refreshDateUI(); load(); });
+
 </script>
 </body>
 </html>
