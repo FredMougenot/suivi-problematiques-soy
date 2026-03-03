@@ -182,6 +182,7 @@
 
 <script>
 
+
 function localToday(){
   const d=new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -281,13 +282,10 @@ function fchg(id, field, val){
 // ── STATS ───────────────────────────────────────────────────
 function updateStats(list){
   list = list || Object.values(rows);
-  document.getElementById('st-total').textContent  = list.length;
-  document.getElementById('st-retenu').textContent = list.filter(r=>r.etape1).length;
-  document.getElementById('st-fin').textContent    = list.filter(r=>r.date_finalisation).length;
   const totalCout = list.reduce((s,r)=>s+parseFloat(r.cout||0)*parseFloat(r.quantite||1),0);
   const coutFmt = fmt(totalCout)+' $';
-  document.getElementById('st-cout').textContent = coutFmt;
-  document.getElementById('total-cout').textContent = coutFmt;
+  const el = document.getElementById('total-cout');
+  if(el) el.textContent = coutFmt;
 }
 
 function updateTotal(){
@@ -367,6 +365,7 @@ async function confirmAdd(){
   if(tr) tr.scrollIntoView({behavior:'smooth',block:'center'});
   toast('Bris ajouté ✓','success');
 }
+
 
 </script>
 
