@@ -115,9 +115,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .sb-logout:hover{color:var(--ruby);background:var(--ruby-bg);}
 
 /* MAIN */
-.main{margin-left:264px;min-height:100vh;background:var(--bg-base);display:flex;flex-direction:column;transition:margin-left .2s;}
-#app.no-sidebar .sidebar{display:none;}
-#app.no-sidebar .main{margin-left:0;}
+.main{margin-left:264px;min-height:100vh;background:var(--bg-base);display:flex;flex-direction:column;}
 
 /* TOPBAR */
 .topbar{position:sticky;top:0;z-index:100;height:60px;background:rgba(16,18,26,.88);backdrop-filter:blur(16px) saturate(180%);border-bottom:1px solid var(--text-faint);padding:0 30px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
@@ -677,7 +675,7 @@ body { font-size: 0.9375rem; }
       <div class="sb-item active" onclick="showPage('dashboard')" id="nav-dashboard">
         <span class="sb-ico">◈</span> Tableau de bord
       </div>
-      <div class="sb-item" onclick="showPage('problematiques')" id="nav-problematiques">
+      <div class="sb-item" onclick="window.location.href='problematiques.html'" id="nav-problematiques">
         <span class="sb-ico">◉</span> Problématiques
         <span class="sb-badge" id="badge-ouvert" style="display:none">0</span>
       </div>
@@ -732,10 +730,6 @@ body { font-size: 0.9375rem; }
 
   <main class="main">
     <div class="topbar">
-      <a id="topbar-back" onclick="showPage('dashboard')" style="display:none;align-items:center;gap:6px;font-size:.82rem;font-weight:600;color:var(--text-secondary);cursor:pointer;padding:6px 10px;border-radius:var(--r-md);border:1px solid var(--text-faint);background:var(--bg-raised);text-decoration:none;transition:all .15s;" onmouseover="this.style.color='var(--copper)';this.style.borderColor='var(--copper)'" onmouseout="this.style.color='var(--text-secondary)';this.style.borderColor='var(--text-faint)'">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        Retour
-      </a>
       <div id="topbar-title">Tableau de bord</div>
       <div class="tb-acts">
         <button class="btn-copper" id="btn-new-top" onclick="openModalNouvel()" style="display:none">⊕ Soumettre une problématique</button>
@@ -1658,16 +1652,6 @@ function closeModal(id){document.getElementById(id).classList.remove('open');}
 const pageTitles={dashboard:'Tableau de bord',problematiques:'Registre des problematiques',nouvelle:'Soumettre une problematique',admin:'Administration',profil:'Mon profil'};
 function showPage(name){
   if(name==='profil')loadProfilPage();
-  // Gestion sidebar : masquer pour page problematiques
-  const appEl   = document.getElementById('app');
-  const backBtn = document.getElementById('topbar-back');
-  if(name==='problematiques'){
-    appEl.classList.add('no-sidebar');
-    if(backBtn) backBtn.style.display='inline-flex';
-  } else {
-    appEl.classList.remove('no-sidebar');
-    if(backBtn) backBtn.style.display='none';
-  }
   // Réinitialiser les filtres à chaque ouverture de la page problématiques
   if(name==='problematiques'){
     try{
