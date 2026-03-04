@@ -1308,7 +1308,23 @@ async function loadAll(){
       criteresSeuils={};
       (sd||[]).forEach(r=>{ criteresSeuils[r.pilier]={v:r.seuil_vert,o:r.seuil_orange,r:r.seuil_rouge}; });
     }catch(e){}
-    renderDash(); renderTable(); renderAdminTable();
+    renderDash(); renderAdminTable();
+    // Restaurer les filtres sauvegardés
+    try{
+      const sp=localStorage.getItem('soy_filter_pilier')||'';
+      const ss=localStorage.getItem('soy_filter_statut')||'';
+      const sr=localStorage.getItem('soy_filter_prio')||'';
+      const sq=localStorage.getItem('soy_filter_q')||'';
+      const fp=document.getElementById('filter-pilier');
+      const fs=document.getElementById('filter-statut');
+      const fr=document.getElementById('filter-priorite');
+      const fq=document.getElementById('search-input');
+      if(fp&&sp) fp.value=sp;
+      if(fs&&ss) fs.value=ss;
+      if(fr&&sr) fr.value=sr;
+      if(fq&&sq) fq.value=sq;
+    }catch(e){}
+    filterTable();
   }catch(e){toast('Connexion impossible.','error');}
 }
 
@@ -1412,9 +1428,15 @@ function filterTable(){
   const pilier=document.getElementById('filter-pilier').value;
   const stat=document.getElementById('filter-statut').value;
   const prio=document.getElementById('filter-priorite').value;
+  // Sauver l'état des filtres pour le refresh
+  try{
+    localStorage.setItem('soy_filter_pilier', pilier);
+    localStorage.setItem('soy_filter_statut', stat);
+    localStorage.setItem('soy_filter_prio', prio);
+    localStorage.setItem('soy_filter_q', q);
+  }catch(e){}
   renderTable(allProblems.filter(p=>(!q||(p.intitule||'').toLowerCase().includes(q)||(p.description||'').toLowerCase().includes(q))&&(!pilier||p.pilier===pilier)&&(!stat||p.statut===stat)&&(!prio||p.priorite===prio)));
-}
-function renderAdminTable(){
+}function renderAdminTable(){
   if(!isAdmin)return;
   document.getElementById('admin-tbody').innerHTML=allProblems.length===0?'<tr><td colspan="10"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique.</div></div></td></tr>':allProblems.map(p=>{
     const datePrevue=p.date_prevue?`<span style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.date_prevue)}</span>`:'<span style="color:var(--text-faint);font-size:.75rem">—</span>';
@@ -1570,8 +1592,8 @@ function goToPilier(pilier){
   if(fsrch) fsrch.value='';
   const sel=document.getElementById('filter-pilier');
   if(sel){sel.value=pilier;filterTable();}
-}
-function loadProfilPage(){
+  try{ localStorage.setItem('soy_filter_pilier', pilier); }catch(e){}
+}function loadProfilPage(){
   if(!currentUser)return;
   const meta=currentUser.user_metadata||{};
   const email=currentUser.email||'';
@@ -1752,7 +1774,8 @@ function openCritere(pilier){
       } catch(e){ afficherCritere(''); }
     })();
   }
-  renderCmProbs();
+  // Attendre que l'overlay soit rendu (display:flex) avant de dessiner les canvas
+  requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ renderCmProbs(); }); });
 }
 
 function afficherCritere(texte){
@@ -1834,7 +1857,8 @@ function renderCmCharts(probs, params){
   }
 
   const opts={
-    responsive:true,maintainAspectRatio:true,
+    responsive:false,
+    animation:{duration:300},
     plugins:{legend:{display:minmax!==null,labels:{color:'#BEC5D6',font:{size:10},boxWidth:18}},tooltip:{mode:'index',intersect:false}},
     scales:{
       x:{ticks:{color:'#BEC5D6',font:{size:9},maxRotation:0},grid:{color:'rgba(255,255,255,.04)'}},
@@ -1843,9 +1867,17 @@ function renderCmCharts(probs, params){
   };
 
   const cwEl=document.getElementById('cm-chart-week');
-  if(cwEl){ if(cmChartWeek){cmChartWeek.destroy();cmChartWeek=null;} cmChartWeek=new Chart(cwEl,{type:'line',data:{labels:weekLabels,datasets:buildDS(weekData)},options:opts}); }
+  if(cwEl){
+    if(cmChartWeek){cmChartWeek.destroy();cmChartWeek=null;}
+    const pw=cwEl.parentElement; cwEl.width=pw?pw.clientWidth-24:280; cwEl.height=130;
+    cmChartWeek=new Chart(cwEl,{type:'line',data:{labels:weekLabels,datasets:buildDS(weekData)},options:opts});
+  }
   const cmEl=document.getElementById('cm-chart-month');
-  if(cmEl){ if(cmChartMonth){cmChartMonth.destroy();cmChartMonth=null;} cmChartMonth=new Chart(cmEl,{type:'line',data:{labels:monthLabels,datasets:buildDS(monthData)},options:opts}); }
+  if(cmEl){
+    if(cmChartMonth){cmChartMonth.destroy();cmChartMonth=null;}
+    const pm=cmEl.parentElement; cmEl.width=pm?pm.clientWidth-24:280; cmEl.height=130;
+    cmChartMonth=new Chart(cmEl,{type:'line',data:{labels:monthLabels,datasets:buildDS(monthData)},options:opts});
+  }
 }
 
 function closeCritere(e){
