@@ -772,6 +772,7 @@ const piliers = ['SST','Qualite','Couts','Delais','Motivation','Environnement','
 let currentUser = null, isAdmin = false, allProblems = [];
 let curDate = '';
 let cmChartWeek = null, cmChartMonth = null;
+let activePilierChart = '';
 
 function toast(msg,type='info'){
   const tel=document.createElement('div');
@@ -1012,6 +1013,7 @@ function renderCmCharts(probs, params){
 
 
 function openPilierCharts(pilier) {
+  activePilierChart = pilier;
   document.getElementById('chart-panel-title').textContent = pilier;
   document.getElementById('chart-params-pilier').value = pilier;
   const p = getCritereParams(pilier);
@@ -1021,22 +1023,39 @@ function openPilierCharts(pilier) {
   document.getElementById('chart-label-max').value = p.labelMax || 'Maximum';
   const panel = document.getElementById('chart-panel');
   panel.style.display = 'block';
-  // Activer le bouton correspondant
   document.querySelectorAll('.pilier-btn').forEach(b => {
     b.classList.toggle('active', b.textContent === pilier);
   });
-  const probs = allProblems.filter(x => x.pilier === pilier);
-  if (window._chartObs) window._chartObs.disconnect();
-  window._chartObs = new ResizeObserver(entries => {
-    for (const e of entries) {
-      if (e.contentRect.width > 0) {
-        window._chartObs.disconnect();
-        renderCmCharts(probs, p);
-        break;
+  renderChartForActivePilier();
+}
+
+function renderChartForActivePilier() {
+  if (!activePilierChart) return;
+  const panel = document.getElementById('chart-panel');
+  if (!panel || panel.style.display === 'none') return;
+  const p     = getCritereParams(activePilierChart);
+  const probs = allProblems.filter(x => x.pilier === activePilierChart);
+  // Si le panel est déjà visible et a une largeur, dessiner directement
+  const w = panel.getBoundingClientRect().width;
+  if (w > 0) {
+    if (window._chartObs) { window._chartObs.disconnect(); window._chartObs = null; }
+    renderCmCharts(probs, p);
+  } else {
+    // Sinon attendre via ResizeObserver
+    if (window._chartObs) window._chartObs.disconnect();
+    window._chartObs = new ResizeObserver(entries => {
+      for (const e of entries) {
+        if (e.contentRect.width > 0) {
+          window._chartObs.disconnect();
+          window._chartObs = null;
+          renderCmCharts(allProblems.filter(x => x.pilier === activePilierChart),
+                         getCritereParams(activePilierChart));
+          break;
+        }
       }
-    }
-  });
-  window._chartObs.observe(panel);
+    });
+    window._chartObs.observe(panel);
+  }
 }
 
 function closePilierCharts() {
@@ -1061,8 +1080,7 @@ function saveChartParams() {
   localStorage.setItem('critere_params_' + pilier, JSON.stringify(p));
   if (cmChartWeek)  { cmChartWeek.destroy();  cmChartWeek  = null; }
   if (cmChartMonth) { cmChartMonth.destroy(); cmChartMonth = null; }
-  const probs = allProblems.filter(x => x.pilier === pilier);
-  renderCmCharts(probs, p);
+  renderChartForActivePilier();
 }
 
 function restoreFilters() {
@@ -1096,6 +1114,8 @@ async function loadAll() {
     allProblems = data || [];
     updateDateUI();
     restoreFilters();
+    // Redessiner les graphiques avec les données fraîches
+    renderChartForActivePilier();
   } catch(e) {
     toast('Erreur : ' + (e.message || e), 'error');
     console.error('loadAll:', e);
