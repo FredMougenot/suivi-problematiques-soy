@@ -224,6 +224,7 @@ const VERIFS_FIXES = [
 
 let curDate = localToday();
 let rows = {};
+let _envSession = null;
 
 function todayStr(){ return localToday(); }
 function isToday(){ return curDate === todayStr(); }
@@ -434,6 +435,8 @@ window.addEventListener('load',()=>{
   sb.from('piliers_criteres_lignes').select('intitule').eq('pilier','Environnement').eq('row_index',0).single()
     .then(({data})=>{ if(data&&data.intitule) document.getElementById('page-title').textContent=data.intitule; })
     .catch(()=>{});
+  // Récupérer la session pour les inserts dans problematiques
+  sb.auth.getSession().then(({data:{session}})=>{ _envSession=session||null; }).catch(()=>{});
 });
 
 document.addEventListener('DOMContentLoaded',()=>{
@@ -515,6 +518,16 @@ async function submitNcProblems(){
   try { ncList = JSON.parse(btn.dataset.nclist || '[]'); } catch(e){ ncList=[]; }
   if(!ncList.length) return;
 
+  // Vérifier la session (RLS exige auth)
+  if(!_envSession){
+    const {data:{session}} = await sb.auth.getSession();
+    _envSession = session;
+  }
+  if(!_envSession){
+    toast('Vous devez être connecté pour créer des problématiques.','error');
+    return;
+  }
+
   loadNcParams();
   const pilier      = document.getElementById('nc-param-pilier').value   || 'Environnement';
   const priorite    = document.getElementById('nc-param-priorite').value  || 'Moyenne';
@@ -536,7 +549,7 @@ async function submitNcProblems(){
       responsable,
       soumis_par,
     }]);
-    if(error) errors++;
+    if(error){ console.error('Insert error:', error); errors++; }
   }
 
   btn.disabled = false;

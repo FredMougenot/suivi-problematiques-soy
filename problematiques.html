@@ -1083,19 +1083,22 @@ function renderCmCharts(probs, params){
     }
   };
 
-  function drawChart(id, data, existing){
-    const el=document.getElementById(id);
+  function drawChart(id, labels, values, existing){
+    const el = document.getElementById(id);
     if(!el) return existing;
-    if(existing){existing.destroy();}
-    // Calculer la largeur réelle : parent ou modal ou fallback 300px
-    let w = el.parentElement ? el.parentElement.getBoundingClientRect().width : 0;
-    if(!w){ const m=document.querySelector('.critere-modal'); w=m?(m.getBoundingClientRect().width-80)/2:300; }
-    if(!w || w<100) w=300;
-    el.width=Math.floor(w); el.height=140;
-    return new Chart(el,{type:'line',data:{labels:data.labels,datasets:buildDS(data.values)},options:opts});
+    if(existing){ existing.destroy(); }
+    const box = el.closest('.chart-box') || el.parentElement;
+    const w   = box ? Math.floor(box.getBoundingClientRect().width - 28) : 300;
+    el.width  = w > 80 ? w : 300;
+    el.height = 150;
+    return new Chart(el, {
+      type: 'line',
+      data: { labels, datasets: buildDS(values) },
+      options: opts
+    });
   }
-  cmChartWeek  = drawChart('cm-chart-week',  {labels:weekLabels,  values:weekData},  cmChartWeek);
-  cmChartMonth = drawChart('cm-chart-month', {labels:monthLabels, values:monthData}, cmChartMonth);
+  cmChartWeek  = drawChart('cm-chart-week',  weekLabels,  weekData,  cmChartWeek);
+  cmChartMonth = drawChart('cm-chart-month', monthLabels, monthData, cmChartMonth);
 }
 
 let cmChartWeek=null, cmChartMonth=null;
@@ -1103,17 +1106,26 @@ let cmChartWeek=null, cmChartMonth=null;
 
 function openPilierCharts(pilier){
   document.getElementById('chart-panel-title').textContent = pilier;
-  document.getElementById('chart-panel').style.display='block';
   document.getElementById('chart-params-pilier').value = pilier;
-  // Charger les params sauvegardés
   const p = getCritereParams(pilier);
   document.getElementById('chart-minmax').value = p.minmax!==null ? p.minmax : '';
   document.getElementById('chart-label').value  = p.label||'Objectif';
-  // Dessiner les graphiques après rendu
+  const panel = document.getElementById('chart-panel');
+  panel.style.display = 'block';
   const probs = allProblems.filter(x=>x.pilier===pilier);
-  setTimeout(()=>{ renderCmCharts(probs, p); }, 50);
+  // Utiliser ResizeObserver pour dessiner dès que le panel a une largeur réelle
+  if(window._chartObserver) window._chartObserver.disconnect();
+  window._chartObserver = new ResizeObserver((entries)=>{
+    for(const e of entries){
+      if(e.contentRect.width > 0){
+        window._chartObserver.disconnect();
+        renderCmCharts(probs, p);
+        break;
+      }
+    }
+  });
+  window._chartObserver.observe(panel);
 }
-
 function closePilierCharts(){
   document.getElementById('chart-panel').style.display='none';
   if(cmChartWeek){cmChartWeek.destroy();cmChartWeek=null;}
@@ -1122,17 +1134,17 @@ function closePilierCharts(){
 
 function saveChartParams(){
   const pilier = document.getElementById('chart-params-pilier').value;
+  if(!pilier) return;
   const val = document.getElementById('chart-minmax').value.trim();
   const lbl = document.getElementById('chart-label').value.trim()||'Objectif';
   const p = {minmax: val!==''?Number(val):null, label:lbl};
   localStorage.setItem('critere_params_'+pilier, JSON.stringify(p));
-  const probs = allProblems.filter(x=>x.pilier===pilier);
   if(cmChartWeek){cmChartWeek.destroy();cmChartWeek=null;}
   if(cmChartMonth){cmChartMonth.destroy();cmChartMonth=null;}
-  setTimeout(()=>{ renderCmCharts(probs, p); }, 50);
+  const probs = allProblems.filter(x=>x.pilier===pilier);
+  renderCmCharts(probs, p);
   toast('Paramètres enregistrés ✓','success');
 }
-
 async function init(){
   try{
     const {data:{session}}=await sb.auth.getSession();
