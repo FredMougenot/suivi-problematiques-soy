@@ -689,6 +689,13 @@ body { font-size: 0.9375rem; }
     </div>
   </div>
 
+  <!-- DATE NAV -->
+  <div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 28px 0;">
+    <button onclick="changeDay(-1)" style="width:34px;height:34px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);cursor:pointer;font-size:1rem;transition:all .15s;display:flex;align-items:center;justify-content:center;">&#8592;</button>
+    <div id="date-lbl" style="font-size:1rem;font-weight:700;color:var(--text-primary);padding:7px 22px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);min-width:260px;text-align:center;">—</div>
+    <button onclick="changeDay(1)" style="width:34px;height:34px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);cursor:pointer;font-size:1rem;transition:all .15s;display:flex;align-items:center;justify-content:center;">&#8594;</button>
+  </div>
+
   <!-- MAIN -->
   <div class="tool-main">
 
@@ -800,30 +807,7 @@ body { font-size: 0.9375rem; }
           <input id="edit-responsable" class="fg-inp" placeholder="Nom…">
         </div>
         <div class="fg"><label class="fg-lbl">Date prévue</label>
-          <input id="edit-date-prevue" class="fg-inp" type="date">
-        </div>
-        <div class="fg"><label class="fg-lbl">Date résolue</label>
-          <input id="edit-date-resolue" class="fg-inp" type="date">
-        </div>
-        <div class="fg full"><label class="fg-lbl">Description</label>
-          <textarea id="edit-description" class="fg-inp" rows="4"
-            style="resize:vertical;min-height:80px;font-family:inherit;font-size:.86rem;line-height:1.5"
-            placeholder="Description détaillée…"></textarea>
-        </div>
-      </div>
-    </div>
-    <div class="modal-ft">
-      <button class="btn-can" onclick="closeModal('modal-edit')">Annuler</button>
-      <button class="btn-sub" onclick="saveEdit()">Enregistrer</button>
-    </div>
-  </div>
-</div>
-
-<div class="toasts" id="toasts"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
+          <input 
 
 const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
@@ -862,9 +846,11 @@ function localDate(isoStr){
 function isToday(){ return curDate === localToday(); }
 
 function updateDateUI(){
+  const el = document.getElementById('date-lbl');
+  if(!el) return;
   const d = new Date(curDate+'T00:00:00');
   const lbl = d.toLocaleDateString('fr-CA',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
-  document.getElementById('date-lbl').innerHTML = lbl + (isToday() ? '<span class="today-chip">Aujourd\'hui</span>' : '');
+  el.innerHTML = lbl + (isToday() ? '<span class="today-chip">Aujourd\'hui</span>' : '');
 }
 
 function changeDay(delta){
@@ -1026,7 +1012,7 @@ async function loadAll(){
     allProblems=data||[];
     updateDateUI();
   restoreFilters();
-  }catch(e){toast('Connexion impossible.','error');}
+  }catch(e){toast('Erreur: '+e.message,'error');console.error('loadAll error:',e);}
 }
 
 function restoreFilters(){
@@ -1177,6 +1163,41 @@ async function init(){
       await loadAll();
     } else {
       window.location.href='index.html';
+    }
+  }catch(e){ window.location.href='index.html'; }
+}
+
+window.addEventListener('load',()=>{
+  function waitSB(){
+    if(typeof supabase!=='undefined'&&supabase.createClient) init();
+    else setTimeout(waitSB,50);
+  }
+  waitSB();
+});
+
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('.overlay').forEach(ov=>{
+    ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('open'); });
+  });
+});
+
+
+// Construire les boutons pilier
+window.addEventListener('DOMContentLoaded',()=>{
+  const container = document.getElementById('pilier-btns');
+  piliers.forEach(p=>{
+    const btn = document.createElement('button');
+    btn.className = 'pilier-btn';
+    btn.textContent = p;
+    btn.onclick = ()=>{
+      document.querySelectorAll('.pilier-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      openPilierCharts(p);
+    };
+    container.appendChild(btn);
+  });
+});
+    window.location.href='index.html';
     }
   }catch(e){ window.location.href='index.html'; }
 }
