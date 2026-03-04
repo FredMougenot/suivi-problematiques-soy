@@ -853,7 +853,27 @@ function localToday(){
   const d=new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
+function localDate(isoStr){
+  if(!isoStr) return '';
+  const d = new Date(isoStr);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 
+function isToday(){ return curDate === localToday(); }
+
+function updateDateUI(){
+  const d = new Date(curDate+'T00:00:00');
+  const lbl = d.toLocaleDateString('fr-CA',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('date-lbl').innerHTML = lbl + (isToday() ? '<span class="today-chip">Aujourd\'hui</span>' : '');
+}
+
+function changeDay(delta){
+  const dt = new Date(curDate+'T00:00:00');
+  dt.setDate(dt.getDate()+delta);
+  curDate = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+  updateDateUI();
+  restoreFilters();
+}
 function fmtDate(d){return d?new Date(d).toLocaleDateString('fr-CA',{day:'2-digit',month:'short',year:'numeric'}):''}
 function fmtId(id){return String(id||'').padStart(4,'0').slice(-4);}
 function bStat(s){
@@ -893,23 +913,21 @@ function filterTable(){
   const pilier=document.getElementById('filter-pilier').value;
   const stat=document.getElementById('filter-statut').value;
   const prio=document.getElementById('filter-priorite').value;
-  // Sauver l'état des filtres pour le refresh
   try{
     localStorage.setItem('soy_filter_pilier', pilier);
     localStorage.setItem('soy_filter_statut', stat);
     localStorage.setItem('soy_filter_prio', prio);
     localStorage.setItem('soy_filter_q', q);
   }catch(e){}
-  renderTable(allProblems.filter(p=>(!q||(p.intitule||'').toLowerCase().includes(q)||(p.description||'').toLowerCase().includes(q))&&(!pilier||p.pilier===pilier)&&(!stat||p.statut===stat)&&(!prio||p.priorite===prio)));
-}function renderAdminTable(){
-  if(!isAdmin)return;
-  document.getElementById('admin-tbody').innerHTML=allProblems.length===0?'<tr><td colspan="10"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique.</div></div></td></tr>':allProblems.map(p=>{
-    const datePrevue=p.date_prevue?`<span style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.date_prevue)}</span>`:'<span style="color:var(--text-faint);font-size:.75rem">—</span>';
-    const dateResolue=p.date_resolue?`<span style="font-size:.78rem;color:var(--emerald)">${fmtDate(p.date_resolue)}</span>`:'<span style="color:var(--text-faint);font-size:.75rem">—</span>';
-    return `<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td class="c-title">${esc(p.intitule)}</td><td><span class="badge bd">${esc(p.pilier||'')}</span></td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${esc(p.soumis_par||'')}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td><td>${datePrevue}</td><td>${dateResolue}</td><td><button class="ab ab-e" data-id="${p.id}" data-action="edit">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" data-id="${p.id}" data-action="cloturer">Cloturer</button>`:''}</td></tr>`;
-  }).join('');
+  renderTable(allProblems.filter(p=>{
+    if(localDate(p.created_at) !== curDate) return false;
+    if(q && !(p.intitule||'').toLowerCase().includes(q) && !(p.description||'').toLowerCase().includes(q)) return false;
+    if(pilier && p.pilier!==pilier) return false;
+    if(stat   && p.statut!==stat)   return false;
+    if(prio   && p.priorite!==prio) return false;
+    return true;
+  }));
 }
-
 function renderTable(data){
   const probs=data||allProblems;
   document.getElementById('prob-tbody').innerHTML=probs.length===0?'<tr><td colspan="10"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique trouvee.</div></div></td></tr>':probs.map(p=>{
@@ -1006,7 +1024,8 @@ async function loadAll(){
     const {data,error}=await sb.from('problematiques').select('*').order('created_at',{ascending:false});
     if(error){toast('Erreur: '+error.message,'error');return;}
     allProblems=data||[];
-    restoreFilters();
+    updateDateUI();
+  restoreFilters();
   }catch(e){toast('Connexion impossible.','error');}
 }
 
@@ -1052,7 +1071,7 @@ function renderCmCharts(probs, params){
     weekDays.push(ds);
     weekLabels.push(d.toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'}));
   }
-  const weekData = weekDays.map(d=>probs.filter(p=>(p.created_at||'').slice(0,10)===d).length);
+  const weekData = weekDays.map(d=>probs.filter(p=>localDate(p.created_at)===d).length);
 
   const yr=today.getFullYear(), mo=today.getMonth();
   const daysInMonth=new Date(yr,mo+1,0).getDate();
@@ -1061,7 +1080,7 @@ function renderCmCharts(probs, params){
     monthDays.push(yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(i).padStart(2,'0'));
     monthLabels.push(String(i));
   }
-  const monthData = monthDays.map(d=>probs.filter(p=>(p.created_at||'').slice(0,10)===d).length);
+  const monthData = monthDays.map(d=>probs.filter(p=>localDate(p.created_at)===d).length);
 
   const minmax = params&&params.minmax!==null ? Number(params.minmax) : null;
   const lineLabel = (params&&params.label)?params.label:'Objectif';

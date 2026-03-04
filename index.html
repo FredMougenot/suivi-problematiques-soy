@@ -1129,6 +1129,12 @@ function localToday(){
   const d=new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
+// Convertit un timestamp UTC Supabase en date locale YYYY-MM-DD
+function localDate(isoStr){
+  if(!isoStr) return '';
+  const d = new Date(isoStr);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const { createClient } = supabase;
@@ -1369,11 +1375,11 @@ function renderDash(){
   // = créées le jour même ou avant, ET (pas clôturées OU clôturées/résolues après dashDate)
   const d = dashDate;
   const actives = allProblems.filter(p=>{
-    const created = (p.created_at||'').slice(0,10);
+    const created = localDate(p.created_at);
     if(created > d) return false; // pas encore créée ce jour-là
     // Si clôturée/annulée, ne compter que si résolution APRÈS la date
     if(p.statut==='Clôturé'||p.statut==='Annulé'){
-      const resolved = (p.date_resolue||p.updated_at||'').slice(0,10);
+      const resolved = localDate(p.date_resolue||p.updated_at||'');
       return resolved > d;
     }
     return true;
@@ -1412,7 +1418,7 @@ function renderDash(){
   const pcols={Critique:'var(--ruby)',Haute:'var(--amber)',Moyenne:'var(--sapphire)',Basse:'var(--emerald)'};
   document.getElementById('prio-stats').innerHTML=prios.map(p=>`<div class="pilier-row"><div class="pilier-n"><span class="badge bp${p[0]}">${p}</span></div><div class="pilier-track"><div class="pilier-fill" style="width:${(pc[p]/maxP*100).toFixed(0)}%;background:${pcols[p]}"></div></div><div class="pilier-cnt">${pc[p]}</div></div>`).join('');
   // Nouveautés = problématiques créées À la date sélectionnée
-  const recent=allProblems.filter(p=>(p.created_at||'').slice(0,10)===d).slice(0,5);
+  const recent=allProblems.filter(p=>localDate(p.created_at)===d).slice(0,5);
   document.getElementById('recent-tbody').innerHTML=recent.length===0?`<tr><td colspan="6"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problématique créée ce jour.</div></div></td></tr>`:recent.map(p=>`<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td class="c-title">${esc(p.intitule)}</td><td><span class="badge bd">${esc(p.pilier||'')}</span></td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td></tr>`).join('');
 }
 function renderTable(data){
@@ -1578,47 +1584,12 @@ function showPage(name){
   try{ localStorage.setItem('soy_active_page', name); }catch(e){}
 }
 function goToRegistre(statut){
-  showPage('problematiques');
-  const sel=document.getElementById('filter-statut');
-  if(sel){sel.value=statut;filterTable();}
-}
-function goToPilier(pilier){
-  showPage('problematiques');
-  const fstat=document.getElementById('filter-statut');
-  const fprio=document.getElementById('filter-priorite');
-  const fsrch=document.getElementById('search-input');
-  if(fstat) fstat.value='';
-  if(fprio) fprio.value='';
-  if(fsrch) fsrch.value='';
-  const sel=document.getElementById('filter-pilier');
-  if(sel){sel.value=pilier;filterTable();}
-  try{ localStorage.setItem('soy_filter_pilier', pilier); }catch(e){}
-}function loadProfilPage(){
-  if(!currentUser)return;
-  const meta=currentUser.user_metadata||{};
-  const email=currentUser.email||'';
-  const dn=[meta.prenom,meta.nom].filter(Boolean).join(' ')||email.split('@')[0];
-  document.getElementById('pav').textContent=dn.substring(0,2).toUpperCase();
-  document.getElementById('pdn').textContent=dn;
-  document.getElementById('pem').textContent=email;
-  const rb=document.getElementById('prolbadge');
-  rb.textContent=isAdmin?'Admin':'Utilisateur';
-  rb.className='profil-role '+(isAdmin?'admin':'user');
-  document.getElementById('prolrole').textContent=isAdmin?'Administrateur':'Utilisateur';
-  document.getElementById('prolsince').textContent=currentUser.created_at?new Date(currentUser.created_at).toLocaleDateString('fr-CA',{day:'2-digit',month:'long',year:'numeric'}):'';
-  document.getElementById('p-prenom').value=meta.prenom||'';
-  document.getElementById('p-nom').value=meta.nom||'';
-  document.getElementById('p-poste').value=meta.poste||'';
-  document.getElementById('p-email').value=email;
-  document.getElementById('p-pwd0').value='';
-  document.getElementById('p-pwd1').value='';
-  document.getElementById('p-pwd2').value='';
-  const pbar=document.getElementById('p-pwd-bar');
-  const plbl=document.getElementById('p-pwd-lbl');
-  if(pbar)pbar.style.width='0%';
-  if(plbl){plbl.textContent='Entrez un mot de passe';plbl.style.color='var(--text-muted)';}
-}
-async function saveProfilInfo(){
+  localStorage.setItem('soy_filter_statut', statut);
+  window.location.href = 'problematiques.html';
+}function goToPilier(pilier){
+  // Ouvrir la page dédiée avec le filtre pilier en paramètre URL
+  window.location.href = 'problematiques.html?pilier=' + encodeURIComponent(pilier);
+}async function saveProfilInfo(){
   const prenom=document.getElementById('p-prenom').value.trim();
   const nom=document.getElementById('p-nom').value.trim();
   const poste=document.getElementById('p-poste').value.trim();
@@ -1835,7 +1806,7 @@ function renderCmCharts(probs, params){
     weekDays.push(ds);
     weekLabels.push(d.toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'}));
   }
-  const weekData = weekDays.map(d=>probs.filter(p=>(p.created_at||'').slice(0,10)===d).length);
+  const weekData = weekDays.map(d=>probs.filter(p=>localDate(p.created_at)===d).length);
 
   const yr=today.getFullYear(), mo=today.getMonth();
   const daysInMonth=new Date(yr,mo+1,0).getDate();
@@ -1844,7 +1815,7 @@ function renderCmCharts(probs, params){
     monthDays.push(yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(i).padStart(2,'0'));
     monthLabels.push(String(i));
   }
-  const monthData = monthDays.map(d=>probs.filter(p=>(p.created_at||'').slice(0,10)===d).length);
+  const monthData = monthDays.map(d=>probs.filter(p=>localDate(p.created_at)===d).length);
 
   const minmax = params&&params.minmax!==null ? Number(params.minmax) : null;
   const lineLabel = (params&&params.label)?params.label:'Objectif';
