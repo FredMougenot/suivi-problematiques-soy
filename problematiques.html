@@ -601,7 +601,7 @@ body { font-size: 0.9375rem; }
 
   <!-- TOPBAR -->
   <div class="tool-topbar">
-    <a class="tool-back" href="index_v5.html">
+    <a class="tool-back" href="index.html">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       Retour
     </a>
@@ -630,7 +630,7 @@ body { font-size: 0.9375rem; }
       <div class="pilier-btns" id="pilier-btns">
         <span style="font-size:.78rem;color:var(--text-muted);align-self:center;white-space:nowrap;">Graphiques :</span>
       </div>
-      <button class="btn-add-prob" onclick="window.location.href='index_v5.html'">
+      <button class="btn-add-prob" onclick="window.location.href='index.html'">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Soumettre une problématique
       </button>
@@ -1163,11 +1163,11 @@ async function init() {
       updateDateUI();
       await loadAll();
     } else {
-      window.location.href = 'index_v5.html';
+      window.location.href = 'index.html';
     }
   } catch(e) {
     console.error('init error:', e);
-    window.location.href = 'index_v5.html';
+    window.location.href = 'index.html';
   }
 }
 
