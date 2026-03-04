@@ -630,7 +630,7 @@ body { font-size: 0.9375rem; }
       <div class="pilier-btns" id="pilier-btns">
         <span style="font-size:.78rem;color:var(--text-muted);align-self:center;white-space:nowrap;">Graphiques :</span>
       </div>
-      <button class="btn-add-prob" onclick="window.location.href='index.html'">
+      <button class="btn-add-prob" onclick="openNewProb()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Soumettre une problématique
       </button>
@@ -901,6 +901,21 @@ function renderTable(data){
   }).join('');
 }
 
+function openNewProb(){
+  document.getElementById('edit-id').value='';
+  document.querySelector('.modal-t').textContent='Soumettre une problématique';
+  document.getElementById('edit-subtitle').textContent='';
+  document.getElementById('edit-intitule').value='';
+  document.getElementById('edit-pilier').value='SST';
+  document.getElementById('edit-priorite').value='Moyenne';
+  document.getElementById('edit-statut').value='À traiter';
+  document.getElementById('edit-responsable').value='';
+  document.getElementById('edit-date-prevue').value='';
+  document.getElementById('edit-date-resolue').value='';
+  document.getElementById('edit-description').value='';
+  document.getElementById('modal-edit').classList.add('open');
+}
+
 function openEdit(id){
   const ep=allProblems.find(x=>x.id===id);if(!ep)return;
   document.getElementById('edit-id').value=id;
@@ -917,7 +932,28 @@ function openEdit(id){
 }
 
 async function saveEdit(){
-  const eid=parseInt(document.getElementById('edit-id').value);
+  const rawId=document.getElementById('edit-id').value;
+  if(!rawId){
+    // Mode création
+    const {error}=await sb.from('problematiques').insert({
+      intitule:    document.getElementById('edit-intitule').value.trim(),
+      pilier:      document.getElementById('edit-pilier').value,
+      statut:      document.getElementById('edit-statut').value,
+      priorite:    document.getElementById('edit-priorite').value,
+      responsable: document.getElementById('edit-responsable').value.trim()||null,
+      description: document.getElementById('edit-description').value.trim()||null,
+      date_prevue: document.getElementById('edit-date-prevue').value||null,
+      soumis_par:  (currentUser?.user_metadata?.prenom||'')+(currentUser?.user_metadata?.nom?' '+currentUser.user_metadata.nom:''),
+      created_at:  new Date().toISOString(),
+      updated_at:  new Date().toISOString(),
+    });
+    if(error){toast('Erreur: '+error.message,'error');return;}
+    // Remettre le titre original du modal
+    document.querySelector('.modal-t').textContent='Modifier la problématique';
+    closeModal('modal-edit'); toast('Problématique soumise.','success'); await loadAll();
+    return;
+  }
+  const eid=parseInt(rawId);
   const newStatut=document.getElementById('edit-statut').value;
   const prevProb=allProblems.find(x=>x.id===eid)||{};
   const wasResolu=prevProb.statut==='Résolu';
