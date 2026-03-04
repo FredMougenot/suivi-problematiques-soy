@@ -1043,6 +1043,8 @@ function closePilierCharts() {
   document.getElementById('chart-panel').style.display = 'none';
   if (cmChartWeek)  { cmChartWeek.destroy();  cmChartWeek  = null; }
   if (cmChartMonth) { cmChartMonth.destroy(); cmChartMonth = null; }
+  try { localStorage.removeItem('soy_chart_pilier'); } catch(e) {}
+  document.querySelectorAll('.pilier-btn').forEach(b => b.classList.remove('active'));
 }
 
 function saveChartParams() {
@@ -1076,11 +1078,13 @@ function restoreFilters() {
     if (fr) fr.value = localStorage.getItem('soy_filter_prio')   || '';
     if (fq) fq.value = localStorage.getItem('soy_filter_q')      || '';
   } catch(e) {}
+  // Pilier actif : URL en priorité, sinon localStorage
+  const activePilier = urlPilier || localStorage.getItem('soy_chart_pilier') || '';
   if (urlPilier) {
     window.history.replaceState({}, '', window.location.pathname);
-    // Ouvrir automatiquement le panneau graphique du pilier sélectionné
-    openPilierCharts(urlPilier);
+    localStorage.setItem('soy_chart_pilier', urlPilier);
   }
+  if (activePilier) openPilierCharts(activePilier);
   filterTable();
 }
 
