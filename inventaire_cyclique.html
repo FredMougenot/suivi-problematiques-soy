@@ -195,7 +195,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 
-function localToday(){
+<script>function localToday(){
   const d=new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
@@ -279,7 +279,7 @@ function render(){
     ...extras.map(i => ({idx:i, extra:true})),
   ];
 
-  let totalTotal=0, totalErp=0, totalEcart=0;
+  let totalTotal=0, totalErp=0, totalEcart=0, totalItems=0;
   let html = '';
   all.forEach((entry, pos) => {
     const r = rows[entry.idx]||{};
@@ -287,6 +287,9 @@ function render(){
     if(!isNaN(total)) totalTotal += total;
     if(!isNaN(parseFloat(r.erp))) totalErp += parseFloat(r.erp)||0;
     if(!isNaN(ecart)) totalEcart += ecart;
+    const hasVal = [r.qte_e1, r.balance1, r.qte_e2, r.balance2]
+      .some(v => parseFloat(v||0) !== 0);
+    if(hasVal) totalItems++;
 
     const ecartCls = ecart > 0 ? 'td-ecart-pos' : ecart < 0 ? 'td-ecart-neg' : 'td-ecart-zero';
     const ecartPfx = ecart > 0 ? '+' : '';
@@ -320,7 +323,12 @@ function render(){
     <td colspan="7" style="text-align:right;padding-left:16px;color:var(--text-muted);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;">Totaux</td>
     <td class="td-total">${fmtNum(totalTotal)}</td>
     <td style="font-weight:700">${fmtNum(totalErp)}</td>
-    <td class="${ecartTotCls}">${totalEcart>0?'+':''}${fmtNum(totalEcart)}</td>
+    <td class="${ecartTotCls}">${totalEcart>0?'+':''}}${fmtNum(totalEcart)}</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td colspan="9" style="text-align:right;padding:6px 16px;color:var(--text-muted);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;">Items enregistrés</td>
+    <td style="font-weight:700;color:var(--text-primary);font-size:.88rem;padding:6px 12px;">${totalItems}</td>
     <td></td>
   </tr>`;
 }
