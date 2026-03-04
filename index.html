@@ -1502,18 +1502,26 @@ function renderTable(data){
   }).join('');
 }
 function filterTable(){
-  const q=document.getElementById('search-input').value.toLowerCase();
-  const pilier=document.getElementById('filter-pilier').value;
-  const stat=document.getElementById('filter-statut').value;
-  const prio=document.getElementById('filter-priorite').value;
-  // Sauver l'état des filtres pour le refresh
+  const q           = document.getElementById('search-input').value.toLowerCase();
+  const pilier      = document.getElementById('filter-pilier').value;
+  const stat        = document.getElementById('filter-statut').value;
+  const prio        = document.getElementById('filter-priorite').value;
+  const showCloture = document.getElementById('show-cloture')?.checked || false;
+  const CLOTUREES   = ['Résolu','Clôturé','Annulé'];
   try{
     localStorage.setItem('soy_filter_pilier', pilier);
     localStorage.setItem('soy_filter_statut', stat);
     localStorage.setItem('soy_filter_prio', prio);
     localStorage.setItem('soy_filter_q', q);
   }catch(e){}
-  renderTable(allProblems.filter(p=>(!q||(p.intitule||'').toLowerCase().includes(q)||(p.description||'').toLowerCase().includes(q))&&(!pilier||p.pilier===pilier)&&(!stat||p.statut===stat)&&(!prio||p.priorite===prio)));
+  renderTable(allProblems.filter(p=>{
+    if(!showCloture && CLOTUREES.includes(p.statut)) return false;
+    if(q && !(p.intitule||'').toLowerCase().includes(q) && !(p.description||'').toLowerCase().includes(q)) return false;
+    if(pilier && p.pilier !== pilier) return false;
+    if(stat   && p.statut !== stat)   return false;
+    if(prio   && p.priorite !== prio) return false;
+    return true;
+  }));
 }function renderAdminTable(){
   if(!isAdmin)return;
   document.getElementById('admin-tbody').innerHTML=allProblems.length===0?'<tr><td colspan="10"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique.</div></div></td></tr>':allProblems.map(p=>{
@@ -1647,6 +1655,26 @@ function closeModal(id){document.getElementById(id).classList.remove('open');}
 const pageTitles={dashboard:'Tableau de bord',problematiques:'Registre des problematiques',nouvelle:'Soumettre une problematique',admin:'Administration',profil:'Mon profil'};
 function showPage(name){
   if(name==='profil')loadProfilPage();
+  // Réinitialiser les filtres à chaque ouverture de la page problématiques
+  if(name==='problematiques'){
+    try{
+      const fp=document.getElementById('filter-pilier');
+      const fs=document.getElementById('filter-statut');
+      const fr=document.getElementById('filter-priorite');
+      const fq=document.getElementById('search-input');
+      const fc=document.getElementById('show-cloture');
+      if(fp) fp.value='';
+      if(fs) fs.value='';
+      if(fr) fr.value='';
+      if(fq) fq.value='';
+      if(fc) fc.checked=false;
+      localStorage.removeItem('soy_filter_pilier');
+      localStorage.removeItem('soy_filter_statut');
+      localStorage.removeItem('soy_filter_prio');
+      localStorage.removeItem('soy_filter_q');
+    }catch(e){}
+    filterTable();
+  }
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
