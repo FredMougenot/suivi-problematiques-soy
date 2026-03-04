@@ -639,10 +639,19 @@ body { font-size: 0.9375rem; }
           <div style="font-size:.6rem;font-weight:800;color:var(--copper);letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px;">Problématiques par pilier</div>
           <div style="font-size:1rem;font-weight:700;color:var(--text-primary);" id="chart-panel-title">—</div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <span style="font-size:.78rem;color:var(--text-muted);">Ligne min/max :</span>
-          <input type="number" class="chart-param-input" id="chart-minmax" placeholder="ex: 5" oninput="saveChartParams()">
-          <input type="text"   class="chart-param-input" id="chart-label"  placeholder="Libellé" value="Objectif" oninput="saveChartParams()" style="width:120px;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <!-- Ligne minimum (verte) -->
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="width:10px;height:2px;background:#2DD4A0;display:inline-block;border-radius:2px;"></span>
+            <input type="number" class="chart-param-input" id="chart-min"       placeholder="Valeur min" oninput="saveChartParams()" style="width:110px;">
+            <input type="text"   class="chart-param-input" id="chart-label-min" placeholder="Libellé min" oninput="saveChartParams()" style="width:110px;">
+          </div>
+          <!-- Ligne maximum (rouge) -->
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="width:10px;height:2px;background:#E05555;display:inline-block;border-radius:2px;"></span>
+            <input type="number" class="chart-param-input" id="chart-max"       placeholder="Valeur max" oninput="saveChartParams()" style="width:110px;">
+            <input type="text"   class="chart-param-input" id="chart-label-max" placeholder="Libellé max" oninput="saveChartParams()" style="width:110px;">
+          </div>
           <input type="hidden" id="chart-params-pilier">
           <button onclick="closePilierCharts()" style="width:28px;height:28px;border-radius:var(--r-sm);background:transparent;border:1px solid var(--text-faint);color:var(--text-muted);cursor:pointer;font-size:.85rem;">✕</button>
         </div>
@@ -918,8 +927,14 @@ async function checkRole(){
 function getCritereParams(pilier){
   try {
     const saved = localStorage.getItem('critere_params_'+pilier);
-    return saved ? JSON.parse(saved) : {minmax: null, label: 'Objectif'};
-  } catch(e){ return {minmax: null, label: 'Objectif'}; }
+    if(!saved) return {min:null,labelMin:'Minimum',max:null,labelMax:'Maximum'};
+    const p = JSON.parse(saved);
+    // Compatibilité ancienne structure {minmax, label}
+    if(p.minmax !== undefined && p.min === undefined){
+      return {min:p.minmax, labelMin:p.label||'Objectif', max:null, labelMax:'Maximum'};
+    }
+    return p;
+  } catch(e){ return {min:null,labelMin:'Minimum',max:null,labelMax:'Maximum'}; }
 }
 
 function renderCmCharts(probs, params){
@@ -945,39 +960,43 @@ function renderCmCharts(probs, params){
   }
   const monthData = monthDays.map(d=>probs.filter(p=>localDate(p.created_at)===d).length);
 
-  const minmax = params&&params.minmax!==null ? Number(params.minmax) : null;
-  const lineLabel = (params&&params.label)?params.label:'Objectif';
-  const COPPER='#C8843A', BLUE='rgba(99,179,237,.85)', BLUE_BG='rgba(99,179,237,.12)';
+  const vMin = params&&params.min!==null&&params.min!==undefined ? Number(params.min) : null;
+  const vMax = params&&params.max!==null&&params.max!==undefined ? Number(params.max) : null;
+  const lblMin = (params&&params.labelMin) ? params.labelMin : 'Minimum';
+  const lblMax = (params&&params.labelMax) ? params.labelMax : 'Maximum';
+  const hasLines = vMin!==null || vMax!==null;
+  const BLUE='rgba(99,179,237,.85)', BLUE_BG='rgba(99,179,237,.12)';
+  const GREEN='#2DD4A0', RED='#E05555';
 
   function buildDS(data){
     const ds=[{label:'Problématiques',data,fill:true,backgroundColor:BLUE_BG,borderColor:BLUE,borderWidth:2,pointRadius:3,pointBackgroundColor:BLUE,tension:0.3}];
-    if(minmax!==null) ds.push({label:lineLabel,data:data.map(()=>minmax),borderColor:COPPER,borderWidth:2,borderDash:[5,4],pointRadius:0,fill:false,tension:0});
+    if(vMin!==null) ds.push({label:lblMin,data:data.map(()=>vMin),borderColor:GREEN,borderWidth:2,borderDash:[6,3],pointRadius:0,fill:false,tension:0});
+    if(vMax!==null) ds.push({label:lblMax,data:data.map(()=>vMax),borderColor:RED,  borderWidth:2,borderDash:[6,3],pointRadius:0,fill:false,tension:0});
     return ds;
   }
 
   const opts={
     responsive:false,
     animation:{duration:300},
-    plugins:{legend:{display:minmax!==null,labels:{color:'#BEC5D6',font:{size:10},boxWidth:18}},tooltip:{mode:'index',intersect:false}},
+    plugins:{legend:{display:hasLines,labels:{color:'#BEC5D6',font:{size:10},boxWidth:18}},tooltip:{mode:'index',intersect:false}},
     scales:{
       x:{ticks:{color:'#BEC5D6',font:{size:9},maxRotation:0},grid:{color:'rgba(255,255,255,.04)'}},
       y:{ticks:{color:'#BEC5D6',font:{size:9},stepSize:1,precision:0},grid:{color:'rgba(255,255,255,.06)'},beginAtZero:true}
     }
   };
 
-  function drawChart(id, data, existing){
-    const el=document.getElementById(id);
+  function drawChart(id, labels, values, existing){
+    const el = document.getElementById(id);
     if(!el) return existing;
-    if(existing){existing.destroy();}
-    // Calculer la largeur réelle : parent ou modal ou fallback 300px
-    let w = el.parentElement ? el.parentElement.getBoundingClientRect().width : 0;
-    if(!w){ const m=document.querySelector('.critere-modal'); w=m?(m.getBoundingClientRect().width-80)/2:300; }
-    if(!w || w<100) w=300;
-    el.width=Math.floor(w); el.height=140;
-    return new Chart(el,{type:'line',data:{labels:data.labels,datasets:buildDS(data.values)},options:opts});
+    if(existing){ existing.destroy(); }
+    const box = el.closest('.chart-box') || el.parentElement;
+    const w   = box ? Math.floor(box.getBoundingClientRect().width - 28) : 300;
+    el.width  = w > 80 ? w : 300;
+    el.height = 150;
+    return new Chart(el, {type:'line', data:{labels, datasets:buildDS(values)}, options:opts});
   }
-  cmChartWeek  = drawChart('cm-chart-week',  {labels:weekLabels,  values:weekData},  cmChartWeek);
-  cmChartMonth = drawChart('cm-chart-month', {labels:monthLabels, values:monthData}, cmChartMonth);
+  cmChartWeek  = drawChart('cm-chart-week',  weekLabels,  weekData,  cmChartWeek);
+  cmChartMonth = drawChart('cm-chart-month', monthLabels, monthData, cmChartMonth);
 }
 
 
@@ -985,10 +1004,16 @@ function openPilierCharts(pilier) {
   document.getElementById('chart-panel-title').textContent = pilier;
   document.getElementById('chart-params-pilier').value = pilier;
   const p = getCritereParams(pilier);
-  document.getElementById('chart-minmax').value = p.minmax !== null ? p.minmax : '';
-  document.getElementById('chart-label').value  = p.label  || 'Objectif';
+  document.getElementById('chart-min').value       = p.min  !== null ? p.min  : '';
+  document.getElementById('chart-label-min').value = p.labelMin || 'Minimum';
+  document.getElementById('chart-max').value       = p.max  !== null ? p.max  : '';
+  document.getElementById('chart-label-max').value = p.labelMax || 'Maximum';
   const panel = document.getElementById('chart-panel');
   panel.style.display = 'block';
+  // Activer le bouton correspondant
+  document.querySelectorAll('.pilier-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent === pilier);
+  });
   const probs = allProblems.filter(x => x.pilier === pilier);
   if (window._chartObs) window._chartObs.disconnect();
   window._chartObs = new ResizeObserver(entries => {
@@ -1012,9 +1037,14 @@ function closePilierCharts() {
 function saveChartParams() {
   const pilier = document.getElementById('chart-params-pilier').value;
   if (!pilier) return;
-  const val = document.getElementById('chart-minmax').value.trim();
-  const lbl = document.getElementById('chart-label').value.trim() || 'Objectif';
-  const p = { minmax: val !== '' ? Number(val) : null, label: lbl };
+  const vMin = document.getElementById('chart-min').value.trim();
+  const vMax = document.getElementById('chart-max').value.trim();
+  const p = {
+    min:      vMin !== '' ? Number(vMin) : null,
+    labelMin: document.getElementById('chart-label-min').value.trim() || 'Minimum',
+    max:      vMax !== '' ? Number(vMax) : null,
+    labelMax: document.getElementById('chart-label-max').value.trim() || 'Maximum',
+  };
   localStorage.setItem('critere_params_' + pilier, JSON.stringify(p));
   if (cmChartWeek)  { cmChartWeek.destroy();  cmChartWeek  = null; }
   if (cmChartMonth) { cmChartMonth.destroy(); cmChartMonth = null; }
@@ -1023,7 +1053,7 @@ function saveChartParams() {
 }
 
 function restoreFilters() {
-  const params   = new URLSearchParams(window.location.search);
+  const params    = new URLSearchParams(window.location.search);
   const urlPilier = params.get('pilier');
   const fp = document.getElementById('filter-pilier');
   const fs = document.getElementById('filter-statut');
@@ -1035,7 +1065,11 @@ function restoreFilters() {
     if (fr) fr.value = localStorage.getItem('soy_filter_prio')   || '';
     if (fq) fq.value = localStorage.getItem('soy_filter_q')      || '';
   } catch(e) {}
-  if (urlPilier) window.history.replaceState({}, '', window.location.pathname);
+  if (urlPilier) {
+    window.history.replaceState({}, '', window.location.pathname);
+    // Ouvrir automatiquement le panneau graphique du pilier sélectionné
+    openPilierCharts(urlPilier);
+  }
   filterTable();
 }
 
