@@ -835,12 +835,21 @@ function filterTable() {
     localStorage.setItem('soy_filter_q',      q);
   } catch(e) {}
   renderTable(allProblems.filter(p => {
-    if (localDate(p.created_at) !== curDate) return false;
+    // Créée avant ou le jour sélectionné
+    if (localDate(p.created_at) > curDate) return false;
+    // Résolue/clôturée/annulée : inclure seulement si date_resolue est après curDate
+    // ou si date_resolue est vide (pas encore résolue)
+    const resolue = p.date_resolue ? localDate(p.date_resolue) : null;
+    if (resolue && resolue <= curDate &&
+        (p.statut === 'Résolu' || p.statut === 'Clôturé' || p.statut === 'Annulé')) {
+      return false;
+    }
+    // Filtres texte / pilier / statut / priorité
     if (q      && !(p.intitule||'').toLowerCase().includes(q)
                && !(p.description||'').toLowerCase().includes(q)) return false;
-    if (pilier && p.pilier    !== pilier) return false;
-    if (stat   && p.statut    !== stat)   return false;
-    if (prio   && p.priorite  !== prio)   return false;
+    if (pilier && p.pilier   !== pilier) return false;
+    if (stat   && p.statut   !== stat)   return false;
+    if (prio   && p.priorite !== prio)   return false;
     return true;
   }));
 }
