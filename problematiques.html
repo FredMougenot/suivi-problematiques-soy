@@ -578,100 +578,22 @@ body { font-size: 0.9375rem; }
 .face-red{filter:drop-shadow(0 0 4px rgba(224,85,85,.45));}
 
 
-/* ── GRAPHIQUES PILIER ─────────────────────────────────────────── */
-.chart-panel {
-  background: var(--bg-raised);
-  border: 1px solid var(--text-faint);
-  border-radius: var(--r-lg);
-  padding: 20px 24px;
-  margin-bottom: 20px;
-}
-.chart-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.chart-panel-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-.chart-panel-params {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.chart-param-input {
-  background: var(--bg-float);
-  border: 1px solid var(--text-faint);
-  color: var(--text-primary);
-  border-radius: var(--r-md);
-  padding: 6px 10px;
-  font-size: .82rem;
-  font-family: 'Outfit', sans-serif;
-  width: 100px;
-  outline: none;
-}
-.chart-param-label {
-  font-size: .78rem;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-.chart-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-.chart-box {
-  background: var(--bg-float);
-  border: 1px solid var(--text-faint);
-  border-radius: var(--r-md);
-  padding: 14px;
-}
-.chart-box-title {
-  font-size: .62rem;
-  font-weight: 800;
-  color: var(--text-muted);
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  margin-bottom: 10px;
-}
-.chart-box canvas {
-  display: block;
-  width: 100% !important;
-}
-@media(max-width:600px){
-  .chart-grid { grid-template-columns: 1fr; }
-}
+/* ── DATE NAV ───────────────────────────────────────────────────── */
+.today-chip{font-size:.65rem;font-weight:700;color:var(--copper-light);background:var(--copper-dim);border:1px solid rgba(200,132,58,.25);padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle;}
 
-/* ── PILIER SELECTOR ───────────────────────────────────────────── */
-.pilier-btns {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-}
-.pilier-btn {
-  padding: 6px 14px;
-  border-radius: 20px;
-  border: 1px solid var(--text-faint);
-  background: var(--bg-raised);
-  color: var(--text-muted);
-  font-size: .78rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .15s;
-  font-family: 'Outfit', sans-serif;
-}
-.pilier-btn:hover, .pilier-btn.active {
-  border-color: var(--copper);
-  color: var(--copper);
-  background: var(--copper-dim);
-}
+/* ── GRAPHIQUES ─────────────────────────────────────────────────── */
+.chart-panel{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);padding:20px 24px;margin-bottom:20px;}
+.chart-panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap;}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.chart-box{background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:14px;}
+.chart-box-title{font-size:.62rem;font-weight:800;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
+.chart-param-input{background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:6px 10px;font-size:.82rem;font-family:'Outfit',sans-serif;width:100px;outline:none;}
+@media(max-width:600px){.chart-grid{grid-template-columns:1fr;}}
+
+/* ── PILIER BTNS ────────────────────────────────────────────────── */
+.pilier-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+.pilier-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--text-faint);background:var(--bg-raised);color:var(--text-muted);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;font-family:'Outfit',sans-serif;}
+.pilier-btn:hover,.pilier-btn.active{border-color:var(--copper);color:var(--copper);background:var(--copper-dim);}
   </style>
 </head>
 <body>
@@ -690,43 +612,39 @@ body { font-size: 0.9375rem; }
   </div>
 
   <!-- DATE NAV -->
-  <div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 28px 0;">
-    <button onclick="changeDay(-1)" style="width:34px;height:34px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);cursor:pointer;font-size:1rem;transition:all .15s;display:flex;align-items:center;justify-content:center;">&#8592;</button>
+  <div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 28px 4px;">
+    <button onclick="changeDay(-1)" style="width:34px;height:34px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all .15s;">&#8592;</button>
     <div id="date-lbl" style="font-size:1rem;font-weight:700;color:var(--text-primary);padding:7px 22px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);min-width:260px;text-align:center;">—</div>
-    <button onclick="changeDay(1)" style="width:34px;height:34px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);cursor:pointer;font-size:1rem;transition:all .15s;display:flex;align-items:center;justify-content:center;">&#8594;</button>
+    <button onclick="changeDay(1)" style="width:34px;height:34px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all .15s;">&#8594;</button>
   </div>
 
   <!-- MAIN -->
   <div class="tool-main">
 
-    <!-- Bouton ajouter -->
-    <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
-      <button class="btn-add-prob" onclick="window.location.href='index.html#nouvelle'">
+    <!-- Bouton ajouter + boutons pilier -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
+      <div class="pilier-btns" id="pilier-btns">
+        <span style="font-size:.78rem;color:var(--text-muted);align-self:center;white-space:nowrap;">Graphiques :</span>
+      </div>
+      <button class="btn-add-prob" onclick="window.location.href='index.html'">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Soumettre une problématique
       </button>
     </div>
 
-    <!-- Sélecteur pilier → graphique -->
-    <div class="pilier-btns" id="pilier-btns">
-      <span style="font-size:.78rem;color:var(--text-muted);align-self:center;">Graphiques :</span>
-    </div>
-
-    <!-- Panneau graphiques (masqué par défaut) -->
+    <!-- Panneau graphiques -->
     <div class="chart-panel" id="chart-panel" style="display:none;">
       <div class="chart-panel-header">
         <div>
           <div style="font-size:.6rem;font-weight:800;color:var(--copper);letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px;">Problématiques par pilier</div>
-          <div class="chart-panel-title" id="chart-panel-title">—</div>
+          <div style="font-size:1rem;font-weight:700;color:var(--text-primary);" id="chart-panel-title">—</div>
         </div>
-        <div class="chart-panel-params">
-          <span class="chart-param-label">Ligne min/max :</span>
-          <input type="number" class="chart-param-input" id="chart-minmax" placeholder="ex: 5"
-            oninput="saveChartParams()">
-          <input type="text" class="chart-param-input" id="chart-label" placeholder="Libellé"
-            value="Objectif" oninput="saveChartParams()" style="width:120px;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="font-size:.78rem;color:var(--text-muted);">Ligne min/max :</span>
+          <input type="number" class="chart-param-input" id="chart-minmax" placeholder="ex: 5" oninput="saveChartParams()">
+          <input type="text"   class="chart-param-input" id="chart-label"  placeholder="Libellé" value="Objectif" oninput="saveChartParams()" style="width:120px;">
           <input type="hidden" id="chart-params-pilier">
-          <button onclick="closePilierCharts()" style="width:28px;height:28px;border-radius:var(--r-sm);background:transparent;border:1px solid var(--text-faint);color:var(--text-muted);cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;">✕</button>
+          <button onclick="closePilierCharts()" style="width:28px;height:28px;border-radius:var(--r-sm);background:transparent;border:1px solid var(--text-faint);color:var(--text-muted);cursor:pointer;font-size:.85rem;">✕</button>
         </div>
       </div>
       <div class="chart-grid">
@@ -747,8 +665,8 @@ body { font-size: 0.9375rem; }
         <span class="srch-ico">⌕</span>
         <input type="text" class="srch-inp" id="search-input" placeholder="Rechercher…" oninput="filterTable()">
       </div>
-      <select class="fsel" id="filter-pilier" onchange="filterTable()"><option value="">Tous les piliers</option></select>
-      <select class="fsel" id="filter-statut" onchange="filterTable()">
+      <select class="fsel" id="filter-pilier"   onchange="filterTable()"><option value="">Tous les piliers</option></select>
+      <select class="fsel" id="filter-statut"   onchange="filterTable()">
         <option value="">Tous les statuts</option>
         <option>À traiter</option><option>En cours</option><option>Résolu</option><option>Annulé</option><option>Clôturé</option>
       </select>
@@ -807,15 +725,40 @@ body { font-size: 0.9375rem; }
           <input id="edit-responsable" class="fg-inp" placeholder="Nom…">
         </div>
         <div class="fg"><label class="fg-lbl">Date prévue</label>
-          <input 
+          <input id="edit-date-prevue" class="fg-inp" type="date">
+        </div>
+        <div class="fg"><label class="fg-lbl">Date résolue</label>
+          <input id="edit-date-resolue" class="fg-inp" type="date">
+        </div>
+        <div class="fg full"><label class="fg-lbl">Description</label>
+          <textarea id="edit-description" class="fg-inp" rows="4"
+            style="resize:vertical;min-height:80px;font-family:inherit;font-size:.86rem;line-height:1.5"
+            placeholder="Description détaillée…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-can" onclick="closeModal('modal-edit')">Annuler</button>
+      <button class="btn-sub" onclick="saveEdit()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
 
 const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let currentUser = null, isAdmin = false, allProblems = [];
 const piliers = ['SST','Qualite','Couts','Delais','Motivation','Environnement','Informations'];
+let currentUser = null, isAdmin = false, allProblems = [];
+let curDate = '';
+let cmChartWeek = null, cmChartMonth = null;
 
 function toast(msg,type='info'){
   const tel=document.createElement('div');
@@ -825,65 +768,50 @@ function toast(msg,type='info'){
 }
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function fmtDate(d){return d?new Date(d).toLocaleDateString('fr-CA',{day:'2-digit',month:'short',year:'numeric'}):''}
-function fmtId(id){return String(id||'').padStart(4,'0').slice(-4);}
-function bStat(s){
-  const labels={'À traiter':'À traiter','En cours':'En cours','Résolu':'Résolu','Annulé':'Annulé','Clôturé':'Clôturé'};
-  const cls={'À traiter':'bt','En cours':'bc','Résolu':'br','Annulé':'ban','Clôturé':'bcl'};
-  return `<span class="badge ${cls[s]||'ban'}">${labels[s]||esc(s||'')}</span>`;
-}
 
 function localToday(){
   const d=new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
+
 function localDate(isoStr){
   if(!isoStr) return '';
   const d = new Date(isoStr);
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 
-function isToday(){ return curDate === localToday(); }
+function fmtDate(d){return d?new Date(d).toLocaleDateString('fr-CA',{day:'2-digit',month:'short',year:'numeric'}):''}
 
-function updateDateUI(){
+function fmtId(id){return String(id||'').padStart(4,'0').slice(-4);}
+
+function bPrio(p){const m={Critique:'bpC',Haute:'bpH',Moyenne:'bpM',Basse:'bpB'};return `<span class="badge ${m[p]||'bpB'}">${esc(p||'')}</span>`;}
+
+function bStat(s){
+  const labels={'À traiter':'À traiter','En cours':'En cours','Résolu':'Résolu','Annulé':'Annulé','Clôturé':'Clôturé'};
+  const cls={'À traiter':'bt','En cours':'bc','Résolu':'br','Annulé':'ban','Clôturé':'bcl'};
+  return `<span class="badge ${cls[s]||'ban'}">${labels[s]||esc(s||'')}</span>`;
+}
+
+
+function isToday() { return curDate === localToday(); }
+
+function updateDateUI() {
+  curDate = curDate || localToday();
   const el = document.getElementById('date-lbl');
-  if(!el) return;
-  const d = new Date(curDate+'T00:00:00');
-  const lbl = d.toLocaleDateString('fr-CA',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  if (!el) return;
+  const d = new Date(curDate + 'T00:00:00');
+  const lbl = d.toLocaleDateString('fr-CA', {weekday:'long', day:'2-digit', month:'long', year:'numeric'});
   el.innerHTML = lbl + (isToday() ? '<span class="today-chip">Aujourd\'hui</span>' : '');
 }
 
-function changeDay(delta){
-  const dt = new Date(curDate+'T00:00:00');
-  dt.setDate(dt.getDate()+delta);
-  curDate = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+function changeDay(delta) {
+  const dt = new Date(curDate + 'T00:00:00');
+  dt.setDate(dt.getDate() + delta);
+  curDate = dt.getFullYear() + '-'
+    + String(dt.getMonth()+1).padStart(2,'0') + '-'
+    + String(dt.getDate()).padStart(2,'0');
   updateDateUI();
-  restoreFilters();
-}
-function fmtDate(d){return d?new Date(d).toLocaleDateString('fr-CA',{day:'2-digit',month:'short',year:'numeric'}):''}
-function fmtId(id){return String(id||'').padStart(4,'0').slice(-4);}
-function bStat(s){
-  const labels={'À traiter':'À traiter','En cours':'En cours','Résolu':'Résolu','Annulé':'Annulé','Clôturé':'Clôturé'};
-  const cls={'À traiter':'bt','En cours':'bc','Résolu':'br','Annulé':'ban','Clôturé':'bcl'};
-  return `<span class="badge ${cls[s]||'ban'}">${labels[s]||esc(s||'')}</span>`;
-}
-
-function fmtId(id){return String(id||"").padStart(4,"0").slice(-4);}
-function bPrio(p){const m={Critique:'bpC',Haute:'bpH',Moyenne:'bpM',Basse:'bpB'};return `<span class="badge ${m[p]||'bpB'}">${esc(p||'')}</span>`;}
-
-// Init robuste : attend que le SDK Supabase soit disponible
-function waitForSupabaseAndInit(){
-  if(typeof supabase !== 'undefined' && supabase.createClient){
-    try{ init(); }catch(e){ document.getElementById('loading-screen').classList.add('hidden'); showAuth(); }
-  } else {
-    setTimeout(waitForSupabaseAndInit, 50);
-  }
-}
-
-function bStat(s){
-  const labels={'À traiter':'À traiter','En cours':'En cours','Résolu':'Résolu','Annulé':'Annulé','Clôturé':'Clôturé'};
-  const cls={'À traiter':'bt','En cours':'bc','Résolu':'br','Annulé':'ban','Clôturé':'bcl'};
-  return `<span class="badge ${cls[s]||'ban'}">${labels[s]||esc(s||'')}</span>`;
+  filterTable();
 }
 
 function populatePiliers(){
@@ -894,26 +822,29 @@ function populatePiliers(){
   });
 }
 
-function filterTable(){
-  const q=document.getElementById('search-input').value.toLowerCase();
-  const pilier=document.getElementById('filter-pilier').value;
-  const stat=document.getElementById('filter-statut').value;
-  const prio=document.getElementById('filter-priorite').value;
-  try{
+
+function filterTable() {
+  const q      = (document.getElementById('search-input')?.value || '').toLowerCase();
+  const pilier = document.getElementById('filter-pilier')?.value  || '';
+  const stat   = document.getElementById('filter-statut')?.value  || '';
+  const prio   = document.getElementById('filter-priorite')?.value || '';
+  try {
     localStorage.setItem('soy_filter_pilier', pilier);
     localStorage.setItem('soy_filter_statut', stat);
-    localStorage.setItem('soy_filter_prio', prio);
-    localStorage.setItem('soy_filter_q', q);
-  }catch(e){}
-  renderTable(allProblems.filter(p=>{
-    if(localDate(p.created_at) !== curDate) return false;
-    if(q && !(p.intitule||'').toLowerCase().includes(q) && !(p.description||'').toLowerCase().includes(q)) return false;
-    if(pilier && p.pilier!==pilier) return false;
-    if(stat   && p.statut!==stat)   return false;
-    if(prio   && p.priorite!==prio) return false;
+    localStorage.setItem('soy_filter_prio',   prio);
+    localStorage.setItem('soy_filter_q',      q);
+  } catch(e) {}
+  renderTable(allProblems.filter(p => {
+    if (localDate(p.created_at) !== curDate) return false;
+    if (q      && !(p.intitule||'').toLowerCase().includes(q)
+               && !(p.description||'').toLowerCase().includes(q)) return false;
+    if (pilier && p.pilier    !== pilier) return false;
+    if (stat   && p.statut    !== stat)   return false;
+    if (prio   && p.priorite  !== prio)   return false;
     return true;
   }));
 }
+
 function renderTable(data){
   const probs=data||allProblems;
   document.getElementById('prob-tbody').innerHTML=probs.length===0?'<tr><td colspan="10"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique trouvee.</div></div></td></tr>':probs.map(p=>{
@@ -969,73 +900,10 @@ async function cloturerProb(id){
 }
 
 function closeModal(id){document.getElementById(id).classList.remove('open');}
-const pageTitles={dashboard:'Tableau de bord',problematiques:'Registre des problematiques',nouvelle:'Soumettre une problematique',admin:'Administration',profil:'Mon profil'};
-function showPage(name){
-  if(name==='profil')loadProfilPage();
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
-  const nav=document.getElementById('nav-'+name);
-  if(nav)nav.classList.add('active');
-  document.getElementById('topbar-title').textContent=pageTitles[name]||'';
-  try{ localStorage.setItem('soy_active_page', name); }catch(e){}
-}
 
 async function checkRole(){
   try { const {data}=await sb.from('admins').select('email').eq('email',currentUser.email).single(); isAdmin=!!data; }
   catch { isAdmin=false; }
-}
-
-async function updateUserUI(){
-  const meta=currentUser?.user_metadata||{}, email=currentUser?.email||'';
-  const dn=[meta.prenom,meta.nom].filter(Boolean).join(' ')||email.split('@')[0];
-  document.getElementById('user-avatar').textContent=dn.substring(0,2).toUpperCase();
-  document.getElementById('user-name').textContent=dn;
-  document.getElementById('user-role').textContent=isAdmin?'Administrateur':'Utilisateur';
-}
-
-function enableAdmin(){
-  document.querySelectorAll('.admin-only').forEach(el=>el.style.display='');
-  document.getElementById('th-actions').style.display='';
-}
-
-function enableUser(){
-  document.getElementById('btn-new-top').style.display='';
-  document.getElementById('nav-nouvelle').style.display='';
-}
-
-
-async function loadAll(){
-  try{
-    const {data,error}=await sb.from('problematiques').select('*').order('created_at',{ascending:false});
-    if(error){toast('Erreur: '+error.message,'error');return;}
-    allProblems=data||[];
-    updateDateUI();
-  restoreFilters();
-  }catch(e){toast('Erreur: '+e.message,'error');console.error('loadAll error:',e);}
-}
-
-function restoreFilters(){
-  try{
-    const sp=localStorage.getItem('soy_filter_pilier')||'';
-    const ss=localStorage.getItem('soy_filter_statut')||'';
-    const sr=localStorage.getItem('soy_filter_prio')||'';
-    const sq=localStorage.getItem('soy_filter_q')||'';
-    // URL params prioritaires (depuis index_v5 goToPilier)
-    const params=new URLSearchParams(window.location.search);
-    const urlPilier=params.get('pilier');
-    const fp=document.getElementById('filter-pilier');
-    const fs=document.getElementById('filter-statut');
-    const fr=document.getElementById('filter-priorite');
-    const fq=document.getElementById('search-input');
-    if(fp) fp.value=urlPilier||sp;
-    if(fs) fs.value=ss;
-    if(fr) fr.value=sr;
-    if(fq) fq.value=sq;
-    // Nettoyer URL sans recharger
-    if(urlPilier) window.history.replaceState({},'',window.location.pathname);
-  }catch(e){}
-  filterTable();
 }
 
 function getCritereParams(pilier){
@@ -1088,150 +956,156 @@ function renderCmCharts(probs, params){
     }
   };
 
-  function drawChart(id, labels, values, existing){
-    const el = document.getElementById(id);
+  function drawChart(id, data, existing){
+    const el=document.getElementById(id);
     if(!el) return existing;
-    if(existing){ existing.destroy(); }
-    const box = el.closest('.chart-box') || el.parentElement;
-    const w   = box ? Math.floor(box.getBoundingClientRect().width - 28) : 300;
-    el.width  = w > 80 ? w : 300;
-    el.height = 150;
-    return new Chart(el, {
-      type: 'line',
-      data: { labels, datasets: buildDS(values) },
-      options: opts
-    });
+    if(existing){existing.destroy();}
+    // Calculer la largeur réelle : parent ou modal ou fallback 300px
+    let w = el.parentElement ? el.parentElement.getBoundingClientRect().width : 0;
+    if(!w){ const m=document.querySelector('.critere-modal'); w=m?(m.getBoundingClientRect().width-80)/2:300; }
+    if(!w || w<100) w=300;
+    el.width=Math.floor(w); el.height=140;
+    return new Chart(el,{type:'line',data:{labels:data.labels,datasets:buildDS(data.values)},options:opts});
   }
-  cmChartWeek  = drawChart('cm-chart-week',  weekLabels,  weekData,  cmChartWeek);
-  cmChartMonth = drawChart('cm-chart-month', monthLabels, monthData, cmChartMonth);
+  cmChartWeek  = drawChart('cm-chart-week',  {labels:weekLabels,  values:weekData},  cmChartWeek);
+  cmChartMonth = drawChart('cm-chart-month', {labels:monthLabels, values:monthData}, cmChartMonth);
 }
 
-let cmChartWeek=null, cmChartMonth=null;
 
-
-function openPilierCharts(pilier){
+function openPilierCharts(pilier) {
   document.getElementById('chart-panel-title').textContent = pilier;
   document.getElementById('chart-params-pilier').value = pilier;
   const p = getCritereParams(pilier);
-  document.getElementById('chart-minmax').value = p.minmax!==null ? p.minmax : '';
-  document.getElementById('chart-label').value  = p.label||'Objectif';
+  document.getElementById('chart-minmax').value = p.minmax !== null ? p.minmax : '';
+  document.getElementById('chart-label').value  = p.label  || 'Objectif';
   const panel = document.getElementById('chart-panel');
   panel.style.display = 'block';
-  const probs = allProblems.filter(x=>x.pilier===pilier);
-  // Utiliser ResizeObserver pour dessiner dès que le panel a une largeur réelle
-  if(window._chartObserver) window._chartObserver.disconnect();
-  window._chartObserver = new ResizeObserver((entries)=>{
-    for(const e of entries){
-      if(e.contentRect.width > 0){
-        window._chartObserver.disconnect();
+  const probs = allProblems.filter(x => x.pilier === pilier);
+  if (window._chartObs) window._chartObs.disconnect();
+  window._chartObs = new ResizeObserver(entries => {
+    for (const e of entries) {
+      if (e.contentRect.width > 0) {
+        window._chartObs.disconnect();
         renderCmCharts(probs, p);
         break;
       }
     }
   });
-  window._chartObserver.observe(panel);
-}
-function closePilierCharts(){
-  document.getElementById('chart-panel').style.display='none';
-  if(cmChartWeek){cmChartWeek.destroy();cmChartWeek=null;}
-  if(cmChartMonth){cmChartMonth.destroy();cmChartMonth=null;}
+  window._chartObs.observe(panel);
 }
 
-function saveChartParams(){
-  const pilier = document.getElementById('chart-params-pilier').value;
-  if(!pilier) return;
-  const val = document.getElementById('chart-minmax').value.trim();
-  const lbl = document.getElementById('chart-label').value.trim()||'Objectif';
-  const p = {minmax: val!==''?Number(val):null, label:lbl};
-  localStorage.setItem('critere_params_'+pilier, JSON.stringify(p));
-  if(cmChartWeek){cmChartWeek.destroy();cmChartWeek=null;}
-  if(cmChartMonth){cmChartMonth.destroy();cmChartMonth=null;}
-  const probs = allProblems.filter(x=>x.pilier===pilier);
-  renderCmCharts(probs, p);
-  toast('Paramètres enregistrés ✓','success');
+function closePilierCharts() {
+  document.getElementById('chart-panel').style.display = 'none';
+  if (cmChartWeek)  { cmChartWeek.destroy();  cmChartWeek  = null; }
+  if (cmChartMonth) { cmChartMonth.destroy(); cmChartMonth = null; }
 }
-async function init(){
-  try{
-    const {data:{session}}=await sb.auth.getSession();
-    if(session){
-      currentUser=session.user;
+
+function saveChartParams() {
+  const pilier = document.getElementById('chart-params-pilier').value;
+  if (!pilier) return;
+  const val = document.getElementById('chart-minmax').value.trim();
+  const lbl = document.getElementById('chart-label').value.trim() || 'Objectif';
+  const p = { minmax: val !== '' ? Number(val) : null, label: lbl };
+  localStorage.setItem('critere_params_' + pilier, JSON.stringify(p));
+  if (cmChartWeek)  { cmChartWeek.destroy();  cmChartWeek  = null; }
+  if (cmChartMonth) { cmChartMonth.destroy(); cmChartMonth = null; }
+  const probs = allProblems.filter(x => x.pilier === pilier);
+  renderCmCharts(probs, p);
+}
+
+function restoreFilters() {
+  const params   = new URLSearchParams(window.location.search);
+  const urlPilier = params.get('pilier');
+  const fp = document.getElementById('filter-pilier');
+  const fs = document.getElementById('filter-statut');
+  const fr = document.getElementById('filter-priorite');
+  const fq = document.getElementById('search-input');
+  try {
+    if (fp) fp.value = urlPilier || localStorage.getItem('soy_filter_pilier') || '';
+    if (fs) fs.value = localStorage.getItem('soy_filter_statut') || '';
+    if (fr) fr.value = localStorage.getItem('soy_filter_prio')   || '';
+    if (fq) fq.value = localStorage.getItem('soy_filter_q')      || '';
+  } catch(e) {}
+  if (urlPilier) window.history.replaceState({}, '', window.location.pathname);
+  filterTable();
+}
+
+async function loadAll() {
+  try {
+    const { data, error } = await sb.from('problematiques')
+      .select('*').order('created_at', { ascending: false });
+    if (error) { toast('Erreur Supabase : ' + error.message, 'error'); return; }
+    allProblems = data || [];
+    updateDateUI();
+    restoreFilters();
+  } catch(e) {
+    toast('Erreur : ' + (e.message || e), 'error');
+    console.error('loadAll:', e);
+  }
+}
+
+async function init() {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      currentUser = session.user;
       await checkRole();
-      if(isAdmin){
-        document.querySelectorAll('.admin-only').forEach(el=>el.style.display='');
-      }
+      if (isAdmin) document.querySelectorAll('.admin-only').forEach(el => el.style.removeProperty('display'));
+      curDate = localToday();
       populatePiliers();
+      updateDateUI();
       await loadAll();
     } else {
-      window.location.href='index.html';
+      window.location.href = 'index.html';
     }
-  }catch(e){ window.location.href='index.html'; }
+  } catch(e) {
+    console.error('init error:', e);
+    window.location.href = 'index.html';
+  }
 }
 
-window.addEventListener('load',()=>{
-  function waitSB(){
-    if(typeof supabase!=='undefined'&&supabase.createClient) init();
-    else setTimeout(waitSB,50);
+// Attendre que le SDK Supabase soit prêt
+window.addEventListener('load', () => {
+  function waitSB() {
+    if (typeof supabase !== 'undefined' && supabase.createClient) init();
+    else setTimeout(waitSB, 50);
   }
   waitSB();
 });
 
-document.addEventListener('DOMContentLoaded',()=>{
-  document.querySelectorAll('.overlay').forEach(ov=>{
-    ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('open'); });
+// Fermer les overlays au clic extérieur
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.overlay').forEach(ov => {
+    ov.addEventListener('click', e => { if (e.target === ov) ov.classList.remove('open'); });
   });
-});
 
-
-// Construire les boutons pilier
-window.addEventListener('DOMContentLoaded',()=>{
+  // Construire les boutons pilier
   const container = document.getElementById('pilier-btns');
-  piliers.forEach(p=>{
-    const btn = document.createElement('button');
-    btn.className = 'pilier-btn';
-    btn.textContent = p;
-    btn.onclick = ()=>{
-      document.querySelectorAll('.pilier-btn').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      openPilierCharts(p);
-    };
-    container.appendChild(btn);
-  });
-});
-    window.location.href='index.html';
-    }
-  }catch(e){ window.location.href='index.html'; }
-}
-
-window.addEventListener('load',()=>{
-  function waitSB(){
-    if(typeof supabase!=='undefined'&&supabase.createClient) init();
-    else setTimeout(waitSB,50);
+  if (container) {
+    piliers.forEach(p => {
+      const btn = document.createElement('button');
+      btn.className = 'pilier-btn';
+      btn.textContent = p;
+      btn.onclick = () => {
+        document.querySelectorAll('.pilier-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        openPilierCharts(p);
+      };
+      container.appendChild(btn);
+    });
   }
-  waitSB();
-});
 
-document.addEventListener('DOMContentLoaded',()=>{
-  document.querySelectorAll('.overlay').forEach(ov=>{
-    ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('open'); });
+  // Délégation d'événements pour les boutons du tableau
+  document.getElementById('prob-tbody')?.addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const id  = parseInt(btn.dataset.id);
+    const act = btn.dataset.action;
+    if (act === 'edit')     openEdit(id);
+    if (act === 'cloturer') cloturerProb(id);
   });
 });
 
-
-// Construire les boutons pilier
-window.addEventListener('DOMContentLoaded',()=>{
-  const container = document.getElementById('pilier-btns');
-  piliers.forEach(p=>{
-    const btn = document.createElement('button');
-    btn.className = 'pilier-btn';
-    btn.textContent = p;
-    btn.onclick = ()=>{
-      document.querySelectorAll('.pilier-btn').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      openPilierCharts(p);
-    };
-    container.appendChild(btn);
-  });
-});
 </script>
 </body>
 </html>
