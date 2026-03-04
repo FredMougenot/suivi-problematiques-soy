@@ -141,15 +141,11 @@
       <button class="btn-today" onclick="goToday()">Aujourd'hui</button>
     </div>
 
-    <!-- Bouton Ajouter + Soumettre NC -->
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
+    <!-- Bouton Ajouter collé en haut à gauche du tableau -->
+    <div style="margin-bottom:8px;">
       <button class="btn-add" onclick="addItem()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Ajouter un item
-      </button>
-      <button onclick="icOpenNcModal()" style="display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--ruby);color:var(--ruby);font-size:.84rem;font-weight:700;cursor:pointer;transition:all .15s;" onmouseover="this.style.background='rgba(224,85,85,.08)'" onmouseout="this.style.background='var(--bg-raised)'">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        Soumettre les non-conformités
       </button>
     </div>
 
@@ -165,9 +161,32 @@
             <th colspan="2" class="th-group">Entrepôt 1</th>
             <th colspan="2" class="th-group">Entrepôt 2</th>
             <th rowspan="2">Total<br><small style="font-weight:400;font-size:.58rem">(kg)</small></th>
-    
+            <th rowspan="2">ERP<br><small style="font-weight:400;font-size:.58rem">(kg)</small></th>
+            <th rowspan="2">Écart<br><small style="font-weight:400;font-size:.58rem">(kg)</small></th>
+            <th rowspan="2"></th>
+          </tr>
+          <tr>
+            <th class="th-group">Qté Entrepôt 1</th>
+            <th class="th-group">Balance 1</th>
+            <th class="th-group">Qté Entrepôt 2</th>
+            <th class="th-group">Balance 2</th>
+          </tr>
+        </thead>
+        <tbody id="ic-tbody"></tbody>
+        <tfoot id="ic-tfoot"></tfoot>
+      </table>
+    </div>
 
-<script>function localToday(){
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toasts" id="toasts"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+
+function localToday(){
   const d=new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
@@ -383,153 +402,8 @@ async function load(){
   document.getElementById('ic-tbl').style.display='table';
 }
 
-// ── NC INVENTAIRE CYCLIQUE ─────────────────────────────────────
-const IC_NC_PARAMS_KEY = 'ic_nc_params';
-
-function icLoadNcParams(){
-  try{
-    const p = JSON.parse(localStorage.getItem(IC_NC_PARAMS_KEY)||'{}');
-    if(p.pilier)      document.getElementById('ic-nc-param-pilier').value    = p.pilier;
-    if(p.priorite)    document.getElementById('ic-nc-param-priorite').value  = p.priorite;
-    if(p.statut)      document.getElementById('ic-nc-param-statut').value    = p.statut;
-    if(p.responsable !== undefined) document.getElementById('ic-nc-param-resp').value   = p.responsable;
-    if(p.soumis_par)  document.getElementById('ic-nc-param-soumis').value    = p.soumis_par;
-  }catch(e){}
-}
-
-function icSaveNcParams(){
-  const p = {
-    pilier:      document.getElementById('ic-nc-param-pilier').value,
-    priorite:    document.getElementById('ic-nc-param-priorite').value,
-    statut:      document.getElementById('ic-nc-param-statut').value,
-    responsable: document.getElementById('ic-nc-param-resp').value.trim(),
-    soumis_par:  document.getElementById('ic-nc-param-soumis').value.trim(),
-  };
-  localStorage.setItem(IC_NC_PARAMS_KEY, JSON.stringify(p));
-  document.getElementById('ic-modal-nc-params').classList.remove('open');
-  toast('Paramètres enregistrés ✓','success');
-}
-
-function icOpenNcModal(){
-  // Détecter lignes avec écart != 0 et données présentes
-  const ncList = Object.keys(rows)
-    .map(k => { const r=rows[k]; const {ecart}=calcRow(r); return {k,r,ecart}; })
-    .filter(({r,ecart}) => (r.qte_e1||r.qte_e2||r.erp) && !isNaN(ecart) && ecart !== 0)
-    .map(({k,r,ecart}) => ({ key:k, label: r.label||('Item #'+k), ecart }));
-
-  if(ncList.length === 0){
-    toast('Aucun écart détecté.','info');
-    return;
-  }
-  icLoadNcParams();
-  const n = ncList.length;
-  document.getElementById('ic-nc-confirm-msg').textContent =
-    n + ' écart' + (n>1?'s':'') + ' détecté' + (n>1?'s':'') +
-    '. Une problématique sera créée dans le registre pour chacun.';
-  document.getElementById('ic-nc-confirm-list').innerHTML = ncList
-    .map(item => '<div><span style="color:var(--ruby);margin-right:8px;">✕</span>'
-      + esc(item.label)
-      + ' <span style="color:var(--text-muted);font-size:.78rem;">('+(item.ecart>0?'+':'')+fmtNum(item.ecart)+')</span></div>')
-    .join('');
-  document.getElementById('ic-btn-nc-submit').dataset.nclist = JSON.stringify(ncList);
-  document.getElementById('ic-modal-nc-confirm').classList.add('open');
-}
-
-async function icSubmitNcProblems(){
-  const btn = document.getElementById('ic-btn-nc-submit');
-  let ncList;
-  try{ ncList = JSON.parse(btn.dataset.nclist||'[]'); }catch(e){ ncList=[]; }
-  if(!ncList.length) return;
-
-  icLoadNcParams();
-  const pilier      = document.getElementById('ic-nc-param-pilier').value   || 'Qualité';
-  const priorite    = document.getElementById('ic-nc-param-priorite').value  || 'Moyenne';
-  const statut      = document.getElementById('ic-nc-param-statut').value    || 'À traiter';
-  const responsable = document.getElementById('ic-nc-param-resp').value.trim()   || null;
-  const soumis_par  = document.getElementById('ic-nc-param-soumis').value.trim() || 'Inventaire cyclique';
-
-  btn.disabled = true; btn.textContent = 'Création en cours…';
-  let errors = 0;
-  for(const item of ncList){
-    const {error} = await sb.from('problematiques').insert([{
-      intitule:    'Écart inventaire : ' + item.label,
-      description: "Écart détecté le " + curDate + " lors de l'inventaire cyclique : "
-                   + item.label + ' (écart : ' + (item.ecart>0?'+':'') + fmtNum(item.ecart) + ')',
-      pilier, priorite, statut, responsable, soumis_par,
-    }]);
-    if(error){ console.error(error); errors++; }
-  }
-  btn.disabled = false; btn.textContent = 'Créer les problématiques';
-  document.getElementById('ic-modal-nc-confirm').classList.remove('open');
-  if(errors) toast(errors + ' erreur(s) lors de la création.','error');
-  else toast(ncList.length + ' problématique' + (ncList.length>1?'s':'') + ' créée' + (ncList.length>1?'s':'') + ' ✓','success');
-}
-
-window.addEventListener('load', ()=>{ refreshDateUI(); load(); });
-
-
 window.addEventListener('load', ()=>{ refreshDateUI(); load(); });
 
 </script>
-
-<!-- MODAL NC CONFIRM — inventaire cyclique -->
-<div class="overlay" id="ic-modal-nc-confirm">
-  <div class="modal" style="width:480px">
-    <div class="modal-title">⚠️ Soumettre les non-conformités</div>
-    <p id="ic-nc-confirm-msg" style="font-size:.88rem;color:var(--text-secondary);margin:0 0 12px;line-height:1.6;"></p>
-    <div id="ic-nc-confirm-list" style="background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:10px 14px;max-height:200px;overflow-y:auto;margin-bottom:16px;font-size:.83rem;line-height:1.9;"></div>
-    <div class="m-acts">
-      <button class="btn-cx" onclick="document.getElementById('ic-modal-nc-confirm').classList.remove('open')">Annuler</button>
-      <button class="btn-ok" id="ic-btn-nc-submit" onclick="icSubmitNcProblems()">Créer les problématiques</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL NC PARAMS — inventaire cyclique -->
-<div class="overlay" id="ic-modal-nc-params">
-  <div class="modal" style="width:460px">
-    <div class="modal-title">⚙️ Paramètres — Problématiques auto</div>
-    <p style="font-size:.8rem;color:var(--text-secondary);margin:0 0 16px;">Ces valeurs seront appliquées automatiquement à chaque problématique créée depuis les lignes non-conformes.</p>
-    <div class="fg">
-      <label>Pilier <span style="color:var(--ruby)">*</span></label>
-      <select id="ic-nc-param-pilier" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
-        <option value="Qualité" selected>Qualité</option>
-        <option value="SST">SST</option>
-        <option value="Environnement">Environnement</option>
-        <option value="Motivation">Motivation</option>
-        <option value="Délais">Délais</option>
-        <option value="Informations">Informations</option>
-      </select>
-    </div>
-    <div class="fg">
-      <label>Priorité <span style="color:var(--ruby)">*</span></label>
-      <select id="ic-nc-param-priorite" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
-        <option value="Critique">Critique</option>
-        <option value="Haute">Haute</option>
-        <option value="Moyenne" selected>Moyenne</option>
-        <option value="Basse">Basse</option>
-      </select>
-    </div>
-    <div class="fg">
-      <label>Statut initial</label>
-      <select id="ic-nc-param-statut" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
-        <option value="À traiter" selected>À traiter</option>
-        <option value="En cours">En cours</option>
-      </select>
-    </div>
-    <div class="fg">
-      <label>Responsable par défaut</label>
-      <input type="text" id="ic-nc-param-resp" placeholder="Nom (optionnel)…" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
-    </div>
-    <div class="fg">
-      <label>Soumis par</label>
-      <input type="text" id="ic-nc-param-soumis" value="Inventaire cyclique" placeholder="Ex: Système / Automatique…" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
-    </div>
-    <div class="m-acts">
-      <button class="btn-cx" onclick="document.getElementById('ic-modal-nc-params').classList.remove('open')">Fermer</button>
-      <button class="btn-ok" onclick="icSaveNcParams()">Enregistrer</button>
-    </div>
-  </div>
-</div>
 </body>
 </html>

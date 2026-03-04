@@ -292,7 +292,7 @@ async function submitProb(modalId, pilier){
   const desc=document.getElementById(modalId+'-desc').value.trim();
   const prio=document.getElementById(modalId+'-priorite').value;
   const stat=document.getElementById(modalId+'-statut').value;
-  const respEl2=document.getElementById(modalId+'-resp'); const resp=(respEl2?respEl2.value.trim():'')||null;
+  const resp=document.getElementById(modalId+'-resp').value.trim()||null;
   if(!intitule||!desc||!prio){toast('Champs obligatoires manquants.','error');return;}
   const btn=document.getElementById(modalId+'-submit');
   if(btn){btn.disabled=true;btn.textContent='Création...';}
@@ -305,30 +305,12 @@ async function submitProb(modalId, pilier){
   toast('Problématique créée ✓','success');
   await loadProbs();
 }
-async function loadSstResponsables(){
-  try{
-    const {data} = await sb.from('prob_responsables').select('*').order('nom');
-    const sel = document.getElementById('modal-sst-resp');
-    if(!sel) return;
-    const cur = sel.value;
-    sel.innerHTML = '<option value="">— Sélectionner —</option>'
-      + (data||[]).map(r=>`<option value="${r.nom}">${r.nom}</option>`).join('');
-    if(cur) sel.value = cur;
-  }catch(e){}
-}
-
 function openProbModal(modalId){
   document.getElementById(modalId+'-intitule').value='';
   document.getElementById(modalId+'-desc').value='';
   document.getElementById(modalId+'-priorite').value='Moyenne';
   document.getElementById(modalId+'-statut').value='À traiter';
-  const respEl = document.getElementById(modalId+'-resp');
-  if(respEl && respEl.tagName==='SELECT'){
-    respEl.value='';
-    loadSstResponsables();
-  } else if(respEl){
-    respEl.value='';
-  }
+  document.getElementById(modalId+'-resp').value='';
   document.getElementById(modalId).classList.add('open');
 }
 
@@ -363,9 +345,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       </div>
     </div>
     <div class="fg"><label>Responsable</label>
-      <select id="modal-sst-resp" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;cursor:pointer;">
-        <option value="">— Sélectionner —</option>
-      </select>
+      <input type="text" id="modal-sst-resp" placeholder="Nom…" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
     </div>
     <div class="m-acts">
       <button class="btn-cx" onclick="document.getElementById('modal-sst').classList.remove('open')">Annuler</button>
