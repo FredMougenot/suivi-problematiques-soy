@@ -791,16 +791,53 @@ body { font-size: 0.9375rem; }
 
       <!-- PROBLÉMATIQUES -->
       <div class="page" id="page-problematiques">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;">
-          <button class="btn-add-prob" onclick="showPage('nouvelle')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Soumettre une problématique
-          </button>
-          <a href="parametres_prob.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:#1A1E2A;border:1px solid #2C3350;color:#BEC5D6;font-size:.78rem;font-weight:600;text-decoration:none;transition:all .15s;" onmouseover="this.style.borderColor='#C8843A';this.style.color='#E0A870'" onmouseout="this.style.borderColor='#2C3350';this.style.color='#BEC5D6'">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            Paramètres
-          </a>
+
+        <!-- Bouton ajouter + boutons pilier -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
+          <div class="pilier-btns" id="idx-pilier-btns">
+            <span style="font-size:.78rem;color:var(--text-muted);align-self:center;white-space:nowrap;">Graphiques :</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <button class="btn-add-prob" onclick="showPage('nouvelle')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Soumettre une problématique
+            </button>
+            <a href="parametres_prob.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:#1A1E2A;border:1px solid #2C3350;color:#BEC5D6;font-size:.78rem;font-weight:600;text-decoration:none;margin-left:auto;transition:all .15s;" onmouseover="this.style.borderColor='#C8843A';this.style.color='#E0A870'" onmouseout="this.style.borderColor='#2C3350';this.style.color='#BEC5D6'">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              Paramètres
+            </a>
+          </div>
         </div>
+
+        <!-- Panneau graphiques -->
+        <div class="chart-panel" id="idx-chart-panel" style="display:none;">
+          <div class="chart-panel-header">
+            <div>
+              <div style="font-size:.6rem;font-weight:800;color:var(--copper);letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px;">Problématiques par pilier</div>
+              <div style="font-size:1rem;font-weight:700;color:var(--text-primary);" id="idx-chart-panel-title">—</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span style="width:10px;height:2px;background:#2DD4A0;display:inline-block;border-radius:2px;"></span>
+                <input type="number" class="chart-param-input" id="idx-chart-min" placeholder="Valeur min" oninput="idxSaveChartParams()" style="width:110px;">
+                <input type="text"   class="chart-param-input" id="idx-chart-label-min" placeholder="Libéllé min" oninput="idxSaveChartParams()" style="width:110px;">
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span style="width:10px;height:2px;background:#E05555;display:inline-block;border-radius:2px;"></span>
+                <input type="number" class="chart-param-input" id="idx-chart-max" placeholder="Valeur max" oninput="idxSaveChartParams()" style="width:110px;">
+                <input type="text"   class="chart-param-input" id="idx-chart-label-max" placeholder="Libéllé max" oninput="idxSaveChartParams()" style="width:110px;">
+              </div>
+              <input type="hidden" id="idx-chart-params-pilier">
+              <button onclick="idxClosePilierCharts()" style="width:28px;height:28px;border-radius:var(--r-sm);background:transparent;border:1px solid var(--text-faint);color:var(--text-muted);cursor:pointer;font-size:.85rem;">✕</button>
+            </div>
+          </div>
+          <div class="chart-grid">
+            <div class="chart-box"><div class="chart-box-title">Semaine en cours</div><canvas id="idx-cm-chart-week"></canvas></div>
+            <div class="chart-box"><div class="chart-box-title">Mois en cours</div><canvas id="idx-cm-chart-month"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Filtres -->
         <div class="filters">
           <div class="srch-wrap">
             <span class="srch-ico">⌕</span>
@@ -815,6 +852,10 @@ body { font-size: 0.9375rem; }
             <option value="">Toutes les priorités</option>
             <option>Critique</option><option>Haute</option><option>Moyenne</option><option>Basse</option>
           </select>
+          <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.8rem;color:var(--text-muted);user-select:none;white-space:nowrap;margin-left:4px;">
+            <input type="checkbox" id="show-cloture" onchange="filterTable()" style="width:15px;height:15px;accent-color:var(--copper);cursor:pointer;">
+            Afficher les clôturées / résolues
+          </label>
         </div>
         <div class="tbl-wrap" style="touch-action:pan-x">
           <table class="dtbl" style="min-width:900px">
@@ -1213,6 +1254,7 @@ function showApp(){
   dashUpdateDateUI();
   if (isAdmin) enableAdmin(); else enableUser();
   loadOutilsNoms();
+  idxPopulatePilierBtns();
   // Restaurer la dernière page active après refresh
   try{
     const lastPage = localStorage.getItem('soy_active_page');
@@ -1694,6 +1736,126 @@ function bStat(s){
   return `<span class="badge ${cls[s]||'ban'}">${labels[s]||esc(s||'')}</span>`;
 }
 function bPrio(p){const m={Critique:'bpC',Haute:'bpH',Moyenne:'bpM',Basse:'bpB'};return `<span class="badge ${m[p]||'bpB'}">${esc(p||'')}</span>`;}
+
+// ─── Graphiques page Problématiques (menu gauche) ──────────────────
+let idxCmChartWeek = null, idxCmChartMonth = null;
+let idxActivePilierChart = '';
+
+function idxOpenPilierCharts(pilier) {
+  idxActivePilierChart = pilier;
+  document.getElementById('idx-chart-panel-title').textContent = pilier;
+  document.getElementById('idx-chart-params-pilier').value = pilier;
+  const p = getCritereParams(pilier);
+  document.getElementById('idx-chart-min').value           = p.min  !== null ? p.min  : '';
+  document.getElementById('idx-chart-label-min').value     = p.labelMin || 'Minimum';
+  document.getElementById('idx-chart-max').value           = p.max  !== null ? p.max  : '';
+  document.getElementById('idx-chart-label-max').value     = p.labelMax || 'Maximum';
+  document.getElementById('idx-chart-panel').style.display = 'block';
+  document.querySelectorAll('#idx-pilier-btns .pilier-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent === pilier);
+  });
+  idxRenderChartForActivePilier();
+}
+
+function idxClosePilierCharts() {
+  document.getElementById('idx-chart-panel').style.display = 'none';
+  if (idxCmChartWeek)  { idxCmChartWeek.destroy();  idxCmChartWeek  = null; }
+  if (idxCmChartMonth) { idxCmChartMonth.destroy(); idxCmChartMonth = null; }
+  try { localStorage.removeItem('soy_idx_chart_pilier'); } catch(e) {}
+  document.querySelectorAll('#idx-pilier-btns .pilier-btn').forEach(b => b.classList.remove('active'));
+  idxActivePilierChart = '';
+}
+
+function idxSaveChartParams() {
+  const pilier = document.getElementById('idx-chart-params-pilier').value;
+  if (!pilier) return;
+  const vMin = document.getElementById('idx-chart-min').value.trim();
+  const vMax = document.getElementById('idx-chart-max').value.trim();
+  const p = {
+    min:      vMin !== '' ? Number(vMin) : null,
+    labelMin: document.getElementById('idx-chart-label-min').value.trim() || 'Minimum',
+    max:      vMax !== '' ? Number(vMax) : null,
+    labelMax: document.getElementById('idx-chart-label-max').value.trim() || 'Maximum',
+  };
+  localStorage.setItem('critere_params_' + pilier, JSON.stringify(p));
+  if (idxCmChartWeek)  { idxCmChartWeek.destroy();  idxCmChartWeek  = null; }
+  if (idxCmChartMonth) { idxCmChartMonth.destroy(); idxCmChartMonth = null; }
+  idxRenderChartForActivePilier();
+}
+
+function idxRenderChartForActivePilier() {
+  if (!idxActivePilierChart) return;
+  const panel = document.getElementById('idx-chart-panel');
+  if (!panel || panel.style.display === 'none') return;
+  const p     = getCritereParams(idxActivePilierChart);
+  const probs = allProblems.filter(x => x.pilier === idxActivePilierChart);
+  const w = panel.getBoundingClientRect().width;
+  if (w > 0) {
+    if (window._idxChartObs) { window._idxChartObs.disconnect(); window._idxChartObs = null; }
+    idxRenderCmCharts(probs, p);
+  } else {
+    if (window._idxChartObs) window._idxChartObs.disconnect();
+    window._idxChartObs = new ResizeObserver(entries => {
+      for (const e of entries) {
+        if (e.contentRect.width > 0) {
+          window._idxChartObs.disconnect();
+          window._idxChartObs = null;
+          idxRenderCmCharts(
+            allProblems.filter(x => x.pilier === idxActivePilierChart),
+            getCritereParams(idxActivePilierChart)
+          );
+          break;
+        }
+      }
+    });
+    window._idxChartObs.observe(panel);
+  }
+}
+
+function idxRenderCmCharts(probs, params) {
+  // Réutilise renderCmCharts mais avec les canvas idx-
+  const origWeek  = document.getElementById('cm-chart-week');
+  const origMonth = document.getElementById('cm-chart-month');
+  const idxWeek   = document.getElementById('idx-cm-chart-week');
+  const idxMonth  = document.getElementById('idx-cm-chart-month');
+  // Swap temporairement les IDs pour réutiliser renderCmCharts
+  if (origWeek)  origWeek.id  = 'cm-chart-week-bak';
+  if (origMonth) origMonth.id = 'cm-chart-month-bak';
+  if (idxWeek)   idxWeek.id   = 'cm-chart-week';
+  if (idxMonth)  idxMonth.id  = 'cm-chart-month';
+  // Swap les instances Chart
+  const bakWeek  = cmChartWeek;  const bakMonth = cmChartMonth;
+  cmChartWeek  = idxCmChartWeek;
+  cmChartMonth = idxCmChartMonth;
+  renderCmCharts(probs, params);
+  idxCmChartWeek  = cmChartWeek;
+  idxCmChartMonth = cmChartMonth;
+  cmChartWeek  = bakWeek;
+  cmChartMonth = bakMonth;
+  // Restaurer les IDs
+  if (origWeek)  { const el=document.getElementById('cm-chart-week-bak'); if(el) el.id='cm-chart-week'; }
+  if (origMonth) { const el=document.getElementById('cm-chart-month-bak'); if(el) el.id='cm-chart-month'; }
+  if (idxWeek)   { const el=document.getElementById('cm-chart-week');   if(el) el.id='idx-cm-chart-week'; }
+  if (idxMonth)  { const el=document.getElementById('cm-chart-month');  if(el) el.id='idx-cm-chart-month'; }
+}
+
+function idxPopulatePilierBtns() {
+  const container = document.getElementById('idx-pilier-btns');
+  if (!container) return;
+  const label = container.querySelector('span');
+  container.innerHTML = '';
+  if (label) container.appendChild(label);
+  piliers.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'pilier-btn';
+    btn.textContent = p;
+    btn.onclick = () => {
+      if (idxActivePilierChart === p) { idxClosePilierCharts(); return; }
+      idxOpenPilierCharts(p);
+    };
+    container.appendChild(btn);
+  });
+}
 
 // Init robuste : attend que le SDK Supabase soit disponible
 function waitForSupabaseAndInit(){
