@@ -1192,6 +1192,15 @@ function showApp(){
   dashUpdateDateUI();
   if (isAdmin) enableAdmin(); else enableUser();
   loadOutilsNoms();
+  // Restaurer la dernière page active après refresh
+  try{
+    const lastPage = localStorage.getItem('soy_active_page');
+    if(lastPage && document.getElementById('page-'+lastPage)){
+      showPage(lastPage);
+    } else {
+      showPage('dashboard');
+    }
+  }catch(e){ showPage('dashboard'); }
 }
 async function checkRole(){
   try { const {data}=await sb.from('admins').select('email').eq('email',currentUser.email).single(); isAdmin=!!data; }
@@ -1544,6 +1553,7 @@ function showPage(name){
   const nav=document.getElementById('nav-'+name);
   if(nav)nav.classList.add('active');
   document.getElementById('topbar-title').textContent=pageTitles[name]||'';
+  try{ localStorage.setItem('soy_active_page', name); }catch(e){}
 }
 function goToRegistre(statut){
   showPage('problematiques');
@@ -1689,7 +1699,7 @@ window.addEventListener('load', ()=>{
 let critereCache = {};
 let critereActif = null;
 
-async // ── PARAMÈTRES GRAPHIQUE CRITÈRE (localStorage) ───────────────────────────────
+// ── PARAMÈTRES GRAPHIQUE CRITÈRE (localStorage) ───────────────────────────────
 function getCritereParams(pilier){
   try {
     const saved = localStorage.getItem('critere_params_'+pilier);
