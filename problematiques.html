@@ -630,6 +630,10 @@ body { font-size: 0.9375rem; }
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Soumettre une problématique
       </button>
+      <button class="admin-only" onclick="deleteAllProblems()" style="display:none;padding:9px 16px;border-radius:var(--r-md);background:transparent;border:1px solid var(--ruby);color:var(--ruby);font-size:.82rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;display:none;" onmouseover="this.style.background='rgba(224,85,85,.12)'" onmouseout="this.style.background='transparent'">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        Tout supprimer
+      </button>
     </div>
 
     <!-- Panneau graphiques -->
@@ -949,7 +953,14 @@ function renderCmCharts(probs, params){
     weekDays.push(ds);
     weekLabels.push(d.toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'}));
   }
-  const weekData = weekDays.map(d=>probs.filter(p=>localDate(p.created_at)===d).length);
+  function isActiveOnDay(p, d){
+    if(localDate(p.created_at) > d) return false;
+    const resolue = p.date_resolue ? localDate(p.date_resolue) : null;
+    if(resolue && resolue <= d &&
+       (p.statut==='Résolu'||p.statut==='Clôturé'||p.statut==='Annulé')) return false;
+    return true;
+  }
+  const weekData = weekDays.map(d=>probs.filter(p=>isActiveOnDay(p,d)).length);
 
   const yr=today.getFullYear(), mo=today.getMonth();
   const daysInMonth=new Date(yr,mo+1,0).getDate();
@@ -958,7 +969,7 @@ function renderCmCharts(probs, params){
     monthDays.push(yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(i).padStart(2,'0'));
     monthLabels.push(String(i));
   }
-  const monthData = monthDays.map(d=>probs.filter(p=>localDate(p.created_at)===d).length);
+  const monthData = monthDays.map(d=>probs.filter(p=>isActiveOnDay(p,d)).length);
 
   const vMin = params&&params.min!==null&&params.min!==undefined ? Number(params.min) : null;
   const vMax = params&&params.max!==null&&params.max!==undefined ? Number(params.max) : null;
@@ -1085,6 +1096,18 @@ async function loadAll() {
     toast('Erreur : ' + (e.message || e), 'error');
     console.error('loadAll:', e);
   }
+}
+
+async function deleteAllProblems() {
+  if (!isAdmin) { toast('Action réservée aux administrateurs.', 'error'); return; }
+  const n = allProblems.length;
+  if (n === 0) { toast('Aucune problématique à supprimer.', 'info'); return; }
+  if (!confirm('Supprimer définitivement les ' + n + ' problématique(s) ? Cette action est irréversible.')) return;
+  const ids = allProblems.map(p => p.id);
+  const { error } = await sb.from('problematiques').delete().in('id', ids);
+  if (error) { toast('Erreur : ' + error.message, 'error'); return; }
+  toast(n + ' problématique(s) supprimée(s).', 'success');
+  await loadAll();
 }
 
 async function init() {
