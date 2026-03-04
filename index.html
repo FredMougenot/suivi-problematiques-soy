@@ -1446,7 +1446,7 @@ function renderDash(){
   // Filtre : problématiques actives à dashDate
   // = créées le jour même ou avant, ET (pas clôturées OU clôturées/résolues après dashDate)
   const d = dashDate;
-  const CLOTURES = ['Clôturé','Annulé','Résolu'];
+  const CLOTURES = ['Clôturé','Annulé'];
   const actives = allProblems.filter(p=>{
     const created = localDate(p.created_at);
     if(created > d) return false; // pas encore créée ce jour-là
@@ -1463,7 +1463,7 @@ function renderDash(){
   document.getElementById('kpi-resolu').textContent=resolu;
   const badge=document.getElementById('badge-ouvert');
   if(badge){ouvert>0?(badge.style.display='',badge.textContent=ouvert):badge.style.display='none';}
-  const actifs=actives.filter(p=>p.statut==='À traiter'||p.statut==='En cours');
+  const actifs=actives.filter(p=>p.statut==='À traiter'||p.statut==='En cours'||p.statut==='Résolu');
   const dc={};piliers.forEach(d=>dc[d]=0);
   actifs.forEach(p=>{if(p.pilier)dc[p.pilier]=(dc[p.pilier]||0)+1;});
   const maxD=Math.max(...Object.values(dc),1);
