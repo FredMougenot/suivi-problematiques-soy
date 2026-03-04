@@ -1446,14 +1446,11 @@ function renderDash(){
   // Filtre : problématiques actives à dashDate
   // = créées le jour même ou avant, ET (pas clôturées OU clôturées/résolues après dashDate)
   const d = dashDate;
+  const CLOTURES = ['Clôturé','Annulé','Résolu'];
   const actives = allProblems.filter(p=>{
     const created = localDate(p.created_at);
     if(created > d) return false; // pas encore créée ce jour-là
-    // Si clôturée/annulée, ne compter que si résolution APRÈS la date
-    if(p.statut==='Clôturé'||p.statut==='Annulé'){
-      const resolved = localDate(p.date_resolue||p.updated_at||'');
-      return resolved > d;
-    }
+    if(CLOTURES.includes(p.statut)) return false; // exclure clôturées/résolues/annulées
     return true;
   });
   const total=actives.length;
