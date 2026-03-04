@@ -1611,6 +1611,8 @@ function showPage(name){
 }
 function goToRegistre(statut){
   localStorage.setItem('soy_filter_statut', statut);
+  localStorage.removeItem('soy_filter_pilier');
+  localStorage.removeItem('soy_chart_pilier');
   window.location.href = 'problematiques.html';
 }function goToPilier(pilier){
   // Ouvrir la page dédiée avec le filtre pilier en paramètre URL

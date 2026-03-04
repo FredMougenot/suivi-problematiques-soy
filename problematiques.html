@@ -688,6 +688,11 @@ body { font-size: 0.9375rem; }
         <option value="">Toutes les priorités</option>
         <option>Critique</option><option>Haute</option><option>Moyenne</option><option>Basse</option>
       </select>
+      <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.8rem;color:var(--text-muted);user-select:none;white-space:nowrap;margin-left:4px;">
+        <input type="checkbox" id="show-cloture" onchange="filterTable()"
+          style="width:15px;height:15px;accent-color:var(--copper);cursor:pointer;">
+        Afficher les clôturées / résolues
+      </label>
     </div>
 
     <!-- Tableau -->
@@ -856,10 +861,12 @@ function populatePiliers(){
 
 
 function filterTable() {
-  const q      = (document.getElementById('search-input')?.value || '').toLowerCase();
-  const pilier = document.getElementById('filter-pilier')?.value  || '';
-  const stat   = document.getElementById('filter-statut')?.value  || '';
-  const prio   = document.getElementById('filter-priorite')?.value || '';
+  const q           = (document.getElementById('search-input')?.value || '').toLowerCase();
+  const pilier      = document.getElementById('filter-pilier')?.value  || '';
+  const stat        = document.getElementById('filter-statut')?.value  || '';
+  const prio        = document.getElementById('filter-priorite')?.value || '';
+  const showCloture = document.getElementById('show-cloture')?.checked || false;
+  const CLOTUREES   = ['Résolu', 'Clôturé', 'Annulé'];
   try {
     localStorage.setItem('soy_filter_pilier', pilier);
     localStorage.setItem('soy_filter_statut', stat);
@@ -872,10 +879,9 @@ function filterTable() {
     // Résolue/clôturée/annulée : inclure seulement si date_resolue est après curDate
     // ou si date_resolue est vide (pas encore résolue)
     const resolue = p.date_resolue ? localDate(p.date_resolue) : null;
-    if (resolue && resolue <= curDate &&
-        (p.statut === 'Résolu' || p.statut === 'Clôturé' || p.statut === 'Annulé')) {
-      return false;
-    }
+    if (resolue && resolue <= curDate && CLOTUREES.includes(p.statut)) return false;
+    // Case "Afficher les clôturées" : si décochée, masquer les clôturées actives
+    if (!showCloture && CLOTUREES.includes(p.statut)) return false;
     // Filtres texte / pilier / statut / priorité
     if (q      && !(p.intitule||'').toLowerCase().includes(q)
                && !(p.description||'').toLowerCase().includes(q)) return false;
@@ -1109,16 +1115,20 @@ function restoreFilters() {
   const fr = document.getElementById('filter-priorite');
   const fq = document.getElementById('search-input');
   try {
-    if (fp) fp.value = urlPilier || localStorage.getItem('soy_filter_pilier') || '';
+    // Si arrivée via menu gauche (pas de ?pilier=), forcer filtre pilier à vide
+    if (fp) fp.value = urlPilier || (urlPilier === null ? '' : localStorage.getItem('soy_filter_pilier') || '');
     if (fs) fs.value = localStorage.getItem('soy_filter_statut') || '';
     if (fr) fr.value = localStorage.getItem('soy_filter_prio')   || '';
     if (fq) fq.value = localStorage.getItem('soy_filter_q')      || '';
   } catch(e) {}
-  // Pilier actif : URL en priorité, sinon localStorage
+  // Pilier actif pour les graphiques : URL en priorité, sinon localStorage
   const activePilier = urlPilier || localStorage.getItem('soy_chart_pilier') || '';
   if (urlPilier) {
     window.history.replaceState({}, '', window.location.pathname);
     localStorage.setItem('soy_chart_pilier', urlPilier);
+  } else {
+    // Arrivée sans pilier → pas de graphiques automatiques
+    localStorage.removeItem('soy_chart_pilier');
   }
   if (activePilier) openPilierCharts(activePilier);
   filterTable();
