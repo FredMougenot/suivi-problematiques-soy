@@ -136,11 +136,15 @@
 
 <!-- MAIN -->
 <div class="tool-main" style="padding-top:16px;">
-  <div style="margin-bottom:8px;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
     <button class="btn-add" onclick="openModal()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Ajouter un bris
-      </button>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Ajouter un bris
+    </button>
+    <button onclick="brisOpenNcModal()" style="display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--ruby);color:var(--ruby);font-size:.84rem;font-weight:700;cursor:pointer;transition:all .15s;" onmouseover="this.style.background='rgba(224,85,85,.08)'" onmouseout="this.style.background='var(--bg-raised)'">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Soumettre les non-conformités
+    </button>
   </div>
   <div id="spinner" class="spinner" style="display:flex"><div class="spin"></div> Chargement…</div>
 
@@ -177,22 +181,7 @@
 <div class="overlay" id="modal">
   <div class="modal">
     <div class="modal-title">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--copper-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      Ajouter un bris
-    </div>
-    <div class="fg"><label>Item / Description</label><input type="text" id="m-item" placeholder="Ex: Palette bois, Fourche chariot…"></div>
-    <div class="fg"><label>Quantité</label><input type="number" id="m-qte" placeholder="1" min="0" step="1"></div>
-    <div class="fg"><label>Coût estimé ($)</label><input type="number" id="m-cout" placeholder="0.00" min="0" step="0.01"></div>
-    <div class="m-acts">
-      <button class="btn-cx" onclick="closeModal()">Annuler</button>
-      <button class="btn-ok" onclick="confirmAdd()">Ajouter</button>
-    </div>
-  </div>
-</div>
-
-<div class="toasts" id="toasts"></div>
-
-<script>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--copper-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle
 
 
 function localToday(){
@@ -229,6 +218,86 @@ function changeDay(d){ const dt=new Date(curDate+'T00:00:00'); dt.setDate(dt.get
 function goToday(){ curDate=todayStr(); updateDateUI(); load(); }
 
 // ── LOAD ────────────────────────────────────────────────────
+// ── NC BRIS/PERTES ────────────────────────────────────────────
+const BRIS_NC_PARAMS_KEY = 'bris_nc_params';
+
+function brisLoadNcParams(){
+  try{
+    const p = JSON.parse(localStorage.getItem(BRIS_NC_PARAMS_KEY)||'{}');
+    if(p.pilier)      document.getElementById('bris-nc-param-pilier').value    = p.pilier;
+    if(p.priorite)    document.getElementById('bris-nc-param-priorite').value  = p.priorite;
+    if(p.statut)      document.getElementById('bris-nc-param-statut').value    = p.statut;
+    if(p.responsable !== undefined) document.getElementById('bris-nc-param-resp').value   = p.responsable;
+    if(p.soumis_par)  document.getElementById('bris-nc-param-soumis').value    = p.soumis_par;
+  }catch(e){}
+}
+
+function brisSaveNcParams(){
+  const p = {
+    pilier:      document.getElementById('bris-nc-param-pilier').value,
+    priorite:    document.getElementById('bris-nc-param-priorite').value,
+    statut:      document.getElementById('bris-nc-param-statut').value,
+    responsable: document.getElementById('bris-nc-param-resp').value.trim(),
+    soumis_par:  document.getElementById('bris-nc-param-soumis').value.trim(),
+  };
+  localStorage.setItem(BRIS_NC_PARAMS_KEY, JSON.stringify(p));
+  document.getElementById('bris-modal-nc-params').classList.remove('open');
+  toast('Paramètres enregistrés ✓','success');
+}
+
+function brisOpenNcModal(){
+  const list = Object.values(rows).filter(r => r.item && r.item.trim());
+  if(list.length === 0){
+    toast('Aucun bris enregistré aujourd' + "'" + 'hui.','info');
+    return;
+  }
+  brisLoadNcParams();
+  const n = list.length;
+  document.getElementById('bris-nc-confirm-msg').textContent =
+    n + ' bris enregistré' + (n>1?'s':'') + ' le ' + curDate +
+    '. Une problématique sera créée dans le registre pour chacun.';
+  document.getElementById('bris-nc-confirm-list').innerHTML = list
+    .map(r => '<div><span style="color:var(--ruby);margin-right:8px;">✕</span>'
+      + esc(r.item||'Sans description')
+      + (r.cout ? ' <span style="color:var(--text-muted);font-size:.78rem;">(' + r.cout + ' $)</span>' : '')
+      + '</div>')
+    .join('');
+  document.getElementById('bris-btn-nc-submit').dataset.nclist = JSON.stringify(
+    list.map(r => ({ id: r.id, label: r.item||'Bris sans description', cout: r.cout||0 }))
+  );
+  document.getElementById('bris-modal-nc-confirm').classList.add('open');
+}
+
+async function brisSubmitNcProblems(){
+  const btn = document.getElementById('bris-btn-nc-submit');
+  let ncList;
+  try{ ncList = JSON.parse(btn.dataset.nclist||'[]'); }catch(e){ ncList=[]; }
+  if(!ncList.length) return;
+
+  brisLoadNcParams();
+  const pilier      = document.getElementById('bris-nc-param-pilier').value   || 'Qualité';
+  const priorite    = document.getElementById('bris-nc-param-priorite').value  || 'Moyenne';
+  const statut      = document.getElementById('bris-nc-param-statut').value    || 'À traiter';
+  const responsable = document.getElementById('bris-nc-param-resp').value.trim()   || null;
+  const soumis_par  = document.getElementById('bris-nc-param-soumis').value.trim() || 'Suivi des bris';
+
+  btn.disabled = true; btn.textContent = 'Création en cours…';
+  let errors = 0;
+  for(const item of ncList){
+    const {error} = await sb.from('problematiques').insert([{
+      intitule:    'Bris : ' + item.label,
+      description: 'Bris enregistré le ' + curDate + ' : ' + item.label
+                   + (item.cout ? ' (coût estimé : ' + item.cout + ' $)' : ''),
+      pilier, priorite, statut, responsable, soumis_par,
+    }]);
+    if(error){ console.error(error); errors++; }
+  }
+  btn.disabled = false; btn.textContent = 'Créer les problématiques';
+  document.getElementById('bris-modal-nc-confirm').classList.remove('open');
+  if(errors) toast(errors + ' erreur(s) lors de la création.','error');
+  else toast(ncList.length + ' problématique' + (ncList.length>1?'s':'') + ' créée' + (ncList.length>1?'s':'') + ' ✓','success');
+}
+
 window.addEventListener('load',()=>{ updateDateUI(); load(); });
 
 async function load(){
@@ -379,6 +448,29 @@ async function confirmAdd(){
 }
 
 
+'error'); return; }
+  const qte  = parseFloat(document.getElementById('m-qte').value)||1;
+  const cout = parseFloat(document.getElementById('m-cout').value)||null;
+
+  const payload = {
+    date_jour: curDate,
+    item, quantite: qte, cout,
+    etape1: false, etape2: false,
+    date_finalisation: null, commentaires: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+
+  const {data,error} = await sb.from('bris').insert([payload]).select().single();
+  if(error){ toast('Erreur: '+error.message,'error'); return; }
+  rows[data.id] = data;
+  closeModal(); render();
+  const tr = document.getElementById('brow-'+data.id);
+  if(tr) tr.scrollIntoView({behavior:'smooth',block:'center'});
+  toast('Bris ajouté ✓','success');
+}
+
+
 </script>
 
 <script>
@@ -400,5 +492,65 @@ async function confirmAdd(){
   });
 })();
 </script>
+
+<!-- MODAL NC CONFIRM — bris -->
+<div class="overlay" id="bris-modal-nc-confirm">
+  <div class="modal" style="width:480px">
+    <div class="modal-title">⚠️ Soumettre les non-conformités</div>
+    <p id="bris-nc-confirm-msg" style="font-size:.88rem;color:var(--text-secondary);margin:0 0 12px;line-height:1.6;"></p>
+    <div id="bris-nc-confirm-list" style="background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:10px 14px;max-height:200px;overflow-y:auto;margin-bottom:16px;font-size:.83rem;line-height:1.9;"></div>
+    <div class="m-acts">
+      <button class="btn-cx" onclick="document.getElementById('bris-modal-nc-confirm').classList.remove('open')">Annuler</button>
+      <button class="btn-ok" id="bris-btn-nc-submit" onclick="brisSubmitNcProblems()">Créer les problématiques</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NC PARAMS — bris -->
+<div class="overlay" id="bris-modal-nc-params">
+  <div class="modal" style="width:460px">
+    <div class="modal-title">⚙️ Paramètres — Problématiques auto</div>
+    <p style="font-size:.8rem;color:var(--text-secondary);margin:0 0 16px;">Ces valeurs seront appliquées à chaque problématique créée depuis les bris.</p>
+    <div class="fg">
+      <label>Pilier <span style="color:var(--ruby)">*</span></label>
+      <select id="bris-nc-param-pilier" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
+        <option value="Qualité" selected>Qualité</option>
+        <option value="SST">SST</option>
+        <option value="Environnement">Environnement</option>
+        <option value="Motivation">Motivation</option>
+        <option value="Délais">Délais</option>
+        <option value="Informations">Informations</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Priorité <span style="color:var(--ruby)">*</span></label>
+      <select id="bris-nc-param-priorite" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
+        <option value="Critique">Critique</option>
+        <option value="Haute">Haute</option>
+        <option value="Moyenne" selected>Moyenne</option>
+        <option value="Basse">Basse</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Statut initial</label>
+      <select id="bris-nc-param-statut" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
+        <option value="À traiter" selected>À traiter</option>
+        <option value="En cours">En cours</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Responsable par défaut</label>
+      <input type="text" id="bris-nc-param-resp" placeholder="Nom (optionnel)…" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
+    </div>
+    <div class="fg">
+      <label>Soumis par</label>
+      <input type="text" id="bris-nc-param-soumis" value="Suivi des bris" placeholder="Ex: Système…" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
+    </div>
+    <div class="m-acts">
+      <button class="btn-cx" onclick="document.getElementById('bris-modal-nc-params').classList.remove('open')">Fermer</button>
+      <button class="btn-ok" onclick="brisSaveNcParams()">Enregistrer</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
