@@ -609,6 +609,10 @@ body { font-size: 0.9375rem; }
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--copper)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       Registre des problématiques
     </div>
+    <a href="parametres_prob.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:#1A1E2A;border:1px solid #2C3350;color:#BEC5D6;font-size:.78rem;font-weight:600;text-decoration:none;margin-left:auto;transition:all .15s;" onmouseover="this.style.borderColor='#C8843A';this.style.color='#E0A870'" onmouseout="this.style.borderColor='#2C3350';this.style.color='#BEC5D6'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Paramètres
+    </a>
   </div>
 
   <!-- DATE NAV -->
@@ -630,10 +634,7 @@ body { font-size: 0.9375rem; }
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Soumettre une problématique
       </button>
-      <button class="admin-only" onclick="deleteAllProblems()" style="display:none;padding:9px 16px;border-radius:var(--r-md);background:transparent;border:1px solid var(--ruby);color:var(--ruby);font-size:.82rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;display:none;" onmouseover="this.style.background='rgba(224,85,85,.12)'" onmouseout="this.style.background='transparent'">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-        Tout supprimer
-      </button>
+
     </div>
 
     <!-- Panneau graphiques -->
@@ -735,7 +736,9 @@ body { font-size: 0.9375rem; }
           </select>
         </div>
         <div class="fg"><label class="fg-lbl">Responsable</label>
-          <input id="edit-responsable" class="fg-inp" placeholder="Nom…">
+          <select id="edit-responsable" class="fg-sel">
+            <option value="">— Sélectionner —</option>
+          </select>
         </div>
         <div class="fg"><label class="fg-lbl">Date prévue</label>
           <input id="edit-date-prevue" class="fg-inp" type="date">
@@ -773,6 +776,21 @@ let currentUser = null, isAdmin = false, allProblems = [];
 let curDate = '';
 let cmChartWeek = null, cmChartMonth = null;
 let activePilierChart = '';
+let allResponsables = [];
+
+async function loadResponsables() {
+  try {
+    const { data } = await sb.from('prob_responsables').select('*').order('nom');
+    allResponsables = (data||[]).map(r => r.nom);
+    // Remplir tous les selects de responsables
+    document.querySelectorAll('select[id$="-responsable"], #edit-responsable').forEach(sel => {
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">— Sélectionner —</option>'
+        + allResponsables.map(n => `<option value="${n}">${n}</option>`).join('');
+      if(cur) sel.value = cur;
+    });
+  } catch(e) { allResponsables = []; }
+}
 
 function toast(msg,type='info'){
   const tel=document.createElement('div');
@@ -1116,22 +1134,11 @@ async function loadAll() {
     restoreFilters();
     // Redessiner les graphiques avec les données fraîches
     renderChartForActivePilier();
+    await loadResponsables();
   } catch(e) {
     toast('Erreur : ' + (e.message || e), 'error');
     console.error('loadAll:', e);
   }
-}
-
-async function deleteAllProblems() {
-  if (!isAdmin) { toast('Action réservée aux administrateurs.', 'error'); return; }
-  const n = allProblems.length;
-  if (n === 0) { toast('Aucune problématique à supprimer.', 'info'); return; }
-  if (!confirm('Supprimer définitivement les ' + n + ' problématique(s) ? Cette action est irréversible.')) return;
-  const ids = allProblems.map(p => p.id);
-  const { error } = await sb.from('problematiques').delete().in('id', ids);
-  if (error) { toast('Erreur : ' + error.message, 'error'); return; }
-  toast(n + ' problématique(s) supprimée(s).', 'success');
-  await loadAll();
 }
 
 async function init() {

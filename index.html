@@ -842,7 +842,7 @@ body { font-size: 0.9375rem; }
                 <option value="Basse">Basse</option>
               </select>
             </div>
-            <div class="fg full"><label class="fg-lbl">Responsable souhaité</label><input type="text" id="n-responsable" class="fg-inp" placeholder="Nom du responsable suggéré"></div>
+            <div class="fg full"><label class="fg-lbl">Responsable</label><select id="n-responsable" class="fg-sel"><option value="">— Sélectionner —</option></select></div>
             <div class="fg" id="fg-n-date-prevue" style="display:none"><label class="fg-lbl">Date prévue</label><input type="date" id="n-date-prevue" class="fg-inp"></div>
             <div class="fg" id="fg-n-date-resolue" style="display:none"><label class="fg-lbl">Date résolue</label><input type="date" id="n-date-resolue" class="fg-inp"></div>
             <div class="fg full"><label class="fg-lbl req">Description détaillée</label><textarea id="n-description" class="fg-ta" placeholder="Décrivez la problématique, le contexte, les actions déjà tentées…"></textarea></div>
@@ -1125,6 +1125,16 @@ body { font-size: 0.9375rem; }
 
 
 
+
+
+
+
+
+
+
+
+
+
 function localToday(){
   const d=new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -1140,6 +1150,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null, isAdmin = false, allProblems = [], criteresSeuils = {};
+let allResponsables = [];
 
 // Mapping pilier → {spanId, defaut} pour noms dynamiques des outils
 const OUTILS_PILIERS = {
@@ -1301,6 +1312,20 @@ async function submitSetupPwd(){
   setTimeout(async()=>{document.getElementById('setup-page').style.display='none';await checkRole();showApp();await loadAll();},2000);
 }
 
+async function loadResponsables(){
+  try{
+    const {data} = await sb.from('prob_responsables').select('*').order('nom');
+    allResponsables = (data||[]).map(r=>r.nom);
+    const sel = document.getElementById('n-responsable');
+    if(sel){
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">— Sélectionner —</option>'
+        + allResponsables.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+      if(cur) sel.value = cur;
+    }
+  }catch(e){ allResponsables=[]; }
+}
+
 async function loadAll(){
   try{
     // Charger les problématiques
@@ -1315,6 +1340,7 @@ async function loadAll(){
       (sd||[]).forEach(r=>{ criteresSeuils[r.pilier]={v:r.seuil_vert,o:r.seuil_orange,r:r.seuil_rouge}; });
     }catch(e){}
     renderDash(); renderAdminTable();
+    await loadResponsables();
     // Restaurer les filtres sauvegardés
     try{
       const sp=localStorage.getItem('soy_filter_pilier')||'';
@@ -1879,6 +1905,5 @@ function closeCritereBtn(){
 
 
 
-</script>
 </body>
 </html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Paramètres — Problématiques</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="soy-shared.css">
+  <style>
+
+/* ══ PARAMÈTRES INVENTAIRE ══════════════════════════════════════ */
+
+.page-header{margin-bottom:28px;}
+.page-eyebrow{font-size:.62rem;font-weight:800;color:var(--copper);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;}
+.page-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--text-primary);}
+.page-sub{font-size:.82rem;color:var(--text-muted);margin-top:4px;}
+
+/* Barre d'actions */
+.actions-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px;}
+.actions-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+
+.btn-add{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;font-size:.82rem;font-weight:800;border:none;cursor:pointer;transition:opacity .15s,transform .1s;white-space:nowrap;}
+.btn-add:hover{opacity:.88;transform:translateY(-1px);}
+.btn-save-all{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);background:var(--emerald-bg);border:1px solid rgba(45,212,160,.3);color:var(--emerald);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn-save-all:hover{background:rgba(45,212,160,.15);}
+
+/* Compteur */
+.item-count{font-size:.78rem;color:var(--text-muted);font-weight:600;padding:5px 12px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:20px;}
+
+/* Table */
+.param-tbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow:hidden;position:relative;}
+.param-tbl-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--copper),transparent);pointer-events:none;}
+.param-tbl{width:100%;border-collapse:collapse;}
+.param-tbl thead tr{background:var(--bg-float);border-bottom:1px solid var(--text-faint);}
+.param-tbl thead th{padding:12px 16px;font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:var(--text-muted);text-align:left;white-space:nowrap;}
+.param-tbl thead th:first-child{width:48px;text-align:center;}
+.param-tbl thead th:last-child{width:80px;text-align:center;}
+.param-tbl tbody tr{border-bottom:1px solid rgba(44,51,80,.5);transition:background .1s;}
+.param-tbl tbody tr:hover{background:var(--bg-hover);}
+.param-tbl tbody tr:last-child{border-bottom:none;}
+.param-tbl tbody td{padding:8px 12px;font-size:.86rem;color:var(--text-primary);vertical-align:middle;}
+.param-tbl tbody td:first-child{text-align:center;color:var(--text-muted);font-size:.76rem;font-weight:700;}
+.param-tbl tbody td:last-child{text-align:center;}
+
+/* Inputs dans la table */
+.inp-item{background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text-primary);font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;padding:4px 6px;width:100%;transition:border-color .15s;}
+.inp-item:hover{border-bottom-color:var(--text-faint);}
+.inp-item:focus{border-bottom-color:var(--copper);}
+.sel-rec{background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-sm);padding:5px 10px;font-size:.82rem;font-family:'Outfit',sans-serif;outline:none;cursor:pointer;transition:border-color .15s;width:110px;}
+.sel-rec:focus{border-color:var(--copper);}
+.sel-rec option{background:var(--bg-float);}
+
+/* Badge récurrence */
+.rec-30{color:var(--emerald);font-weight:700;}
+.rec-60{color:var(--amber);font-weight:700;}
+.rec-90{color:var(--sapphire);font-weight:700;}
+
+/* Bouton supprimer */
+.btn-rm{width:28px;height:28px;border-radius:var(--r-sm);background:transparent;border:1px solid transparent;color:var(--text-muted);font-size:.85rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;}
+.btn-rm:hover{background:rgba(224,85,85,.1);border-color:rgba(224,85,85,.3);color:var(--ruby);}
+
+/* Spinner */
+.spinner{display:flex;align-items:center;justify-content:center;padding:50px;gap:12px;color:var(--text-muted);font-size:.88rem;}
+.sp-ring{width:24px;height:24px;border:2px solid var(--text-faint);border-top-color:var(--copper);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Toast */
+.toast-bar{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+.toast{padding:11px 18px;border-radius:var(--r-md);font-size:.82rem;font-weight:600;border:1px solid;animation:tin .2s var(--ease);max-width:320px;pointer-events:auto;}
+.toast.ok{background:rgba(45,212,160,.12);color:var(--emerald);border-color:rgba(45,212,160,.3);}
+.toast.err{background:rgba(224,85,85,.12);color:var(--ruby);border-color:rgba(224,85,85,.3);}
+@keyframes tin{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+
+@media(max-width:700px){.actions-bar{flex-direction:column;align-items:flex-start;}.param-tbl{min-width:480px;}.param-tbl-wrap{overflow-x:auto;}}
+
+  </style>
+</head>
+<body>
+<div class="tool-wrap">
+
+  <!-- TOPBAR -->
+  <div class="tool-topbar">
+    <a class="tool-back" href="problematiques.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Problématiques
+    </a>
+    <div class="tool-title">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--copper)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Paramètres — Problématiques
+    </div>
+  </div>
+
+  <!-- CONTENU -->
+  <div class="tool-main">
+
+    <!-- Responsables -->
+    <div class="page-header">
+      <div class="page-eyebrow">Configuration</div>
+      <div class="page-title">Responsables</div>
+      <div class="page-sub">Définissez la liste des responsables disponibles dans le formulaire de création de problématiques.</div>
+    </div>
+
+    <div class="actions-bar">
+      <button class="btn-add" onclick="addRow()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Ajouter
+      </button>
+      <button class="btn-save-all" id="btn-save" onclick="saveAll()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Enregistrer
+      </button>
+    </div>
+
+    <div class="tbl-wrap" style="margin-bottom:40px;">
+      <table class="dtbl" style="min-width:320px;">
+        <thead><tr>
+          <th>Nom du responsable</th>
+          <th style="width:48px;text-align:center;">—</th>
+        </tr></thead>
+        <tbody id="resp-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Zone danger -->
+    <div style="border:1px solid rgba(224,85,85,.25);border-radius:var(--r-lg);padding:22px 24px;background:rgba(224,85,85,.04);">
+      <div style="font-size:.62rem;font-weight:800;color:var(--ruby);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;">Zone dangereuse</div>
+      <div style="font-size:.88rem;font-weight:600;color:var(--text-primary);margin-bottom:4px;">Supprimer toutes les problématiques</div>
+      <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:16px;">Supprime définitivement tous les enregistrements de la table des problématiques. Cette action est irréversible.</div>
+      <button onclick="deleteAllProblems()" style="display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);background:transparent;border:1px solid var(--ruby);color:var(--ruby);font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;" onmouseover="this.style.background='rgba(224,85,85,.12)'" onmouseout="this.style.background='transparent'">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        Tout supprimer
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+
+const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+const { createClient } = supabase;
+const sb = createClient(SB_URL, SB_KEY);
+
+let rows = [];
+let nextTmpId = -1;
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg, type='info'){
+  const t = document.createElement('div');
+  t.className = 'toast-item toast-'+type;
+  t.textContent = msg;
+  document.getElementById('toasts').appendChild(t);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); }, 4000);
+}
+
+function render(){
+  const tbody = document.getElementById('resp-tbody');
+  if(!rows.length){
+    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;color:var(--text-muted);padding:18px;font-size:.85rem;">Aucun responsable. Cliquez sur Ajouter.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map((r,i) => `
+    <tr>
+      <td><input class="inp-resp" value="${esc(r.nom)}" placeholder="Nom du responsable…"
+        oninput="rows[${i}].nom=this.value;rows[${i}].dirty=true" style="width:100%;background:transparent;border:none;color:var(--text-primary);font-family:'Outfit',sans-serif;font-size:.86rem;padding:4px 0;outline:none;border-bottom:1px solid transparent;" onfocus="this.style.borderBottomColor='var(--copper)'" onblur="this.style.borderBottomColor='transparent'"></td>
+      <td style="text-align:center;width:48px;">
+        <button onclick="deleteRow(${i})" style="width:28px;height:28px;border-radius:var(--r-sm);background:transparent;border:1px solid var(--text-faint);color:var(--text-muted);cursor:pointer;font-size:.8rem;transition:all .15s;" onmouseover="this.style.borderColor='var(--ruby)';this.style.color='var(--ruby)'" onmouseout="this.style.borderColor='var(--text-faint)';this.style.color='var(--text-muted)'">✕</button>
+      </td>
+    </tr>`).join('');
+}
+
+function addRow(){
+  rows.push({ id: nextTmpId--, nom: '', dirty: true });
+  render();
+  setTimeout(()=>{
+    const inputs = document.querySelectorAll('.inp-resp');
+    if(inputs.length) inputs[inputs.length-1].focus();
+  }, 50);
+}
+
+async function deleteRow(i){
+  const r = rows[i];
+  if(r.id > 0){
+    const { error } = await sb.from('prob_responsables').delete().eq('id', r.id);
+    if(error){ toast('Erreur: '+error.message, 'error'); return; }
+  }
+  rows.splice(i, 1);
+  render();
+  toast('Responsable supprimé.', 'success');
+}
+
+async function saveAll(){
+  const dirty = rows.filter(r => r.dirty && r.nom.trim());
+  if(!dirty.length){ toast('Aucune modification à enregistrer.', 'info'); return; }
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true; btn.textContent = 'Enregistrement…';
+  let errors = 0;
+  for(const r of dirty){
+    if(r.id > 0){
+      const { error } = await sb.from('prob_responsables').update({ nom: r.nom.trim() }).eq('id', r.id);
+      if(error) errors++;
+      else r.dirty = false;
+    } else {
+      const { data, error } = await sb.from('prob_responsables').insert([{ nom: r.nom.trim() }]).select().single();
+      if(error) errors++;
+      else { r.id = data.id; r.dirty = false; }
+    }
+  }
+  btn.disabled = false; btn.textContent = 'Enregistrer';
+  if(errors) toast(errors+' erreur(s) lors de la sauvegarde.', 'error');
+  else toast('Responsables enregistrés ✓', 'success');
+  render();
+}
+
+async function deleteAllProblems(){
+  const { data: all } = await sb.from('problematiques').select('id');
+  const n = (all||[]).length;
+  if(!n){ toast('Aucune problématique à supprimer.', 'info'); return; }
+  if(!confirm('Supprimer définitivement les '+n+' problématique(s) ? Cette action est irréversible.')) return;
+  const ids = all.map(p => p.id);
+  const { error } = await sb.from('problematiques').delete().in('id', ids);
+  if(error){ toast('Erreur: '+error.message, 'error'); return; }
+  toast(n+' problématique(s) supprimée(s) ✓', 'success');
+}
+
+async function load(){
+  try{
+    const { data, error } = await sb.from('prob_responsables').select('*').order('nom');
+    if(error) throw error;
+    rows = (data||[]).map(r => ({ id: r.id, nom: r.nom||'', dirty: false }));
+  } catch(e){
+    // Table peut ne pas exister encore
+    rows = [];
+  }
+  render();
+}
+
+async function init(){
+  try{
+    const { data:{ session } } = await sb.auth.getSession();
+    if(!session){ window.location.href = 'problematiques.html'; return; }
+  } catch(e){ window.location.href = 'problematiques.html'; return; }
+  await load();
+}
+
+window.addEventListener('load', ()=>{
+  function waitSB(){
+    if(typeof supabase !== 'undefined' && supabase.createClient) init();
+    else setTimeout(waitSB, 50);
+  }
+  waitSB();
+});
+
+</script>
+</body>
+</html>
