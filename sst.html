@@ -106,6 +106,40 @@
 }
 .btn-add:hover{opacity:.88;transform:translateY(-1px);}
 .btn-add:active{transform:translateY(0);}
+
+/* ── Variables et classes pour modal Nouvelle Problématique ─── */
+:root {
+  --bg-void:#06070B; --bg-float:#1A1E2A; --bg-hover:#1F2436; --bg-active:#242B40;
+  --copper-glow:rgba(200,132,58,.22); --copper-pale:#EDD4A8;
+  --ease-out:cubic-bezier(0,0,.2,1); --t-fast:.15s; --t-base:.25s;
+  --shadow-xl:0 32px 80px rgba(0,0,0,.7),0 8px 32px rgba(0,0,0,.5);
+  --r-xl:24px;
+}
+.fg-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.fg-grid .full{grid-column:1/-1;}
+.fg-lbl{font-size:.65rem;font-weight:800;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;}
+.fg-lbl.req::after{content:' ✦';font-size:.52rem;}
+.fg-inp,.fg-sel,.fg-ta{padding:10px 13px;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);font-size:.84rem;font-weight:300;color:var(--text-primary);transition:all var(--t-fast);width:100%;box-sizing:border-box;font-family:inherit;outline:none;}
+.fg-inp::placeholder,.fg-ta::placeholder{color:var(--text-muted);}
+.fg-inp:focus,.fg-sel:focus,.fg-ta:focus{border-color:var(--copper);background:var(--bg-active);box-shadow:0 0 0 2px var(--copper-glow);}
+.fg-sel option{background:var(--bg-raised);}
+.fg-ta{resize:vertical;min-height:90px;}
+.btn-can{padding:9px 20px;border-radius:var(--r-md);font-size:.82rem;font-weight:500;background:transparent;border:1px solid var(--text-faint);color:var(--text-secondary);transition:all var(--t-fast);cursor:pointer;}
+.btn-can:hover{border-color:var(--text-muted);color:var(--text-primary);}
+.btn-sub{padding:9px 24px;border-radius:var(--r-md);font-size:.82rem;font-weight:700;background:var(--copper);color:var(--bg-void);transition:all var(--t-base);cursor:pointer;letter-spacing:.05em;border:none;}
+.btn-sub:hover{background:var(--copper-light);transform:translateY(-1px);box-shadow:0 6px 20px rgba(184,115,51,.3);}
+.btn-sub:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+#modal-sst.overlay{padding:0;align-items:flex-end;}
+#modal-sst .modal{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-xl);box-shadow:var(--shadow-xl);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;animation:modalIn .25s var(--ease-out);position:relative;}
+#modal-sst .modal::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--copper),transparent);border-radius:var(--r-xl) var(--r-xl) 0 0;pointer-events:none;}
+.modal-hd-p{padding:26px 30px 20px;border-bottom:1px solid var(--text-faint);display:flex;align-items:flex-start;justify-content:space-between;gap:16px;}
+.modal-t-p{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:600;color:var(--text-primary);}
+.modal-s-p{font-size:.78rem;color:var(--text-muted);margin-top:4px;font-weight:300;}
+.modal-x-p{width:30px;height:30px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:1rem;transition:all var(--t-fast);cursor:pointer;background:transparent;border:none;}
+.modal-x-p:hover{background:var(--bg-hover);color:var(--text-primary);}
+.modal-bd-p{padding:22px 30px;}
+.modal-ft-p{padding:12px 30px 26px;display:flex;gap:10px;justify-content:flex-end;}
+@keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.98)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -311,13 +345,8 @@ async function submitProb(modalId, pilier){
   toast('Problématique créée ✓','success');
   await loadProbs();
 }
-function openProbModal(modalId){
-  document.getElementById(modalId+'-intitule').value='';
-  document.getElementById(modalId+'-desc').value='';
-  document.getElementById(modalId+'-priorite').value='Moyenne';
-  document.getElementById(modalId+'-statut').value='À traiter';
-  document.getElementById(modalId+'-resp').value='';
-  document.getElementById(modalId).classList.add('open');
+function openProbModal(id){
+  openSstModal();
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
@@ -325,37 +354,123 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(mo) mo.addEventListener('click',e=>{if(e.target===mo)mo.classList.remove('open');});
 });
 
+function closeSstModal(){
+  document.getElementById('modal-sst').classList.remove('open');
+}
+
+function openSstModal(){
+  document.getElementById('sst-intitule').value   = '';
+  document.getElementById('sst-pilier').value      = 'SST';
+  document.getElementById('sst-priorite').value    = 'Moyenne';
+  document.getElementById('sst-statut').value      = 'À traiter';
+  document.getElementById('sst-responsable').value = '';
+  document.getElementById('sst-date-prevue').value = '';
+  document.getElementById('sst-description').value = '';
+  loadResponsablesSst();
+  document.getElementById('modal-sst').classList.add('open');
+}
+
+async function loadResponsablesSst(){
+  try{
+    const {data} = await sb.from('prob_responsables').select('*').order('nom');
+    const sel = document.getElementById('sst-responsable');
+    if(!sel) return;
+    sel.innerHTML = '<option value="">— Sélectionner —</option>'
+      + (data||[]).map(r=>`<option value="${r.nom}">${r.nom}</option>`).join('');
+  }catch(e){}
+}
+
+async function submitSstProb(){
+  const intitule = document.getElementById('sst-intitule').value.trim();
+  const pilier   = document.getElementById('sst-pilier').value;
+  const priorite = document.getElementById('sst-priorite').value;
+  const statut   = document.getElementById('sst-statut').value;
+  const resp     = document.getElementById('sst-responsable').value||null;
+  const datePrev = document.getElementById('sst-date-prevue').value||null;
+  const desc     = document.getElementById('sst-description').value.trim()||null;
+
+  if(!intitule){ toast('L\'intitulé est obligatoire.','error'); return; }
+
+  const btn = document.getElementById('sst-submit-btn');
+  if(btn){ btn.disabled=true; btn.textContent='Création…'; }
+
+  const {error} = await sb.from('problematiques').insert({
+    intitule, pilier, priorite, statut,
+    responsable: resp,
+    description: desc,
+    date_prevue: datePrev,
+    soumis_par:  'SST',
+    created_at:  new Date().toISOString(),
+    updated_at:  new Date().toISOString(),
+  });
+
+  if(btn){ btn.disabled=false; btn.textContent='Créer'; }
+  if(error){ toast('Erreur: '+error.message,'error'); return; }
+
+  closeSstModal();
+  toast('Problématique créée ✓','success');
+  await loadProbs();
+}
 
 </script>
 
-<div class="overlay" id="modal-sst">
-  <div class="modal" style="width:500px">
-    <div class="modal-title">➕ Nouvelle problématique</div>
-    <div class="fg"><label>Intitulé <span style="color:var(--ruby)">*</span></label>
-      <input type="text" id="modal-sst-intitule" placeholder="Titre de la problématique…" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;transition:border-color .15s;">
-    </div>
-    <div class="fg"><label>Description <span style="color:var(--ruby)">*</span></label>
-      <textarea id="modal-sst-desc" placeholder="Contexte, impact, actions déjà tentées…" style="width:100%;min-height:80px;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;resize:vertical;"></textarea>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <div class="fg"><label>Priorité <span style="color:var(--ruby)">*</span></label>
-        <select id="modal-sst-priorite" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
-          <option value="">— Sélectionner —</option>
-          <option>Critique</option><option>Haute</option><option selected>Moyenne</option><option>Basse</option>
-        </select>
+<div class="overlay" id="modal-sst" onclick="if(event.target===this)closeSstModal()">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-hd-p">
+      <div>
+        <div class="modal-t-p">Nouvelle problématique</div>
+        <div class="modal-s-p">SST</div>
       </div>
-      <div class="fg"><label>Statut</label>
-        <select id="modal-sst-statut" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
-          <option value="À traiter">À traiter</option><option value="En cours">En cours</option>
-        </select>
+      <button class="modal-x-p" onclick="closeSstModal()">✕</button>
+    </div>
+    <div class="modal-bd-p">
+      <div class="fg-grid">
+        <div class="fg full">
+          <label class="fg-lbl req">Intitulé</label>
+          <input id="sst-intitule" class="fg-inp" placeholder="Intitulé de la problématique…">
+        </div>
+        <div class="fg">
+          <label class="fg-lbl">Pilier</label>
+          <select id="sst-pilier" class="fg-sel">
+            <option selected>SST</option><option>Qualite</option><option>Couts</option>
+            <option>Delais</option><option>Motivation</option><option>Environnement</option>
+            <option>Informations</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fg-lbl req">Priorité</label>
+          <select id="sst-priorite" class="fg-sel">
+            <option>Critique</option><option>Haute</option>
+            <option selected>Moyenne</option><option>Basse</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fg-lbl">Statut</label>
+          <select id="sst-statut" class="fg-sel">
+            <option>À traiter</option><option>En cours</option>
+            <option>Résolu</option><option>Annulé</option><option>Clôturé</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fg-lbl">Responsable</label>
+          <select id="sst-responsable" class="fg-sel">
+            <option value="">— Sélectionner —</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fg-lbl">Date prévue</label>
+          <input id="sst-date-prevue" class="fg-inp" type="date">
+        </div>
+        <div class="fg full">
+          <label class="fg-lbl">Description</label>
+          <textarea id="sst-description" class="fg-ta" rows="4"
+            placeholder="Description détaillée…"></textarea>
+        </div>
       </div>
     </div>
-    <div class="fg"><label>Responsable</label>
-      <input type="text" id="modal-sst-resp" placeholder="Nom…" style="width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:9px 12px;font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;">
-    </div>
-    <div class="m-acts">
-      <button class="btn-cx" onclick="document.getElementById('modal-sst').classList.remove('open')">Annuler</button>
-      <button class="btn-ok" id="modal-sst-submit" onclick="submitProb('modal-sst','SST')">Créer</button>
+    <div class="modal-ft-p">
+      <button class="btn-can" onclick="closeSstModal()">Annuler</button>
+      <button class="btn-sub" id="sst-submit-btn" onclick="submitSstProb()">Créer</button>
     </div>
   </div>
 </div>
