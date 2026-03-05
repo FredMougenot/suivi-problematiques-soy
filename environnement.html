@@ -106,10 +106,14 @@
     </div>
   </div>
 
-  <div style="display:flex;justify-content:center;padding:12px 0 4px;">
+  <div style="display:flex;justify-content:center;align-items:center;gap:12px;padding:12px 0 4px;">
     <button id="btn-save-all-env" class="btn-save-all" onclick="saveAll()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
       Sauvegarder tout
+    </button>
+    <button onclick="openNcEnvModal()" style="display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--ruby);color:var(--ruby);font-size:.86rem;font-weight:700;cursor:pointer;transition:all .15s;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Soumettre les non-conformités
     </button>
   </div>
 </div>
@@ -124,6 +128,31 @@
     <div class="m-acts">
       <button class="btn-cx" onclick="closeAddVerif()">Annuler</button>
       <button class="btn-ok" onclick="confirmAddVerif()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL NON-CONFORMITÉS ENVIRONNEMENT -->
+<div class="overlay" id="modal-nc-env" onclick="if(event.target===this)closeNcEnvModal()">
+  <div class="modal">
+    <div class="modal-title">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ruby)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Soumettre les non-conformités
+    </div>
+    <div class="fg">
+      <label>Description <span style="color:var(--ruby)">*</span></label>
+      <textarea id="nc-env-desc" rows="4" placeholder="Décrivez la non-conformité…" style="width:100%;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:10px 13px;color:var(--text-primary);font-family:inherit;font-size:.84rem;resize:vertical;outline:none;"></textarea>
+    </div>
+    <div class="fg" style="margin-top:12px;">
+      <label>Priorité</label>
+      <select id="nc-env-prio" style="width:100%;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:10px 13px;color:var(--text-primary);font-family:inherit;font-size:.84rem;outline:none;">
+        <option>Basse</option><option selected>Moyenne</option><option>Haute</option><option>Critique</option>
+      </select>
+    </div>
+    <div class="m-acts" style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--text-faint);">
+      <button class="btn-can" onclick="closeNcEnvModal()">Annuler</button>
+      <button class="btn-ok" onclick="submitNcEnv()" style="padding:9px 24px;border-radius:var(--r-md);font-size:.82rem;font-weight:700;background:var(--ruby);color:#fff;border:none;cursor:pointer;">Soumettre</button>
     </div>
   </div>
 </div>
@@ -367,6 +396,34 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 
+
+function openNcEnvModal(){
+  document.getElementById('nc-env-desc').value='';
+  document.getElementById('nc-env-prio').value='Moyenne';
+  document.getElementById('modal-nc-env').classList.add('open');
+}
+function closeNcEnvModal(){
+  document.getElementById('modal-nc-env').classList.remove('open');
+}
+async function submitNcEnv(){
+  const desc = document.getElementById('nc-env-desc').value.trim();
+  if(!desc){ toast('Veuillez entrer une description.','error'); return; }
+  const prio = document.getElementById('nc-env-prio').value;
+  const {createClient} = supabase;
+  const sbNc = createClient(SB_URL || SUPABASE_URL || '', SB_KEY || SUPABASE_KEY || '');
+  const {error} = await sbNc.from('problematiques').insert({
+    intitule: 'NC Environnement — '+desc.substring(0,60),
+    pilier: 'Environnement',
+    statut: 'À traiter',
+    priorite: prio,
+    description: desc,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
+  if(error){ toast('Erreur: '+error.message,'error'); return; }
+  closeNcEnvModal();
+  toast('Non-conformité soumise.','success');
+}
 </script>
 </body>
 </html>
