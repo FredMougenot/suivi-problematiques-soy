@@ -152,6 +152,7 @@
             <th>#</th>
             <th>Item</th>
             <th>Quantité</th>
+            <th>Poids (kg)</th>
             <th>Coût ($)</th>
             <th class="th-c">Étape 1<br><small style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-muted)">Retenu</small></th>
             <th class="th-c">Étape 2<br><small style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-muted)">Destruction</small></th>
@@ -170,7 +171,7 @@
     </div>
 
 <div style="display:flex;justify-content:center;padding:12px 0 4px;">
-  <button style="display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--ruby);color:var(--ruby);font-size:.86rem;font-weight:700;cursor:pointer;transition:all .15s;">
+  <button onclick="submitNcBris()" style="display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--ruby);color:var(--ruby);font-size:.86rem;font-weight:700;cursor:pointer;transition:all .15s;">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
     Soumettre les non-conformités
   </button>
@@ -195,11 +196,6 @@
       <button class="btn-ok" onclick="confirmAdd()">Ajouter</button>
     </div>
   </div>
-</div>
-
-<div class="toasts" id="toasts"></div>
-
-<script>
 
 
 function localToday(){
@@ -262,6 +258,7 @@ function render(){
       <td class="row-num">${i+1}</td>
       <td><input class="ii ii-wide" value="${esc(r.item||'')}" placeholder="Item…" oninput="fchg(${r.id},'item',this.value)"></td>
       <td><input class="ii ii-num" type="number" min="0" step="1" value="${r.quantite||''}" placeholder="0" oninput="fchg(${r.id},'quantite',this.value)"></td>
+      <td><input class="ii ii-cost" type="number" min="0" step="0.01" value="${r.poids||''}" placeholder="0.00" oninput="fchg(${r.id},'poids',this.value)"></td>
       <td><input class="ii ii-cost" type="number" min="0" step="0.01" value="${r.cout||''}" placeholder="0.00" oninput="fchg(${r.id},'cout',this.value);updateTotal()"></td>
       <td class="step-cell">
         <input type="checkbox" class="step-chk" ${r.etape1?'checked':''} onchange="fchg(${r.id},'etape1',this.checked)">
@@ -321,6 +318,7 @@ async function saveRow(id){
     date_jour:         curDate,
     item:              r.item||'',
     quantite:          parseFloat(r.quantite)||null,
+    poids:             parseFloat(r.poids)||null,
     cout:              parseFloat(r.cout)||null,
     etape1:            !!r.etape1,
     etape2:            !!r.etape2,
@@ -382,6 +380,39 @@ async function confirmAdd(){
   closeModal(); render();
   const tr = document.getElementById('brow-'+data.id);
   if(tr) tr.scrollIntoView({behavior:'smooth',block:'center'});
+  toast('Bris ajouté ✓','success');
+}
+
+async function submitNcBris(){
+  const list = Object.values(rows);
+  if(list.length === 0){
+    toast('Aucun bris à soumettre.','error');
+    return;
+  }
+  const lignes = list.map(r => {
+    const item  = r.item     || '—';
+    const qte   = r.quantite != null ? r.quantite       : '—';
+    const poids = r.poids    != null ? r.poids + ' kg'  : '—';
+    const cout  = r.cout     != null ? r.cout  + ' $'   : '—';
+    return `• ${item} | Qté: ${qte} | Poids: ${poids} | Coût: ${cout}`;
+  });
+  const desc = `Date: ${curDate}\n` + lignes.join('\n');
+
+  const {error} = await sb.from('problematiques').insert([{
+    intitule:    'Perte/Bris',
+    pilier:      'Couts',
+    priorite:    'Basse',
+    statut:      'À traiter',
+    description: desc,
+    created_at:  new Date().toISOString(),
+    updated_at:  new Date().toISOString(),
+  }]);
+
+  if(error){ toast('Erreur: '+error.message,'error'); return; }
+  toast('Non-conformité créée dans Problématiques ✓','success');
+}
+
+lock:'center'});
   toast('Bris ajouté ✓','success');
 }
 
