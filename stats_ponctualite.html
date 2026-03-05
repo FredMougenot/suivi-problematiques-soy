@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ponctualité Camions — SOY</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+:root {
+  --bg-void:#06070B; --bg-deep:#0B0D13; --bg-base:#0F1118;
+  --bg-raised:#15181F; --bg-float:#1A1E2A; --bg-hover:#1F2436;
+  --copper:#C8843A; --copper-light:#E0A870; --copper-pale:#EDD4A8;
+  --copper-glow:rgba(200,132,58,.22); --copper-dim:rgba(200,132,58,.10);
+  --text-primary:#F0EAE0; --text-secondary:#BEC5D6;
+  --text-muted:#7A82A0; --text-faint:#2C3350;
+  --emerald:#2DD4A0; --ruby:#E05555; --amber:#E8A43A; --sapphire:#4A9EE8;
+  --r-sm:4px; --r-md:10px; --r-lg:16px; --r-xl:24px;
+  --t-fast:.15s; --ease:cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-primary);min-height:100vh;}
+
+/* ── TOPBAR ── */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(6,7,11,.93);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--text-faint);padding:0 20px;height:52px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.tb-back{display:inline-flex;align-items:center;gap:5px;color:var(--text-muted);
+  text-decoration:none;font-size:.79rem;font-weight:500;padding:5px 10px;
+  border-radius:var(--r-sm);transition:all var(--t-fast);}
+.tb-back:hover{color:var(--text-primary);background:var(--bg-raised);}
+.tb-brand{display:flex;align-items:center;gap:10px;}
+.tb-icon{width:28px;height:28px;border-radius:7px;
+  background:linear-gradient(135deg,var(--copper),var(--copper-light));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Playfair Display',serif;font-style:italic;color:#0F1118;font-size:.88rem;font-weight:700;}
+.tb-title{font-size:.88rem;font-weight:700;letter-spacing:.03em;}
+.tb-sub{font-size:.66rem;color:var(--text-muted);}
+
+/* ── CONTROLS ── */
+.controls{background:var(--bg-deep);border-bottom:1px solid var(--text-faint);
+  padding:12px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.period-tabs{display:flex;background:var(--bg-raised);border:1px solid var(--text-faint);
+  border-radius:var(--r-md);padding:3px;gap:3px;}
+.ptab{padding:6px 18px;border-radius:8px;font-size:.79rem;font-weight:600;
+  cursor:pointer;border:none;background:transparent;color:var(--text-muted);transition:all var(--t-fast);}
+.ptab.active{background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;}
+.nav-btn{width:30px;height:30px;border-radius:var(--r-sm);background:var(--bg-raised);
+  border:1px solid var(--text-faint);color:var(--text-muted);cursor:pointer;
+  font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all var(--t-fast);}
+.nav-btn:hover{border-color:var(--copper);color:var(--copper);}
+.period-lbl{font-family:'DM Mono',monospace;font-size:.82rem;font-weight:500;
+  color:var(--text-primary);min-width:190px;text-align:center;}
+.seuil-row{display:flex;align-items:center;gap:7px;margin-left:auto;font-size:.76rem;color:var(--text-muted);}
+.seuil-inp{width:52px;text-align:center;background:var(--bg-raised);border:1px solid var(--text-faint);
+  color:var(--text-primary);border-radius:var(--r-sm);padding:5px 6px;
+  font-size:.78rem;font-family:'DM Mono',monospace;outline:none;}
+.seuil-inp:focus{border-color:var(--copper);}
+.btn-refresh{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
+  border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);
+  color:var(--text-secondary);font-size:.78rem;font-weight:600;cursor:pointer;transition:all var(--t-fast);}
+.btn-refresh:hover{border-color:var(--copper);color:var(--copper);}
+
+/* ── MAIN ── */
+.dash{padding:20px;max-width:1400px;margin:0 auto;}
+.spinner-wrap{display:flex;align-items:center;justify-content:center;min-height:360px;gap:10px;color:var(--text-muted);}
+.spin{width:22px;height:22px;border:2px solid var(--text-faint);border-top-color:var(--copper);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── KPI ROW ── */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.kpi{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-xl);
+  padding:18px 20px;position:relative;overflow:hidden;transition:border-color var(--t-fast);}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--r-xl) var(--r-xl) 0 0;}
+.kpi.green::after{background:var(--emerald);}
+.kpi.yellow::after{background:var(--amber);}
+.kpi.red::after{background:var(--ruby);}
+.kpi.copper::after{background:linear-gradient(90deg,var(--copper),var(--copper-light));}
+.kpi-eyebrow{font-size:.58rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);margin-bottom:6px;}
+.kpi-val{font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:700;line-height:1;letter-spacing:-.02em;margin-bottom:8px;}
+.kpi-val.green{color:var(--emerald);}
+.kpi-val.yellow{color:var(--amber);}
+.kpi-val.red{color:var(--ruby);}
+.kpi-val.copper{color:var(--copper-light);}
+.kpi-sub{font-size:.72rem;color:var(--text-muted);}
+.kpi-trend{display:inline-flex;align-items:center;gap:3px;font-size:.72rem;font-weight:700;margin-top:4px;}
+.kpi-bar{height:3px;background:var(--bg-float);border-radius:2px;margin-top:10px;overflow:hidden;}
+.kpi-bar-fill{height:100%;border-radius:2px;transition:width .8s var(--ease);}
+
+/* ── PANELS ── */
+.panels-row{display:grid;gap:16px;margin-bottom:20px;}
+.panels-2{grid-template-columns:1fr 1fr;}
+.panels-3{grid-template-columns:1fr 1fr 1fr;}
+.panel{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-xl);padding:20px 22px;}
+.panel-full{grid-column:1/-1;}
+.ph{margin-bottom:16px;}
+.ph-eye{font-size:.57rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);margin-bottom:3px;}
+.ph-title{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;color:var(--text-primary);}
+.ph-sub{font-size:.7rem;color:var(--text-muted);margin-top:2px;}
+.chart-box{position:relative;height:200px;}
+
+/* ── HEATMAP ── */
+.hm-scroll{overflow-x:auto;padding-bottom:4px;}
+.hm-grid{display:grid;gap:3px;}
+.hm-th{display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;
+  color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;height:26px;}
+.hm-h-lbl{display:flex;align-items:center;justify-content:flex-end;padding-right:7px;
+  font-size:.6rem;font-weight:600;color:var(--text-muted);font-family:'DM Mono',monospace;height:32px;}
+.hm-cell{height:32px;border-radius:5px;display:flex;align-items:center;justify-content:center;
+  font-size:.65rem;font-weight:700;font-family:'DM Mono',monospace;cursor:default;
+  transition:transform .1s,filter .1s;position:relative;}
+.hm-cell:hover{transform:scale(1.1);filter:brightness(1.25);z-index:5;}
+.hm-empty{height:32px;background:rgba(255,255,255,.025);border-radius:5px;}
+.hm-legend{display:flex;align-items:center;gap:8px;margin-top:10px;justify-content:flex-end;font-size:.66rem;color:var(--text-muted);}
+.hm-grad{width:100px;height:7px;border-radius:4px;background:linear-gradient(90deg,#E05555,#E8A43A,#2DD4A0);}
+
+/* ── DEST BARS ── */
+.dest-list{display:flex;flex-direction:column;gap:9px;}
+.dest-row{display:flex;align-items:center;gap:9px;}
+.dest-name{width:140px;flex-shrink:0;font-size:.74rem;font-weight:600;color:var(--text-secondary);text-align:right;}
+.dest-track{flex:1;height:22px;background:var(--bg-float);border-radius:5px;overflow:hidden;}
+.dest-fill{height:100%;border-radius:5px;display:flex;align-items:center;padding-left:8px;
+  font-size:.66rem;font-weight:700;color:#0F1118;transition:width .7s var(--ease);min-width:2px;}
+.dest-nums{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--text-muted);width:58px;flex-shrink:0;}
+
+/* ── WORST SLOTS ── */
+.worst-list{display:flex;flex-direction:column;gap:7px;}
+.worst-item{display:flex;align-items:center;gap:10px;padding:9px 12px;
+  background:var(--bg-float);border-radius:var(--r-md);border-left:3px solid;}
+.worst-item.bad{border-color:var(--ruby);}
+.worst-item.warn{border-color:var(--amber);}
+.worst-rank{font-family:'Playfair Display',serif;font-style:italic;font-size:1.3rem;
+  color:var(--text-faint);width:24px;flex-shrink:0;}
+.worst-info{flex:1;}
+.worst-h{font-size:.82rem;font-weight:700;color:var(--text-primary);}
+.worst-detail{font-size:.68rem;color:var(--text-muted);margin-top:2px;}
+.worst-avg{font-family:'DM Mono',monospace;font-size:.95rem;font-weight:700;}
+
+/* ── TIMELINE ── */
+.tl-list{display:flex;flex-direction:column;gap:5px;}
+.tl-item{display:flex;align-items:center;gap:9px;padding:7px 11px;
+  background:var(--bg-float);border-radius:var(--r-md);transition:background var(--t-fast);}
+.tl-item:hover{background:var(--bg-hover);}
+.tl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.tl-dot.ok{background:var(--emerald);}
+.tl-dot.warn{background:var(--amber);}
+.tl-dot.bad{background:var(--ruby);}
+.tl-dot.wait{background:var(--text-faint);}
+.tl-h{font-family:'DM Mono',monospace;font-size:.78rem;font-weight:500;color:var(--copper);width:42px;flex-shrink:0;}
+.tl-name{flex:1;font-size:.76rem;color:var(--text-secondary);}
+.tl-dest{font-size:.66rem;color:var(--text-faint);margin-left:6px;}
+.tl-retard{font-family:'DM Mono',monospace;font-size:.72rem;font-weight:700;text-align:right;}
+.tl-retard.ok{color:var(--emerald);}
+.tl-retard.warn{color:var(--amber);}
+.tl-retard.bad{color:var(--ruby);}
+.tl-retard.wait{color:var(--text-faint);font-weight:400;}
+
+/* ── VIDE ── */
+.empty{text-align:center;padding:32px 16px;color:var(--text-muted);font-size:.82rem;}
+.empty-ico{font-size:2rem;opacity:.25;margin-bottom:8px;}
+
+/* ── TOOLTIP ── */
+#tip{position:fixed;z-index:999;pointer-events:none;background:var(--bg-float);
+  border:1px solid var(--text-faint);border-radius:var(--r-md);padding:7px 11px;
+  font-size:.73rem;color:var(--text-secondary);box-shadow:0 8px 24px rgba(0,0,0,.5);
+  display:none;white-space:nowrap;font-family:'DM Mono',monospace;}
+
+/* ── ANIM ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.anim{animation:fadeUp .35s var(--ease) both;}
+.d1{animation-delay:.04s;} .d2{animation-delay:.09s;} .d3{animation-delay:.14s;} .d4{animation-delay:.19s;}
+
+@media(max-width:860px){
+  .kpi-row{grid-template-columns:1fr 1fr;}
+  .panels-2,.panels-3{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div id="tip"></div>
+
+<header class="topbar">
+  <div class="tb-brand">
+    <a href="planning_camions.html" class="tb-back">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Planning
+    </a>
+    <div class="tb-icon">S</div>
+    <div>
+      <div class="tb-title">Radar de Ponctualité</div>
+      <div class="tb-sub">Analyse des arrivées camions</div>
+    </div>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="period-tabs">
+    <button class="ptab active" id="ptab-day"   onclick="setPeriod('day')">Journée</button>
+    <button class="ptab"        id="ptab-week"  onclick="setPeriod('week')">Semaine</button>
+    <button class="ptab"        id="ptab-month" onclick="setPeriod('month')">Mois</button>
+  </div>
+  <button class="nav-btn" onclick="navigate(-1)">&#8592;</button>
+  <div class="period-lbl" id="period-lbl">—</div>
+  <button class="nav-btn" onclick="navigate(1)">&#8594;</button>
+  <div class="seuil-row">
+    <span>Tolérance</span>
+    <input class="seuil-inp" id="seuil" type="number" value="30" min="0" max="180">
+    <span>min</span>
+    <button class="btn-refresh" onclick="loadAll()">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Actualiser
+    </button>
+  </div>
+</div>
+
+<div class="dash">
+  <div class="spinner-wrap" id="spinner"><div class="spin"></div> Chargement…</div>
+  <div id="content" style="display:none"></div>
+</div>
+
+<script>
+const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+const { createClient } = supabase;
+const sb = createClient(SB_URL, SB_KEY);
+
+const SLOTS = [
+  {idx:0,h:'06:00',lbl:'06h00 · A'},{idx:1,h:'06:00',lbl:'06h00 · B'},
+  {idx:2,h:'07:30',lbl:'07h30'},{idx:3,h:'09:00',lbl:'09h00'},
+  {idx:4,h:'11:30',lbl:'11h30'},{idx:5,h:'14:00',lbl:'14h00'},
+  {idx:6,h:'15:30',lbl:'15h30'},{idx:7,h:'17:00',lbl:'17h00'},
+  {idx:8,h:'18:00',lbl:'18h00'},{idx:9,h:'19:00',lbl:'19h00'},
+];
+const HOURS = ['06:00','07:30','09:00','11:30','14:00','15:30','17:00','18:00','19:00'];
+
+let period = 'day';
+let curDate = todayStr();
+let chartTrend = null, chartDist = null;
+
+function todayStr(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function getSeuil(){ return parseInt(document.getElementById('seuil').value)||30; }
+
+// ── NAVIGATION ───────────────────────────────────────────────────
+function setPeriod(p){
+  period=p;
+  ['day','week','month'].forEach(x=>document.getElementById('ptab-'+x).classList.toggle('active',x===p));
+  loadAll();
+}
+function navigate(dir){
+  const d=new Date(curDate+'T00:00:00');
+  if(period==='day') d.setDate(d.getDate()+dir);
+  else if(period==='week') d.setDate(d.getDate()+dir*7);
+  else d.setMonth(d.getMonth()+dir);
+  curDate=d.toISOString().slice(0,10);
+  loadAll();
+}
+
+function getRange(){
+  const d=new Date(curDate+'T00:00:00');
+  if(period==='day') return {start:curDate,end:curDate};
+  if(period==='week'){
+    const dow=d.getDay(); const mon=new Date(d); mon.setDate(d.getDate()+(dow===0?-6:1-dow));
+    const sun=new Date(mon); sun.setDate(mon.getDate()+6);
+    return {start:mon.toISOString().slice(0,10),end:sun.toISOString().slice(0,10)};
+  }
+  const ms=new Date(d.getFullYear(),d.getMonth(),1);
+  const me=new Date(d.getFullYear(),d.getMonth()+1,0);
+  return {start:ms.toISOString().slice(0,10),end:me.toISOString().slice(0,10)};
+}
+
+function periodLabel(){
+  const {start,end}=getRange();
+  const fmt=s=>new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{day:'numeric',month:'long',year:'numeric'});
+  const fmts=s=>new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{day:'2-digit',month:'short'});
+  if(period==='day') return fmt(start);
+  if(period==='week') return fmts(start)+' – '+fmts(end);
+  return new Date(start+'T00:00:00').toLocaleDateString('fr-CA',{month:'long',year:'numeric'});
+}
+
+// ── FETCH ────────────────────────────────────────────────────────
+async function fetch(start,end){
+  try{
+    const {data,error}=await sb.from('planning_camions').select('*').gte('date_jour',start).lte('date_jour',end);
+    return data||[];
+  }catch(e){return [];}
+}
+
+// ── MATHS ────────────────────────────────────────────────────────
+function diff(planif,reel){
+  if(!planif||!reel) return null;
+  const [ph,pm]=planif.split(':').map(Number);
+  const [rh,rm]=reel.split(':').map(Number);
+  return (rh*60+rm)-(ph*60+pm);
+}
+
+function cls(d,s){ if(d===null)return'wait'; if(d<=s)return'ok'; if(d<=s*2)return'warn'; return'bad'; }
+
+function analyze(rows,seuil){
+  let onTime=0,late=0,total=0,annule=0; const retards=[];
+  rows.forEach(r=>{
+    if((r.statut_ligne||'Actif')==='Annulé'){annule++;return;}
+    total++;
+    const d=diff(r.heure_planif,r.heure_reelle);
+    if(d===null) return;
+    if(d<=seuil) onTime++; else{late++;retards.push(d);}
+  });
+  const arrived=onTime+late;
+  const taux=arrived>0?Math.round(onTime/arrived*100):null;
+  const avgRet=retards.length>0?Math.round(retards.reduce((a,b)=>a+b,0)/retards.length):0;
+  const maxRet=retards.length>0?Math.max(...retards):0;
+  return {onTime,late,total,arrived,annule,taux,avgRet,maxRet,retards};
+}
+
+function tcls(t){ if(t===null)return'copper'; if(t>=85)return'green'; if(t>=65)return'yellow'; return'red'; }
+
+// ── MAIN LOAD ────────────────────────────────────────────────────
+async function loadAll(){
+  document.getElementById('spinner').style.display='flex';
+  document.getElementById('content').style.display='none';
+  document.getElementById('period-lbl').textContent=periodLabel();
+  if(chartTrend){chartTrend.destroy();chartTrend=null;}
+  if(chartDist){chartDist.destroy();chartDist=null;}
+
+  const {start,end}=getRange();
+  const data=await fetch(start,end);
+  const seuil=getSeuil();
+
+  document.getElementById('spinner').style.display='none';
+  document.getElementById('content').style.display='block';
+  render(data,seuil);
+}
+
+function render(data,seuil){
+  const A=analyze(data,seuil);
+  const c=document.getElementById('content');
+  c.innerHTML='';
+  c.insertAdjacentHTML('beforeend',buildKPIs(A,seuil));
+  if(period==='day'){
+    c.insertAdjacentHTML('beforeend',buildDayPanels(data,seuil));
+  } else {
+    c.insertAdjacentHTML('beforeend',buildHeatmap(data,seuil));
+    c.insertAdjacentHTML('beforeend',buildTrendRow(data,seuil));
+  }
+  c.insertAdjacentHTML('beforeend',buildBottomRow(data,seuil));
+  setTimeout(()=>{
+    drawDist(A.retards,seuil);
+    if(period!=='day') drawTrend(data,seuil);
+    setupTip();
+  },40);
+}
+
+// ── KPIs ─────────────────────────────────────────────────────────
+function buildKPIs(A,seuil){
+  const tc=tcls(A.taux);
+  const barCol=tc==='green'?'var(--emerald)':tc==='yellow'?'var(--amber)':tc==='red'?'var(--ruby)':'var(--copper-light)';
+  const waitN=A.total-A.arrived;
+  return `<div class="kpi-row anim d1">
+    <div class="kpi ${tc}">
+      <div class="kpi-eyebrow">Ponctualité</div>
+      <div class="kpi-val ${tc}">${A.taux!==null?A.taux+'%':'—'}</div>
+      <div class="kpi-sub">${A.onTime} à l'heure · ${A.late} en retard · tolérance ${seuil} min</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${A.taux||0}%;background:${barCol}"></div></div>
+    </div>
+    <div class="kpi ${A.avgRet>seuil?'red':A.avgRet>seuil/2?'yellow':'green'}">
+      <div class="kpi-eyebrow">Retard moyen</div>
+      <div class="kpi-val ${A.avgRet>seuil?'red':A.avgRet>seuil/2?'yellow':'green'}">${A.avgRet}<span style="font-size:1.1rem;margin-left:3px">min</span></div>
+      <div class="kpi-sub">parmi les ${A.late} camion${A.late>1?'s':''} en retard · max ${A.maxRet} min</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${Math.min(100,A.avgRet/120*100)}%;background:${A.avgRet>seuil?'var(--ruby)':'var(--amber)'}"></div></div>
+    </div>
+    <div class="kpi copper">
+      <div class="kpi-eyebrow">Arrivées</div>
+      <div class="kpi-val copper">${A.arrived}<span style="font-size:1.1rem;margin-left:3px">/ ${A.total}</span></div>
+      <div class="kpi-sub">${A.total>0?Math.round(A.arrived/A.total*100):0}% couverture · ${waitN} en attente</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${A.total>0?Math.round(A.arrived/A.total*100):0}%;background:linear-gradient(90deg,var(--copper),var(--copper-light))"></div></div>
+    </div>
+    <div class="kpi ${A.annule>3?'red':A.annule>1?'yellow':'copper'}">
+      <div class="kpi-eyebrow">Annulations</div>
+      <div class="kpi-val ${A.annule>3?'red':A.annule>1?'yellow':'copper'}">${A.annule}</div>
+      <div class="kpi-sub">camion${A.annule>1?'s':''} annulé${A.annule>1?'s':''} sur ${A.total+A.annule} planifiés</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${A.total+A.annule>0?Math.round(A.annule/(A.total+A.annule)*100):0}%;background:var(--ruby)"></div></div>
+    </div>
+  </div>`;
+}
+
+// ── VUE JOURNÉE ───────────────────────────────────────────────────
+function buildDayPanels(data,seuil){
+  // Timeline
+  const bySlot={}; data.forEach(r=>{bySlot[r.slot_index]=r;});
+  const extras=Object.keys(bySlot).map(Number).filter(i=>i>=10).sort((a,b)=>a-b);
+  const all=[...SLOTS.map(s=>({...s,extra:false})),...extras.map(i=>({idx:i,h:bySlot[i]?.heure_planif||'—',lbl:'Extra',extra:true}))];
+
+  let tlHtml='';
+  all.forEach(s=>{
+    const r=bySlot[s.idx]||{};
+    if((r.statut_ligne||'Actif')==='Annulé'){
+      tlHtml+=`<div class="tl-item" style="opacity:.35">
+        <div class="tl-dot" style="background:var(--text-faint)"></div>
+        <div class="tl-h">${s.h}</div>
+        <div class="tl-name">${s.lbl} <span style="font-size:.65rem;color:var(--text-faint)">ANNULÉ</span></div>
+        <div class="tl-retard wait">—</div>
+      </div>`; return;
+    }
+    const d=diff(r.heure_planif||s.h,r.heure_reelle);
+    const c=cls(d,seuil);
+    const lbl=d===null?'En attente':d<=0?'✓ À l\'heure':'+'+d+' min';
+    const dest=r.destination?`<span class="tl-dest">${r.destination}</span>`:'';
+    tlHtml+=`<div class="tl-item">
+      <div class="tl-dot ${c}"></div>
+      <div class="tl-h">${r.heure_planif||s.h}</div>
+      <div class="tl-name">${s.lbl}${dest}</div>
+      <div class="tl-retard ${c}">${lbl}</div>
+    </div>`;
+  });
+  if(!tlHtml) tlHtml=`<div class="empty"><div class="empty-ico">📭</div>Aucune donnée</div>`;
+
+  return `<div class="panels-row panels-2 anim d2">
+    <div class="panel">
+      <div class="ph"><div class="ph-eye">Détail journée</div>
+        <div class="ph-title">Timeline des arrivées</div></div>
+      <div class="tl-list">${tlHtml}</div>
+    </div>
+    <div class="panel">
+      <div class="ph"><div class="ph-eye">Distribution</div>
+        <div class="ph-title">Amplitude des retards</div>
+        <div class="ph-sub">Nombre de camions par tranche de retard</div></div>
+      <div class="chart-box"><canvas id="chart-dist"></canvas></div>
+    </div>
+  </div>`;
+}
+
+// ── HEATMAP ───────────────────────────────────────────────────────
+function buildHeatmap(data,seuil){
+  const {start,end}=getRange();
+  const days=[]; let d=new Date(start+'T00:00:00'),ed=new Date(end+'T00:00:00');
+  while(d<=ed){days.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1);}
+
+  // matrix[h][date] = {n, onTime}
+  const mat={}; HOURS.forEach(h=>{mat[h]={};days.forEach(dt=>{mat[h][dt]=null;});});
+  data.forEach(r=>{
+    if((r.statut_ligne||'Actif')==='Annulé') return;
+    const h=r.heure_planif; if(!HOURS.includes(h)) return;
+    if(!mat[h][r.date_jour]) mat[h][r.date_jour]={n:0,onTime:0};
+    const d=diff(r.heure_planif,r.heure_reelle); if(d===null) return;
+    mat[h][r.date_jour].n++;
+    if(d<=seuil) mat[h][r.date_jour].onTime++;
+  });
+
+  function hmBg(cell){
+    if(!cell||cell.n===0) return 'rgba(255,255,255,.02)';
+    const t=Math.round(cell.onTime/cell.n*100);
+    if(t>=90)return'rgba(45,212,160,.38)'; if(t>=75)return'rgba(45,212,160,.2)';
+    if(t>=60)return'rgba(232,164,58,.28)'; if(t>=40)return'rgba(232,164,58,.45)';
+    return'rgba(224,85,85,.5)';
+  }
+  function hmTxt(cell){ if(!cell||cell.n===0)return''; return Math.round(cell.onTime/cell.n*100)+'%'; }
+  function hmTxtCol(cell){ if(!cell||cell.n===0)return'transparent'; return Math.round(cell.onTime/cell.n*100)>=55?'#0a0b0f':'#F0EAE0'; }
+  const fmtD=s=>new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'});
+
+  const cols=days.length+1;
+  let g=`<div class="hm-scroll"><div class="hm-grid" style="grid-template-columns:48px ${days.map(()=>'1fr').join(' ')}">`;
+  g+=`<div class="hm-th"></div>`+days.map(dt=>`<div class="hm-th">${fmtD(dt)}</div>`).join('');
+  HOURS.forEach(h=>{
+    g+=`<div class="hm-h-lbl">${h}</div>`;
+    days.forEach(dt=>{
+      const cell=mat[h][dt];
+      const tip=cell&&cell.n>0?`${h} · ${fmtD(dt)} : ${Math.round(cell.onTime/cell.n*100)}% (${cell.onTime}/${cell.n} arrivés)`:'';
+      g+=`<div class="hm-cell" style="background:${hmBg(cell)};color:${hmTxtCol(cell)}" ${tip?`data-tip="${tip}"`:''}>${hmTxt(cell)}</div>`;
+    });
+  });
+  g+=`</div><div class="hm-legend"><span>Problématique</span><div class="hm-grad"></div><span>Excellent</span></div></div>`;
+
+  return `<div class="panels-row anim d2"><div class="panel panel-full">
+    <div class="ph"><div class="ph-eye">Carte de chaleur</div>
+      <div class="ph-title">Ponctualité par créneau et par jour</div>
+      <div class="ph-sub">Identifiez d'un coup d'œil les créneaux et journées à problèmes</div></div>
+    ${g}
+  </div></div>`;
+}
+
+// ── TENDANCE + DIST ROW ───────────────────────────────────────────
+function buildTrendRow(data,seuil){
+  return `<div class="panels-row panels-2 anim d3">
+    <div class="panel">
+      <div class="ph"><div class="ph-eye">Évolution</div>
+        <div class="ph-title">Taux de ponctualité par jour</div></div>
+      <div class="chart-box"><canvas id="chart-trend"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="ph"><div class="ph-eye">Distribution</div>
+        <div class="ph-title">Amplitude des retards</div>
+        <div class="ph-sub">Nombre de camions par tranche</div></div>
+      <div class="chart-box"><canvas id="chart-dist"></canvas></div>
+    </div>
+  </div>`;
+}
+
+// ── BOTTOM ROW ────────────────────────────────────────────────────
+function buildBottomRow(data,seuil){
+  // Destinations
+  const dm={}; data.forEach(r=>{
+    if((r.statut_ligne||'Actif')==='Annulé') return;
+    const k=r.destination||'Non défini'; if(!dm[k]) dm[k]={on:0,late:0,n:0};
+    const d=diff(r.heure_planif,r.heure_reelle); if(d===null) return;
+    dm[k].n++; if(d<=seuil) dm[k].on++; else dm[k].late++;
+  });
+  const dests=Object.entries(dm).filter(([,v])=>v.n>0).sort((a,b)=>a[1].on/a[1].n-b[1].on/b[1].n);
+
+  let destHtml='';
+  if(!dests.length){destHtml=`<div class="empty"><div class="empty-ico">📭</div>Aucune donnée</div>`;}
+  else{
+    destHtml=`<div class="dest-list">`;
+    dests.forEach(([name,v])=>{
+      const t=Math.round(v.on/v.n*100);
+      const col=t>=85?'var(--emerald)':t>=65?'var(--amber)':'var(--ruby)';
+      destHtml+=`<div class="dest-row">
+        <div class="dest-name">${name}</div>
+        <div class="dest-track"><div class="dest-fill" style="width:${t}%;background:${col}">${t>18?t+'%':''}</div></div>
+        <div class="dest-nums">${v.on}/${v.n}</div>
+      </div>`;
+    });
+    destHtml+=`</div>`;
+  }
+
+  // Pires créneaux
+  const sm={}; data.forEach(r=>{
+    if((r.statut_ligne||'Actif')==='Annulé') return;
+    const d=diff(r.heure_planif,r.heure_reelle); if(d===null||d<=seuil) return;
+    const k=r.heure_planif||'?'; if(!sm[k]) sm[k]=[];
+    sm[k].push(d);
+  });
+  const worst=Object.entries(sm).map(([h,arr])=>({
+    h,n:arr.length,avg:Math.round(arr.reduce((a,b)=>a+b,0)/arr.length),
+    max:Math.max(...arr)
+  })).sort((a,b)=>b.avg-a.avg).slice(0,5);
+
+  let worstHtml='';
+  if(!worst.length){worstHtml=`<div class="empty"><div class="empty-ico">✅</div>Aucun créneau problématique</div>`;}
+  else{
+    worstHtml=`<div class="worst-list">`;
+    worst.forEach((s,i)=>{
+      const c=s.avg>seuil*1.5?'bad':'warn';
+      const col=c==='bad'?'var(--ruby)':'var(--amber)';
+      worstHtml+=`<div class="worst-item ${c}">
+        <div class="worst-rank">${i+1}</div>
+        <div class="worst-info">
+          <div class="worst-h">Créneau ${s.h}</div>
+          <div class="worst-detail">${s.n} retard${s.n>1?'s':''} · max ${s.max} min</div>
+        </div>
+        <div class="worst-avg" style="color:${col}">+${s.avg} min</div>
+      </div>`;
+    });
+    worstHtml+=`</div>`;
+  }
+
+  return `<div class="panels-row panels-2 anim d4">
+    <div class="panel">
+      <div class="ph"><div class="ph-eye">Par destination</div>
+        <div class="ph-title">Ponctualité selon la destination</div>
+        <div class="ph-sub">% des camions arrivés dans la tolérance impartie</div></div>
+      ${destHtml}
+    </div>
+    <div class="panel">
+      <div class="ph"><div class="ph-eye">Points chauds</div>
+        <div class="ph-title">Créneaux les plus problématiques</div>
+        <div class="ph-sub">Classés par retard moyen décroissant</div></div>
+      ${worstHtml}
+    </div>
+  </div>`;
+}
+
+// ── CHART DIST ────────────────────────────────────────────────────
+function drawDist(retards,seuil){
+  const el=document.getElementById('chart-dist'); if(!el) return;
+  if(chartDist){chartDist.destroy();chartDist=null;}
+  if(!retards.length){
+    el.parentElement.innerHTML=`<div class="empty" style="padding:50px 0"><div class="empty-ico">✅</div>Aucun retard</div>`;
+    return;
+  }
+  const mx=Math.max(...retards);
+  const bs=Math.max(15,Math.ceil(mx/8/5)*5);
+  const buckets={};
+  retards.forEach(r=>{const b=Math.floor(r/bs)*bs;const k=`${b}–${b+bs}`;buckets[k]=(buckets[k]||0)+1;});
+  const labels=Object.keys(buckets),vals=Object.values(buckets);
+  const cols=labels.map(l=>{const v=parseInt(l);return v>=seuil*2?'rgba(224,85,85,.72)':v>=seuil?'rgba(232,164,58,.72)':'rgba(45,212,160,.72)';});
+  chartDist=new Chart(el,{type:'bar',data:{labels,datasets:[{label:'Camions',data:vals,backgroundColor:cols,borderRadius:4,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y} camion${c.parsed.y>1?'s':''}`}}},
+      scales:{x:{ticks:{color:'#7A82A0',font:{size:8.5}},grid:{color:'rgba(255,255,255,.03)'}},
+              y:{beginAtZero:true,ticks:{color:'#7A82A0',font:{size:8.5},stepSize:1},grid:{color:'rgba(255,255,255,.05)'}}}}});
+}
+
+// ── CHART TREND ───────────────────────────────────────────────────
+function drawTrend(data,seuil){
+  const el=document.getElementById('chart-trend'); if(!el) return;
+  if(chartTrend){chartTrend.destroy();chartTrend=null;}
+  const {start,end}=getRange();
+  const days=[]; let d=new Date(start+'T00:00:00'),ed=new Date(end+'T00:00:00');
+  while(d<=ed){days.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1);}
+  const labels=days.map(s=>new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'}));
+  const vals=days.map(dt=>{const A=analyze(data.filter(r=>r.date_jour===dt),seuil);return A.taux;});
+  const ptCols=vals.map(v=>v===null?'rgba(0,0,0,0)':v>=85?'#2DD4A0':v>=65?'#E8A43A':'#E05555');
+  chartTrend=new Chart(el,{type:'line',
+    data:{labels,datasets:[
+      {label:'Taux %',data:vals,borderColor:'rgba(200,132,58,.85)',backgroundColor:'rgba(200,132,58,.07)',fill:true,tension:.3,
+       pointBackgroundColor:ptCols,pointRadius:5,pointBorderColor:'transparent',spanGaps:true,borderWidth:2},
+      {label:'Seuil 80%',data:days.map(()=>80),borderColor:'rgba(45,212,160,.25)',borderDash:[5,4],borderWidth:1,pointRadius:0,fill:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+(c.parsed.y!==null?c.parsed.y+'%':'—')}}},
+      scales:{x:{ticks:{color:'#7A82A0',font:{size:8.5},maxRotation:45},grid:{color:'rgba(255,255,255,.03)'}},
+              y:{min:0,max:100,ticks:{color:'#7A82A0',font:{size:8.5},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,.05)'}}}}});
+}
+
+// ── TOOLTIP ───────────────────────────────────────────────────────
+function setupTip(){
+  const tip=document.getElementById('tip');
+  document.querySelectorAll('[data-tip]').forEach(el=>{
+    el.addEventListener('mousemove',e=>{tip.textContent=el.dataset.tip;tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-32)+'px';});
+    el.addEventListener('mouseleave',()=>{tip.style.display='none';});
+  });
+}
+
+window.addEventListener('load',()=>loadAll());
+</script>
+</body>
+</html>
