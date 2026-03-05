@@ -785,43 +785,47 @@ function onEvoParamChange() {
     lblMin: document.getElementById('evo-label-min').value,
     lblMax: document.getElementById('evo-label-max').value,
   })); } catch(e) {}
-  // Redessiner sans recharger les données
-  if (window._evoData) {
-    const { dToday, dWeek, dMonth, weekDays, weekLabels, monthDays, monthLabels, seuil } = window._evoData;
-    drawEvoCharts(dToday, dWeek, dMonth, weekDays, weekLabels, monthDays, monthLabels, seuil);
-  }
+  if (window._evoData) drawEvoCharts(window._evoData);
 }
 
-function drawEvoCharts(dToday, dWeek, dMonth, weekDays, weekLabels, monthDays, monthLabels, seuil) {
+function drawEvoCharts(data) {
+  window._evoData = data;
+  const { dToday, dWeek, dMonth, weekDays, weekLabels, monthDays, monthLabels, seuil } = data;
+
   const rawMin = document.getElementById('evo-min')?.value;
   const rawMax = document.getElementById('evo-max')?.value;
-  const vMin   = rawMin !== '' && rawMin !== null ? parseFloat(rawMin) : null;
-  const vMax   = rawMax !== '' && rawMax !== null ? parseFloat(rawMax) : null;
+  const vMin   = (rawMin !== '' && rawMin != null) ? parseFloat(rawMin) : null;
+  const vMax   = (rawMax !== '' && rawMax != null) ? parseFloat(rawMax) : null;
   const lblMin = document.getElementById('evo-label-min')?.value || 'Minimum';
   const lblMax = document.getElementById('evo-label-max')?.value || 'Maximum';
   const hasLines = vMin !== null || vMax !== null;
 
-  // Calculer le taux — logique identique à fillBilan
-  function calcTaux(data) {
-    const { onTime, arrived, total } = analyzeData(data, seuil);
-    return arrived > 0 ? Math.round(onTime / arrived * 100) : (total === 0 ? null : 100);
+  // Calcul du taux — même logique que fillBilan
+  function calcTaux(subset) {
+    const { onTime, arrived, total } = analyzeData(subset, seuil);
+    // Si aucun camion arrivé et il y a des camions → null (pas encore de donnée)
+    if (arrived === 0) return null;
+    return Math.round(onTime / arrived * 100);
   }
 
-  // Journée : taux cumulatif heure par heure
-  const hours = ['06','07','08','09','10','11','12','13','14','15','16','17','18','19','20'];
+  // ── Journée : taux cumulatif heure par heure ──
+  const hours       = ['06','07','08','09','10','11','12','13','14','15','16','17','18','19','20'];
   const todayLabels = hours.map(h => h + 'h');
   const todayTaux   = hours.map(h => {
-    const subset = dToday.filter(r => r.heure_planif && r.heure_planif.slice(0,2) <= h);
+    const subset = dToday.filter(r =>
+      r.heure_planif && r.heure_reelle &&   // seulement les camions arrivés
+      r.heure_planif.slice(0,2) <= h
+    );
     return calcTaux(subset);
   });
 
-  // Semaine : taux par jour (en utilisant les dates de la semaine calculées dans refreshCharts)
+  // ── Semaine : taux par jour ──
   const weekTaux = weekDays.map(dateStr => {
     const subset = dWeek.filter(r => r.date_jour === dateStr);
     return calcTaux(subset);
   });
 
-  // Mois : taux par jour
+  // ── Mois : taux par jour ──
   const monthTaux = monthDays.map(dateStr => {
     const subset = dMonth.filter(r => r.date_jour === dateStr);
     return calcTaux(subset);
@@ -830,20 +834,22 @@ function drawEvoCharts(dToday, dWeek, dMonth, weekDays, weekLabels, monthDays, m
   const BLUE = 'rgba(99,179,237,.85)', BLUE_BG = 'rgba(99,179,237,.12)';
   const GREEN = '#2DD4A0', RED = '#E05555';
 
-  function buildDS(data) {
+  function buildDS(values) {
     const ds = [{
-      label: 'Taux (%)', data, fill: true,
+      label: 'Taux (%)', data: values, fill: true,
       backgroundColor: BLUE_BG, borderColor: BLUE,
-      borderWidth: 2, pointRadius: 3, pointBackgroundColor: BLUE,
-      tension: 0.3, spanGaps: false
+      borderWidth: 2, pointRadius: 4, pointBackgroundColor: BLUE,
+      tension: 0.3, spanGaps: true   // relier les points même s'il y a des null entre
     }];
-    if (vMin !== null) ds.push({ label: lblMin, data: data.map(() => vMin), borderColor: GREEN, borderWidth: 2, borderDash: [6,3], pointRadius: 0, fill: false, tension: 0 });
-    if (vMax !== null) ds.push({ label: lblMax, data: data.map(() => vMax), borderColor: RED,   borderWidth: 2, borderDash: [6,3], pointRadius: 0, fill: false, tension: 0 });
+    if (vMin !== null) ds.push({ label: lblMin, data: values.map(() => vMin), borderColor: GREEN, borderWidth: 2, borderDash: [6,3], pointRadius: 0, fill: false, tension: 0 });
+    if (vMax !== null) ds.push({ label: lblMax, data: values.map(() => vMax), borderColor: RED,   borderWidth: 2, borderDash: [6,3], pointRadius: 0, fill: false, tension: 0 });
     return ds;
   }
 
   const opts = {
-    responsive: false, animation: { duration: 300 },
+    responsive: true,    // laisser Chart.js gérer la taille
+    maintainAspectRatio: false,
+    animation: { duration: 400 },
     plugins: {
       legend: { display: hasLines, labels: { color: '#BEC5D6', font: { size: 10 }, boxWidth: 18 } },
       tooltip: { mode: 'index', intersect: false,
@@ -852,24 +858,26 @@ function drawEvoCharts(dToday, dWeek, dMonth, weekDays, weekLabels, monthDays, m
     },
     scales: {
       x: { ticks: { color: '#BEC5D6', font: { size: 9 }, maxRotation: 0 }, grid: { color: 'rgba(255,255,255,.04)' } },
-      y: { min: 0, max: 100, ticks: { color: '#BEC5D6', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,.06)' } }
+      y: { min: 0, max: 100, ticks: { color: '#BEC5D6', font: { size: 9 }, callback: v => v + '%' }, grid: { color: 'rgba(255,255,255,.06)' } }
     }
   };
 
-  function drawOne(id, labels, data, existing) {
-    const el = document.getElementById(id);
-    if (!el) return existing;
+  function drawOne(id, boxId, labels, values, existing) {
+    const el  = document.getElementById(id);
+    const box = document.getElementById(boxId);
+    if (!el || !box) return existing;
     if (existing) existing.destroy();
-    const box = el.closest('.evo-box') || el.parentElement;
-    const w = box ? Math.floor(box.getBoundingClientRect().width - 28) : 300;
-    el.width = w > 80 ? w : 300;
-    el.height = 150;
-    return new Chart(el, { type: 'line', data: { labels, datasets: buildDS(data) }, options: opts });
+    // Donner une hauteur fixe à la box pour que Chart.js puisse calculer la taille
+    box.style.height = '180px';
+    el.style.display = 'block';
+    el.style.width   = '100%';
+    el.style.height  = '150px';
+    return new Chart(el, { type: 'line', data: { labels, datasets: buildDS(values) }, options: opts });
   }
 
-  evoChtToday = drawOne('evo-chart-today', todayLabels, todayTaux,  evoChtToday);
-  evoChtWeek  = drawOne('evo-chart-week',  weekLabels,  weekTaux,   evoChtWeek);
-  evoChtMonth = drawOne('evo-chart-month', monthLabels, monthTaux,  evoChtMonth);
+  evoChtToday = drawOne('evo-chart-today', 'evo-box-today', todayLabels, todayTaux,  evoChtToday);
+  evoChtWeek  = drawOne('evo-chart-week',  'evo-box-week',  weekLabels,  weekTaux,   evoChtWeek);
+  evoChtMonth = drawOne('evo-chart-month', 'evo-box-month', monthLabels, monthTaux,  evoChtMonth);
 }
 
 async function refreshCharts(){
@@ -906,18 +914,17 @@ async function refreshCharts(){
   document.getElementById('bl-week-period').textContent = fmtShort(weekStart)+' – '+fmtShort(weekEnd);
   document.getElementById('bl-month-period').textContent = curMonthStart.toLocaleDateString('fr-CA',{month:'long',year:'numeric'});
 
-  // Calculs jours pour graphiques évolution
+  // Tableaux de jours pour les graphiques évolution
   const weekDays = [], weekLabels = [];
-  for(let i=0;i<7;i++){
-    const wd = new Date(monday); wd.setDate(monday.getDate()+i);
+  for (let i = 0; i < 7; i++) {
+    const wd = new Date(monday); wd.setDate(monday.getDate() + i);
     weekDays.push(wd.toISOString().slice(0,10));
     weekLabels.push(wd.toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'}));
   }
-  const yr = curMonthStart.getFullYear(), mo = curMonthStart.getMonth();
-  const daysInMonth = new Date(yr, mo+1, 0).getDate();
+  const daysInMonth = new Date(curMonthStart.getFullYear(), curMonthStart.getMonth()+1, 0).getDate();
   const monthDays = [], monthLabels = [];
-  for(let i=1;i<=daysInMonth;i++){
-    monthDays.push(yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(i).padStart(2,'0'));
+  for (let i = 1; i <= daysInMonth; i++) {
+    monthDays.push(curMonthStart.getFullYear()+'-'+String(curMonthStart.getMonth()+1).padStart(2,'0')+'-'+String(i).padStart(2,'0'));
     monthLabels.push(String(i));
   }
 
@@ -945,9 +952,8 @@ async function refreshCharts(){
   fillBilan('day',   dToday, seuil, objVal);
   fillBilan('week',  dWeek,  seuil, objVal);
   fillBilan('month', dMonth, seuil, objVal);
-  // Mettre en cache pour redessiner si on change min/max
-  window._evoData = { dToday, dWeek, dMonth, weekDays, weekLabels, monthDays, monthLabels, seuil };
-  drawEvoCharts(dToday, dWeek, dMonth, weekDays, weekLabels, monthDays, monthLabels, seuil);
+  // Dessiner les graphiques d'évolution avec un délai pour que le DOM soit rendu
+  setTimeout(() => drawEvoCharts({ dToday, dWeek, dMonth, weekDays, weekLabels, monthDays, monthLabels, seuil }), 50);
 }
 
 function fillBilan(key, data, seuil, objVal){
@@ -1130,15 +1136,15 @@ function drawChart(key, data, seuil){
       </div>
     </div>
     <div class="evo-grid">
-      <div class="evo-box">
+      <div class="evo-box" id="evo-box-today">
         <div class="evo-box-title">Journée en cours</div>
         <canvas id="evo-chart-today"></canvas>
       </div>
-      <div class="evo-box">
+      <div class="evo-box" id="evo-box-week">
         <div class="evo-box-title">Semaine en cours</div>
         <canvas id="evo-chart-week"></canvas>
       </div>
-      <div class="evo-box">
+      <div class="evo-box" id="evo-box-month">
         <div class="evo-box-title">Mois en cours</div>
         <canvas id="evo-chart-month"></canvas>
       </div>
