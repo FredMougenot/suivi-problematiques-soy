@@ -71,14 +71,14 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 .tbl-outer{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .ptbl{width:100%;border-collapse:collapse;min-width:1080px;}
 .ptbl thead tr{background:var(--bg-float);border-bottom:2px solid var(--text-faint);}
-.ptbl thead th{padding:7px 10px;text-align:left;font-size:.62rem;font-weight:800;color:var(--copper);letter-spacing:.15em;text-transform:uppercase;white-space:nowrap;}
+.ptbl thead th{padding:13px 12px;text-align:left;font-size:.62rem;font-weight:800;color:var(--copper);letter-spacing:.15em;text-transform:uppercase;white-space:nowrap;}
 .ptbl tbody tr{border-bottom:1px solid var(--text-faint);transition:background var(--t-fast);}
 .ptbl tbody tr:last-child{border-bottom:none;}
 .ptbl tbody tr:hover td{background:rgba(200,132,58,.025);}
 .ptbl tbody tr.row-extra{border-left:3px solid rgba(200,132,58,.4);}
 .ptbl tbody tr.row-annule td:not(.td-act){opacity:.42;text-decoration:line-through;}
 .ptbl tbody tr.row-annule .cs,.ptbl tbody tr.row-annule .ci{text-decoration:none;opacity:.55;}
-.ptbl tbody td{padding:6px 10px;font-size:.82rem;color:var(--text-primary);vertical-align:middle;}
+.ptbl tbody td{padding:11px 12px;font-size:.84rem;color:var(--text-primary);vertical-align:middle;}
 
 /* Heure */
 .h-badge{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--copper-light);display:inline-flex;align-items:center;gap:7px;white-space:nowrap;}
@@ -278,6 +278,16 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 .obj-chip{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.78rem;font-weight:700;background:var(--copper-dim);color:var(--copper-light);border:1px solid rgba(200,132,58,.25);}
 .tol-chip{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.78rem;font-weight:700;background:rgba(74,158,232,.1);color:var(--sapphire);border:1px solid rgba(74,158,232,.2);}
 @media(max-width:900px){.bilan-section{padding:0 10px 28px;}}
+
+/* ── Graphiques évolution taux ─────────────────────────────────── */
+.evo-section{padding:0 28px 8px;}
+.evo-panel{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);padding:20px 24px;margin-bottom:20px;}
+.evo-panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap;}
+.evo-eyebrow{font-size:.6rem;font-weight:800;color:var(--copper);letter-spacing:.12em;text-transform:uppercase;}
+.evo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.evo-box{background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:14px;}
+.evo-box-title{font-size:.62rem;font-weight:800;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
+.evo-param-input{background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:6px 10px;font-size:.82rem;font-family:'Outfit',sans-serif;width:100px;outline:none;}
 </style>
 
 
@@ -333,13 +343,12 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
         <th>Chargement</th>
         <th>Heure réelle</th>
         <th>GH court</th>
-        <th style="width:44px"></th>
       </tr></thead>
       <tbody id="tbody"></tbody>
     </table>
   </div>
 </main>
-<div style="display:flex;justify-content:center;gap:12px;padding:18px 0 8px;">
+<div style="display:flex;justify-content:center;gap:12px;padding:12px 0 4px;">
   <button id="btn-save-all" onclick="saveAll()"
     style="display:inline-flex;align-items:center;gap:8px;padding:11px 36px;
            border-radius:var(--r-md);background:linear-gradient(135deg,var(--copper),var(--copper-light));
@@ -470,7 +479,7 @@ async function load(){
     try{render();}catch(re){console.error('render:',re);}
     document.getElementById('spinner').style.display='none';
     document.getElementById('tbl').style.display='block';
-    try { await refreshCharts(); } catch(e){ console.warn('Charts:',e); }
+    try { await loadEvoParams(); refreshCharts(); } catch(e){ console.warn('Charts:',e); }
   }
 }
 
@@ -592,9 +601,6 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
     </span></td>
     <td><input class="ci-t" type="time" value="${esc(r.heure_reelle||'')}" oninput="fchg(${idx},'heure_reelle',this.value)"></td>
     <td><div class="chk${r.short_gh?' on':''}" onclick="togGH(${idx},this)"></div></td>
-    <td style="text-align:center;width:44px">${isExtra
-      ? '<button onclick="delExtra('+idx+')" style="width:26px;height:26px;border-radius:5px;background:transparent;border:1px solid var(--text-faint);color:var(--text-muted);cursor:pointer;font-size:13px;line-height:1;display:inline-flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.borderColor=\'var(--ruby)\';this.style.color=\'var(--ruby)\'" onmouseout="this.style.borderColor=\'var(--text-faint)\';this.style.color=\'var(--text-muted)\'">&#x2715;</button>'
-      : ''}</td>
   </tr>`;
 }
 
@@ -758,6 +764,120 @@ function updCharg(sel){
 
 // ── GRAPHIQUES ────────────────────────────────────────────────────
 
+
+// ── Graphiques évolution taux de réussite ─────────────────────────
+let evoChtToday=null, evoChtWeek=null, evoChtMonth=null;
+
+function saveEvoParams(){
+  try{localStorage.setItem('soy_evo',JSON.stringify({
+    min:   document.getElementById('evo-min').value,
+    max:   document.getElementById('evo-max').value,
+    lblMin:document.getElementById('evo-label-min').value,
+    lblMax:document.getElementById('evo-label-max').value,
+  }));}catch(e){}
+  renderEvoCharts();
+}
+
+function loadEvoParams(){
+  try{
+    const p=JSON.parse(localStorage.getItem('soy_evo')||'{}');
+    document.getElementById('evo-min').value       = p.min   || '';
+    document.getElementById('evo-max').value       = p.max   || '';
+    document.getElementById('evo-label-min').value = p.lblMin|| '';
+    document.getElementById('evo-label-max').value = p.lblMax|| '';
+  }catch(e){}
+}
+
+async function renderEvoCharts(){
+  const seuil = parseInt(document.getElementById('retard-seuil')?.value)||30;
+  const rawMin = document.getElementById('evo-min')?.value;
+  const rawMax = document.getElementById('evo-max')?.value;
+  const vMin   = rawMin!=='' ? parseFloat(rawMin) : null;
+  const vMax   = rawMax!=='' ? parseFloat(rawMax) : null;
+  const lblMin = document.getElementById('evo-label-min')?.value || 'Minimum';
+  const lblMax = document.getElementById('evo-label-max')?.value || 'Maximum';
+  const hasLines = vMin!==null || vMax!==null;
+
+  // Périodes
+  const d = new Date(curDate+'T00:00:00');
+  const dow = d.getDay();
+  const mondayOff = dow===0?-6:1-dow;
+  const monday = new Date(d); monday.setDate(d.getDate()+mondayOff);
+  const weekDays=[], weekLabels=[];
+  for(let i=0;i<7;i++){
+    const wd=new Date(monday); wd.setDate(monday.getDate()+i);
+    weekDays.push(wd.toISOString().slice(0,10));
+    weekLabels.push(wd.toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'}));
+  }
+  const yr=d.getFullYear(), mo=d.getMonth();
+  const daysInMonth=new Date(yr,mo+1,0).getDate();
+  const monthDays=[], monthLabels=[];
+  for(let i=1;i<=daysInMonth;i++){
+    monthDays.push(yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(i).padStart(2,'0'));
+    monthLabels.push(String(i));
+  }
+
+  // Taux par jour
+  async function tauxForDay(dateStr){
+    const data = await fetchPeriod(dateStr, dateStr);
+    const {onTime,arrived} = analyzeData(data, seuil);
+    return arrived>0 ? Math.round(onTime/arrived*100) : null;
+  }
+
+  // Aujourd'hui : taux cumulatif par heure planifiée
+  const todayData = await fetchPeriod(curDate, curDate);
+  const hours = ['06','07','08','09','10','11','12','13','14','15','16','17','18','19','20'];
+  const todayTaux = hours.map(h=>{
+    const subset = todayData.filter(r=>r.heure_planif && r.heure_planif.slice(0,2)<=h);
+    const {onTime,arrived}=analyzeData(subset,seuil);
+    return arrived>0 ? Math.round(onTime/arrived*100) : null;
+  });
+
+  const weekTaux  = await Promise.all(weekDays.map(tauxForDay));
+  const monthTaux = await Promise.all(monthDays.map(tauxForDay));
+
+  const BLUE='rgba(99,179,237,.85)', BLUE_BG='rgba(99,179,237,.12)';
+  const GREEN='#2DD4A0', RED='#E05555';
+
+  function buildDS(data){
+    const ds=[{
+      label:'Taux (%)', data, fill:true,
+      backgroundColor:BLUE_BG, borderColor:BLUE,
+      borderWidth:2, pointRadius:3, pointBackgroundColor:BLUE,
+      tension:0.3, spanGaps:false
+    }];
+    if(vMin!==null) ds.push({label:lblMin,data:data.map(()=>vMin),borderColor:GREEN,borderWidth:2,borderDash:[6,3],pointRadius:0,fill:false,tension:0});
+    if(vMax!==null) ds.push({label:lblMax,data:data.map(()=>vMax),borderColor:RED,  borderWidth:2,borderDash:[6,3],pointRadius:0,fill:false,tension:0});
+    return ds;
+  }
+
+  const opts={
+    responsive:false, animation:{duration:300},
+    plugins:{
+      legend:{display:hasLines,labels:{color:'#BEC5D6',font:{size:10},boxWidth:18}},
+      tooltip:{mode:'index',intersect:false,
+        callbacks:{label:ctx=>ctx.dataset.label+': '+(ctx.parsed.y!==null?ctx.parsed.y+'%':'—')}}
+    },
+    scales:{
+      x:{ticks:{color:'#BEC5D6',font:{size:9},maxRotation:0},grid:{color:'rgba(255,255,255,.04)'}},
+      y:{min:0,max:100,ticks:{color:'#BEC5D6',font:{size:9}},grid:{color:'rgba(255,255,255,.06)'}}
+    }
+  };
+
+  function drawEvo(id, labels, data, existing){
+    const el=document.getElementById(id); if(!el) return existing;
+    if(existing) existing.destroy();
+    const box=el.closest('.evo-box')||el.parentElement;
+    const w=box?Math.floor(box.getBoundingClientRect().width-28):300;
+    el.width=w>80?w:300; el.height=150;
+    return new Chart(el,{type:'line',data:{labels,datasets:buildDS(data)},options:opts});
+  }
+
+  evoChtToday = drawEvo('evo-chart-today', hours.map(h=>h+'h'), todayTaux,  evoChtToday);
+  evoChtWeek  = drawEvo('evo-chart-week',  weekLabels,           weekTaux,   evoChtWeek);
+  evoChtMonth = drawEvo('evo-chart-month', monthLabels,          monthTaux,  evoChtMonth);
+}
+
 async function refreshCharts(){
   let seuil = 30;
   try { seuil = parseInt(document.getElementById('retard-seuil').value)||30; } catch(e){}
@@ -816,6 +936,7 @@ async function refreshCharts(){
   fillBilan('day',   dToday, seuil, objVal);
   fillBilan('week',  dWeek,  seuil, objVal);
   fillBilan('month', dMonth, seuil, objVal);
+  renderEvoCharts();
 }
 
 function fillBilan(key, data, seuil, objVal){
@@ -976,21 +1097,47 @@ function drawChart(key, data, seuil){
 
 
 
-// ── SUPPRIMER CAMION EXTRA ──────────────────────────────────────────
-async function delExtra(idx){
-  if(!confirm('Supprimer ce camion ?')) return;
-  if(rows[idx] && rows[idx].id){
-    const {error} = await sb.from('planning_camions').delete().eq('id', rows[idx].id);
-    if(error){ toast('Erreur: '+error.message,'error'); return; }
-  }
-  delete rows[idx];
-  render();
-  toast('Camion supprimé','info');
-}
-
 </script>
 <!-- ═══════════════════════════════════════════════════════════TION BILAN                                              -->
 <!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- ═══════════════════════════════════════════════════════════════
+     GRAPHIQUES ÉVOLUTION TAUX DE RÉUSSITE
+═══════════════════════════════════════════════════════════════ -->
+<section class="evo-section">
+<div class="evo-panel">
+  <div class="evo-panel-header">
+    <div class="evo-eyebrow">Évolution du taux de réussite</div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="width:10px;height:2px;background:#2DD4A0;display:inline-block;border-radius:2px;"></span>
+        <input type="number" class="evo-param-input" id="evo-min" placeholder="Valeur min" oninput="saveEvoParams()">
+        <input type="text"   class="evo-param-input" id="evo-label-min" placeholder="Libellé min" oninput="saveEvoParams()">
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="width:10px;height:2px;background:#E05555;display:inline-block;border-radius:2px;"></span>
+        <input type="number" class="evo-param-input" id="evo-max" placeholder="Valeur max" oninput="saveEvoParams()">
+        <input type="text"   class="evo-param-input" id="evo-label-max" placeholder="Libellé max" oninput="saveEvoParams()">
+      </div>
+    </div>
+  </div>
+  <div class="evo-grid">
+    <div class="evo-box">
+      <div class="evo-box-title">Journée en cours</div>
+      <canvas id="evo-chart-today"></canvas>
+    </div>
+    <div class="evo-box">
+      <div class="evo-box-title">Semaine en cours</div>
+      <canvas id="evo-chart-week"></canvas>
+    </div>
+    <div class="evo-box">
+      <div class="evo-box-title">Mois en cours</div>
+      <canvas id="evo-chart-month"></canvas>
+    </div>
+  </div>
+</div>
+</section>
+
 <section class="bilan-section">
   <div class="bilan-stack">
 
