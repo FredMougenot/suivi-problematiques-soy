@@ -285,7 +285,7 @@ function periodLabel(){
 }
 
 // ── FETCH ────────────────────────────────────────────────────────
-async function fetch(start,end){
+async function fetchData(start,end){
   try{
     const {data,error}=await sb.from('planning_camions').select('*').gte('date_jour',start).lte('date_jour',end);
     return data||[];
@@ -329,7 +329,7 @@ async function loadAll(){
   if(chartDist){chartDist.destroy();chartDist=null;}
 
   const {start,end}=getRange();
-  const data=await fetch(start,end);
+  const data=await fetchData(start,end);
   const seuil=getSeuil();
 
   document.getElementById('spinner').style.display='none';
