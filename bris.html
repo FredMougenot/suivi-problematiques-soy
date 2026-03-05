@@ -196,6 +196,11 @@
       <button class="btn-ok" onclick="confirmAdd()">Ajouter</button>
     </div>
   </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
 
 
 function localToday(){
@@ -385,37 +390,23 @@ async function confirmAdd(){
 
 async function submitNcBris(){
   const list = Object.values(rows);
-  if(list.length === 0){
-    toast('Aucun bris à soumettre.','error');
-    return;
-  }
+  if(list.length === 0){ toast('Aucun bris à soumettre.','error'); return; }
   const lignes = list.map(r => {
     const item  = r.item     || '—';
-    const qte   = r.quantite != null ? r.quantite       : '—';
-    const poids = r.poids    != null ? r.poids + ' kg'  : '—';
-    const cout  = r.cout     != null ? r.cout  + ' $'   : '—';
+    const qte   = r.quantite != null ? r.quantite      : '—';
+    const poids = r.poids    != null ? r.poids + ' kg' : '—';
+    const cout  = r.cout     != null ? r.cout  + ' $'  : '—';
     return `• ${item} | Qté: ${qte} | Poids: ${poids} | Coût: ${cout}`;
   });
   const desc = `Date: ${curDate}\n` + lignes.join('\n');
-
   const {error} = await sb.from('problematiques').insert([{
-    intitule:    'Perte/Bris',
-    pilier:      'Couts',
-    priorite:    'Basse',
-    statut:      'À traiter',
-    description: desc,
-    created_at:  new Date().toISOString(),
-    updated_at:  new Date().toISOString(),
+    intitule: 'Perte/Bris', pilier: 'Couts', priorite: 'Basse',
+    statut: 'À traiter', description: desc,
+    created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
   }]);
-
   if(error){ toast('Erreur: '+error.message,'error'); return; }
   toast('Non-conformité créée dans Problématiques ✓','success');
 }
-
-lock:'center'});
-  toast('Bris ajouté ✓','success');
-}
-
 
 </script>
 
