@@ -107,39 +107,46 @@
 .btn-add:hover{opacity:.88;transform:translateY(-1px);}
 .btn-add:active{transform:translateY(0);}
 
-/* ── Variables et classes pour modal Nouvelle Problématique ─── */
+/* ── Variables manquantes pour le modal problématique ── */
 :root {
   --bg-void:#06070B; --bg-float:#1A1E2A; --bg-hover:#1F2436; --bg-active:#242B40;
-  --copper-glow:rgba(200,132,58,.22); --copper-pale:#EDD4A8;
-  --ease-out:cubic-bezier(0,0,.2,1); --t-fast:.15s; --t-base:.25s;
+  --copper-glow:rgba(200,132,58,.22); --ease-out:cubic-bezier(0,0,.2,1);
+  --t-fast:.15s; --t-base:.25s; --r-xl:24px;
   --shadow-xl:0 32px 80px rgba(0,0,0,.7),0 8px 32px rgba(0,0,0,.5);
-  --r-xl:24px;
 }
-.fg-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
-.fg-grid .full{grid-column:1/-1;}
-.fg-lbl{font-size:.65rem;font-weight:800;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;}
-.fg-lbl.req::after{content:' ✦';font-size:.52rem;}
-.fg-inp,.fg-sel,.fg-ta{padding:10px 13px;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);font-size:.84rem;font-weight:300;color:var(--text-primary);transition:all var(--t-fast);width:100%;box-sizing:border-box;font-family:inherit;outline:none;}
-.fg-inp::placeholder,.fg-ta::placeholder{color:var(--text-muted);}
-.fg-inp:focus,.fg-sel:focus,.fg-ta:focus{border-color:var(--copper);background:var(--bg-active);box-shadow:0 0 0 2px var(--copper-glow);}
-.fg-sel option{background:var(--bg-raised);}
-.fg-ta{resize:vertical;min-height:90px;}
-.btn-can{padding:9px 20px;border-radius:var(--r-md);font-size:.82rem;font-weight:500;background:transparent;border:1px solid var(--text-faint);color:var(--text-secondary);transition:all var(--t-fast);cursor:pointer;}
-.btn-can:hover{border-color:var(--text-muted);color:var(--text-primary);}
-.btn-sub{padding:9px 24px;border-radius:var(--r-md);font-size:.82rem;font-weight:700;background:var(--copper);color:var(--bg-void);transition:all var(--t-base);cursor:pointer;letter-spacing:.05em;border:none;}
-.btn-sub:hover{background:var(--copper-light);transform:translateY(-1px);box-shadow:0 6px 20px rgba(184,115,51,.3);}
-.btn-sub:disabled{opacity:.4;cursor:not-allowed;transform:none;}
-#modal-sst.overlay{padding:0;align-items:flex-end;}
-#modal-sst .modal{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-xl);box-shadow:var(--shadow-xl);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;animation:modalIn .25s var(--ease-out);position:relative;}
-#modal-sst .modal::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--copper),transparent);border-radius:var(--r-xl) var(--r-xl) 0 0;pointer-events:none;}
-.modal-hd-p{padding:26px 30px 20px;border-bottom:1px solid var(--text-faint);display:flex;align-items:flex-start;justify-content:space-between;gap:16px;}
-.modal-t-p{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:600;color:var(--text-primary);}
-.modal-s-p{font-size:.78rem;color:var(--text-muted);margin-top:4px;font-weight:300;}
-.modal-x-p{width:30px;height:30px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:1rem;transition:all var(--t-fast);cursor:pointer;background:transparent;border:none;}
-.modal-x-p:hover{background:var(--bg-hover);color:var(--text-primary);}
-.modal-bd-p{padding:22px 30px;}
-.modal-ft-p{padding:12px 30px 26px;display:flex;gap:10px;justify-content:flex-end;}
-@keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.98)}to{opacity:1;transform:none}}
+/* ── Toutes les règles scopées à #modal-sst uniquement ── */
+#modal-sst.overlay { position:fixed;inset:0;z-index:900;background:rgba(7,8,12,.82);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:24px; }
+#modal-sst.overlay.open { display:flex;animation:fadeIn .2s var(--ease-out); }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@keyframes modalIn { from{opacity:0;transform:translateY(20px) scale(.98)} to{opacity:1;transform:none} }
+#modal-sst .modal { background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-xl);box-shadow:var(--shadow-xl);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;animation:modalIn .25s var(--ease-out);position:relative;padding:0; }
+#modal-sst .modal::before { content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--copper),transparent);border-radius:var(--r-xl) var(--r-xl) 0 0;pointer-events:none; }
+#modal-sst .modal-hd { padding:26px 30px 20px;border-bottom:1px solid var(--text-faint);display:flex;align-items:flex-start;justify-content:space-between;gap:16px; }
+#modal-sst .modal-t { font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:600;color:var(--text-primary); }
+#modal-sst .modal-s { font-size:.78rem;color:var(--text-muted);margin-top:4px;font-weight:300; }
+#modal-sst .modal-x { width:30px;height:30px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:1rem;transition:all var(--t-fast);cursor:pointer;background:transparent;border:none; }
+#modal-sst .modal-x:hover { background:var(--bg-hover);color:var(--text-primary); }
+#modal-sst .modal-bd { padding:22px 30px; }
+#modal-sst .modal-ft { padding:12px 30px 26px;display:flex;gap:10px;justify-content:flex-end; }
+#modal-sst .fg-grid { display:grid;grid-template-columns:1fr 1fr;gap:18px; }
+#modal-sst .fg-grid .full { grid-column:1/-1; }
+#modal-sst .fg-lbl { display:block;font-size:.65rem;font-weight:800;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px; }
+#modal-sst .fg-lbl.req::after { content:' ✦';font-size:.52rem; }
+#modal-sst .fg-inp,
+#modal-sst .fg-sel,
+#modal-sst .fg-ta { padding:10px 13px;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);font-size:.84rem;font-weight:300;color:var(--text-primary);transition:all var(--t-fast);width:100%;box-sizing:border-box;font-family:inherit;outline:none; }
+#modal-sst .fg-inp::placeholder,
+#modal-sst .fg-ta::placeholder { color:var(--text-muted); }
+#modal-sst .fg-inp:focus,
+#modal-sst .fg-sel:focus,
+#modal-sst .fg-ta:focus { border-color:var(--copper);background:var(--bg-active);box-shadow:0 0 0 2px var(--copper-glow); }
+#modal-sst .fg-sel option { background:var(--bg-raised); }
+#modal-sst .fg-ta { resize:vertical;min-height:90px; }
+#modal-sst .btn-can { padding:9px 20px;border-radius:var(--r-md);font-size:.82rem;font-weight:500;background:transparent;border:1px solid var(--text-faint);color:var(--text-secondary);transition:all var(--t-fast);cursor:pointer; }
+#modal-sst .btn-can:hover { border-color:var(--text-muted);color:var(--text-primary); }
+#modal-sst .btn-sub { padding:9px 24px;border-radius:var(--r-md);font-size:.82rem;font-weight:700;background:var(--copper);color:var(--bg-void);transition:all var(--t-base);cursor:pointer;letter-spacing:.05em;border:none; }
+#modal-sst .btn-sub:hover { background:var(--copper-light);transform:translateY(-1px);box-shadow:0 6px 20px rgba(184,115,51,.3); }
+#modal-sst .btn-sub:disabled { opacity:.4;cursor:not-allowed;transform:none; }
 </style>
 </head>
 <body>
@@ -388,25 +395,17 @@ async function submitSstProb(){
   const resp     = document.getElementById('sst-responsable').value||null;
   const datePrev = document.getElementById('sst-date-prevue').value||null;
   const desc     = document.getElementById('sst-description').value.trim()||null;
-
   if(!intitule){ toast('L\'intitulé est obligatoire.','error'); return; }
-
   const btn = document.getElementById('sst-submit-btn');
   if(btn){ btn.disabled=true; btn.textContent='Création…'; }
-
   const {error} = await sb.from('problematiques').insert({
     intitule, pilier, priorite, statut,
-    responsable: resp,
-    description: desc,
-    date_prevue: datePrev,
-    soumis_par:  'SST',
-    created_at:  new Date().toISOString(),
-    updated_at:  new Date().toISOString(),
+    responsable: resp, description: desc, date_prevue: datePrev,
+    soumis_par: 'SST',
+    created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
   });
-
   if(btn){ btn.disabled=false; btn.textContent='Créer'; }
   if(error){ toast('Erreur: '+error.message,'error'); return; }
-
   closeSstModal();
   toast('Problématique créée ✓','success');
   await loadProbs();
@@ -415,15 +414,15 @@ async function submitSstProb(){
 </script>
 
 <div class="overlay" id="modal-sst" onclick="if(event.target===this)closeSstModal()">
-  <div class="modal" style="max-width:600px">
-    <div class="modal-hd-p">
+  <div class="modal">
+    <div class="modal-hd">
       <div>
-        <div class="modal-t-p">Nouvelle problématique</div>
-        <div class="modal-s-p">SST</div>
+        <div class="modal-t">Nouvelle problématique</div>
+        <div class="modal-s">SST</div>
       </div>
-      <button class="modal-x-p" onclick="closeSstModal()">✕</button>
+      <button class="modal-x" onclick="closeSstModal()">✕</button>
     </div>
-    <div class="modal-bd-p">
+    <div class="modal-bd">
       <div class="fg-grid">
         <div class="fg full">
           <label class="fg-lbl req">Intitulé</label>
@@ -468,7 +467,7 @@ async function submitSstProb(){
         </div>
       </div>
     </div>
-    <div class="modal-ft-p">
+    <div class="modal-ft">
       <button class="btn-can" onclick="closeSstModal()">Annuler</button>
       <button class="btn-sub" id="sst-submit-btn" onclick="submitSstProb()">Créer</button>
     </div>
