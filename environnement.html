@@ -73,6 +73,10 @@
       Retour
     </a>
     <div class="tool-title">🌿 <span id="page-title">Conformité environnement</span></div>
+    <a onclick="openNcParams()" href="javascript:void(0)" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:#1A1E2A;border:1px solid #2C3350;color:#BEC5D6;font-size:.78rem;font-weight:600;text-decoration:none;margin-left:12px;transition:all .15s;" onmouseover="this.style.borderColor='#C8843A';this.style.color='#E0A870'" onmouseout="this.style.borderColor='#2C3350';this.style.color='#BEC5D6'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Paramètres
+    </a>
   </div>
 
   <div class="date-nav">
@@ -106,17 +110,19 @@
     </div>
   </div>
 
-  <div style="display:flex;justify-content:center;align-items:center;gap:12px;padding:12px 0 4px;">
+</div>
+
+<div style="display:flex;justify-content:center;align-items:center;gap:12px;padding:20px 24px 32px;flex-wrap:wrap;">
     <button id="btn-save-all-env" class="btn-save-all" onclick="saveAll()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
       Sauvegarder tout
     </button>
-    <button onclick="openNcEnvModal()" style="display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--ruby);color:var(--ruby);font-size:.86rem;font-weight:700;cursor:pointer;transition:all .15s;">
+    <button onclick="openNcModal()" style="display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--ruby);color:var(--ruby);font-size:.86rem;font-weight:700;cursor:pointer;transition:all .15s;">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       Soumettre les non-conformités
     </button>
+
   </div>
-</div>
 
 <!-- MODAL AJOUT VÉRIFICATION EXTRA -->
 <div class="overlay" id="modal-add-verif">
@@ -132,27 +138,62 @@
   </div>
 </div>
 
-
-<!-- MODAL NON-CONFORMITÉS ENVIRONNEMENT -->
-<div class="overlay" id="modal-nc-env" onclick="if(event.target===this)closeNcEnvModal()">
-  <div class="modal">
-    <div class="modal-title">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ruby)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      Soumettre les non-conformités
-    </div>
+<!-- MODAL PARAMÈTRES NC -->
+<div class="overlay" id="modal-nc-params">
+  <div class="modal" style="width:460px">
+    <div class="modal-title">⚙️ Paramètres — Problématiques auto</div>
+    <p style="font-size:.8rem;color:var(--text-secondary);margin:0 0 16px;">Ces valeurs seront appliquées automatiquement à chaque problématique créée depuis les lignes non-conformes.</p>
     <div class="fg">
-      <label>Description <span style="color:var(--ruby)">*</span></label>
-      <textarea id="nc-env-desc" rows="4" placeholder="Décrivez la non-conformité…" style="width:100%;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:10px 13px;color:var(--text-primary);font-family:inherit;font-size:.84rem;resize:vertical;outline:none;"></textarea>
-    </div>
-    <div class="fg" style="margin-top:12px;">
-      <label>Priorité</label>
-      <select id="nc-env-prio" style="width:100%;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:10px 13px;color:var(--text-primary);font-family:inherit;font-size:.84rem;outline:none;">
-        <option>Basse</option><option selected>Moyenne</option><option>Haute</option><option>Critique</option>
+      <label>Pilier <span style="color:var(--ruby)">*</span></label>
+      <select id="nc-param-pilier">
+        <option value="Environnement" selected>Environnement</option>
+        <option value="SST">SST</option>
+        <option value="Qualité">Qualité</option>
+        <option value="Motivation">Motivation</option>
+        <option value="Délais">Délais</option>
+        <option value="Informations">Informations</option>
       </select>
     </div>
-    <div class="m-acts" style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--text-faint);">
-      <button class="btn-can" onclick="closeNcEnvModal()">Annuler</button>
-      <button class="btn-ok" onclick="submitNcEnv()" style="padding:9px 24px;border-radius:var(--r-md);font-size:.82rem;font-weight:700;background:var(--ruby);color:#fff;border:none;cursor:pointer;">Soumettre</button>
+    <div class="fg">
+      <label>Priorité <span style="color:var(--ruby)">*</span></label>
+      <select id="nc-param-priorite">
+        <option value="Critique">Critique</option>
+        <option value="Haute">Haute</option>
+        <option value="Moyenne" selected>Moyenne</option>
+        <option value="Basse">Basse</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Statut initial</label>
+      <select id="nc-param-statut">
+        <option value="À traiter" selected>À traiter</option>
+        <option value="En cours">En cours</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Responsable par défaut</label>
+      <input type="text" id="nc-param-resp" placeholder="Nom (optionnel)…">
+    </div>
+    <div class="fg">
+      <label>Soumis par</label>
+      <input type="text" id="nc-param-soumis" value="Environnement auto" placeholder="Ex: Système / Automatique…">
+    </div>
+    <div class="m-acts">
+      <button class="btn-cx" onclick="document.getElementById('modal-nc-params').classList.remove('open')">Fermer</button>
+      <button class="btn-ok" onclick="saveNcParams()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMATION NC -->
+<div class="overlay" id="modal-nc-confirm">
+  <div class="modal" style="width:480px">
+    <div class="modal-title">⚠️ Soumettre les non-conformités</div>
+    <p id="nc-confirm-msg" style="font-size:.88rem;color:var(--text-secondary);margin:0 0 12px;line-height:1.6;"></p>
+    <div id="nc-confirm-list" style="background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:10px 14px;max-height:200px;overflow-y:auto;margin-bottom:16px;font-size:.83rem;line-height:1.9;"></div>
+    <div class="m-acts">
+      <button class="btn-cx" onclick="document.getElementById('modal-nc-confirm').classList.remove('open')">Annuler</button>
+      <button class="btn-ok" id="btn-nc-submit" onclick="submitNcProblems()">Créer les problématiques</button>
     </div>
   </div>
 </div>
@@ -183,6 +224,7 @@ const VERIFS_FIXES = [
 
 let curDate = localToday();
 let rows = {};
+let _envSession = null;
 
 function todayStr(){ return localToday(); }
 function isToday(){ return curDate === todayStr(); }
@@ -281,23 +323,25 @@ async function saveVerif(key){
   if(!rows[key]) rows[key]={verif_key:key,date_jour:curDate};
   const r=rows[key];
   const payload={
-    verif_key:key, date_jour:curDate,
-    label: r.label||key,
+    verif_key:key,
+    date_jour:curDate,
+    label:r.label||key,
     conforme:!!r.conforme,
     non_conforme:!!r.non_conforme,
     updated_at:new Date().toISOString(),
   };
-  if(r.id){
-    const {error}=await sb.from('environnement_verif').update(payload).eq('id',r.id);
-    if(error){toast('Erreur: '+error.message,'error');}
-    else toast('Sauvegardé ✓','success');
+  const {data,error}=await sb.from('environnement_verif')
+    .upsert(payload,{onConflict:'verif_key,date_jour'})
+    .select().single();
+  if(error){
+    console.error('saveVerif error',key,error);
+    toast('Erreur: '+error.message,'error');
   } else {
-    payload.created_at=new Date().toISOString();
-    const {data,error}=await sb.from('environnement_verif').insert([payload]).select().single();
-    if(error){toast('Erreur: '+error.message,'error');}
-    else{ rows[key]=data; toast('Sauvegardé ✓','success'); }
+    if(data) rows[key]={...r,...data};
+    toast('Sauvegardé ✓','success');
   }
-  if(btn){btn.disabled=false;btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Sauver';}
+  const svgSave='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+  if(btn){btn.disabled=false;btn.innerHTML=svgSave+' Sauver';}
 }
 
 // ── SAVE ALL ────────────────────────────────────────────────
@@ -310,27 +354,26 @@ async function saveAll(){
   ];
   let errors=0;
   for(const key of allKeys){
-    if(!rows[key]) continue;
-    const r=rows[key];
+    const r=rows[key]||{};
+    // Ne rien écrire si aucune case jamais touchée ET pas encore en base
+    if(!r.id && !r.conforme && !r.non_conforme) continue;
     const payload={
-      verif_key:key, date_jour:curDate,
+      verif_key:key,
+      date_jour:curDate,
       label:r.label||key,
       conforme:!!r.conforme,
       non_conforme:!!r.non_conforme,
       updated_at:new Date().toISOString(),
     };
-    if(r.id){
-      const {error}=await sb.from('environnement_verif').update(payload).eq('id',r.id);
-      if(error) errors++;
-    } else if(r.conforme||r.non_conforme){
-      payload.created_at=new Date().toISOString();
-      const {data,error}=await sb.from('environnement_verif').insert([payload]).select().single();
-      if(error) errors++;
-      else rows[key]=data;
-    }
+    const {data,error}=await sb.from('environnement_verif')
+      .upsert(payload,{onConflict:'verif_key,date_jour'})
+      .select().single();
+    if(error){ console.error('saveAll error',key,error); errors++; }
+    else if(data) rows[key]={...r,...data};
   }
-  if(btn){btn.disabled=false;btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Sauvegarder tout';}
-  if(errors) toast(`${errors} erreur(s)`, 'error');
+  const svgSave='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+  if(btn){btn.disabled=false;btn.innerHTML=svgSave+' Sauvegarder tout';}
+  if(errors) toast(errors+' erreur(s) — vérifiez la console','error');
   else toast('Tout sauvegardé ✓','success');
 }
 
@@ -371,9 +414,13 @@ async function load(){
   if(wrap) wrap.style.display='none';
   rows={};
   try{
-    const {data,error}=await sb.from('environnement_verif').select('*').eq('date_jour',curDate);
+    const {data,error}=await sb.from('environnement_verif')
+      .select('*').eq('date_jour',curDate).order('updated_at',{ascending:false});
     if(error && error.code!=='PGRST116') throw error;
-    (data||[]).forEach(r=>{ rows[r.verif_key]=r; });
+    // Garder seulement la ligne la plus récente par verif_key (évite les doublons)
+    (data||[]).forEach(r=>{
+      if(!rows[r.verif_key]) rows[r.verif_key]=r;
+    });
   }catch(e){ toast('Erreur: '+e.message,'error'); }
   finally{
     try{render();}catch(re){console.error('render:',re);}
@@ -388,42 +435,136 @@ window.addEventListener('load',()=>{
   sb.from('piliers_criteres_lignes').select('intitule').eq('pilier','Environnement').eq('row_index',0).single()
     .then(({data})=>{ if(data&&data.intitule) document.getElementById('page-title').textContent=data.intitule; })
     .catch(()=>{});
+  // Récupérer la session pour les inserts dans problematiques
+  sb.auth.getSession().then(({data:{session}})=>{ _envSession=session||null; }).catch(()=>{});
 });
 
 document.addEventListener('DOMContentLoaded',()=>{
   const mo=document.getElementById('modal-add-verif');
   if(mo) mo.addEventListener('click',e=>{ if(e.target===mo) closeAddVerif(); });
+  ['modal-nc-params','modal-nc-confirm'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('click',e=>{ if(e.target===el) el.classList.remove('open'); });
+  });
+  loadNcParams();
 });
 
+// ── PARAMÈTRES NC (localStorage) ──────────────────────────────────
+const NC_PARAMS_KEY = 'env_nc_params';
+
+function loadNcParams(){
+  try {
+    const saved = localStorage.getItem(NC_PARAMS_KEY);
+    if(!saved) return;
+    const p = JSON.parse(saved);
+    if(p.pilier    !== undefined) document.getElementById('nc-param-pilier').value   = p.pilier;
+    if(p.priorite  !== undefined) document.getElementById('nc-param-priorite').value = p.priorite;
+    if(p.statut    !== undefined) document.getElementById('nc-param-statut').value   = p.statut;
+    if(p.responsable !== undefined) document.getElementById('nc-param-resp').value   = p.responsable;
+    if(p.soumis_par  !== undefined) document.getElementById('nc-param-soumis').value = p.soumis_par;
+  } catch(e){}
+}
+
+function saveNcParams(){
+  const p = {
+    pilier:      document.getElementById('nc-param-pilier').value,
+    priorite:    document.getElementById('nc-param-priorite').value,
+    statut:      document.getElementById('nc-param-statut').value,
+    responsable: document.getElementById('nc-param-resp').value.trim(),
+    soumis_par:  document.getElementById('nc-param-soumis').value.trim(),
+  };
+  localStorage.setItem(NC_PARAMS_KEY, JSON.stringify(p));
+  document.getElementById('modal-nc-params').classList.remove('open');
+  toast('Paramètres enregistrés ✓','success');
+}
+
+function openNcParams(){
+  loadNcParams();
+  document.getElementById('modal-nc-params').classList.add('open');
+}
+
+// ── OUVRIR MODAL CONFIRMATION NC ──────────────────────────────────
+function openNcModal(){
+  const allKeys = [
+    ...VERIFS_FIXES,
+    ...Object.keys(rows).filter(k => k.startsWith('extra_'))
+  ];
+  const ncList = allKeys
+    .filter(key => rows[key] && rows[key].non_conforme)
+    .map(key => ({ key, label: rows[key].label || key }));
+
+  if(ncList.length === 0){
+    toast('Aucune ligne non-conforme détectée.','info');
+    return;
+  }
+
+  const n = ncList.length;
+  document.getElementById('nc-confirm-msg').textContent =
+    n + ' ligne' + (n>1?'s':'') + ' non-conforme' + (n>1?'s':'') + ' détectée' + (n>1?'s':'')+
+    '. Une problématique sera créée dans le registre pour chacune.';
+
+  document.getElementById('nc-confirm-list').innerHTML = ncList
+    .map(item => '<div><span style="color:var(--ruby);margin-right:8px;">✕</span>' + esc(item.label) + '</div>')
+    .join('');
+
+  document.getElementById('btn-nc-submit').dataset.nclist = JSON.stringify(ncList);
+  document.getElementById('modal-nc-confirm').classList.add('open');
+}
+
+// ── SOUMETTRE LES NC VERS LE REGISTRE ─────────────────────────────
+async function submitNcProblems(){
+  const btn = document.getElementById('btn-nc-submit');
+  let ncList;
+  try { ncList = JSON.parse(btn.dataset.nclist || '[]'); } catch(e){ ncList=[]; }
+  if(!ncList.length) return;
+
+  // Vérifier la session (RLS exige auth)
+  if(!_envSession){
+    const {data:{session}} = await sb.auth.getSession();
+    _envSession = session;
+  }
+  if(!_envSession){
+    toast('Vous devez être connecté pour créer des problématiques.','error');
+    return;
+  }
+
+  loadNcParams();
+  const pilier      = document.getElementById('nc-param-pilier').value   || 'Environnement';
+  const priorite    = document.getElementById('nc-param-priorite').value  || 'Moyenne';
+  const statut      = document.getElementById('nc-param-statut').value    || 'À traiter';
+  const responsable = document.getElementById('nc-param-resp').value.trim()   || null;
+  const soumis_par  = document.getElementById('nc-param-soumis').value.trim() || 'Environnement auto';
+
+  btn.disabled = true;
+  btn.textContent = 'Création en cours…';
+
+  let errors = 0;
+  for(const item of ncList){
+    const {error} = await sb.from('problematiques').insert([{
+      intitule:    item.label,
+      description: 'Non-conformité détectée le ' + curDate + ' lors de la vérification environnement : ' + item.label,
+      pilier,
+      priorite,
+      statut,
+      responsable,
+      soumis_par,
+    }]);
+    if(error){ console.error('Insert error:', error); errors++; }
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Créer les problématiques';
+  document.getElementById('modal-nc-confirm').classList.remove('open');
+
+  if(errors){
+    toast(errors + ' erreur(s) lors de la création.','error');
+  } else {
+    const n = ncList.length;
+    toast(n + ' problématique' + (n>1?'s':'') + ' créée' + (n>1?'s':'') + ' dans le registre ✓','success');
+  }
+}
 
 
-function openNcEnvModal(){
-  document.getElementById('nc-env-desc').value='';
-  document.getElementById('nc-env-prio').value='Moyenne';
-  document.getElementById('modal-nc-env').classList.add('open');
-}
-function closeNcEnvModal(){
-  document.getElementById('modal-nc-env').classList.remove('open');
-}
-async function submitNcEnv(){
-  const desc = document.getElementById('nc-env-desc').value.trim();
-  if(!desc){ toast('Veuillez entrer une description.','error'); return; }
-  const prio = document.getElementById('nc-env-prio').value;
-  const {createClient} = supabase;
-  const sbNc = createClient(SB_URL || SUPABASE_URL || '', SB_KEY || SUPABASE_KEY || '');
-  const {error} = await sbNc.from('problematiques').insert({
-    intitule: 'NC Environnement — '+desc.substring(0,60),
-    pilier: 'Environnement',
-    statut: 'À traiter',
-    priorite: prio,
-    description: desc,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  });
-  if(error){ toast('Erreur: '+error.message,'error'); return; }
-  closeNcEnvModal();
-  toast('Non-conformité soumise.','success');
-}
 </script>
 </body>
 </html>
