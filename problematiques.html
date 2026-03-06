@@ -1087,6 +1087,12 @@ function openPilierCharts(pilier) {
     b.classList.toggle('active', b.textContent === pilier);
   });
   renderChartForActivePilier();
+  // Synchroniser le filtre des lignes avec le pilier sélectionné
+  const selPilier = document.getElementById('filter-pilier');
+  if (selPilier && selPilier.value !== pilier) {
+    selPilier.value = pilier;
+    filterTable();
+  }
 }
 
 function renderChartForActivePilier() {
@@ -1225,6 +1231,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // Construire les boutons pilier
   const container = document.getElementById('pilier-btns');
   if (container) {
+    // Bouton "Tous"
+    const btnTous = document.createElement('button');
+    btnTous.className = 'pilier-btn active';
+    btnTous.textContent = 'Tous';
+    btnTous.onclick = () => {
+      document.querySelectorAll('.pilier-btn').forEach(b => b.classList.remove('active'));
+      btnTous.classList.add('active');
+      const panel = document.getElementById('chart-panel');
+      if (panel) panel.style.display = 'none';
+      activePilierChart = '';
+      const sel = document.getElementById('filter-pilier');
+      if (sel) { sel.value = ''; }
+      filterTable();
+    };
+    container.appendChild(btnTous);
+
     piliers.forEach(p => {
       const btn = document.createElement('button');
       btn.className = 'pilier-btn';
@@ -1233,6 +1255,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.pilier-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         openPilierCharts(p);
+        const sel = document.getElementById('filter-pilier');
+        if (sel) { sel.value = p; }
+        filterTable();
       };
       container.appendChild(btn);
     });
