@@ -208,9 +208,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
   <button class="nav-btn" onclick="navigate(1)">&#8594;</button>
   <div class="seuil-row">
     <span>Tolérance</span>
-    <input class="seuil-inp" id="seuil" type="number" value="30" min="0" max="180">
+    <input class="seuil-inp" id="seuil" type="number" value="30" min="0" max="180" oninput="applyRender()">
     <span>min</span>
-    <button class="btn-refresh" onclick="loadAll()">
+    <button class="btn-refresh" onclick="applyRender()">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
       Actualiser
     </button>
@@ -220,9 +220,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
 <div class="dash">
   <div class="spinner-wrap" id="spinner"><div class="spin"></div> Chargement…</div>
   <div id="content" style="display:none"></div>
-</div>
 
 <script>
+
 const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const { createClient } = supabase;
@@ -240,6 +240,7 @@ const HOURS = ['06:00','07:30','09:00','11:30','14:00','15:30','17:00','18:00','
 let period = 'day';
 let curDate = todayStr();
 let chartTrend = null, chartDist = null;
+let cachedData = null;
 
 function todayStr(){
   const d=new Date();
@@ -327,14 +328,27 @@ async function loadAll(){
   document.getElementById('period-lbl').textContent=periodLabel();
   if(chartTrend){chartTrend.destroy();chartTrend=null;}
   if(chartDist){chartDist.destroy();chartDist=null;}
-
   const {start,end}=getRange();
-  const data=await fetchData(start,end);
-  const seuil=getSeuil();
-
+  cachedData=await fetchData(start,end);
   document.getElementById('spinner').style.display='none';
   document.getElementById('content').style.display='block';
-  render(data,seuil);
+  applyRender();
+}
+
+function applyRender(){
+  if(!cachedData) return;
+  if(chartTrend){chartTrend.destroy();chartTrend=null;}
+  if(chartDist){chartDist.destroy();chartDist=null;}
+  const seuil=getSeuil();
+  render(cachedData,seuil);
+}
+
+function applyRender(){
+  if(!cachedData) return;
+  if(chartTrend){chartTrend.destroy();chartTrend=null;}
+  if(chartDist){chartDist.destroy();chartDist=null;}
+  const seuil=getSeuil();
+  render(cachedData,seuil);
 }
 
 function render(data,seuil){
@@ -628,6 +642,7 @@ function setupTip(){
 }
 
 window.addEventListener('load',()=>loadAll());
+
 </script>
 </body>
 </html>
