@@ -1151,27 +1151,40 @@ function saveChartParams() {
 function restoreFilters() {
   const params    = new URLSearchParams(window.location.search);
   const urlPilier = params.get('pilier');
-  const fp = document.getElementById('filter-pilier');
-  const fs = document.getElementById('filter-statut');
-  const fr = document.getElementById('filter-priorite');
-  const fq = document.getElementById('search-input');
-  try {
-    // Si arrivée via menu gauche (pas de ?pilier=), forcer filtre pilier à vide
-    if (fp) fp.value = urlPilier || (urlPilier === null ? '' : localStorage.getItem('soy_filter_pilier') || '');
-    if (fs) fs.value = localStorage.getItem('soy_filter_statut') || '';
-    if (fr) fr.value = localStorage.getItem('soy_filter_prio')   || '';
-    if (fq) fq.value = localStorage.getItem('soy_filter_q')      || '';
-  } catch(e) {}
-  // Pilier actif pour les graphiques : URL en priorité, sinon localStorage
-  const activePilier = urlPilier || localStorage.getItem('soy_chart_pilier') || '';
+  const fp  = document.getElementById('filter-pilier');
+  const fs  = document.getElementById('filter-statut');
+  const fr  = document.getElementById('filter-priorite');
+  const fq  = document.getElementById('search-input');
+  const fc  = document.getElementById('show-cloture');
+
   if (urlPilier) {
+    // Arrivée depuis le widget pilier : réinitialiser TOUS les filtres
+    // et appliquer uniquement le pilier concerné, sans les clôturées
+    if (fp)  fp.value    = urlPilier;
+    if (fs)  fs.value    = '';
+    if (fr)  fr.value    = '';
+    if (fq)  fq.value    = '';
+    if (fc)  fc.checked  = false;
+    try {
+      localStorage.setItem('soy_filter_pilier', urlPilier);
+      localStorage.removeItem('soy_filter_statut');
+      localStorage.removeItem('soy_filter_prio');
+      localStorage.removeItem('soy_filter_q');
+    } catch(e) {}
+    // Nettoyer l'URL et ouvrir les graphiques du pilier
     window.history.replaceState({}, '', window.location.pathname);
     localStorage.setItem('soy_chart_pilier', urlPilier);
+    openPilierCharts(urlPilier);
   } else {
-    // Arrivée sans pilier → pas de graphiques automatiques
+    // Arrivée normale (menu) : restaurer le dernier filtre actif
+    try {
+      if (fp) fp.value   = localStorage.getItem('soy_filter_pilier') || '';
+      if (fs) fs.value   = localStorage.getItem('soy_filter_statut') || '';
+      if (fr) fr.value   = localStorage.getItem('soy_filter_prio')   || '';
+      if (fq) fq.value   = localStorage.getItem('soy_filter_q')      || '';
+    } catch(e) {}
     localStorage.removeItem('soy_chart_pilier');
   }
-  if (activePilier) openPilierCharts(activePilier);
   filterTable();
 }
 
