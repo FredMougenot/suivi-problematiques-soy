@@ -325,11 +325,13 @@ let OBJECTIF = 80;
 
 async function loadParams() {
   try {
-    const { data, error } = await sb.from('stats_parametres').select('*').eq('id', 1).single();
+    const { data, error } = await sb.from('stats_parametres').select('*').eq('id', 1).maybeSingle();
     if (error) throw error;
-    SEUIL1   = data.seuil1   ?? 30;
-    SEUIL2   = data.seuil2   ?? 60;
-    OBJECTIF = data.objectif ?? 80;
+    if (data) {
+      SEUIL1   = data.seuil1   ?? 30;
+      SEUIL2   = data.seuil2   ?? 60;
+      OBJECTIF = data.objectif ?? 80;
+    }
   } catch(e) {
     console.warn('stats_parametres: impossible de charger les paramètres', e?.message);
   }
@@ -461,24 +463,51 @@ function analyze(rows) {
 
 // ── MAIN LOAD ────────────────────────────────────────────────────
 async function loadAll() {
-  document.getElementById('spinner').style.display = 'flex';
-  document.getElementById('content').style.display = 'none';
+  const spinner = document.getElementById('spinner');
+  const content = document.getElementById('content');
+  spinner.style.display = 'flex';
+  content.style.display = 'none';
   document.getElementById('period-lbl').textContent = periodLabel();
   if (chartTrend) { chartTrend.destroy(); chartTrend = null; }
   if (chartDist)  { chartDist.destroy();  chartDist  = null; }
-  await loadParams();
-  const { start, end } = getRange();
-  cachedData = await fetchData(start, end);
-  document.getElementById('spinner').style.display = 'none';
-  document.getElementById('content').style.display = 'block';
-  applyRender();
+  try {
+    await loadParams();
+    const { start, end } = getRange();
+    cachedData = await fetchData(start, end);
+    spinner.style.display = 'none';
+    content.style.display = 'block';
+    applyRender();
+  } catch(e) {
+    console.error('loadAll error:', e);
+    spinner.style.display = 'none';
+    content.style.display = 'block';
+    content.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
+      <div style="font-size:2rem;margin-bottom:12px;">⚠️</div>
+      <div style="font-size:.9rem;">Erreur de chargement</div>
+      <div style="font-size:.75rem;margin-top:6px;color:var(--text-faint)">${e?.message||'Erreur inconnue'}</div>
+      <button onclick="loadAll()" style="margin-top:16px;padding:8px 20px;border-radius:var(--r-md);
+        background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);
+        cursor:pointer;font-family:'Outfit',sans-serif;font-size:.8rem;">Réessayer</button>
+    </div>`;
+  }
 }
 
 function applyRender() {
   if (!cachedData) return;
   if (chartTrend) { chartTrend.destroy(); chartTrend = null; }
   if (chartDist)  { chartDist.destroy();  chartDist  = null; }
-  render(cachedData);
+  try {
+    render(cachedData);
+  } catch(e) {
+    console.error('applyRender error:', e);
+    document.getElementById('content').innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
+      <div style="font-size:2rem;margin-bottom:12px;">⚠️</div>
+      <div style="font-size:.9rem;">Erreur d'affichage : ${e?.message||''}</div>
+      <button onclick="loadAll()" style="margin-top:16px;padding:8px 20px;border-radius:var(--r-md);
+        background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);
+        cursor:pointer;font-family:'Outfit',sans-serif;font-size:.8rem;">Réessayer</button>
+    </div>`;
+  }
 }
 
 function render(data) {
