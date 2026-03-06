@@ -362,7 +362,7 @@ async function saveParams() {
     closeParams();
     applyRender();
   } catch(e) {
-    alert('Erreur lors de l'enregistrement : ' + (e?.message || 'Table stats_parametres introuvable — exécutez le SQL fourni dans Supabase.'));
+    alert("Erreur lors de l'enregistrement : " + (e?.message || 'Table stats_parametres introuvable — exécutez le SQL fourni dans Supabase.'));
   }
   if (btn) { btn.disabled = false; btn.textContent = 'Enregistrer'; }
 }
