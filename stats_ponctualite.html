@@ -27,7 +27,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
 /* ── TOPBAR ── */
 .topbar{position:sticky;top:0;z-index:100;background:rgba(6,7,11,.93);backdrop-filter:blur(14px);
   border-bottom:1px solid var(--text-faint);padding:0 20px;height:52px;
-  display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  display:flex;align-items:center;gap:12px;}
 .tb-back{display:inline-flex;align-items:center;gap:5px;color:var(--text-muted);
   text-decoration:none;font-size:.79rem;font-weight:500;padding:5px 10px;
   border-radius:var(--r-sm);transition:all var(--t-fast);}
@@ -39,6 +39,11 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
   font-family:'Playfair Display',serif;font-style:italic;color:#0F1118;font-size:.88rem;font-weight:700;}
 .tb-title{font-size:.88rem;font-weight:700;letter-spacing:.03em;}
 .tb-sub{font-size:.66rem;color:var(--text-muted);}
+.btn-params{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
+  border-radius:10px;background:#1A1E2A;border:1px solid #2C3350;color:#BEC5D6;
+  font-size:.78rem;font-weight:600;cursor:pointer;border-style:solid;
+  font-family:'Outfit',sans-serif;transition:all var(--t-fast);margin-left:auto;}
+.btn-params:hover{border-color:var(--copper);color:var(--copper-light);}
 
 /* ── CONTROLS ── */
 .controls{background:var(--bg-deep);border-bottom:1px solid var(--text-faint);
@@ -48,18 +53,13 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
 .ptab{padding:6px 18px;border-radius:8px;font-size:.79rem;font-weight:600;
   cursor:pointer;border:none;background:transparent;color:var(--text-muted);transition:all var(--t-fast);}
 .ptab.active{background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;}
-.nav-btn{width:36px;height:36px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:all var(--t-fast);}
+.nav-btn{width:36px;height:36px;border-radius:var(--r-md);background:var(--bg-raised);
+  border:1px solid var(--text-faint);color:var(--text-secondary);cursor:pointer;
+  font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:all var(--t-fast);}
 .nav-btn:hover{border-color:var(--copper);color:var(--copper-light);}
-.period-lbl{font-family:'Outfit',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text-primary);padding:8px 22px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);min-width:260px;text-align:center;}
-.seuil-row{display:flex;align-items:center;gap:7px;margin-left:auto;font-size:.76rem;color:var(--text-muted);}
-.seuil-inp{width:52px;text-align:center;background:var(--bg-raised);border:1px solid var(--text-faint);
-  color:var(--text-primary);border-radius:var(--r-sm);padding:5px 6px;
-  font-size:.78rem;font-family:'DM Mono',monospace;outline:none;}
-.seuil-inp:focus{border-color:var(--copper);}
-.btn-refresh{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
-  border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);
-  color:var(--text-secondary);font-size:.78rem;font-weight:600;cursor:pointer;transition:all var(--t-fast);}
-.btn-refresh:hover{border-color:var(--copper);color:var(--copper);}
+.period-lbl{font-family:'Outfit',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text-primary);
+  padding:8px 22px;background:var(--bg-raised);border:1px solid var(--text-faint);
+  border-radius:var(--r-md);min-width:260px;text-align:center;}
 
 /* ── MAIN ── */
 .dash{padding:20px;max-width:1400px;margin:0 auto;}
@@ -70,7 +70,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
 /* ── KPI ROW ── */
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
 .kpi{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-xl);
-  padding:18px 20px;position:relative;overflow:hidden;transition:border-color var(--t-fast);}
+  padding:18px 20px;position:relative;overflow:hidden;}
 .kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--r-xl) var(--r-xl) 0 0;}
 .kpi.green::after{background:var(--emerald);}
 .kpi.yellow::after{background:var(--amber);}
@@ -83,14 +83,12 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
 .kpi-val.red{color:var(--ruby);}
 .kpi-val.copper{color:var(--copper-light);}
 .kpi-sub{font-size:.72rem;color:var(--text-muted);}
-.kpi-trend{display:inline-flex;align-items:center;gap:3px;font-size:.72rem;font-weight:700;margin-top:4px;}
 .kpi-bar{height:3px;background:var(--bg-float);border-radius:2px;margin-top:10px;overflow:hidden;}
 .kpi-bar-fill{height:100%;border-radius:2px;transition:width .8s var(--ease);}
 
 /* ── PANELS ── */
 .panels-row{display:grid;gap:16px;margin-bottom:20px;}
 .panels-2{grid-template-columns:1fr 1fr;}
-.panels-3{grid-template-columns:1fr 1fr 1fr;}
 .panel{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-xl);padding:20px 22px;}
 .panel-full{grid-column:1/-1;}
 .ph{margin-bottom:16px;}
@@ -110,7 +108,6 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
   font-size:.65rem;font-weight:700;font-family:'DM Mono',monospace;cursor:default;
   transition:transform .1s,filter .1s;position:relative;}
 .hm-cell:hover{transform:scale(1.1);filter:brightness(1.25);z-index:5;}
-.hm-empty{height:32px;background:rgba(255,255,255,.025);border-radius:5px;}
 .hm-legend{display:flex;align-items:center;gap:8px;margin-top:10px;justify-content:flex-end;font-size:.66rem;color:var(--text-muted);}
 .hm-grad{width:100px;height:7px;border-radius:4px;background:linear-gradient(90deg,#E05555,#E8A43A,#2DD4A0);}
 
@@ -165,6 +162,47 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
   font-size:.73rem;color:var(--text-secondary);box-shadow:0 8px 24px rgba(0,0,0,.5);
   display:none;white-space:nowrap;font-family:'DM Mono',monospace;}
 
+/* ── MODAL PARAMÈTRES ── */
+.overlay-param{position:fixed;inset:0;z-index:900;background:rgba(6,7,11,.85);
+  backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:24px;}
+.overlay-param.open{display:flex;}
+.modal-param{background:var(--bg-raised);border:1px solid var(--text-faint);
+  border-radius:var(--r-xl);box-shadow:0 32px 80px rgba(0,0,0,.7);
+  width:100%;max-width:440px;position:relative;overflow:hidden;}
+.modal-param::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--copper),transparent);}
+.mp-hd{padding:24px 28px 18px;border-bottom:1px solid var(--text-faint);
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.mp-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:600;color:var(--text-primary);}
+.mp-sub{font-size:.72rem;color:var(--text-muted);margin-top:3px;}
+.mp-x{width:28px;height:28px;border-radius:var(--r-sm);background:transparent;border:none;
+  color:var(--text-muted);font-size:1rem;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;transition:all var(--t-fast);}
+.mp-x:hover{background:var(--bg-hover);color:var(--text-primary);}
+.mp-bd{padding:22px 28px;}
+.mp-field{margin-bottom:18px;}
+.mp-lbl{display:block;font-size:.62rem;font-weight:800;color:var(--copper);
+  letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px;}
+.mp-row{display:flex;align-items:center;gap:8px;}
+.mp-inp{flex:1;padding:9px 12px;background:var(--bg-float);border:1px solid var(--text-faint);
+  border-radius:var(--r-md);font-size:.86rem;color:var(--text-primary);
+  font-family:'Outfit',sans-serif;outline:none;transition:border-color var(--t-fast);}
+.mp-inp:focus{border-color:var(--copper);}
+.mp-unit{font-size:.78rem;color:var(--text-muted);flex-shrink:0;width:28px;}
+.mp-desc{font-size:.68rem;color:var(--text-muted);margin-top:5px;line-height:1.5;}
+.mp-ft{padding:14px 28px 22px;display:flex;gap:10px;justify-content:flex-end;
+  border-top:1px solid var(--text-faint);}
+.mp-cancel{padding:8px 18px;border-radius:var(--r-md);background:transparent;
+  border:1px solid var(--text-faint);color:var(--text-secondary);font-size:.82rem;
+  font-weight:500;cursor:pointer;font-family:'Outfit',sans-serif;transition:all var(--t-fast);}
+.mp-cancel:hover{border-color:var(--text-muted);color:var(--text-primary);}
+.mp-save{padding:8px 22px;border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--copper),var(--copper-light));
+  color:#0F1118;font-size:.82rem;font-weight:700;border:none;cursor:pointer;
+  font-family:'Outfit',sans-serif;transition:all var(--t-fast);}
+.mp-save:hover{opacity:.88;}
+.mp-save:disabled{opacity:.4;cursor:not-allowed;}
+
 /* ── ANIM ── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .anim{animation:fadeUp .35s var(--ease) both;}
@@ -172,7 +210,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
 
 @media(max-width:860px){
   .kpi-row{grid-template-columns:1fr 1fr;}
-  .panels-2,.panels-3{grid-template-columns:1fr;}
+  .panels-2{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -180,6 +218,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
 
 <div id="tip"></div>
 
+<!-- TOPBAR -->
 <header class="topbar">
   <div class="tb-brand">
     <a href="planning_camions.html" class="tb-back">
@@ -192,8 +231,13 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
       <div class="tb-sub">Analyse des arrivées camions</div>
     </div>
   </div>
+  <button class="btn-params" onclick="openParams()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Paramètres
+  </button>
 </header>
 
+<!-- CONTROLS -->
 <div class="controls">
   <div class="period-tabs">
     <button class="ptab active" id="ptab-day"   onclick="setPeriod('day')">Journée</button>
@@ -203,23 +247,58 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
   <button class="nav-btn" onclick="navigate(-1)">&#8592;</button>
   <div class="period-lbl" id="period-lbl">—</div>
   <button class="nav-btn" onclick="navigate(1)">&#8594;</button>
-  <div class="seuil-row">
-    <span>Tolérance</span>
-    <input class="seuil-inp" id="seuil" type="number" value="30" min="0" max="180" oninput="applyRender()">
-    <span>min</span>
-    <button class="btn-refresh" onclick="applyRender()">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-      Actualiser
-    </button>
-  </div>
 </div>
 
+<!-- DASHBOARD -->
 <div class="dash">
   <div class="spinner-wrap" id="spinner"><div class="spin"></div> Chargement…</div>
   <div id="content" style="display:none"></div>
+</div>
+
+<!-- MODAL PARAMÈTRES -->
+<div class="overlay-param" id="modal-params" onclick="if(event.target===this)closeParams()">
+  <div class="modal-param">
+    <div class="mp-hd">
+      <div>
+        <div class="mp-title">Paramètres</div>
+        <div class="mp-sub">Ponctualité des camions</div>
+      </div>
+      <button class="mp-x" onclick="closeParams()">✕</button>
+    </div>
+    <div class="mp-bd">
+      <div class="mp-field">
+        <label class="mp-lbl">Tolérance 1 — Acceptable</label>
+        <div class="mp-row">
+          <input class="mp-inp" id="p-seuil1" type="number" min="0" max="180" value="30">
+          <span class="mp-unit">min</span>
+        </div>
+        <div class="mp-desc">Retard acceptable : un camion est "à l'heure" si son écart est inférieur ou égal à cette valeur.</div>
+      </div>
+      <div class="mp-field">
+        <label class="mp-lbl">Tolérance 2 — Critique</label>
+        <div class="mp-row">
+          <input class="mp-inp" id="p-seuil2" type="number" min="0" max="360" value="60">
+          <span class="mp-unit">min</span>
+        </div>
+        <div class="mp-desc">Au-delà de cette valeur, le retard passe en rouge critique sur tous les indicateurs.</div>
+      </div>
+      <div class="mp-field" style="margin-bottom:0">
+        <label class="mp-lbl">Objectif de ponctualité</label>
+        <div class="mp-row">
+          <input class="mp-inp" id="p-objectif" type="number" min="0" max="100" value="80">
+          <span class="mp-unit">%</span>
+        </div>
+        <div class="mp-desc">Ligne de référence sur le graphique de tendance. Le KPI est "bon" au-dessus de ce seuil.</div>
+      </div>
+    </div>
+    <div class="mp-ft">
+      <button class="mp-cancel" onclick="closeParams()">Annuler</button>
+      <button class="mp-save" id="p-save-btn" onclick="saveParams()">Enregistrer</button>
+    </div>
+  </div>
+</div>
 
 <script>
-
 const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const { createClient } = supabase;
@@ -234,156 +313,208 @@ const SLOTS = [
 ];
 const HOURS = ['06:00','07:30','09:00','11:30','14:00','15:30','17:00','18:00','19:00'];
 
-let period = 'day';
-let curDate = todayStr();
+let period    = 'day';
+let curDate   = todayStr();
 let chartTrend = null, chartDist = null;
 let cachedData = null;
 
-function todayStr(){
-  const d=new Date();
+// ── PARAMÈTRES GLOBAUX ───────────────────────────────────────────
+let SEUIL1   = 30;   // tolérance acceptable (min)
+let SEUIL2   = 60;   // tolérance critique (min)
+let OBJECTIF = 80;   // objectif ponctualité (%)
+
+async function loadParams() {
+  try {
+    const { data } = await sb.from('stats_parametres').select('*').eq('id', 1).single();
+    if (data) {
+      SEUIL1   = data.seuil1   || 30;
+      SEUIL2   = data.seuil2   || 60;
+      OBJECTIF = data.objectif || 80;
+    }
+  } catch(e) {}
+}
+
+function openParams() {
+  document.getElementById('p-seuil1').value   = SEUIL1;
+  document.getElementById('p-seuil2').value   = SEUIL2;
+  document.getElementById('p-objectif').value = OBJECTIF;
+  document.getElementById('modal-params').classList.add('open');
+}
+function closeParams() {
+  document.getElementById('modal-params').classList.remove('open');
+}
+async function saveParams() {
+  const s1 = parseInt(document.getElementById('p-seuil1').value)   || 30;
+  const s2 = parseInt(document.getElementById('p-seuil2').value)   || 60;
+  const ob = parseInt(document.getElementById('p-objectif').value) || 80;
+  const btn = document.getElementById('p-save-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Enregistrement…'; }
+  try {
+    await sb.from('stats_parametres').upsert({
+      id: 1, seuil1: s1, seuil2: s2, objectif: ob,
+      updated_at: new Date().toISOString()
+    });
+    SEUIL1 = s1; SEUIL2 = s2; OBJECTIF = ob;
+    closeParams();
+    applyRender();
+  } catch(e) {}
+  if (btn) { btn.disabled = false; btn.textContent = 'Enregistrer'; }
+}
+
+// ── UTILS ────────────────────────────────────────────────────────
+function todayStr() {
+  const d = new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
-function getSeuil(){ return parseInt(document.getElementById('seuil').value)||30; }
 
 // ── NAVIGATION ───────────────────────────────────────────────────
-function setPeriod(p){
-  period=p;
-  ['day','week','month'].forEach(x=>document.getElementById('ptab-'+x).classList.toggle('active',x===p));
+function setPeriod(p) {
+  period = p;
+  ['day','week','month'].forEach(x => document.getElementById('ptab-'+x).classList.toggle('active', x===p));
   loadAll();
 }
-function navigate(dir){
-  const d=new Date(curDate+'T00:00:00');
-  if(period==='day') d.setDate(d.getDate()+dir);
-  else if(period==='week') d.setDate(d.getDate()+dir*7);
+function navigate(dir) {
+  const d = new Date(curDate+'T00:00:00');
+  if (period==='day')  d.setDate(d.getDate()+dir);
+  else if (period==='week') d.setDate(d.getDate()+dir*7);
   else d.setMonth(d.getMonth()+dir);
-  curDate=d.toISOString().slice(0,10);
+  curDate = d.toISOString().slice(0,10);
   loadAll();
 }
 
-function getRange(){
-  const d=new Date(curDate+'T00:00:00');
-  if(period==='day') return {start:curDate,end:curDate};
-  if(period==='week'){
-    const dow=d.getDay(); const mon=new Date(d); mon.setDate(d.getDate()+(dow===0?-6:1-dow));
-    const sun=new Date(mon); sun.setDate(mon.getDate()+6);
-    return {start:mon.toISOString().slice(0,10),end:sun.toISOString().slice(0,10)};
+function getRange() {
+  const d = new Date(curDate+'T00:00:00');
+  if (period==='day') return { start:curDate, end:curDate };
+  if (period==='week') {
+    const dow = d.getDay();
+    const mon = new Date(d); mon.setDate(d.getDate()+(dow===0?-6:1-dow));
+    const sun = new Date(mon); sun.setDate(mon.getDate()+6);
+    return { start:mon.toISOString().slice(0,10), end:sun.toISOString().slice(0,10) };
   }
-  const ms=new Date(d.getFullYear(),d.getMonth(),1);
-  const me=new Date(d.getFullYear(),d.getMonth()+1,0);
-  return {start:ms.toISOString().slice(0,10),end:me.toISOString().slice(0,10)};
+  const ms = new Date(d.getFullYear(), d.getMonth(), 1);
+  const me = new Date(d.getFullYear(), d.getMonth()+1, 0);
+  return { start:ms.toISOString().slice(0,10), end:me.toISOString().slice(0,10) };
 }
 
-function periodLabel(){
-  const {start,end}=getRange();
-  const fmt=s=>new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{day:'numeric',month:'long',year:'numeric'});
-  const fmts=s=>new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{day:'2-digit',month:'short'});
-  if(period==='day') return fmt(start);
-  if(period==='week') return fmts(start)+' – '+fmts(end);
+function periodLabel() {
+  const { start, end } = getRange();
+  const fmt  = s => new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{day:'numeric',month:'long',year:'numeric'});
+  const fmts = s => new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{day:'2-digit',month:'short'});
+  if (period==='day')   return fmt(start);
+  if (period==='week')  return fmts(start)+' – '+fmts(end);
   return new Date(start+'T00:00:00').toLocaleDateString('fr-CA',{month:'long',year:'numeric'});
 }
 
 // ── FETCH ────────────────────────────────────────────────────────
-async function fetchData(start,end){
-  try{
-    const {data,error}=await sb.from('planning_camions').select('*').gte('date_jour',start).lte('date_jour',end);
-    return data||[];
-  }catch(e){return [];}
+async function fetchData(start, end) {
+  try {
+    const { data, error } = await sb.from('planning_camions').select('*')
+      .gte('date_jour', start).lte('date_jour', end);
+    return data || [];
+  } catch(e) { return []; }
 }
 
 // ── MATHS ────────────────────────────────────────────────────────
-function diff(planif,reel){
-  if(!planif||!reel) return null;
-  const [ph,pm]=planif.split(':').map(Number);
-  const [rh,rm]=reel.split(':').map(Number);
+function diff(planif, reel) {
+  if (!planif || !reel) return null;
+  const [ph,pm] = planif.split(':').map(Number);
+  const [rh,rm] = reel.split(':').map(Number);
   return (rh*60+rm)-(ph*60+pm);
 }
 
-function cls(d,s){ if(d===null)return'wait'; if(d<=s)return'ok'; if(d<=s*2)return'warn'; return'bad'; }
-
-function analyze(rows,seuil){
-  let onTime=0,late=0,total=0,annule=0; const retards=[];
-  rows.forEach(r=>{
-    if((r.statut_ligne||'Actif')==='Annulé'){annule++;return;}
-    total++;
-    const d=diff(r.heure_planif,r.heure_reelle);
-    if(d===null) return;
-    if(d<=seuil) onTime++; else{late++;retards.push(d);}
-  });
-  const arrived=onTime+late;
-  const taux=arrived>0?Math.round(onTime/arrived*100):null;
-  const avgRet=retards.length>0?Math.round(retards.reduce((a,b)=>a+b,0)/retards.length):0;
-  const maxRet=retards.length>0?Math.max(...retards):0;
-  return {onTime,late,total,arrived,annule,taux,avgRet,maxRet,retards};
+// cls : ok si ≤ SEUIL1, warn si ≤ SEUIL2, bad sinon
+function cls(d) {
+  if (d===null) return 'wait';
+  if (d <= SEUIL1) return 'ok';
+  if (d <= SEUIL2) return 'warn';
+  return 'bad';
 }
 
-function tcls(t){ if(t===null)return'copper'; if(t>=85)return'green'; if(t>=65)return'yellow'; return'red'; }
+// tcls : couleur KPI selon OBJECTIF
+function tcls(t) {
+  if (t===null) return 'copper';
+  if (t >= OBJECTIF) return 'green';
+  if (t >= OBJECTIF * 0.8) return 'yellow';
+  return 'red';
+}
+
+function analyze(rows) {
+  let onTime=0, late=0, total=0, annule=0;
+  const retards = [];
+  rows.forEach(r => {
+    if ((r.statut_ligne||'Actif')==='Annulé') { annule++; return; }
+    total++;
+    const d = diff(r.heure_planif, r.heure_reelle);
+    if (d===null) return;
+    if (d <= SEUIL1) onTime++; else { late++; retards.push(d); }
+  });
+  const arrived = onTime+late;
+  const taux    = arrived>0 ? Math.round(onTime/arrived*100) : null;
+  const avgRet  = retards.length>0 ? Math.round(retards.reduce((a,b)=>a+b,0)/retards.length) : 0;
+  const maxRet  = retards.length>0 ? Math.max(...retards) : 0;
+  return { onTime, late, total, arrived, annule, taux, avgRet, maxRet, retards };
+}
 
 // ── MAIN LOAD ────────────────────────────────────────────────────
-async function loadAll(){
-  document.getElementById('spinner').style.display='flex';
-  document.getElementById('content').style.display='none';
-  document.getElementById('period-lbl').textContent=periodLabel();
-  if(chartTrend){chartTrend.destroy();chartTrend=null;}
-  if(chartDist){chartDist.destroy();chartDist=null;}
-  const {start,end}=getRange();
-  cachedData=await fetchData(start,end);
-  document.getElementById('spinner').style.display='none';
-  document.getElementById('content').style.display='block';
+async function loadAll() {
+  document.getElementById('spinner').style.display = 'flex';
+  document.getElementById('content').style.display = 'none';
+  document.getElementById('period-lbl').textContent = periodLabel();
+  if (chartTrend) { chartTrend.destroy(); chartTrend = null; }
+  if (chartDist)  { chartDist.destroy();  chartDist  = null; }
+  await loadParams();
+  const { start, end } = getRange();
+  cachedData = await fetchData(start, end);
+  document.getElementById('spinner').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
   applyRender();
 }
 
-function applyRender(){
-  if(!cachedData) return;
-  if(chartTrend){chartTrend.destroy();chartTrend=null;}
-  if(chartDist){chartDist.destroy();chartDist=null;}
-  const seuil=getSeuil();
-  render(cachedData,seuil);
+function applyRender() {
+  if (!cachedData) return;
+  if (chartTrend) { chartTrend.destroy(); chartTrend = null; }
+  if (chartDist)  { chartDist.destroy();  chartDist  = null; }
+  render(cachedData);
 }
 
-function applyRender(){
-  if(!cachedData) return;
-  if(chartTrend){chartTrend.destroy();chartTrend=null;}
-  if(chartDist){chartDist.destroy();chartDist=null;}
-  const seuil=getSeuil();
-  render(cachedData,seuil);
-}
-
-function render(data,seuil){
-  const A=analyze(data,seuil);
-  const c=document.getElementById('content');
-  c.innerHTML='';
-  c.insertAdjacentHTML('beforeend',buildKPIs(A,seuil));
-  if(period==='day'){
-    c.insertAdjacentHTML('beforeend',buildDayPanels(data,seuil));
+function render(data) {
+  const A = analyze(data);
+  const c = document.getElementById('content');
+  c.innerHTML = '';
+  c.insertAdjacentHTML('beforeend', buildKPIs(A));
+  if (period==='day') {
+    c.insertAdjacentHTML('beforeend', buildDayPanels(data));
   } else {
-    c.insertAdjacentHTML('beforeend',buildHeatmap(data,seuil));
-    c.insertAdjacentHTML('beforeend',buildTrendRow(data,seuil));
+    c.insertAdjacentHTML('beforeend', buildHeatmap(data));
+    c.insertAdjacentHTML('beforeend', buildTrendRow());
   }
-  c.insertAdjacentHTML('beforeend',buildBottomRow(data,seuil));
-  setTimeout(()=>{
-    drawDist(A.retards,seuil);
-    if(period!=='day') drawTrend(data,seuil);
+  c.insertAdjacentHTML('beforeend', buildBottomRow(data));
+  setTimeout(() => {
+    drawDist(A.retards);
+    if (period!=='day') drawTrend(data);
     setupTip();
-  },40);
+  }, 40);
 }
 
 // ── KPIs ─────────────────────────────────────────────────────────
-function buildKPIs(A,seuil){
-  const tc=tcls(A.taux);
-  const barCol=tc==='green'?'var(--emerald)':tc==='yellow'?'var(--amber)':tc==='red'?'var(--ruby)':'var(--copper-light)';
-  const waitN=A.total-A.arrived;
+function buildKPIs(A) {
+  const tc = tcls(A.taux);
+  const barCol = tc==='green'?'var(--emerald)':tc==='yellow'?'var(--amber)':tc==='red'?'var(--ruby)':'var(--copper-light)';
+  const waitN  = A.total - A.arrived;
+  const retardCls = A.avgRet > SEUIL2 ? 'red' : A.avgRet > SEUIL1 ? 'yellow' : 'green';
+  const retardBar = A.avgRet > SEUIL2 ? 'var(--ruby)' : 'var(--amber)';
   return `<div class="kpi-row anim d1">
     <div class="kpi ${tc}">
       <div class="kpi-eyebrow">Ponctualité</div>
       <div class="kpi-val ${tc}">${A.taux!==null?A.taux+'%':'—'}</div>
-      <div class="kpi-sub">${A.onTime} à l'heure · ${A.late} en retard · tolérance ${seuil} min</div>
+      <div class="kpi-sub">${A.onTime} à l'heure · ${A.late} en retard · objectif ${OBJECTIF}%</div>
       <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${A.taux||0}%;background:${barCol}"></div></div>
     </div>
-    <div class="kpi ${A.avgRet>seuil?'red':A.avgRet>seuil/2?'yellow':'green'}">
+    <div class="kpi ${retardCls}">
       <div class="kpi-eyebrow">Retard moyen</div>
-      <div class="kpi-val ${A.avgRet>seuil?'red':A.avgRet>seuil/2?'yellow':'green'}">${A.avgRet}<span style="font-size:1.1rem;margin-left:3px">min</span></div>
-      <div class="kpi-sub">parmi les ${A.late} camion${A.late>1?'s':''} en retard · max ${A.maxRet} min</div>
-      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${Math.min(100,A.avgRet/120*100)}%;background:${A.avgRet>seuil?'var(--ruby)':'var(--amber)'}"></div></div>
+      <div class="kpi-val ${retardCls}">${A.avgRet}<span style="font-size:1.1rem;margin-left:3px">min</span></div>
+      <div class="kpi-sub">parmi les ${A.late} camion${A.late>1?'s':''} en retard · max ${A.maxRet} min · critique &gt;${SEUIL2}min</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${Math.min(100,A.avgRet/(SEUIL2*2)*100)}%;background:${retardBar}"></div></div>
     </div>
     <div class="kpi copper">
       <div class="kpi-eyebrow">Arrivées</div>
@@ -401,40 +532,41 @@ function buildKPIs(A,seuil){
 }
 
 // ── VUE JOURNÉE ───────────────────────────────────────────────────
-function buildDayPanels(data,seuil){
-  // Timeline
-  const bySlot={}; data.forEach(r=>{bySlot[r.slot_index]=r;});
-  const extras=Object.keys(bySlot).map(Number).filter(i=>i>=10).sort((a,b)=>a-b);
-  const all=[...SLOTS.map(s=>({...s,extra:false})),...extras.map(i=>({idx:i,h:bySlot[i]?.heure_planif||'—',lbl:'Extra',extra:true}))];
+function buildDayPanels(data) {
+  const bySlot = {};
+  data.forEach(r => { bySlot[r.slot_index] = r; });
+  const extras = Object.keys(bySlot).map(Number).filter(i=>i>=10).sort((a,b)=>a-b);
+  const all = [...SLOTS.map(s=>({...s,extra:false})), ...extras.map(i=>({idx:i,h:bySlot[i]?.heure_planif||'—',lbl:'Extra',extra:true}))];
 
-  let tlHtml='';
-  all.forEach(s=>{
-    const r=bySlot[s.idx]||{};
-    if((r.statut_ligne||'Actif')==='Annulé'){
-      tlHtml+=`<div class="tl-item" style="opacity:.35">
+  let tlHtml = '';
+  all.forEach(s => {
+    const r = bySlot[s.idx] || {};
+    if ((r.statut_ligne||'Actif')==='Annulé') {
+      tlHtml += `<div class="tl-item" style="opacity:.35">
         <div class="tl-dot" style="background:var(--text-faint)"></div>
         <div class="tl-h">${s.h}</div>
         <div class="tl-name">${s.lbl} <span style="font-size:.65rem;color:var(--text-faint)">ANNULÉ</span></div>
         <div class="tl-retard wait">—</div>
       </div>`; return;
     }
-    const d=diff(r.heure_planif||s.h,r.heure_reelle);
-    const c=cls(d,seuil);
-    const lbl=d===null?'En attente':d<=0?'✓ À l\'heure':'+'+d+' min';
-    const dest=r.destination?`<span class="tl-dest">${r.destination}</span>`:'';
-    tlHtml+=`<div class="tl-item">
+    const d  = diff(r.heure_planif||s.h, r.heure_reelle);
+    const c  = cls(d);
+    const lbl = d===null ? 'En attente' : d<=0 ? '✓ À l\'heure' : '+'+d+' min';
+    const dest = r.destination ? `<span class="tl-dest">${r.destination}</span>` : '';
+    tlHtml += `<div class="tl-item">
       <div class="tl-dot ${c}"></div>
       <div class="tl-h">${r.heure_planif||s.h}</div>
       <div class="tl-name">${s.lbl}${dest}</div>
       <div class="tl-retard ${c}">${lbl}</div>
     </div>`;
   });
-  if(!tlHtml) tlHtml=`<div class="empty"><div class="empty-ico">📭</div>Aucune donnée</div>`;
+  if (!tlHtml) tlHtml = `<div class="empty"><div class="empty-ico">📭</div>Aucune donnée</div>`;
 
   return `<div class="panels-row panels-2 anim d2">
     <div class="panel">
       <div class="ph"><div class="ph-eye">Détail journée</div>
-        <div class="ph-title">Timeline des arrivées</div></div>
+        <div class="ph-title">Timeline des arrivées</div>
+        <div class="ph-sub">Vert ≤${SEUIL1}min · Orange ≤${SEUIL2}min · Rouge &gt;${SEUIL2}min</div></div>
       <div class="tl-list">${tlHtml}</div>
     </div>
     <div class="panel">
@@ -447,118 +579,131 @@ function buildDayPanels(data,seuil){
 }
 
 // ── HEATMAP ───────────────────────────────────────────────────────
-function buildHeatmap(data,seuil){
-  const {start,end}=getRange();
-  const days=[]; let d=new Date(start+'T00:00:00'),ed=new Date(end+'T00:00:00');
-  while(d<=ed){days.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1);}
+function buildHeatmap(data) {
+  const { start, end } = getRange();
+  const days = [];
+  let d = new Date(start+'T00:00:00'), ed = new Date(end+'T00:00:00');
+  while (d<=ed) { days.push(d.toISOString().slice(0,10)); d.setDate(d.getDate()+1); }
 
-  // matrix[h][date] = {n, onTime}
-  const mat={}; HOURS.forEach(h=>{mat[h]={};days.forEach(dt=>{mat[h][dt]=null;});});
-  data.forEach(r=>{
-    if((r.statut_ligne||'Actif')==='Annulé') return;
-    const h=r.heure_planif; if(!HOURS.includes(h)) return;
-    if(!mat[h][r.date_jour]) mat[h][r.date_jour]={n:0,onTime:0};
-    const d=diff(r.heure_planif,r.heure_reelle); if(d===null) return;
+  const mat = {};
+  HOURS.forEach(h => { mat[h] = {}; days.forEach(dt => { mat[h][dt] = null; }); });
+  data.forEach(r => {
+    if ((r.statut_ligne||'Actif')==='Annulé') return;
+    const h = r.heure_planif;
+    if (!HOURS.includes(h)) return;
+    if (!mat[h][r.date_jour]) mat[h][r.date_jour] = { n:0, onTime:0 };
+    const d2 = diff(r.heure_planif, r.heure_reelle);
+    if (d2===null) return;
     mat[h][r.date_jour].n++;
-    if(d<=seuil) mat[h][r.date_jour].onTime++;
+    if (d2 <= SEUIL1) mat[h][r.date_jour].onTime++;
   });
 
-  function hmBg(cell){
-    if(!cell||cell.n===0) return 'rgba(255,255,255,.02)';
-    const t=Math.round(cell.onTime/cell.n*100);
-    if(t>=90)return'rgba(45,212,160,.38)'; if(t>=75)return'rgba(45,212,160,.2)';
-    if(t>=60)return'rgba(232,164,58,.28)'; if(t>=40)return'rgba(232,164,58,.45)';
-    return'rgba(224,85,85,.5)';
+  function hmBg(cell) {
+    if (!cell||cell.n===0) return 'rgba(255,255,255,.02)';
+    const t = Math.round(cell.onTime/cell.n*100);
+    if (t>=OBJECTIF)       return 'rgba(45,212,160,.38)';
+    if (t>=OBJECTIF*0.85)  return 'rgba(45,212,160,.2)';
+    if (t>=OBJECTIF*0.70)  return 'rgba(232,164,58,.28)';
+    if (t>=OBJECTIF*0.50)  return 'rgba(232,164,58,.45)';
+    return 'rgba(224,85,85,.5)';
   }
-  function hmTxt(cell){ if(!cell||cell.n===0)return''; return Math.round(cell.onTime/cell.n*100)+'%'; }
-  function hmTxtCol(cell){ if(!cell||cell.n===0)return'transparent'; return Math.round(cell.onTime/cell.n*100)>=55?'#0a0b0f':'#F0EAE0'; }
-  const fmtD=s=>new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'});
+  function hmTxt(cell) { if (!cell||cell.n===0) return ''; return Math.round(cell.onTime/cell.n*100)+'%'; }
+  function hmTxtCol(cell) { if (!cell||cell.n===0) return 'transparent'; return Math.round(cell.onTime/cell.n*100)>=55?'#0a0b0f':'#F0EAE0'; }
+  const fmtD = s => new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'});
 
-  const cols=days.length+1;
-  let g=`<div class="hm-scroll"><div class="hm-grid" style="grid-template-columns:48px ${days.map(()=>'1fr').join(' ')}">`;
-  g+=`<div class="hm-th"></div>`+days.map(dt=>`<div class="hm-th">${fmtD(dt)}</div>`).join('');
-  HOURS.forEach(h=>{
-    g+=`<div class="hm-h-lbl">${h}</div>`;
-    days.forEach(dt=>{
-      const cell=mat[h][dt];
-      const tip=cell&&cell.n>0?`${h} · ${fmtD(dt)} : ${Math.round(cell.onTime/cell.n*100)}% (${cell.onTime}/${cell.n} arrivés)`:'';
-      g+=`<div class="hm-cell" style="background:${hmBg(cell)};color:${hmTxtCol(cell)}" ${tip?`data-tip="${tip}"`:''}>${hmTxt(cell)}</div>`;
+  let g = `<div class="hm-scroll"><div class="hm-grid" style="grid-template-columns:48px ${days.map(()=>'1fr').join(' ')}">`;
+  g += `<div class="hm-th"></div>` + days.map(dt=>`<div class="hm-th">${fmtD(dt)}</div>`).join('');
+  HOURS.forEach(h => {
+    g += `<div class="hm-h-lbl">${h}</div>`;
+    days.forEach(dt => {
+      const cell = mat[h][dt];
+      const tip  = cell&&cell.n>0 ? `${h} · ${fmtD(dt)} : ${Math.round(cell.onTime/cell.n*100)}% (${cell.onTime}/${cell.n} arrivés)` : '';
+      g += `<div class="hm-cell" style="background:${hmBg(cell)};color:${hmTxtCol(cell)}" ${tip?`data-tip="${tip}"`:''}>${hmTxt(cell)}</div>`;
     });
   });
-  g+=`</div><div class="hm-legend"><span>Problématique</span><div class="hm-grad"></div><span>Excellent</span></div></div>`;
+  g += `</div><div class="hm-legend"><span>Problématique</span><div class="hm-grad"></div><span>Excellent</span></div></div>`;
 
   return `<div class="panels-row anim d2"><div class="panel panel-full">
     <div class="ph"><div class="ph-eye">Carte de chaleur</div>
       <div class="ph-title">Ponctualité par créneau et par jour</div>
-      <div class="ph-sub">Identifiez d'un coup d'œil les créneaux et journées à problèmes</div></div>
+      <div class="ph-sub">Objectif ${OBJECTIF}% · Tolérance ${SEUIL1}min acceptable / ${SEUIL2}min critique</div></div>
     ${g}
   </div></div>`;
 }
 
-// ── TENDANCE + DIST ROW ───────────────────────────────────────────
-function buildTrendRow(data,seuil){
+// ── TENDANCE ROW ─────────────────────────────────────────────────
+function buildTrendRow() {
   return `<div class="panels-row panels-2 anim d3">
     <div class="panel">
       <div class="ph"><div class="ph-eye">Évolution</div>
-        <div class="ph-title">Taux de ponctualité par jour</div></div>
+        <div class="ph-title">Taux de ponctualité par jour</div>
+        <div class="ph-sub">Ligne de référence à ${OBJECTIF}%</div></div>
       <div class="chart-box"><canvas id="chart-trend"></canvas></div>
     </div>
     <div class="panel">
       <div class="ph"><div class="ph-eye">Distribution</div>
         <div class="ph-title">Amplitude des retards</div>
-        <div class="ph-sub">Nombre de camions par tranche</div></div>
+        <div class="ph-sub">Vert ≤${SEUIL1}min · Orange ≤${SEUIL2}min · Rouge &gt;${SEUIL2}min</div></div>
       <div class="chart-box"><canvas id="chart-dist"></canvas></div>
     </div>
   </div>`;
 }
 
 // ── BOTTOM ROW ────────────────────────────────────────────────────
-function buildBottomRow(data,seuil){
+function buildBottomRow(data) {
   // Destinations
-  const dm={}; data.forEach(r=>{
-    if((r.statut_ligne||'Actif')==='Annulé') return;
-    const k=r.destination||'Non défini'; if(!dm[k]) dm[k]={on:0,late:0,n:0};
-    const d=diff(r.heure_planif,r.heure_reelle); if(d===null) return;
-    dm[k].n++; if(d<=seuil) dm[k].on++; else dm[k].late++;
+  const dm = {};
+  data.forEach(r => {
+    if ((r.statut_ligne||'Actif')==='Annulé') return;
+    const k = r.destination || 'Non défini';
+    if (!dm[k]) dm[k] = { on:0, late:0, n:0 };
+    const d2 = diff(r.heure_planif, r.heure_reelle);
+    if (d2===null) return;
+    dm[k].n++;
+    if (d2 <= SEUIL1) dm[k].on++; else dm[k].late++;
   });
-  const dests=Object.entries(dm).filter(([,v])=>v.n>0).sort((a,b)=>a[1].on/a[1].n-b[1].on/b[1].n);
+  const dests = Object.entries(dm).filter(([,v])=>v.n>0).sort((a,b)=>a[1].on/a[1].n - b[1].on/b[1].n);
 
-  let destHtml='';
-  if(!dests.length){destHtml=`<div class="empty"><div class="empty-ico">📭</div>Aucune donnée</div>`;}
-  else{
-    destHtml=`<div class="dest-list">`;
-    dests.forEach(([name,v])=>{
-      const t=Math.round(v.on/v.n*100);
-      const col=t>=85?'var(--emerald)':t>=65?'var(--amber)':'var(--ruby)';
-      destHtml+=`<div class="dest-row">
+  let destHtml = '';
+  if (!dests.length) { destHtml = `<div class="empty"><div class="empty-ico">📭</div>Aucune donnée</div>`; }
+  else {
+    destHtml = `<div class="dest-list">`;
+    dests.forEach(([name,v]) => {
+      const t = Math.round(v.on/v.n*100);
+      const col = t>=OBJECTIF ? 'var(--emerald)' : t>=OBJECTIF*0.8 ? 'var(--amber)' : 'var(--ruby)';
+      destHtml += `<div class="dest-row">
         <div class="dest-name">${name}</div>
         <div class="dest-track"><div class="dest-fill" style="width:${t}%;background:${col}">${t>18?t+'%':''}</div></div>
         <div class="dest-nums">${v.on}/${v.n}</div>
       </div>`;
     });
-    destHtml+=`</div>`;
+    destHtml += `</div>`;
   }
 
   // Pires créneaux
-  const sm={}; data.forEach(r=>{
-    if((r.statut_ligne||'Actif')==='Annulé') return;
-    const d=diff(r.heure_planif,r.heure_reelle); if(d===null||d<=seuil) return;
-    const k=r.heure_planif||'?'; if(!sm[k]) sm[k]=[];
-    sm[k].push(d);
+  const sm = {};
+  data.forEach(r => {
+    if ((r.statut_ligne||'Actif')==='Annulé') return;
+    const d2 = diff(r.heure_planif, r.heure_reelle);
+    if (d2===null || d2<=SEUIL1) return;
+    const k = r.heure_planif || '?';
+    if (!sm[k]) sm[k] = [];
+    sm[k].push(d2);
   });
-  const worst=Object.entries(sm).map(([h,arr])=>({
-    h,n:arr.length,avg:Math.round(arr.reduce((a,b)=>a+b,0)/arr.length),
-    max:Math.max(...arr)
+  const worst = Object.entries(sm).map(([h,arr]) => ({
+    h, n:arr.length,
+    avg: Math.round(arr.reduce((a,b)=>a+b,0)/arr.length),
+    max: Math.max(...arr)
   })).sort((a,b)=>b.avg-a.avg).slice(0,5);
 
-  let worstHtml='';
-  if(!worst.length){worstHtml=`<div class="empty"><div class="empty-ico">✅</div>Aucun créneau problématique</div>`;}
-  else{
-    worstHtml=`<div class="worst-list">`;
-    worst.forEach((s,i)=>{
-      const c=s.avg>seuil*1.5?'bad':'warn';
-      const col=c==='bad'?'var(--ruby)':'var(--amber)';
-      worstHtml+=`<div class="worst-item ${c}">
+  let worstHtml = '';
+  if (!worst.length) { worstHtml = `<div class="empty"><div class="empty-ico">✅</div>Aucun créneau problématique</div>`; }
+  else {
+    worstHtml = `<div class="worst-list">`;
+    worst.forEach((s,i) => {
+      const c   = s.avg > SEUIL2 ? 'bad' : 'warn';
+      const col = c==='bad' ? 'var(--ruby)' : 'var(--amber)';
+      worstHtml += `<div class="worst-item ${c}">
         <div class="worst-rank">${i+1}</div>
         <div class="worst-info">
           <div class="worst-h">Créneau ${s.h}</div>
@@ -567,79 +712,100 @@ function buildBottomRow(data,seuil){
         <div class="worst-avg" style="color:${col}">+${s.avg} min</div>
       </div>`;
     });
-    worstHtml+=`</div>`;
+    worstHtml += `</div>`;
   }
 
   return `<div class="panels-row panels-2 anim d4">
     <div class="panel">
       <div class="ph"><div class="ph-eye">Par destination</div>
         <div class="ph-title">Ponctualité selon la destination</div>
-        <div class="ph-sub">% des camions arrivés dans la tolérance impartie</div></div>
+        <div class="ph-sub">% des camions arrivés dans la tolérance de ${SEUIL1} min</div></div>
       ${destHtml}
     </div>
     <div class="panel">
       <div class="ph"><div class="ph-eye">Points chauds</div>
         <div class="ph-title">Créneaux les plus problématiques</div>
-        <div class="ph-sub">Classés par retard moyen décroissant</div></div>
+        <div class="ph-sub">Orange &gt;${SEUIL1}min · Rouge &gt;${SEUIL2}min</div></div>
       ${worstHtml}
     </div>
   </div>`;
 }
 
 // ── CHART DIST ────────────────────────────────────────────────────
-function drawDist(retards,seuil){
-  const el=document.getElementById('chart-dist'); if(!el) return;
-  if(chartDist){chartDist.destroy();chartDist=null;}
-  if(!retards.length){
-    el.parentElement.innerHTML=`<div class="empty" style="padding:50px 0"><div class="empty-ico">✅</div>Aucun retard</div>`;
+function drawDist(retards) {
+  const el = document.getElementById('chart-dist');
+  if (!el) return;
+  if (chartDist) { chartDist.destroy(); chartDist = null; }
+  if (!retards.length) {
+    el.parentElement.innerHTML = `<div class="empty" style="padding:50px 0"><div class="empty-ico">✅</div>Aucun retard</div>`;
     return;
   }
-  const mx=Math.max(...retards);
-  const bs=Math.max(15,Math.ceil(mx/8/5)*5);
-  const buckets={};
-  retards.forEach(r=>{const b=Math.floor(r/bs)*bs;const k=`${b}–${b+bs}`;buckets[k]=(buckets[k]||0)+1;});
-  const labels=Object.keys(buckets),vals=Object.values(buckets);
-  const cols=labels.map(l=>{const v=parseInt(l);return v>=seuil*2?'rgba(224,85,85,.72)':v>=seuil?'rgba(232,164,58,.72)':'rgba(45,212,160,.72)';});
-  chartDist=new Chart(el,{type:'bar',data:{labels,datasets:[{label:'Camions',data:vals,backgroundColor:cols,borderRadius:4,borderSkipped:false}]},
+  const mx = Math.max(...retards);
+  const bs = Math.max(15, Math.ceil(mx/8/5)*5);
+  const buckets = {};
+  retards.forEach(r => { const b=Math.floor(r/bs)*bs; const k=`${b}–${b+bs}`; buckets[k]=(buckets[k]||0)+1; });
+  const labels = Object.keys(buckets), vals = Object.values(buckets);
+  const cols = labels.map(l => {
+    const v = parseInt(l);
+    return v > SEUIL2 ? 'rgba(224,85,85,.72)' : v > SEUIL1 ? 'rgba(232,164,58,.72)' : 'rgba(45,212,160,.72)';
+  });
+  chartDist = new Chart(el, {
+    type:'bar',
+    data:{labels, datasets:[{label:'Camions',data:vals,backgroundColor:cols,borderRadius:4,borderSkipped:false}]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y} camion${c.parsed.y>1?'s':''}`}}},
-      scales:{x:{ticks:{color:'#7A82A0',font:{size:8.5}},grid:{color:'rgba(255,255,255,.03)'}},
-              y:{beginAtZero:true,ticks:{color:'#7A82A0',font:{size:8.5},stepSize:1},grid:{color:'rgba(255,255,255,.05)'}}}}});
-}
-
-// ── CHART TREND ───────────────────────────────────────────────────
-function drawTrend(data,seuil){
-  const el=document.getElementById('chart-trend'); if(!el) return;
-  if(chartTrend){chartTrend.destroy();chartTrend=null;}
-  const {start,end}=getRange();
-  const days=[]; let d=new Date(start+'T00:00:00'),ed=new Date(end+'T00:00:00');
-  while(d<=ed){days.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1);}
-  const labels=days.map(s=>new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'}));
-  const vals=days.map(dt=>{const A=analyze(data.filter(r=>r.date_jour===dt),seuil);return A.taux;});
-  const ptCols=vals.map(v=>v===null?'rgba(0,0,0,0)':v>=85?'#2DD4A0':v>=65?'#E8A43A':'#E05555');
-  chartTrend=new Chart(el,{type:'line',
-    data:{labels,datasets:[
-      {label:'Taux %',data:vals,borderColor:'rgba(200,132,58,.85)',backgroundColor:'rgba(200,132,58,.07)',fill:true,tension:.3,
-       pointBackgroundColor:ptCols,pointRadius:5,pointBorderColor:'transparent',spanGaps:true,borderWidth:2},
-      {label:'Seuil 80%',data:days.map(()=>80),borderColor:'rgba(45,212,160,.25)',borderDash:[5,4],borderWidth:1,pointRadius:0,fill:false}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+(c.parsed.y!==null?c.parsed.y+'%':'—')}}},
-      scales:{x:{ticks:{color:'#7A82A0',font:{size:8.5},maxRotation:45},grid:{color:'rgba(255,255,255,.03)'}},
-              y:{min:0,max:100,ticks:{color:'#7A82A0',font:{size:8.5},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,.05)'}}}}});
-}
-
-// ── TOOLTIP ───────────────────────────────────────────────────────
-function setupTip(){
-  const tip=document.getElementById('tip');
-  document.querySelectorAll('[data-tip]').forEach(el=>{
-    el.addEventListener('mousemove',e=>{tip.textContent=el.dataset.tip;tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-32)+'px';});
-    el.addEventListener('mouseleave',()=>{tip.style.display='none';});
+      scales:{
+        x:{ticks:{color:'#7A82A0',font:{size:8.5}},grid:{color:'rgba(255,255,255,.03)'}},
+        y:{beginAtZero:true,ticks:{color:'#7A82A0',font:{size:8.5},stepSize:1},grid:{color:'rgba(255,255,255,.05)'}}
+      }}
   });
 }
 
-window.addEventListener('load',()=>loadAll());
+// ── CHART TREND ───────────────────────────────────────────────────
+function drawTrend(data) {
+  const el = document.getElementById('chart-trend');
+  if (!el) return;
+  if (chartTrend) { chartTrend.destroy(); chartTrend = null; }
+  const { start, end } = getRange();
+  const days = [];
+  let d = new Date(start+'T00:00:00'), ed = new Date(end+'T00:00:00');
+  while (d<=ed) { days.push(d.toISOString().slice(0,10)); d.setDate(d.getDate()+1); }
+  const labels = days.map(s => new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'}));
+  const vals   = days.map(dt => { const A = analyze(data.filter(r=>r.date_jour===dt)); return A.taux; });
+  const ptCols = vals.map(v => v===null?'rgba(0,0,0,0)':v>=OBJECTIF?'#2DD4A0':v>=OBJECTIF*0.8?'#E8A43A':'#E05555');
+  chartTrend = new Chart(el, {
+    type:'line',
+    data:{labels, datasets:[
+      {label:'Taux %', data:vals, borderColor:'rgba(200,132,58,.85)', backgroundColor:'rgba(200,132,58,.07)',
+       fill:true, tension:.3, pointBackgroundColor:ptCols, pointRadius:5, pointBorderColor:'transparent',
+       spanGaps:true, borderWidth:2},
+      {label:`Objectif ${OBJECTIF}%`, data:days.map(()=>OBJECTIF),
+       borderColor:'rgba(45,212,160,.3)', borderDash:[5,4], borderWidth:1.5, pointRadius:0, fill:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+(c.parsed.y!==null?c.parsed.y+'%':'—')}}},
+      scales:{
+        x:{ticks:{color:'#7A82A0',font:{size:8.5},maxRotation:45},grid:{color:'rgba(255,255,255,.03)'}},
+        y:{min:0,max:100,ticks:{color:'#7A82A0',font:{size:8.5},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,.05)'}}
+      }}
+  });
+}
 
+// ── TOOLTIP ───────────────────────────────────────────────────────
+function setupTip() {
+  const tip = document.getElementById('tip');
+  document.querySelectorAll('[data-tip]').forEach(el => {
+    el.addEventListener('mousemove', e => {
+      tip.textContent = el.dataset.tip;
+      tip.style.display = 'block';
+      tip.style.left = (e.clientX+14)+'px';
+      tip.style.top  = (e.clientY-32)+'px';
+    });
+    el.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+  });
+}
+
+window.addEventListener('load', () => loadAll());
 </script>
 </body>
 </html>
