@@ -323,13 +323,29 @@ let SEUIL1   = 30;   // tolérance acceptable (min)
 let SEUIL2   = 60;   // tolérance critique (min)
 let OBJECTIF = 80;   // objectif ponctualité (%)
 
+let paramsLoaded = false;
+
 async function loadParams() {
+  // localStorage en premier : instantané, persiste entre rechargements
+  const local = localStorage.getItem('stats_params');
+  if (local) {
+    try {
+      const p = JSON.parse(local);
+      SEUIL1   = p.seuil1   || 30;
+      SEUIL2   = p.seuil2   || 60;
+      OBJECTIF = p.objectif || 80;
+    } catch(e) {}
+  }
+  // Supabase une seule fois par session (source de vérité)
+  if (paramsLoaded) return;
+  paramsLoaded = true;
   try {
-    const { data } = await sb.from('stats_parametres').select('*').eq('id', 1).single();
-    if (data) {
+    const { data, error } = await sb.from('stats_parametres').select('*').eq('id', 1).single();
+    if (!error && data) {
       SEUIL1   = data.seuil1   || 30;
       SEUIL2   = data.seuil2   || 60;
       OBJECTIF = data.objectif || 80;
+      localStorage.setItem('stats_params', JSON.stringify({ seuil1: SEUIL1, seuil2: SEUIL2, objectif: OBJECTIF }));
     }
   } catch(e) {}
 }
@@ -355,6 +371,7 @@ async function saveParams() {
       updated_at: new Date().toISOString()
     });
     SEUIL1 = s1; SEUIL2 = s2; OBJECTIF = ob;
+    localStorage.setItem('stats_params', JSON.stringify({ seuil1: s1, seuil2: s2, objectif: ob }));
     closeParams();
     applyRender();
   } catch(e) {}
