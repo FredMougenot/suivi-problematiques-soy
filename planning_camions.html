@@ -343,14 +343,56 @@ function changeDay(delta){
 function goToday(){ curDate=todayStr(); refreshDateUI(); load(); }
 
 // ── LOAD ──────────────────────────────────────────────────────────
+let isViewer = false;
+
 async function initApp(){
   sb = supabase.createClient(SB_URL, SB_KEY);
   try{
     const { data:{ session } } = await sb.auth.getSession();
     if(!session){ window.location.href='index.html'; return; }
+    // Déterminer le rôle
+    const email = session.user.email;
+    const {data:adm} = await sb.from('admins').select('email').eq('email',email).maybeSingle();
+    if(!adm){
+      const {data:vwr} = await sb.from('viewers').select('email').eq('email',email).maybeSingle();
+      isViewer = !!vwr;
+    }
     refreshDateUI();
     await load();
+    if(isViewer) applyReadOnly();
   } catch(e){ window.location.href='index.html'; }
+}
+
+function applyReadOnly(){
+  // Masquer les boutons d'action
+  const btnAdd  = document.querySelector('.btn-add');
+  const btnSave = document.getElementById('btn-save-all');
+  if(btnAdd)  btnAdd.style.display  = 'none';
+  if(btnSave) btnSave.style.display = 'none';
+  // Désactiver tous les inputs et selects du tableau
+  document.querySelectorAll('#tbody input, #tbody select').forEach(el => {
+    el.disabled = true;
+    el.style.pointerEvents = 'none';
+    el.style.opacity = '0.7';
+  });
+  // Masquer les checkboxes GH
+  document.querySelectorAll('#tbody .chk').forEach(el => {
+    el.style.pointerEvents = 'none';
+    el.style.opacity = '0.7';
+  });
+  // Masquer les boutons ✕ suppression camions extra
+  document.querySelectorAll('#tbody button').forEach(btn => {
+    btn.style.display = 'none';
+  });
+  // Bandeau lecture seule
+  const existing = document.getElementById('readonly-bar');
+  if(existing) return;
+  const bar = document.createElement('div');
+  bar.id = 'readonly-bar';
+  bar.style.cssText = 'background:rgba(184,115,51,.12);border:1px solid rgba(184,115,51,.3);border-radius:8px;padding:8px 16px;margin:0 0 12px;font-size:.8rem;color:var(--copper);text-align:center;font-weight:600;';
+  bar.textContent = '👁  Mode lecture seule — consultation uniquement';
+  const wrap = document.querySelector('.tbl-outer') || document.querySelector('main');
+  if(wrap) wrap.parentNode.insertBefore(bar, wrap);
 }
 
 function waitForSupabaseAndInit(){
@@ -441,6 +483,7 @@ function render(){
   });
   document.getElementById('tbody').innerHTML=html;
   updateStats();
+  if(isViewer) applyReadOnly();
 }
 
 function buildRow(idx, heure, lbl, isExtra, lineNum){
