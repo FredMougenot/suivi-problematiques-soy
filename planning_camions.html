@@ -260,6 +260,14 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
     Radar Ponctualité
   </a>
+  <button onclick="exportPDF()"
+    style="display:inline-flex;align-items:center;gap:8px;padding:11px 24px;
+           border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--emerald);
+           color:var(--emerald);font-size:.86rem;font-weight:700;cursor:pointer;
+           transition:all .15s;" title="Exporter la planification en PDF">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    Exporter PDF
+  </button>
 </div>
 
 <script>
@@ -690,13 +698,212 @@ function timeDiffMin(planned, real){
 
 
 
+
+
+// ── EXPORT PDF ─────────────────────────────────────────────────────
+function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+  // ── Couleurs palette
+  const C = {
+    void:    [6,  7,  11],
+    deep:    [11, 13, 19],
+    raised:  [21, 24, 31],
+    float:   [26, 30, 42],
+    copper:  [200,132,58],
+    copperL: [224,168,112],
+    text:    [240,234,224],
+    muted:   [122,130,160],
+    faint:   [44, 51, 80],
+    emerald: [45, 212,160],
+    ruby:    [224,85, 85],
+    amber:   [232,164,58],
+    white:   [255,255,255],
+  };
+
+  const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
+
+  // ── Fond page
+  doc.setFillColor(...C.void);
+  doc.rect(0, 0, W, H, 'F');
+
+  // ── Bande titre
+  doc.setFillColor(...C.raised);
+  doc.rect(0, 0, W, 22, 'F');
+  // Ligne cuivrée sous le titre
+  doc.setDrawColor(...C.copper);
+  doc.setLineWidth(0.6);
+  doc.line(0, 22, W, 22);
+
+  // ── Titre
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.setTextColor(...C.copperL);
+  doc.text('Planification Camions', 14, 10);
+
+  // ── Sous-titre date
+  const dateObj = new Date(curDate + 'T00:00:00');
+  const dateLbl = dateObj.toLocaleDateString('fr-CA', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(...C.muted);
+  doc.text(dateLbl.charAt(0).toUpperCase() + dateLbl.slice(1), 14, 17);
+
+  // ── Timestamp export
+  const now = new Date().toLocaleString('fr-CA', { hour:'2-digit', minute:'2-digit' });
+  doc.setFontSize(7);
+  doc.text('Exporté le ' + new Date().toLocaleDateString('fr-CA') + ' à ' + now, W - 14, 17, { align: 'right' });
+
+  // ── Construire les données du tableau
+  const allIdx = [...new Set([...SLOTS.map(s => s.idx), ...Object.keys(rows).map(Number)])].sort((a,b)=>a-b);
+
+  const tableData = [];
+  let lineNum = 1;
+
+  allIdx.forEach(idx => {
+    const slot = SLOTS.find(s => s.idx === idx);
+    const r    = rows[idx] || {};
+    const sl   = r.statut_ligne || 'Actif';
+    const h    = r.heure_planif || (slot ? slot.h : '—');
+    const lbl  = slot ? slot.lbl : ('Extra ' + h);
+
+    // Calculer retard si applicable
+    let retardStr = '';
+    if (r.heure_reelle && r.heure_planif) {
+      const d = timeDiffMin(r.heure_planif, r.heure_reelle);
+      retardStr = d <= 0 ? '✓' : '+' + d + ' min';
+    }
+
+    tableData.push({
+      num:       lineNum++,
+      heure:     h,
+      slot:      lbl,
+      statut:    sl,
+      type:      r.type_camion || '—',
+      desc:      r.description || '—',
+      dest:      r.destination || '—',
+      arrivee:   r.statut      || 'ATTENTE',
+      charg:     r.chargement  || 'ATTENTE',
+      hReelle:   r.heure_reelle|| '—',
+      retard:    retardStr,
+      gh:        r.short_gh ? 'Oui' : '',
+      isAnnule:  sl === 'Annulé',
+      isFait:    r.statut === 'FAIT',
+    });
+  });
+
+  // ── Tableau autoTable
+  doc.autoTable({
+    startY: 27,
+    margin: { left: 6, right: 6 },
+    tableWidth: 'auto',
+
+    head: [[
+      '#', 'Heure', 'Créneau', 'Ligne', 'Type',
+      'Description', 'Destination', 'Arrivée', 'Chargement', 'H. Réelle', 'Retard', 'GH'
+    ]],
+
+    body: tableData.map(r => [
+      r.num, r.heure, r.slot, r.statut, r.type,
+      r.desc, r.dest, r.arrivee, r.charg, r.hReelle, r.retard, r.gh
+    ]),
+
+    // Style global
+    styles: {
+      font: 'helvetica',
+      fontSize: 7.5,
+      cellPadding: { top: 3, bottom: 3, left: 3, right: 3 },
+      textColor: C.text,
+      lineColor: C.faint,
+      lineWidth: 0.2,
+      fillColor: C.deep,
+      overflow: 'linebreak',
+      minCellHeight: 9,
+    },
+
+    // Style en-tête
+    headStyles: {
+      fillColor: C.float,
+      textColor: C.copperL,
+      fontStyle: 'bold',
+      fontSize: 7,
+      lineColor: C.copper,
+      lineWidth: { bottom: 0.5 },
+    },
+
+    // Style lignes alternées
+    alternateRowStyles: {
+      fillColor: [15, 17, 26],
+    },
+
+    // Largeurs des colonnes
+    columnStyles: {
+      0:  { cellWidth: 8,  halign: 'center' },  // #
+      1:  { cellWidth: 15, halign: 'center', textColor: C.copperL },  // Heure
+      2:  { cellWidth: 28 },  // Créneau
+      3:  { cellWidth: 16, halign: 'center' },  // Ligne
+      4:  { cellWidth: 18, halign: 'center' },  // Type
+      5:  { cellWidth: 38 },  // Description
+      6:  { cellWidth: 24 },  // Destination
+      7:  { cellWidth: 18, halign: 'center' },  // Arrivée
+      8:  { cellWidth: 26, halign: 'center' },  // Chargement
+      9:  { cellWidth: 16, halign: 'center' },  // H. Réelle
+      10: { cellWidth: 16, halign: 'center' },  // Retard
+      11: { cellWidth: 10, halign: 'center' },  // GH
+    },
+
+    // Couleurs par ligne selon statut
+    willDrawCell: function(data) {
+      if (data.section !== 'body') return;
+      const r = tableData[data.row.index];
+      if (!r) return;
+
+      if (r.isAnnule) {
+        data.cell.styles.textColor = C.faint;
+        data.cell.styles.fillColor = C.void;
+      } else if (r.isFait && data.column.index === 7) {
+        data.cell.styles.textColor = C.emerald;
+      }
+
+      // Colonne retard colorée
+      if (data.column.index === 10 && data.cell.raw) {
+        const txt = String(data.cell.raw);
+        if (txt.startsWith('+')) {
+          const min = parseInt(txt);
+          data.cell.styles.textColor = min > 60 ? C.ruby : C.amber;
+        } else if (txt === '✓') {
+          data.cell.styles.textColor = C.emerald;
+        }
+      }
+    },
+  });
+
+  // ── Pied de page
+  const finalY = doc.lastAutoTable.finalY + 6;
+  if (finalY < H - 10) {
+    doc.setFontSize(6.5);
+    doc.setTextColor(...C.faint);
+    doc.text('SOY — Planification Camions', 14, finalY);
+    doc.text('Page 1 / 1', W - 14, finalY, { align: 'right' });
+  }
+
+  // ── Téléchargement
+  const fname = 'planification_' + curDate + '.pdf';
+  doc.save(fname);
+}
 </script>
 <!-- ═══════════════════════════════════════════════════════════TION BILAN                                              -->
 <!-- ════════════════════════════════════════════════════════════ -->
 
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 
 <div class="overlay" id="modal">
   <div class="modal">
