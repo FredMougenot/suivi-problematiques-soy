@@ -1650,6 +1650,55 @@ async function cloturerProb(id){
 }
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 const pageTitles={dashboard:'Tableau de bord',problematiques:'Registre des problematiques',nouvelle:'Soumettre une problematique',admin:'Administration',profil:'Mon profil'};
+function loadProfilPage(){
+  const meta  = currentUser?.user_metadata || {};
+  const email = currentUser?.email || '';
+  const prenom = meta.prenom || '';
+  const nom    = meta.nom    || '';
+  const poste  = meta.poste  || '';
+  const dn = [prenom, nom].filter(Boolean).join(' ') || email.split('@')[0];
+
+  // Carte identité
+  const pav = document.getElementById('pav');
+  const pdn = document.getElementById('pdn');
+  const pem = document.getElementById('pem');
+  const prolbadge = document.getElementById('prolbadge');
+  const prolrole  = document.getElementById('prolrole');
+  const prolsince = document.getElementById('prolsince');
+
+  if(pav) pav.textContent = dn.substring(0,2).toUpperCase();
+  if(pdn) pdn.textContent = dn;
+  if(pem) pem.textContent = email;
+  if(prolbadge) prolbadge.textContent = isAdmin ? 'Administrateur' : 'Utilisateur';
+  if(prolrole)  prolrole.textContent  = isAdmin ? 'Administrateur' : 'Utilisateur';
+  if(prolsince){
+    const since = currentUser?.created_at
+      ? new Date(currentUser.created_at).toLocaleDateString('fr-CA',{day:'numeric',month:'long',year:'numeric'})
+      : '—';
+    prolsince.textContent = since;
+  }
+
+  // Formulaire informations personnelles
+  const pPrenom = document.getElementById('p-prenom');
+  const pNom    = document.getElementById('p-nom');
+  const pPoste  = document.getElementById('p-poste');
+  const pEmail  = document.getElementById('p-email');
+  if(pPrenom) pPrenom.value = prenom;
+  if(pNom)    pNom.value    = nom;
+  if(pPoste)  pPoste.value  = poste;
+  if(pEmail)  pEmail.value  = email;
+
+  // Réinitialiser les champs mot de passe
+  ['p-pwd0','p-pwd1','p-pwd2'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  const pwdBar = document.getElementById('p-pwd-bar');
+  const pwdLbl = document.getElementById('p-pwd-lbl');
+  if(pwdBar) pwdBar.style.width = '0%';
+  if(pwdLbl) pwdLbl.textContent = 'Entrez un mot de passe';
+}
+
 function showPage(name){
   if(name==='profil')loadProfilPage();
   // Réinitialiser les filtres à chaque ouverture de la page problématiques
