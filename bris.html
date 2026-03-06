@@ -237,7 +237,15 @@ function changeDay(d){ const dt=new Date(curDate+'T00:00:00'); dt.setDate(dt.get
 function goToday(){ curDate=todayStr(); updateDateUI(); load(); }
 
 // ── LOAD ────────────────────────────────────────────────────
-window.addEventListener('load',()=>{ updateDateUI(); load(); });
+async function init(){
+  try{
+    const { data:{ session } } = await sb.auth.getSession();
+    if(!session){ window.location.href='index.html'; return; }
+    updateDateUI();
+    await load();
+  } catch(e){ window.location.href='index.html'; }
+}
+window.addEventListener('load', init);
 
 async function load(){
   document.getElementById('spinner').style.display='flex';

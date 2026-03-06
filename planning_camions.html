@@ -343,18 +343,14 @@ function changeDay(delta){
 function goToday(){ curDate=todayStr(); refreshDateUI(); load(); }
 
 // ── LOAD ──────────────────────────────────────────────────────────
-function initApp(){
+async function initApp(){
   sb = supabase.createClient(SB_URL, SB_KEY);
-  refreshDateUI();
-  load();
-  setTimeout(()=>{
-    const sp = document.getElementById('spinner');
-    if(sp && sp.style.display !== 'none'){
-      sp.style.display = 'none';
-      const tbl = document.getElementById('tbl');
-      if(tbl) tbl.style.display = 'block';
-    }
-  }, 8000);
+  try{
+    const { data:{ session } } = await sb.auth.getSession();
+    if(!session){ window.location.href='index.html'; return; }
+    refreshDateUI();
+    await load();
+  } catch(e){ window.location.href='index.html'; }
 }
 
 function waitForSupabaseAndInit(){

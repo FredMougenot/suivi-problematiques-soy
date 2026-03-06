@@ -223,12 +223,18 @@ async function load(){
   }
 }
 
-window.addEventListener('load',()=>{
-  updateDateUI(); loadProbs();
-  sb.from('piliers_criteres_lignes').select('intitule').eq('pilier','Motivation').eq('row_index',0).single()
-    .then(({data})=>{ if(data&&data.intitule) document.getElementById('page-title').textContent=data.intitule; })
-    .catch(()=>{});
-});
+async function init(){
+  try{
+    const { data:{ session } } = await sb.auth.getSession();
+    if(!session){ window.location.href='index.html'; return; }
+    updateDateUI();
+    await loadProbs();
+    sb.from('piliers_criteres_lignes').select('intitule').eq('pilier','Motivation').eq('row_index',0).single()
+      .then(({data})=>{ if(data&&data.intitule) document.getElementById('page-title').textContent=data.intitule; })
+      .catch(()=>{});
+  } catch(e){ window.location.href='index.html'; }
+}
+window.addEventListener('load', init);;
 
 // ── Registre problématiques ─────────────────────────────────────
 let allProbs = [];

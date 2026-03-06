@@ -178,7 +178,14 @@ function toast(msg, type='info'){
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // ── CHARGEMENT ────────────────────────────────────────────────────
-window.addEventListener('load', load);
+async function init(){
+  try{
+    const { data:{ session } } = await sb.auth.getSession();
+    if(!session){ window.location.href='index.html'; return; }
+    await load();
+  } catch(e){ window.location.href='index.html'; }
+}
+window.addEventListener('load', init);
 
 async function load(){
   PILIERS.forEach(p=>{ rows[p]=[]; nextIdx[p]=0; });

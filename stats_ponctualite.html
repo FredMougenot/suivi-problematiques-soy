@@ -838,7 +838,14 @@ function setupTip() {
   });
 }
 
-window.addEventListener('load', () => loadAll());
+async function init() {
+  try {
+    const { data:{ session } } = await sb.auth.getSession();
+    if (!session) { window.location.href = 'index.html'; return; }
+    await loadAll();
+  } catch(e) { window.location.href = 'index.html'; }
+}
+window.addEventListener('load', init);
 </script>
 </body>
 </html>
