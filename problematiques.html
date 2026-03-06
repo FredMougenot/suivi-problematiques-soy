@@ -866,7 +866,7 @@ function filterTable() {
   const stat        = document.getElementById('filter-statut')?.value  || '';
   const prio        = document.getElementById('filter-priorite')?.value || '';
   const showCloture = document.getElementById('show-cloture')?.checked || false;
-  const CLOTUREES   = ['Résolu', 'Clôturé', 'Annulé'];
+  const MASQUEES    = ['Clôturé', 'Annulé'];  // seuls ces statuts sont masqués par défaut
   try {
     localStorage.setItem('soy_filter_pilier', pilier);
     localStorage.setItem('soy_filter_statut', stat);
@@ -876,12 +876,11 @@ function filterTable() {
   renderTable(allProblems.filter(p => {
     // Créée avant ou le jour sélectionné
     if (localDate(p.created_at) > curDate) return false;
-    // Résolue/clôturée/annulée : inclure seulement si date_resolue est après curDate
-    // ou si date_resolue est vide (pas encore résolue)
+    // Clôturée/annulée avec date_resolue passée : masquer
     const resolue = p.date_resolue ? localDate(p.date_resolue) : null;
-    if (resolue && resolue <= curDate && CLOTUREES.includes(p.statut)) return false;
-    // Case "Afficher les clôturées" : si décochée, masquer les clôturées actives
-    if (!showCloture && CLOTUREES.includes(p.statut)) return false;
+    if (resolue && resolue <= curDate && MASQUEES.includes(p.statut)) return false;
+    // Case "Afficher les clôturées" : si décochée, masquer Clôturé et Annulé seulement
+    if (!showCloture && MASQUEES.includes(p.statut)) return false;
     // Filtres texte / pilier / statut / priorité
     if (q      && !(p.intitule||'').toLowerCase().includes(q)
                && !(p.description||'').toLowerCase().includes(q)) return false;

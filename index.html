@@ -1504,7 +1504,7 @@ function filterTable(){
   const stat        = document.getElementById('filter-statut').value;
   const prio        = document.getElementById('filter-priorite').value;
   const showCloture = document.getElementById('show-cloture')?.checked || false;
-  const CLOTUREES   = ['Résolu','Clôturé','Annulé'];
+  const MASQUEES    = ['Clôturé','Annulé'];  // Résolu reste visible par défaut
   try{
     localStorage.setItem('soy_filter_pilier', pilier);
     localStorage.setItem('soy_filter_statut', stat);
@@ -1512,7 +1512,7 @@ function filterTable(){
     localStorage.setItem('soy_filter_q', q);
   }catch(e){}
   renderTable(allProblems.filter(p=>{
-    if(!showCloture && CLOTUREES.includes(p.statut)) return false;
+    if(!showCloture && MASQUEES.includes(p.statut)) return false;
     if(q && !(p.intitule||'').toLowerCase().includes(q) && !(p.description||'').toLowerCase().includes(q)) return false;
     if(pilier && p.pilier !== pilier) return false;
     if(stat   && p.statut !== stat)   return false;
@@ -2029,7 +2029,7 @@ function renderCmProbs(){
   const pilier = critereActif;
   if(!pilier) return;
   const showCloture = document.getElementById('cm-show-cloture').checked;
-  const CLOTUREES = ['Clôturé','Résolu','Annulé'];
+  const CLOTUREES = ['Clôturé','Annulé'];  // Résolu exclu : affiché dans les graphiques
   const all   = allProblems.filter(p => p.pilier === pilier);
   const shown = showCloture ? all : all.filter(p => !CLOTUREES.includes(p.statut));
 
