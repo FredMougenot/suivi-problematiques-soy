@@ -201,7 +201,19 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
       <div class="tb-title">Planification Camions</div>
     </div>
   </div>
-  <div class="tb-right"></div>
+  <div class="tb-right">
+    <button id="btn-viewer-logout" onclick="viewerLogout()"
+      style="display:none;align-items:center;gap:7px;padding:7px 14px;
+             border-radius:var(--r-md);background:transparent;
+             border:1px solid rgba(224,85,85,.35);color:var(--ruby);
+             font-size:.82rem;font-weight:600;font-family:'Outfit',sans-serif;
+             cursor:pointer;transition:all .15s;"
+      onmouseover="this.style.background='rgba(224,85,85,.10)';this.style.borderColor='var(--ruby)'"
+      onmouseout="this.style.background='transparent';this.style.borderColor='rgba(224,85,85,.35)'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Déconnexion
+    </button>
+  </div>
 </header>
 
 <!-- DATE NAV -->
@@ -387,6 +399,9 @@ function applyReadOnly(){
   // Masquer le bouton Radar Ponctualité
   const btnRadar = document.getElementById('btn-radar');
   if(btnRadar) btnRadar.style.display = 'none';
+  // Afficher le bouton déconnexion topbar
+  const btnLogout = document.getElementById('btn-viewer-logout');
+  if(btnLogout) btnLogout.style.display = 'inline-flex';
   // Bandeau lecture seule
   const existing = document.getElementById('readonly-bar');
   if(existing) return;
@@ -396,6 +411,11 @@ function applyReadOnly(){
   bar.textContent = '👁  Mode lecture seule — consultation uniquement';
   const wrap = document.querySelector('.tbl-outer') || document.querySelector('main');
   if(wrap) wrap.parentNode.insertBefore(bar, wrap);
+}
+
+async function viewerLogout(){
+  try{ await sb.auth.signOut(); }catch(e){}
+  window.location.href = 'index.html';
 }
 
 function waitForSupabaseAndInit(){
