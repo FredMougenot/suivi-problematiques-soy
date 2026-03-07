@@ -527,150 +527,6 @@ async function load(){
 
 // ── RENDER ─────────────────────────────────────────────────────────
 function render(){
-  // Appliquer les valeurs par défaut des slots fixes si pas encore de données
-  // Déterminer si la date affichée est un samedi (6) ou dimanche (0)
-  const _dow = new Date(curDate+'T00:00:00').getDay();
-  const _isWeekend = _dow===0 || _dow===6;
-  const _wkAnnule  = [0,1,7,8,9];   // slots annulés le weekend
-  const _wkDescIdx = 2;              // 07h30 → Stock palette le weekend
-
-  // Pré-passe : appliquer d'abord les annulations weekend pour connaître
-  // les vrais statuts avant de chercher le 1er Actif
-  const _slotsTries = [...SLOTS].sort((a,b)=> a.h<b.h?-1:a.h>b.h?1:a.idx-b.idx);
-  // Lire les valeurs de statut_ligne depuis _params (#1=actif, #2=inactif, #3=annulé)
-  const _slParams = _params['statut_ligne'] || [];
-  const _VAL_ACTIF   = _slParams[0] ? _slParams[0].valeur : 'Actif';
-  const _VAL_INACTIF = _slParams[1] ? _slParams[1].valeur : 'Annulé';
-  const _VAL_ANNULE  = _slParams[2] ? _slParams[2].valeur : 'Annulé';
-  // Lire type_camion depuis _params (#1=REEFER, #2=CHAUFFÉE)
-  const _tcParams  = _params['type_camion'] || [];
-  const _VAL_REEFER  = _tcParams[0] ? _tcParams[0].valeur : 'REEFER';
-  const _VAL_CHAUFFE = _tcParams[1] ? _tcParams[1].valeur : 'CHAUFFÉE';
-  // Lire statut_arrivee, chargement, dest_arrivee defaults
-  const _saParams  = _params['statut_arrivee'] || [];
-  const _VAL_SA_DEF  = _saParams[0] ? _saParams[0].valeur : 'ATTENTE';
-  const _chParams  = _params['chargement'] || [];
-  const _VAL_CH_DEF  = _chParams[0] ? _chParams[0].valeur : 'ATTENTE';
-  const _daParams  = _params['dest_arrivee'] || [];
-  const _VAL_DA_DEF  = _daParams[0] ? _daParams[0].valeur : 'SOY';
-  const _statutsEffectifs = {};
-  for(const s of SLOTS){
-    // Statut DB en priorité, sinon annulé si weekend+slot hors service, sinon Actif
-    const dbStatut = rows[s.idx] ? rows[s.idx].statut_ligne : null;
-    if(dbStatut){
-      _statutsEffectifs[s.idx] = dbStatut;
-    } else if(_isWeekend && _wkAnnule.includes(s.idx)){
-      _statutsEffectifs[s.idx] = _VAL_ANNULE;
-    } else {
-      _statutsEffectifs[s.idx] = _VAL_ACTIF;
-    }
-  }
-  // Trouver le 1er slot Actif avec les vrais statuts
-  let _idxPremierActif = null;
-  for(const s of _slotsTries){
-    if(_statutsEffectifs[s.idx] === _VAL_ACTIF){ _idxPremierActif = s.idx; break; }
-  }
-
-  SLOTS.forEach(s => {
-    if(!rows[s.idx]) rows[s.idx]={slot_index:s.idx};
-    // 1er actif → sentinel __VIDE__ (affiché —), Camion B semaine → REEFER, sinon CHAUFFÉE
-    if(s.idx === _idxPremierActif){
-      rows[s.idx].type_camion = '__VIDE__'; // Toujours écraser — 7j/7
-    } else if(!_isWeekend && s.idx === 1){
-      rows[s.idx].type_camion = _VAL_REEFER; // Camion B lundi-vendredi — toujours écraser
-    } else {
-      // Tous les autres : appliquer le défaut seulement si pas de valeur DB explicite
-      if(!rows[s.idx].type_camion || rows[s.idx].type_camion === '__VIDE__'){
-        if(_isWeekend && (s.idx===0||s.idx===1)) rows[s.idx].type_camion='__VIDE__';
-        else rows[s.idx].type_camion=s.defType||_VAL_CHAUFFE;
-      }
-    }
-    // Description : defDesc uniquement si pas de valeur DB et pas weekend
-    if(!_isWeekend){
-      if(!rows[s.idx].description && s.defDesc) rows[s.idx].description=s.defDesc;
-    }
-    if(!rows[s.idx].dest_arrivee) rows[s.idx].dest_arrivee=_VAL_DA_DEF;
-    if(!rows[s.idx].statut) rows[s.idx].statut=_VAL_SA_DEF;
-    if(!rows[s.idx].chargement) rows[s.idx].chargement=_VAL_CH_DEF;
-    // Weekend : annuler automatiquement les slots hors service
-    if(_isWeekend && _wkAnnule.includes(s.idx)){
-      if(!rows[s.idx]._weekendOverridden){
-        rows[s.idx].statut_ligne=_VAL_ANNULE;
-        rows[s.idx]._weekendOverridden=true;
-      }
-    }
-  });
-
-  // ── Règle destination : dernier slot Actif → BOBTAIL, autres → vide si BOBTAIL ──
-  let _idxDernierActif = null;
-  for(const s of [..._slotsTries].reverse()){
-    if(_statutsEffectifs[s.idx] === _VAL_ACTIF){ _idxDernierActif = s.idx; break; }
-  }
-  // Lire depuis _params pour être cohérent avec ce qui est affiché dans les selects
-  const _destParamsList = _params['destination'] || [];
-  const _BOBTAIL = _destParamsList.length
-    ? _destParamsList[_destParamsList.length - 1].valeur
-    : 'AUCUN REPARTIR BOBTAIL';
-  const _descParamsList0 = _params['description'] || [];
-  const _VENIR = _descParamsList0.length ? _descParamsList0[0].valeur : 'VENIR BOBTAIL';
-  SLOTS.forEach(s => {
-    if(!rows[s.idx]) rows[s.idx] = {slot_index: s.idx}; // garantir l'objet existe
-    if(s.idx === _idxDernierActif){
-      rows[s.idx].destination = _BOBTAIL; // Toujours écraser — dernier actif
-    } else {
-      if(rows[s.idx].destination === _BOBTAIL){
-        rows[s.idx].destination = '';
-      }
-    }
-  });
-
-  // ── Règles description automatiques ─────────────────────────────────────────
-  // Valeurs lues depuis _params['description'] triés par ordre (position = # affiché)
-  const _descParams = _params['description'] || [];
-  const _descVal = (n) => (_descParams[n-1] ? _descParams[n-1].valeur : '');
-  // #1=VENIR BOBTAIL  #2=STOCK 1 commande  #3=STOCK 2 grains  #4=Stock palette  #5=Générique
-
-  // Pas de règles le weekend
-  if(!_isWeekend){
-
-    // ── 1er camion actif → VENIR BOBTAIL (champ #1), toujours écraser
-    SLOTS.forEach(s => {
-      if(!rows[s.idx]) rows[s.idx] = {slot_index: s.idx};
-      if(s.idx === _idxPremierActif){
-        rows[s.idx].description = _descVal(1);
-      } else {
-        if(rows[s.idx].description === _descVal(1) && _descVal(1))
-          rows[s.idx].description = '';
-      }
-    });
-
-    // ── Trouver le 2ème slot Actif
-    let _actifCount = 0;
-    let _idxDeuxiemeActif = null;
-    for(const s of _slotsTries){
-      if(_statutsEffectifs[s.idx] === _VAL_ACTIF){
-        _actifCount++;
-        if(_actifCount === 2){ _idxDeuxiemeActif = s.idx; break; }
-      }
-    }
-
-    if(_idxDeuxiemeActif !== null){
-      // Lundi : 2ème actif → champ #5 (Générique)
-      // Mar–Ven : 2ème actif → champ #4 (Stock palette)
-      const _isLundi = _dow === 1;
-      rows[_idxDeuxiemeActif].description = _isLundi ? _descVal(5) : _descVal(4);
-    }
-
-    // ── 11h30 (idx:4) → champ #2 (STOCK 1 commande)
-    if(_statutsEffectifs[4] === _VAL_ACTIF && 4 !== _idxPremierActif && 4 !== _idxDeuxiemeActif)
-      rows[4].description = _descVal(2);
-
-    // ── 14h00 (idx:5) → champ #3 (STOCK 2 grains)
-    if(_statutsEffectifs[5] === _VAL_ACTIF && 5 !== _idxPremierActif && 5 !== _idxDeuxiemeActif)
-      rows[5].description = _descVal(3);
-
-  }
-
   const extras=Object.keys(rows).map(Number).filter(i=>i>=10).sort((a,b)=>a-b);
 
   // Construire la liste complète des entrées avec leur heure pour tri
@@ -693,7 +549,6 @@ function render(){
   updateStats();
   if(isViewer) applyReadOnly();
 }
-
 function buildRow(idx, heure, lbl, isExtra, lineNum){
   const r=rows[idx]||{};
   const sl=r.statut_ligne||(_params['statut_ligne']||[{valeur:'Actif'}])[0].valeur;
@@ -804,24 +659,11 @@ function fchg(idx, field, val){
   if(!rows[idx]) rows[idx]={slot_index:idx};
   rows[idx][field]=val;
   if(field==='statut_ligne'){
-    const tr=document.getElementById('tr'+idx);
-    const _fAnnule=(_params['statut_ligne']||[{valeur:'x'},{valeur:'x'},{valeur:'Annulé'}])[2]?.valeur||'Annulé'; if(tr){ val===_fAnnule?tr.classList.add('row-annule'):tr.classList.remove('row-annule'); }
-    // Snapshot destinations avant render pour détecter les slots affectés
-    const _destBefore = {};
-    SLOTS.forEach(s => { _destBefore[s.idx] = (rows[s.idx]||{}).destination||''; });
     render();
-    // Sauvegarder le slot modifié + tous les slots dont destination a changé
-    const toSave = new Set([idx]);
-    SLOTS.forEach(s => {
-      const after = (rows[s.idx]||{}).destination||'';
-        if(after !== _destBefore[s.idx]) toSave.add(s.idx);
-    });
-    toSave.forEach(i => saveRow(i));
     return;
   }
   updateStats();
-}
-function togGH(idx, el){
+}function togGH(idx, el){
   if(!rows[idx]) rows[idx]={slot_index:idx};
   const v=!rows[idx].short_gh;
   rows[idx].short_gh=v;
