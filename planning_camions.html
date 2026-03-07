@@ -514,6 +514,23 @@ function render(){
     }
   });
 
+  // ── Règle destination : dernier slot Actif → BOBTAIL, autres → vide si BOBTAIL ──
+  let _idxDernierActif = null;
+  for(const s of [..._slotsTries].reverse()){
+    if(_statutsEffectifs[s.idx] === 'Actif'){ _idxDernierActif = s.idx; break; }
+  }
+  const _BOBTAIL = 'AUCUN REPARTIR BOBTAIL';
+  SLOTS.forEach(s => {
+    if(s.idx === _idxDernierActif){
+      rows[s.idx].destination = _BOBTAIL; // Toujours écraser — dernier actif
+    } else {
+      // Nettoyer BOBTAIL sur toute autre ligne
+      if(rows[s.idx] && rows[s.idx].destination === _BOBTAIL){
+        rows[s.idx].destination = '';
+      }
+    }
+  });
+
   const extras=Object.keys(rows).map(Number).filter(i=>i>=10).sort((a,b)=>a-b);
 
   // Construire la liste complète des entrées avec leur heure pour tri
