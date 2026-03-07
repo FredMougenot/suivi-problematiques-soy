@@ -383,6 +383,29 @@ async function loadParams(){
   } catch(e){ console.warn('loadParams:',e.message); }
 }
 
+// Applique le style d'un paramètre sur un <select>, en gérant le background
+// sur le span wrapper si présent (car statut-sel a background:transparent !important)
+function applySelectStyle(sel, cat, val){
+  const item = (_params[cat]||[]).find(i=>i.valeur===val);
+  const wrap = sel.closest('.statut-badge');
+  // Reset
+  sel.style.color = '';
+  sel.style.fontWeight = '';
+  sel.style.borderColor = '';
+  if(wrap) wrap.style.background = '';
+  if(!item) return;
+  if(item.text_color)  sel.style.color      = item.text_color;
+  if(item.font_weight) sel.style.fontWeight  = item.font_weight;
+  if(item.border_color && item.border_opacity){
+    const rgb = hxRgb(item.border_color);
+    sel.style.borderColor = `rgba(${rgb},${item.border_opacity})`;
+    if(item.has_background){
+      if(wrap) wrap.style.background = `rgba(${rgb},${item.border_opacity})`;
+      else     sel.style.background  = `rgba(${rgb},${item.border_opacity})`;
+    }
+  }
+}
+
 function getParamStyle(cat, val){
   const item = (_params[cat]||[]).find(i=>i.valeur===val);
   if(!item) return '';
@@ -391,7 +414,8 @@ function getParamStyle(cat, val){
   if(item.font_weight) s+=`font-weight:${item.font_weight};`;
   if(item.border_color && item.border_opacity){
     s+=`border-color:rgba(${hxRgb(item.border_color)},${item.border_opacity});`;
-    s+=`background:rgba(${hxRgb(item.border_color)},${item.border_opacity});`;
+    if(item.has_background)
+      s+=`background:rgba(${hxRgb(item.border_color)},${item.border_opacity});`;
   }
   return s;
 }
@@ -875,14 +899,10 @@ function updTypeSel(sel){
   sel.setAttribute('style','min-width:105px;'+st);
 }
 function updStatut(sel){
-  sel.style.cssText = getParamStyle('statut_arrivee', sel.value) || '';
-  const wrap = sel.closest('.statut-badge');
-  if(wrap) wrap.style.cssText = getBgStyle('statut_arrivee', sel.value) || '';
+  applySelectStyle(sel, 'statut_arrivee', sel.value);
 }
 function updCharg(sel){
-  sel.style.cssText = getParamStyle('chargement', sel.value) || '';
-  const wrap = sel.closest('.statut-badge');
-  if(wrap) wrap.style.cssText = getBgStyle('chargement', sel.value) || '';
+  applySelectStyle(sel, 'chargement', sel.value);
 }
 
 // ── GRAPHIQUES ────────────────────────────────────────────────────
