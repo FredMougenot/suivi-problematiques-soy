@@ -569,16 +569,8 @@ function render(){
         else rows[s.idx].type_camion=s.defType||'CHAUFFÉE';
       }
     }
-    // Description : overrides weekend
-    if(_isWeekend){
-      if(s.idx===3){  // 09h00 → Stock palette
-        if(!rows[s.idx].description) rows[s.idx].description='Stock palette';
-      } else if(s.idx===2||s.idx===4||s.idx===5){ // 07h30, 11h30, 14h → tiret
-        if(!rows[s.idx].description) rows[s.idx].description='—';
-      } else {
-        if(!rows[s.idx].description && s.defDesc) rows[s.idx].description=s.defDesc;
-      }
-    } else {
+    // Description : defDesc uniquement si pas de valeur DB et pas weekend
+    if(!_isWeekend){
       if(!rows[s.idx].description && s.defDesc) rows[s.idx].description=s.defDesc;
     }
     if(!rows[s.idx].dest_arrivee) rows[s.idx].dest_arrivee='SOY';
@@ -610,16 +602,51 @@ function render(){
     }
   });
 
-  // ── Règle description : 1er slot Actif → VENIR BOBTAIL, autres → vide si VENIR BOBTAIL ──
-  SLOTS.forEach(s => {
-    if(s.idx === _idxPremierActif){
-      rows[s.idx].description = _VENIR; // Toujours écraser — 1er actif
-    } else {
-      if(rows[s.idx] && rows[s.idx].description === _VENIR){
-        rows[s.idx].description = '';
+  // ── Règles description automatiques ─────────────────────────────────────────
+  // Valeurs lues depuis _params['description'] triés par ordre (position = # affiché)
+  const _descParams = _params['description'] || [];
+  const _descVal = (n) => (_descParams[n-1] ? _descParams[n-1].valeur : '');
+  // #1=VENIR BOBTAIL  #2=STOCK 1 commande  #3=STOCK 2 grains  #4=Stock palette  #5=Générique
+
+  // Pas de règles le weekend
+  if(!_isWeekend){
+
+    // ── 1er camion actif → VENIR BOBTAIL (champ #1), toujours écraser
+    SLOTS.forEach(s => {
+      if(s.idx === _idxPremierActif){
+        rows[s.idx].description = _descVal(1);
+      } else {
+        if(rows[s.idx] && rows[s.idx].description === _descVal(1) && _descVal(1))
+          rows[s.idx].description = '';
+      }
+    });
+
+    // ── Trouver le 2ème slot Actif
+    let _actifCount = 0;
+    let _idxDeuxiemeActif = null;
+    for(const s of _slotsTries){
+      if(_statutsEffectifs[s.idx] === 'Actif'){
+        _actifCount++;
+        if(_actifCount === 2){ _idxDeuxiemeActif = s.idx; break; }
       }
     }
-  });
+
+    if(_idxDeuxiemeActif !== null){
+      // Lundi : 2ème actif → champ #5 (Générique)
+      // Mar–Ven : 2ème actif → champ #4 (Stock palette)
+      const _isLundi = _dow === 1;
+      rows[_idxDeuxiemeActif].description = _isLundi ? _descVal(5) : _descVal(4);
+    }
+
+    // ── 11h30 (idx:4) → champ #2 (STOCK 1 commande)
+    if(_statutsEffectifs[4] === 'Actif' && 4 !== _idxPremierActif && 4 !== _idxDeuxiemeActif)
+      rows[4].description = _descVal(2);
+
+    // ── 14h00 (idx:5) → champ #3 (STOCK 2 grains)
+    if(_statutsEffectifs[5] === 'Actif' && 5 !== _idxPremierActif && 5 !== _idxDeuxiemeActif)
+      rows[5].description = _descVal(3);
+
+  }
 
   const extras=Object.keys(rows).map(Number).filter(i=>i>=10).sort((a,b)=>a-b);
 
