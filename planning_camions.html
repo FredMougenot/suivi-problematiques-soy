@@ -466,14 +466,14 @@ function render(){
 
   SLOTS.forEach(s => {
     if(!rows[s.idx]) rows[s.idx]={slot_index:s.idx};
-    // 1er actif → toujours vide, Camion B semaine → toujours REEFER, sinon défaut
+    // 1er actif → sentinel __VIDE__ (affiché —), Camion B semaine → REEFER, sinon défaut
     if(s.idx === _idxPremierActif){
-      rows[s.idx].type_camion = ''; // Toujours écraser
+      rows[s.idx].type_camion = '__VIDE__'; // Toujours écraser — sentinel pour le select
     } else if(!_isWeekend && s.idx === 1){
       rows[s.idx].type_camion = 'REEFER'; // Camion B lundi-vendredi
-    } else if(!rows[s.idx].type_camion){
+    } else if(!rows[s.idx].type_camion || rows[s.idx].type_camion === '__VIDE__'){
       // Weekend : pas de type pour les camions de 6h (annulés)
-      if(_isWeekend && (s.idx===0||s.idx===1)) rows[s.idx].type_camion='';
+      if(_isWeekend && (s.idx===0||s.idx===1)) rows[s.idx].type_camion='__VIDE__';
       else rows[s.idx].type_camion=s.defType||'CHAUFFÉE';
     }
     // Description : overrides weekend
@@ -541,9 +541,9 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
     </select></td>
     <td><select class="cs ${r.type_camion==='REEFER'?'type-reefer':'type-chauf'}" style="min-width:105px"
       onchange="fchg(${idx},'type_camion',this.value);updTypeSel(this)">
-      <option value="">—</option>
+      <option value="__VIDE__"${r.type_camion==='__VIDE__'||!r.type_camion?' selected':''}>—</option>
       <option${r.type_camion==='REEFER'?' selected':''}>REEFER</option>
-      <option${r.type_camion==='CHAUFFÉE'||!r.type_camion?' selected':''}>CHAUFFÉE</option>
+      <option${r.type_camion==='CHAUFFÉE'?' selected':''}>CHAUFFÉE</option>
     </select></td>
     <td><input class="ci" style="max-width:95px" value="${esc(r.num_arrivee||'')}" placeholder="N° arrivée" oninput="fchg(${idx},'num_arrivee',this.value)"></td>
     <td>
@@ -615,7 +615,7 @@ async function saveAll(){
       date_jour:curDate, slot_index:idx,
       heure_planif:r.heure_planif||(slot?slot.h:'00:00'),
       statut_ligne:r.statut_ligne||'Actif',
-      type_camion:r.type_camion||null,
+      type_camion:(r.type_camion==='__VIDE__'?null:r.type_camion||null),
       num_arrivee:r.num_arrivee||null,
       num_depart:r.num_depart||null,
       dest_arrivee:r.dest_arrivee||'SOY',
