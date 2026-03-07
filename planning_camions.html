@@ -520,13 +520,24 @@ function render(){
     if(_statutsEffectifs[s.idx] === 'Actif'){ _idxDernierActif = s.idx; break; }
   }
   const _BOBTAIL = 'AUCUN REPARTIR BOBTAIL';
+  const _VENIR   = 'VENIR BOBTAIL';
   SLOTS.forEach(s => {
     if(s.idx === _idxDernierActif){
       rows[s.idx].destination = _BOBTAIL; // Toujours écraser — dernier actif
     } else {
-      // Nettoyer BOBTAIL sur toute autre ligne
       if(rows[s.idx] && rows[s.idx].destination === _BOBTAIL){
         rows[s.idx].destination = '';
+      }
+    }
+  });
+
+  // ── Règle description : 1er slot Actif → VENIR BOBTAIL, autres → vide si VENIR BOBTAIL ──
+  SLOTS.forEach(s => {
+    if(s.idx === _idxPremierActif){
+      rows[s.idx].description = _VENIR; // Toujours écraser — 1er actif
+    } else {
+      if(rows[s.idx] && rows[s.idx].description === _VENIR){
+        rows[s.idx].description = '';
       }
     }
   });
