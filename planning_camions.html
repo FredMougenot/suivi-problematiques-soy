@@ -550,6 +550,33 @@ function render(){
     }
   }
 
+  // ── Règle destination départ : dernier slot actif → param #6, autres → vide si = param #6 ──
+  const _dstParams = _params['destination']||[];
+  const _BOBTAIL = _dstParams[5]?.valeur||''; // valeur #6
+  // Calculer le dernier actif (tous les jours)
+  const _rVInactif = _rSlParams[1]?.valeur||'INACTIF';
+  let _idxDernierActif = null;
+  for(const s of [..._rSlotsTries].reverse()){
+    const dbSt = (rows[s.idx]||{}).statut_ligne;
+    // Calculer le statut effectif (meme logique que buildRow)
+    const _wkI = [0,1,7,8,9];
+    const stEff = dbSt || (_rIsWkEnd && _wkI.includes(s.idx) ? _rVInactif : _rVActif);
+    if(stEff === _rVActif){ _idxDernierActif = s.idx; break; }
+  }
+  window._renderIdxDernierActif = _idxDernierActif;
+  // Appliquer : dernier actif → _BOBTAIL, les autres → vide si _BOBTAIL
+  if(_BOBTAIL){
+    const _allIdx = [...SLOTS.map(s=>s.idx), ...Object.keys(rows).map(Number).filter(i=>i>=10)];
+    _allIdx.forEach(i => {
+      if(!rows[i]) rows[i]={slot_index:i};
+      if(i === _idxDernierActif){
+        rows[i].destination = _BOBTAIL;
+      } else {
+        if(rows[i].destination === _BOBTAIL) rows[i].destination = '';
+      }
+    });
+  }
+
   const extras=Object.keys(rows).map(Number).filter(i=>i>=10).sort((a,b)=>a-b);
 
   // Construire la liste complète des entrées avec leur heure pour tri
@@ -705,7 +732,17 @@ function fchg(idx, field, val){
   if(!rows[idx]) rows[idx]={slot_index:idx};
   rows[idx][field]=val;
   if(field==='statut_ligne'){
+    // Snapshot destinations avant render
+    const _dBefore={};
+    SLOTS.forEach(s=>{ _dBefore[s.idx]=(rows[s.idx]||{}).destination||''; });
     render();
+    // Sauvegarder les slots dont destination a changé + le slot modifié
+    const toSave=new Set([idx]);
+    SLOTS.forEach(s=>{
+      const after=(rows[s.idx]||{}).destination||'';
+      if(after!==_dBefore[s.idx]) toSave.add(s.idx);
+    });
+    toSave.forEach(i=>saveRow(i));
     return;
   }
   updateStats();
