@@ -389,8 +389,10 @@ function getParamStyle(cat, val){
   let s='';
   if(item.text_color)  s+=`color:${item.text_color};`;
   if(item.font_weight) s+=`font-weight:${item.font_weight};`;
-  if(item.border_color && item.border_opacity)
+  if(item.border_color && item.border_opacity){
     s+=`border-color:rgba(${hxRgb(item.border_color)},${item.border_opacity});`;
+    s+=`background:rgba(${hxRgb(item.border_color)},${item.border_opacity});`;
+  }
   return s;
 }
 
