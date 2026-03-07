@@ -577,6 +577,41 @@ function render(){
     });
   }
 
+  // ── Règles description automatiques (lun-ven uniquement) ──────────────────
+  if(!_rIsWkEnd){
+    const _dscP = _params['description']||[];
+    const _dv = (n) => _dscP[n-1]?.valeur||''; // valeur #n depuis params
+    const _isLundi = _rDow===1;
+
+    // Récupérer les indices déjà calculés
+    const _p1 = window._renderIdxPremierActif;
+    const _p2 = window._renderIdxDeuxiemeActif;
+
+    // Calculer tous les slots actifs en semaine
+    const _rVInactifD = _rSlParams[1]?.valeur||'INACTIF';
+    const _wkID = [0,1,7,8,9];
+
+    const _allSlotsIdx = [...SLOTS.map(s=>s.idx),
+      ...Object.keys(rows).map(Number).filter(i=>i>=10)];
+
+    _allSlotsIdx.forEach(i=>{
+      if(!rows[i]) rows[i]={slot_index:i};
+      const dbSt=(rows[i]||{}).statut_ligne;
+      const stEff=dbSt||(_rIsWkEnd&&_wkID.includes(i)?_rVInactifD:_rVActif);
+      if(stEff!==_rVActif) return; // ignorer inactifs
+
+      if(i===_p1){
+        rows[i].description=_dv(1);
+      } else if(i===_p2){
+        rows[i].description=_isLundi?_dv(5):_dv(4);
+      } else if(i===4){
+        rows[i].description=_dv(2);
+      } else if(i===5){
+        rows[i].description=_dv(3);
+      }
+    });
+  }
+
   const extras=Object.keys(rows).map(Number).filter(i=>i>=10).sort((a,b)=>a-b);
 
   // Construire la liste complète des entrées avec leur heure pour tri
