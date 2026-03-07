@@ -183,6 +183,16 @@ input[type="color"].cpick{
 .toast.err{background:rgba(224,85,85,.12);color:var(--ruby);border-color:rgba(224,85,85,.3);}
 @keyframes tin{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
 
+/* ── Toggle switch ── */
+.tog-wrap{position:relative;display:inline-block;width:36px;height:20px;cursor:pointer;}
+.tog-chk{opacity:0;width:0;height:0;position:absolute;}
+.tog-slider{position:absolute;inset:0;border-radius:20px;
+  background:var(--text-faint);transition:background .2s;}
+.tog-slider::before{content:'';position:absolute;width:14px;height:14px;
+  left:3px;top:3px;border-radius:50%;background:#fff;transition:transform .2s;}
+.tog-chk:checked + .tog-slider{background:var(--copper);}
+.tog-chk:checked + .tog-slider::before{transform:translateX(16px);}
+
 @media(max-width:750px){
   .main{padding:20px 14px 50px;}
   .section-head{flex-direction:column;}
@@ -283,7 +293,7 @@ async function init(){
 async function loadAll(){
   try {
     const { data, error } = await sb.from('planning_params')
-      .select('*').order('ordre').order('created_at');
+      .select('id,categorie,valeur,text_color,border_color,border_opacity,font_weight,has_background,ordre').order('ordre').order('created_at');
     if(error) throw error;
     allData = {};
     CATEGORIES.forEach(c => { allData[c.key] = []; });
@@ -349,6 +359,7 @@ function buildSection(cat){
             <th class="th-style">border_color</th>
             <th style="width:90px;">border_opacity</th>
             <th style="width:90px;">font_weight</th>
+            <th style="width:110px;text-align:center;">has_background</th>
             <th class="th-act"></th>
           </tr></thead>
           <tbody id="tbody-${cat.key}">${rows}</tbody>
@@ -389,6 +400,14 @@ function buildRow(catKey, item, num){
     <td><input class="inp-short" type="text" value="${esc(fw)}" placeholder="400"
       data-field="font_weight" id="fw-${item.id}"
       oninput="markDirty('${item.id}');refreshPreview('${item.id}')"></td>
+    <td style="text-align:center;">
+      <label class="tog-wrap" title="Appliquer un fond coloré">
+        <input type="checkbox" class="tog-chk" id="bg-${item.id}"
+          ${item.has_background?'checked':''}
+          onchange="markDirty('${item.id}');refreshPreview('${item.id}')">
+        <span class="tog-slider"></span>
+      </label>
+    </td>
     <td class="td-act">
       <button class="btn-rm" onclick="deleteRow('${item.id}','${catKey}')" title="Supprimer">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -468,14 +487,17 @@ function refreshPreview(id){
   const bo  = boEl  ? boEl.value.trim()  : '';
   const fw  = fwEl  ? fwEl.value.trim()  : '';
 
+  const hasBg = document.getElementById('bg-'+id)?.checked || false;
   let style = '';
   if(tc && /^#[0-9A-Fa-f]{6}$/.test(tc)) style += `color:${tc};`;
   if(fw) style += `font-weight:${fw};`;
   if(bc && /^#[0-9A-Fa-f]{6}$/.test(bc) && bo){
     const rgb = hexToRgb(bc);
     style += `border:1px solid rgba(${rgb},${bo});`;
-    style += `background:rgba(${rgb},${Math.min(parseFloat(bo)||0, 0.15)});`;
-    style += `padding:2px 9px;border-radius:20px;`;
+    if(hasBg){
+      style += `background:rgba(${rgb},${bo});`;
+      style += `padding:2px 9px;border-radius:20px;`;
+    }
   }
   prevEl.innerHTML = `<span class="val-preview" style="${style}">${esc(val)||'—'}</span>`;
 }
@@ -537,6 +559,7 @@ async function saveSection(catKey){
     const border_color   = document.getElementById(`hex-bc-${id}`)?.value.trim() || null;
     const border_opacity = document.getElementById(`bo-${id}`)?.value.trim() || null;
     const font_weight    = document.getElementById(`fw-${id}`)?.value.trim() || null;
+    const has_background = document.getElementById(`bg-${id}`)?.checked || false;
     updates.push({
       id: parseInt(id),
       valeur,
@@ -544,17 +567,18 @@ async function saveSection(catKey){
       border_color:   border_color   || null,
       border_opacity: border_opacity || null,
       font_weight:    font_weight    || null,
+      has_background,
       ordre: i+1,
     });
     const item = (allData[catKey]||[]).find(r => String(r.id) === String(id));
-    if(item) Object.assign(item, { valeur, text_color, border_color, border_opacity, font_weight, ordre: i+1 });
+    if(item) Object.assign(item, { valeur, text_color, border_color, border_opacity, font_weight, has_background, ordre: i+1 });
   });
 
   try {
     const results = await Promise.all(
       updates.map(u => sb.from('planning_params').update({
         valeur:u.valeur, text_color:u.text_color, border_color:u.border_color,
-        border_opacity:u.border_opacity, font_weight:u.font_weight, ordre:u.ordre
+        border_opacity:u.border_opacity, font_weight:u.font_weight, has_background:u.has_background, ordre:u.ordre
       }).eq('id', u.id))
     );
     const errs = results.filter(r => r.error);

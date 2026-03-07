@@ -707,7 +707,8 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
       const opts=items.length
         ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
         : `<option${cur==='ATTENTE'?' selected':''}>ATTENTE</option><option${cur==='PRÊTE'?' selected':''}>PRÊTE</option><option${cur==='EN CHARGEMENT'?' selected':''}>EN CHARGEMENT</option>`;
-      return `<span class="statut-badge">
+      const bgCH=getBgStyle('chargement',cur);
+      return `<span class="statut-badge" style="${bgCH}">
         <select class="cs statut-sel" style="min-width:135px;${st}" onchange="fchg(${idx},'chargement',this.value);updCharg(this)" data-cat="chargement">${opts}</select>
       </span>`;
     })()}</td>
@@ -868,9 +869,13 @@ function updTypeSel(sel){
 }
 function updStatut(sel){
   sel.style.cssText = getParamStyle('statut_arrivee', sel.value) || '';
+  const wrap = sel.closest('.statut-badge');
+  if(wrap) wrap.style.cssText = getBgStyle('statut_arrivee', sel.value) || '';
 }
 function updCharg(sel){
   sel.style.cssText = getParamStyle('chargement', sel.value) || '';
+  const wrap = sel.closest('.statut-badge');
+  if(wrap) wrap.style.cssText = getBgStyle('chargement', sel.value) || '';
 }
 
 // ── GRAPHIQUES ────────────────────────────────────────────────────
