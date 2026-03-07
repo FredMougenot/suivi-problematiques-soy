@@ -455,13 +455,25 @@ function render(){
   const _wkAnnule  = [0,1,7,8,9];   // slots annulés le weekend
   const _wkDescIdx = 2;              // 07h30 → Stock palette le weekend
 
-  // Identifier l'idx du 1er slot Actif (trié par heure) AVANT d'appliquer les défauts
+  // Pré-passe : appliquer d'abord les annulations weekend pour connaître
+  // les vrais statuts avant de chercher le 1er Actif
   const _slotsTries = [...SLOTS].sort((a,b)=> a.h<b.h?-1:a.h>b.h?1:a.idx-b.idx);
+  const _statutsEffectifs = {};
+  for(const s of SLOTS){
+    // Statut DB en priorité, sinon annulé si weekend+slot hors service, sinon Actif
+    const dbStatut = rows[s.idx] ? rows[s.idx].statut_ligne : null;
+    if(dbStatut){
+      _statutsEffectifs[s.idx] = dbStatut;
+    } else if(_isWeekend && _wkAnnule.includes(s.idx)){
+      _statutsEffectifs[s.idx] = 'Annulé';
+    } else {
+      _statutsEffectifs[s.idx] = 'Actif';
+    }
+  }
+  // Trouver le 1er slot Actif avec les vrais statuts
   let _idxPremierActif = null;
   for(const s of _slotsTries){
-    const r = rows[s.idx];
-    const sl = r ? (r.statut_ligne||'Actif') : 'Actif';
-    if(sl === 'Actif'){ _idxPremierActif = s.idx; break; }
+    if(_statutsEffectifs[s.idx] === 'Actif'){ _idxPremierActif = s.idx; break; }
   }
 
   SLOTS.forEach(s => {
