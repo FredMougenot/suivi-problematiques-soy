@@ -612,7 +612,7 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
 
     <td>${(()=>{
       const items=_params['statut_arrivee']||[];
-      const cur=r.statut||'';
+      const cur=r.statut||(_params['statut_arrivee']||[null,{valeur:''}])[1]?.valeur||'';
       const st=getParamStyle('statut_arrivee',cur);
       const opts=items.length
         ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
@@ -626,7 +626,7 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
 
     <td>${(()=>{
       const items=_params['destination']||[];
-      const cur=r.destination||'';
+      const cur=r.destination||(_params['destination']||[{valeur:''}])[0]?.valeur||'';
       const st=getParamStyle('destination',cur);
       const opts=items.length
         ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
@@ -639,7 +639,7 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
 
     <td>${(()=>{
       const items=_params['chargement']||[];
-      const cur=r.chargement||'';
+      const cur=r.chargement||(_params['chargement']||[null,{valeur:''}])[1]?.valeur||'';
       const st=getParamStyle('chargement',cur);
       const opts=items.length
         ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
