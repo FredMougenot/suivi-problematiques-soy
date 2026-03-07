@@ -788,13 +788,16 @@ function fchg(idx, field, val){
     // Snapshot destinations avant render pour détecter les slots affectés
     const _destBefore = {};
     SLOTS.forEach(s => { _destBefore[s.idx] = (rows[s.idx]||{}).destination||''; });
+    console.log('[fchg statut_ligne] idx='+idx+' val='+val+' destBefore='+JSON.stringify(_destBefore));
     render();
     // Sauvegarder le slot modifié + tous les slots dont destination a changé
     const toSave = new Set([idx]);
     SLOTS.forEach(s => {
       const after = (rows[s.idx]||{}).destination||'';
+      console.log('[fchg après render] slot '+s.idx+' dest: '+_destBefore[s.idx]+' → '+after);
       if(after !== _destBefore[s.idx]) toSave.add(s.idx);
     });
+    console.log('[fchg] toSave='+JSON.stringify([...toSave]));
     toSave.forEach(i => saveRow(i));
     return;
   }
@@ -854,6 +857,7 @@ async function saveRow(idx){
   if(btn){btn.disabled=true;btn.textContent='…';}
   const slot=SLOTS.find(s=>s.idx===idx);
   const r=rows[idx]||{};
+  console.log('[saveRow] idx='+idx+' destination='+r.destination+' id='+r.id);
   const payload={
     date_jour:curDate, slot_index:idx,
     heure_planif:r.heure_planif||(slot?slot.h:'00:00'),
