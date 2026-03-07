@@ -718,7 +718,10 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
 
     <td>${(()=>{
       const items=_params['statut_arrivee']||[];
-      const cur=r.statut||(_params['statut_arrivee']||[null,{valeur:''}])[1]?.valeur||'';
+      const _saP=_params['statut_arrivee']||[];
+      const cur = r.heure_reelle
+        ? (r.statut || _saP[0]?.valeur||'')   // heure réelle non vide → valeur #1
+        : (r.statut || _saP[1]?.valeur||'');  // sinon → valeur #2 par défaut
       const st=getParamStyle('statut_arrivee',cur);
       const opts=items.length
         ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
@@ -778,6 +781,15 @@ function fchg(idx, field, val){
       if(after!==_dBefore[s.idx]) toSave.add(s.idx);
     });
     toSave.forEach(i=>saveRow(i));
+    return;
+  }
+  if(field==='heure_reelle'){
+    if(val){
+      const _saFP=_params['statut_arrivee']||[];
+      const _saV1=_saFP[0]?.valeur||'';
+      if(_saV1) rows[idx].statut=_saV1;
+    }
+    saveRow(idx);
     return;
   }
   updateStats();
