@@ -19,7 +19,6 @@
   --r-sm:4px;--r-md:10px;--r-lg:16px;
   --t-fast:.15s;--ease:cubic-bezier(.4,0,.2,1);
 }
-
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{min-height:100vh;background:var(--bg-base);color:var(--text-primary);
   font-family:'Outfit',sans-serif;font-size:15px;}
@@ -44,7 +43,7 @@ html,body{min-height:100vh;background:var(--bg-base);color:var(--text-primary);
 .tb-title{font-size:.95rem;font-weight:700;color:var(--text-primary);}
 
 /* ══ MAIN ════════════════════════════════════════════════════════ */
-.main{max-width:960px;margin:0 auto;padding:32px 28px 64px;}
+.main{max-width:1100px;margin:0 auto;padding:32px 28px 64px;}
 
 /* ══ PAGE HEADER ═════════════════════════════════════════════════ */
 .page-eyebrow{font-size:.62rem;font-weight:800;color:var(--copper);
@@ -54,70 +53,113 @@ html,body{min-height:100vh;background:var(--bg-base);color:var(--text-primary);
 .page-sub{font-size:.82rem;color:var(--text-muted);margin-top:5px;}
 .page-hdr{margin-bottom:36px;}
 
-/* ══ SECTION PAR CATÉGORIE ═══════════════════════════════════════ */
-.section{margin-bottom:40px;}
-.section-head{display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:14px;flex-wrap:wrap;gap:10px;}
-.section-title{display:flex;align-items:center;gap:10px;}
-.section-name{font-size:1rem;font-weight:700;color:var(--text-primary);}
-.section-desc{font-size:.76rem;color:var(--text-muted);margin-top:2px;}
-.item-count{font-size:.74rem;color:var(--text-muted);font-weight:600;
-  padding:4px 10px;background:var(--bg-raised);
+/* ══ LÉGENDE COLONNES ════════════════════════════════════════════ */
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:32px;
+  padding:16px 18px;background:var(--bg-raised);border:1px solid var(--text-faint);
+  border-radius:var(--r-lg);}
+.legend-title{font-size:.7rem;font-weight:800;color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:.1em;width:100%;margin-bottom:4px;}
+.legend-item{display:flex;align-items:center;gap:7px;font-size:.76rem;
+  color:var(--text-secondary);padding:4px 10px;background:var(--bg-float);
   border:1px solid var(--text-faint);border-radius:20px;}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 
-.btn-add-row{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
-  border-radius:var(--r-md);
-  background:linear-gradient(135deg,var(--copper),var(--copper-light));
-  color:#0F1118;font-size:.78rem;font-weight:800;border:none;cursor:pointer;
-  transition:opacity .15s,transform .1s;white-space:nowrap;font-family:'Outfit',sans-serif;}
-.btn-add-row:hover{opacity:.88;transform:translateY(-1px);}
+/* ══ SECTION ═════════════════════════════════════════════════════ */
+.section{margin-bottom:44px;}
+.section-head{display:flex;align-items:flex-start;justify-content:space-between;
+  margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+.section-meta{flex:1;}
+.section-name{font-size:1rem;font-weight:700;color:var(--text-primary);
+  display:flex;align-items:center;gap:8px;}
+.section-desc{font-size:.76rem;color:var(--text-muted);margin-top:3px;}
+.item-count{font-size:.72rem;color:var(--text-muted);font-weight:600;
+  padding:3px 9px;background:var(--bg-raised);
+  border:1px solid var(--text-faint);border-radius:20px;}
+.section-actions{display:flex;gap:8px;align-items:center;flex-shrink:0;}
 
-/* ══ TABLE PARAMÈTRES ════════════════════════════════════════════ */
+/* ══ NOTE SPÉCIALE ═══════════════════════════════════════════════ */
+.note-style{display:flex;align-items:center;gap:8px;
+  padding:8px 12px;margin-bottom:12px;
+  background:rgba(232,164,58,.06);border:1px solid rgba(232,164,58,.2);
+  border-radius:var(--r-md);font-size:.76rem;color:var(--amber);}
+
+/* ══ TABLE ═══════════════════════════════════════════════════════ */
 .ptbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);
   border-radius:var(--r-lg);overflow:hidden;position:relative;}
 .ptbl-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
   background:linear-gradient(90deg,transparent,var(--copper),transparent);
   pointer-events:none;}
-.ptbl{width:100%;border-collapse:collapse;}
+.ptbl-scroll{overflow-x:auto;}
+.ptbl{width:100%;border-collapse:collapse;min-width:700px;}
 .ptbl thead tr{background:var(--bg-float);border-bottom:1px solid var(--text-faint);}
-.ptbl thead th{padding:12px 16px;font-size:.6rem;font-weight:800;
+.ptbl thead th{padding:11px 14px;font-size:.6rem;font-weight:800;
   text-transform:uppercase;letter-spacing:.12em;color:var(--text-muted);
   text-align:left;white-space:nowrap;}
-.ptbl thead th.th-num{width:44px;text-align:center;}
-.ptbl thead th.th-color{width:160px;}
-.ptbl thead th.th-act{width:52px;text-align:center;}
+.ptbl thead th.th-num{width:40px;text-align:center;}
+.ptbl thead th.th-style{width:140px;}
+.ptbl thead th.th-act{width:48px;text-align:center;}
 .ptbl tbody tr{border-bottom:1px solid rgba(44,51,80,.5);transition:background .1s;}
 .ptbl tbody tr:hover{background:var(--bg-hover);}
 .ptbl tbody tr:last-child{border-bottom:none;}
-.ptbl tbody td{padding:9px 12px;font-size:.86rem;color:var(--text-primary);
+.ptbl tbody td{padding:8px 10px;font-size:.84rem;color:var(--text-primary);
   vertical-align:middle;}
 .ptbl tbody td.td-num{text-align:center;color:var(--text-muted);
-  font-size:.76rem;font-weight:700;}
+  font-size:.74rem;font-weight:700;}
 .ptbl tbody td.td-act{text-align:center;}
 
-/* Inputs */
+/* ══ APERÇU VALEUR ═══════════════════════════════════════════════ */
+.val-preview{display:inline-block;padding:3px 10px;border-radius:20px;
+  font-size:.82rem;font-weight:600;transition:all .2s;}
+
+/* ══ INPUTS ══════════════════════════════════════════════════════ */
 .inp-val{background:transparent;border:none;border-bottom:1px solid transparent;
-  color:var(--text-primary);font-size:.86rem;font-family:'Outfit',sans-serif;
+  color:var(--text-primary);font-size:.84rem;font-family:'Outfit',sans-serif;
   outline:none;padding:4px 6px;width:100%;transition:border-color .15s;}
 .inp-val:hover{border-bottom-color:var(--text-faint);}
 .inp-val:focus{border-bottom-color:var(--copper);}
 
-/* Sélecteur couleur */
-.color-wrap{display:flex;align-items:center;gap:8px;}
-.color-swatch{width:22px;height:22px;border-radius:var(--r-sm);border:1px solid var(--text-faint);
-  cursor:pointer;flex-shrink:0;transition:transform .1s;}
-.color-swatch:hover{transform:scale(1.15);}
-.inp-color{background:transparent;border:none;border-bottom:1px solid transparent;
-  color:var(--text-muted);font-size:.76rem;font-family:'Outfit',sans-serif;
-  outline:none;padding:4px 6px;width:90px;transition:border-color .15s;
-  cursor:pointer;}
-.inp-color:hover{border-bottom-color:var(--text-faint);}
-.inp-color:focus{border-bottom-color:var(--copper);color:var(--text-primary);}
-input[type="color"].native-picker{
-  width:28px;height:28px;padding:0;border:none;background:none;cursor:pointer;
-  border-radius:var(--r-sm);overflow:hidden;flex-shrink:0;}
+/* Cellule style avec picker + hex */
+.style-cell{display:flex;align-items:center;gap:6px;}
+.color-pill{display:flex;align-items:center;gap:5px;
+  padding:3px 8px 3px 4px;border-radius:20px;
+  background:var(--bg-float);border:1px solid var(--text-faint);
+  transition:border-color .15s;cursor:pointer;}
+.color-pill:hover{border-color:var(--copper);}
+input[type="color"].cpick{
+  width:20px;height:20px;padding:0;border:none;background:none;
+  cursor:pointer;border-radius:50%;overflow:hidden;flex-shrink:0;}
+.inp-hex{background:transparent;border:none;color:var(--text-secondary);
+  font-size:.72rem;font-family:'Outfit',sans-serif;outline:none;
+  width:62px;cursor:pointer;}
+.inp-hex:focus{color:var(--text-primary);}
+.no-color-btn{width:20px;height:20px;border-radius:50%;
+  background:var(--bg-float);border:1px solid var(--text-faint);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:.6rem;color:var(--text-muted);cursor:pointer;
+  transition:all .15s;flex-shrink:0;}
+.no-color-btn:hover{border-color:var(--ruby);color:var(--ruby);}
 
-/* Bouton supprimer */
+/* Inputs numériques courts */
+.inp-short{background:var(--bg-float);border:1px solid var(--text-faint);
+  color:var(--text-primary);font-size:.78rem;font-family:'Outfit',sans-serif;
+  border-radius:var(--r-sm);outline:none;padding:4px 8px;width:68px;
+  text-align:center;transition:border-color .15s;}
+.inp-short:focus{border-color:var(--copper);}
+.inp-short::placeholder{color:var(--text-muted);}
+
+/* ══ BOUTONS ═════════════════════════════════════════════════════ */
+.btn-add-row{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
+  border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--copper),var(--copper-light));
+  color:#0F1118;font-size:.78rem;font-weight:800;border:none;cursor:pointer;
+  transition:opacity .15s,transform .1s;font-family:'Outfit',sans-serif;}
+.btn-add-row:hover{opacity:.88;transform:translateY(-1px);}
+.btn-save-sec{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
+  border-radius:var(--r-md);background:rgba(45,212,160,.08);
+  border:1px solid rgba(45,212,160,.3);color:var(--emerald);
+  font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;
+  transition:all .15s;}
+.btn-save-sec:hover{background:rgba(45,212,160,.15);}
 .btn-rm{width:28px;height:28px;border-radius:var(--r-sm);background:transparent;
   border:1px solid transparent;color:var(--text-muted);cursor:pointer;
   display:inline-flex;align-items:center;justify-content:center;transition:all .15s;}
@@ -125,37 +167,25 @@ input[type="color"].native-picker{
 
 /* Ligne vide */
 .empty-row td{text-align:center;color:var(--text-muted);font-size:.8rem;
-  padding:20px;font-style:italic;}
+  padding:22px;font-style:italic;}
 
-/* Bouton Enregistrer section */
-.btn-save-sec{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;
-  border-radius:var(--r-md);background:rgba(45,212,160,.08);
-  border:1px solid rgba(45,212,160,.3);color:var(--emerald);
-  font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;
-  transition:all .15s;white-space:nowrap;}
-.btn-save-sec:hover{background:rgba(45,212,160,.15);}
-
-/* Spinner */
-.spinner{display:flex;align-items:center;justify-content:center;padding:40px;
+/* ══ SPINNER / TOAST ═════════════════════════════════════════════ */
+.spinner{display:flex;align-items:center;justify-content:center;padding:60px;
   gap:12px;color:var(--text-muted);font-size:.84rem;}
 .sp-ring{width:22px;height:22px;border:2px solid var(--text-faint);
   border-top-color:var(--copper);border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* Toast */
 .toast-bar{position:fixed;bottom:24px;right:24px;z-index:999;
   display:flex;flex-direction:column;gap:8px;pointer-events:none;}
 .toast{padding:11px 18px;border-radius:var(--r-md);font-size:.82rem;font-weight:600;
-  border:1px solid;animation:tin .2s var(--ease);max-width:320px;pointer-events:auto;}
+  border:1px solid;animation:tin .2s var(--ease);max-width:340px;}
 .toast.ok{background:rgba(45,212,160,.12);color:var(--emerald);border-color:rgba(45,212,160,.3);}
 .toast.err{background:rgba(224,85,85,.12);color:var(--ruby);border-color:rgba(224,85,85,.3);}
 @keyframes tin{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
 
-@media(max-width:700px){
+@media(max-width:750px){
   .main{padding:20px 14px 50px;}
-  .ptbl{min-width:400px;}
-  .ptbl-wrap{overflow-x:auto;}
-  .section-head{flex-direction:column;align-items:flex-start;}
+  .section-head{flex-direction:column;}
 }
 </style>
 </head>
@@ -179,7 +209,28 @@ input[type="color"].native-picker{
   <div class="page-hdr">
     <div class="page-eyebrow">Configuration</div>
     <div class="page-title">Paramètres de planification</div>
-    <div class="page-sub">Gérez les valeurs disponibles dans chaque menu déroulant du tableau. Chaque valeur peut avoir un code couleur associé.</div>
+    <div class="page-sub">Gérez les valeurs et le style graphique appliqué à chaque valeur dans le tableau.</div>
+  </div>
+
+  <!-- Légende des colonnes de style -->
+  <div class="legend">
+    <div class="legend-title">Colonnes de style graphique</div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#7EC8E3"></div>
+      <strong>text_color</strong> — couleur du texte (hex, ex: #7EC8E3)
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--copper)"></div>
+      <strong>border_color</strong> — couleur de la bordure (hex)
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--text-muted)"></div>
+      <strong>border_opacity</strong> — opacité de la bordure (ex: 0.35)
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--amber)"></div>
+      <strong>font_weight</strong> — graisse du texte (ex: 400, 600, 700)
+    </div>
   </div>
 
   <div id="sections-wrap">
@@ -196,30 +247,30 @@ const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 let sb;
 
-// ── Catégories ────────────────────────────────────────────────────────
+// ── Catégories ─────────────────────────────────────────────────
 const CATEGORIES = [
   { key: 'statut_ligne',   label: 'Statut ligne',
-    desc: 'Valeurs du champ Statut ligne (ex: Actif, Annulé, Retardé…)' },
+    desc: 'Valeurs du champ Statut ligne.',
+    note: 'La valeur "Annulé" applique une barure sur toute la ligne du tableau (style spécial non représentable par les 4 colonnes seules).' },
   { key: 'type_camion',    label: 'Type camion',
-    desc: 'Types de camion disponibles dans le menu (ex: CHAUFFÉE, REEFER…)' },
+    desc: 'Types de camion disponibles. Le style est appliqué sur le select du tableau.' },
   { key: 'heure_planif',   label: 'Heure planifiée',
-    desc: 'Heures planifiées prédéfinies pour les camions extra (ex: 06:00, 07:30…)' },
+    desc: 'Heures prédéfinies pour les camions extra. Aucun style graphique appliqué.' },
   { key: 'description',    label: 'Description',
-    desc: 'Descriptions prédéfinies disponibles dans le menu du tableau.' },
+    desc: 'Descriptions prédéfinies. Aucun style graphique appliqué.' },
   { key: 'dest_arrivee',   label: 'Destination arrivée',
-    desc: "Destinations d'arrivée disponibles (ex: SOY, GH, ADVANTECH…)" },
+    desc: "Destinations d'arrivée disponibles. Aucun style graphique appliqué." },
   { key: 'destination',    label: 'Destination départ',
-    desc: 'Destinations de départ disponibles.' },
+    desc: 'Destinations de départ disponibles. Aucun style graphique appliqué.' },
   { key: 'statut_arrivee', label: 'Statut arrivée',
-    desc: "Statuts d'arrivée disponibles (ex: ATTENTE, FAIT…)" },
+    desc: 'Le style est appliqué sur le badge du champ Statut arrivée.' },
   { key: 'chargement',     label: 'Chargement',
-    desc: 'États de chargement disponibles (ex: ATTENTE, PRÊTE, EN CHARGEMENT…)' },
+    desc: 'Le style est appliqué sur le badge du champ Chargement.' },
 ];
 
-// ── Données en mémoire ────────────────────────────────────────────────
-let allData = {}; // { key: [{id, categorie, valeur, couleur, ordre}] }
+let allData = {};
 
-// ── Init ──────────────────────────────────────────────────────────────
+// ── Init ────────────────────────────────────────────────────────
 async function init(){
   sb = supabase.createClient(SB_URL, SB_KEY);
   try {
@@ -237,17 +288,17 @@ async function loadAll(){
     allData = {};
     CATEGORIES.forEach(c => { allData[c.key] = []; });
     (data||[]).forEach(r => {
-      if(allData[r.categorie]) allData[r.categorie].push(r);
+      if(allData[r.categorie] !== undefined) allData[r.categorie].push(r);
     });
     renderAll();
   } catch(e){
     toast('Erreur chargement: '+e.message, 'err');
     document.getElementById('sections-wrap').innerHTML =
-      '<p style="color:var(--ruby);padding:20px;">Erreur de connexion à la base de données.</p>';
+      `<p style="color:var(--ruby);padding:20px;">Erreur de connexion à la base de données.<br><small style="color:var(--text-muted)">${e.message}</small></p>`;
   }
 }
 
-// ── Rendu ─────────────────────────────────────────────────────────────
+// ── Rendu ───────────────────────────────────────────────────────
 function renderAll(){
   const wrap = document.getElementById('sections-wrap');
   wrap.innerHTML = CATEGORIES.map(c => buildSection(c)).join('');
@@ -256,69 +307,88 @@ function renderAll(){
 function buildSection(cat){
   const items = allData[cat.key] || [];
   const rows = items.length === 0
-    ? `<tr class="empty-row"><td colspan="4">Aucune valeur — ajoutez-en une ci-dessous.</td></tr>`
+    ? `<tr class="empty-row"><td colspan="7">Aucune valeur — cliquez sur Ajouter.</td></tr>`
     : items.map((item, i) => buildRow(cat.key, item, i+1)).join('');
+
+  const noteHtml = cat.note
+    ? `<div class="note-style">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        ${cat.note}
+      </div>` : '';
 
   return `
   <div class="section" id="sec-${cat.key}">
     <div class="section-head">
-      <div>
-        <div class="section-title">
-          <span class="section-name">${cat.label}</span>
+      <div class="section-meta">
+        <div class="section-name">
+          ${cat.label}
           <span class="item-count" id="count-${cat.key}">${items.length} valeur${items.length!==1?'s':''}</span>
         </div>
         <div class="section-desc">${cat.desc}</div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;">
+      <div class="section-actions">
         <button class="btn-save-sec" onclick="saveSection('${cat.key}')">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
           Enregistrer
         </button>
         <button class="btn-add-row" onclick="addRow('${cat.key}')">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Ajouter
         </button>
       </div>
     </div>
-
+    ${noteHtml}
     <div class="ptbl-wrap">
-      <table class="ptbl">
-        <thead><tr>
-          <th class="th-num">#</th>
-          <th>Valeur</th>
-          <th class="th-color">Code couleur</th>
-          <th class="th-act"></th>
-        </tr></thead>
-        <tbody id="tbody-${cat.key}">${rows}</tbody>
-      </table>
+      <div class="ptbl-scroll">
+        <table class="ptbl">
+          <thead><tr>
+            <th class="th-num">#</th>
+            <th>Valeur</th>
+            <th>Aperçu</th>
+            <th class="th-style">text_color</th>
+            <th class="th-style">border_color</th>
+            <th style="width:90px;">border_opacity</th>
+            <th style="width:90px;">font_weight</th>
+            <th class="th-act"></th>
+          </tr></thead>
+          <tbody id="tbody-${cat.key}">${rows}</tbody>
+        </table>
+      </div>
     </div>
   </div>`;
 }
 
 function buildRow(catKey, item, num){
-  const couleur = item.couleur || '';
-  const swatchBg = couleur || 'var(--bg-float)';
-  const swatchBorder = couleur ? 'none' : '1px solid var(--text-faint)';
+  const tc = item.text_color   || '';
+  const bc = item.border_color || '';
+  const bo = item.border_opacity || '';
+  const fw = item.font_weight  || '';
+
+  // Aperçu visuel de la valeur avec les styles appliqués
+  let previewStyle = '';
+  if(tc) previewStyle += `color:${tc};`;
+  if(fw) previewStyle += `font-weight:${fw};`;
+  if(bc && bo){
+    previewStyle += `border:1px solid rgba(${hexToRgb(bc)},${bo});`;
+    previewStyle += `background:rgba(${hexToRgb(bc)},${Math.min(parseFloat(bo)||0, 0.15)});`;
+    previewStyle += `padding:2px 9px;border-radius:20px;`;
+  }
+  const previewHtml = `<span class="val-preview" style="${previewStyle}">${esc(item.valeur)||'—'}</span>`;
+
   return `
   <tr id="row-${item.id}" data-id="${item.id}" data-cat="${catKey}">
     <td class="td-num">${num}</td>
     <td><input class="inp-val" type="text" value="${esc(item.valeur)}"
-      data-field="valeur" oninput="markDirty('${item.id}')"></td>
-    <td>
-      <div class="color-wrap">
-        <input type="color" class="native-picker"
-          value="${couleur || '#C8843A'}"
-          oninput="onColorPick(this,'${item.id}')">
-        <input class="inp-color" type="text"
-          value="${esc(couleur)}" placeholder="— aucune couleur"
-          data-field="couleur" id="cinp-${item.id}"
-          oninput="onColorText(this,'${item.id}')"
-          onchange="syncColorPicker(this,'${item.id}')">
-        <div class="color-swatch" id="cswatch-${item.id}"
-          style="background:${swatchBg};border:${swatchBorder};"
-          onclick="document.querySelector('#row-${item.id} .native-picker').click()"></div>
-      </div>
-    </td>
+      data-field="valeur" oninput="markDirty('${item.id}');refreshPreview('${item.id}')"></td>
+    <td id="prev-${item.id}">${previewHtml}</td>
+    <td>${colorCell(tc, item.id, 'tc')}</td>
+    <td>${colorCell(bc, item.id, 'bc')}</td>
+    <td><input class="inp-short" type="text" value="${esc(bo)}" placeholder="0.35"
+      data-field="border_opacity" id="bo-${item.id}"
+      oninput="markDirty('${item.id}');refreshPreview('${item.id}')"></td>
+    <td><input class="inp-short" type="text" value="${esc(fw)}" placeholder="400"
+      data-field="font_weight" id="fw-${item.id}"
+      oninput="markDirty('${item.id}');refreshPreview('${item.id}')"></td>
     <td class="td-act">
       <button class="btn-rm" onclick="deleteRow('${item.id}','${catKey}')" title="Supprimer">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -327,53 +397,111 @@ function buildRow(catKey, item, num){
   </tr>`;
 }
 
-// ── Couleur ───────────────────────────────────────────────────────────
-function onColorPick(picker, id){
+function colorCell(hex, id, prefix){
+  const bg = hex || 'var(--bg-float)';
+  const border = hex ? 'none' : '1px solid var(--text-faint)';
+  const displayVal = hex || '';
+  return `<div class="style-cell">
+    <div class="color-pill" onclick="document.getElementById('cpick-${prefix}-${id}').click()">
+      <input type="color" class="cpick" id="cpick-${prefix}-${id}"
+        value="${hex || '#C8843A'}"
+        oninput="onPickerChange(this,'${prefix}','${id}')">
+      <input class="inp-hex" type="text" id="hex-${prefix}-${id}"
+        value="${esc(displayVal)}" placeholder="— aucune"
+        oninput="onHexChange(this,'${prefix}','${id}')">
+    </div>
+    <button class="no-color-btn" onclick="clearColor('${prefix}','${id}')" title="Effacer la couleur">✕</button>
+    <div id="sw-${prefix}-${id}" style="width:16px;height:16px;border-radius:50%;flex-shrink:0;
+      background:${bg};border:${border};"></div>
+  </div>`;
+}
+
+// ── Couleur ─────────────────────────────────────────────────────
+function onPickerChange(picker, prefix, id){
   const hex = picker.value;
-  const cinp = document.getElementById('cinp-'+id);
-  const swatch = document.getElementById('cswatch-'+id);
-  if(cinp){ cinp.value = hex; }
-  if(swatch){ swatch.style.background = hex; swatch.style.border = 'none'; }
+  const hexInp = document.getElementById(`hex-${prefix}-${id}`);
+  const sw = document.getElementById(`sw-${prefix}-${id}`);
+  if(hexInp) hexInp.value = hex;
+  if(sw){ sw.style.background = hex; sw.style.border = 'none'; }
   markDirty(id);
+  refreshPreview(id);
 }
 
-function onColorText(inp, id){
+function onHexChange(inp, prefix, id){
   const val = inp.value.trim();
-  const swatch = document.getElementById('cswatch-'+id);
+  const sw = document.getElementById(`sw-${prefix}-${id}`);
   if(!val){
-    if(swatch){ swatch.style.background = 'var(--bg-float)'; swatch.style.border = '1px solid var(--text-faint)'; }
-    return;
-  }
-  if(/^#[0-9A-Fa-f]{6}$/.test(val)){
-    if(swatch){ swatch.style.background = val; swatch.style.border = 'none'; }
+    if(sw){ sw.style.background = 'var(--bg-float)'; sw.style.border = '1px solid var(--text-faint)'; }
+  } else if(/^#[0-9A-Fa-f]{6}$/.test(val)){
+    const picker = document.getElementById(`cpick-${prefix}-${id}`);
+    if(picker) picker.value = val;
+    if(sw){ sw.style.background = val; sw.style.border = 'none'; }
   }
   markDirty(id);
+  refreshPreview(id);
 }
 
-function syncColorPicker(inp, id){
-  const val = inp.value.trim();
-  if(/^#[0-9A-Fa-f]{6}$/.test(val)){
-    const picker = document.querySelector(`#row-${id} .native-picker`);
-    if(picker) picker.value = val;
+function clearColor(prefix, id){
+  const hexInp = document.getElementById(`hex-${prefix}-${id}`);
+  const sw = document.getElementById(`sw-${prefix}-${id}`);
+  if(hexInp) hexInp.value = '';
+  if(sw){ sw.style.background = 'var(--bg-float)'; sw.style.border = '1px solid var(--text-faint)'; }
+  markDirty(id);
+  refreshPreview(id);
+}
+
+// ── Aperçu dynamique ────────────────────────────────────────────
+function refreshPreview(id){
+  const row = document.getElementById('row-'+id);
+  if(!row) return;
+  const valEl   = row.querySelector('.inp-val');
+  const tcEl    = document.getElementById('hex-tc-'+id);
+  const bcEl    = document.getElementById('hex-bc-'+id);
+  const boEl    = document.getElementById('bo-'+id);
+  const fwEl    = document.getElementById('fw-'+id);
+  const prevEl  = document.getElementById('prev-'+id);
+  if(!prevEl) return;
+
+  const val = valEl ? valEl.value : '';
+  const tc  = tcEl  ? tcEl.value.trim()  : '';
+  const bc  = bcEl  ? bcEl.value.trim()  : '';
+  const bo  = boEl  ? boEl.value.trim()  : '';
+  const fw  = fwEl  ? fwEl.value.trim()  : '';
+
+  let style = '';
+  if(tc && /^#[0-9A-Fa-f]{6}$/.test(tc)) style += `color:${tc};`;
+  if(fw) style += `font-weight:${fw};`;
+  if(bc && /^#[0-9A-Fa-f]{6}$/.test(bc) && bo){
+    const rgb = hexToRgb(bc);
+    style += `border:1px solid rgba(${rgb},${bo});`;
+    style += `background:rgba(${rgb},${Math.min(parseFloat(bo)||0, 0.15)});`;
+    style += `padding:2px 9px;border-radius:20px;`;
   }
+  prevEl.innerHTML = `<span class="val-preview" style="${style}">${esc(val)||'—'}</span>`;
 }
 
-// ── Dirty tracking ────────────────────────────────────────────────────
+function hexToRgb(hex){
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+
+// ── Dirty tracking ──────────────────────────────────────────────
 const _dirty = new Set();
 function markDirty(id){ _dirty.add(String(id)); }
 
-// ── Ajouter une ligne ─────────────────────────────────────────────────
+// ── Ajouter une ligne ───────────────────────────────────────────
 async function addRow(catKey){
   try {
     const ordre = (allData[catKey]||[]).length + 1;
     const { data, error } = await sb.from('planning_params')
-      .insert({ categorie: catKey, valeur: '', couleur: null, ordre })
+      .insert({ categorie: catKey, valeur: '', ordre })
       .select().single();
     if(error) throw error;
     if(!allData[catKey]) allData[catKey] = [];
     allData[catKey].push(data);
     refreshTbody(catKey);
-    // Focus sur le champ valeur de la nouvelle ligne
     setTimeout(() => {
       const row = document.getElementById('row-'+data.id);
       if(row){ const inp = row.querySelector('.inp-val'); if(inp) inp.focus(); }
@@ -381,7 +509,7 @@ async function addRow(catKey){
   } catch(e){ toast('Erreur: '+e.message, 'err'); }
 }
 
-// ── Supprimer une ligne ───────────────────────────────────────────────
+// ── Supprimer ───────────────────────────────────────────────────
 async function deleteRow(id, catKey){
   try {
     const { error } = await sb.from('planning_params').delete().eq('id', id);
@@ -390,62 +518,68 @@ async function deleteRow(id, catKey){
     _dirty.delete(String(id));
     refreshTbody(catKey);
     toast('Valeur supprimée', 'ok');
-  } catch(e){ toast('Erreur suppression: '+e.message, 'err'); }
+  } catch(e){ toast('Erreur: '+e.message, 'err'); }
 }
 
-// ── Enregistrer une section ───────────────────────────────────────────
+// ── Enregistrer une section ─────────────────────────────────────
 async function saveSection(catKey){
   const tbody = document.getElementById('tbody-'+catKey);
   if(!tbody) return;
-  const rows = tbody.querySelectorAll('tr[data-id]');
-  const updates = [];
+  const trows = tbody.querySelectorAll('tr[data-id]');
+  if(trows.length === 0){ toast('Rien à enregistrer', 'ok'); return; }
 
-  rows.forEach((tr, i) => {
+  const updates = [];
+  trows.forEach((tr, i) => {
     const id = tr.dataset.id;
-    const valInput = tr.querySelector('.inp-val');
-    const colInput = tr.querySelector('.inp-color');
-    const valeur = valInput ? valInput.value.trim() : '';
-    const couleur = colInput ? colInput.value.trim() : '';
-    updates.push({ id: parseInt(id), valeur, couleur: couleur || null, ordre: i+1 });
-    // Mettre à jour allData en mémoire
+    const get = sel => { const el = tr.querySelector(sel); return el ? el.value.trim() : ''; };
+    const valeur         = get('.inp-val');
+    const text_color     = document.getElementById(`hex-tc-${id}`)?.value.trim() || null;
+    const border_color   = document.getElementById(`hex-bc-${id}`)?.value.trim() || null;
+    const border_opacity = document.getElementById(`bo-${id}`)?.value.trim() || null;
+    const font_weight    = document.getElementById(`fw-${id}`)?.value.trim() || null;
+    updates.push({
+      id: parseInt(id),
+      valeur,
+      text_color:     text_color     || null,
+      border_color:   border_color   || null,
+      border_opacity: border_opacity || null,
+      font_weight:    font_weight    || null,
+      ordre: i+1,
+    });
     const item = (allData[catKey]||[]).find(r => String(r.id) === String(id));
-    if(item){ item.valeur = valeur; item.couleur = couleur || null; item.ordre = i+1; }
+    if(item) Object.assign(item, { valeur, text_color, border_color, border_opacity, font_weight, ordre: i+1 });
   });
 
-  if(updates.length === 0){ toast('Rien à enregistrer', 'ok'); return; }
-
   try {
-    const promises = updates.map(u =>
-      sb.from('planning_params')
-        .update({ valeur: u.valeur, couleur: u.couleur, ordre: u.ordre })
-        .eq('id', u.id)
+    const results = await Promise.all(
+      updates.map(u => sb.from('planning_params').update({
+        valeur:u.valeur, text_color:u.text_color, border_color:u.border_color,
+        border_opacity:u.border_opacity, font_weight:u.font_weight, ordre:u.ordre
+      }).eq('id', u.id))
     );
-    const results = await Promise.all(promises);
-    const errors = results.filter(r => r.error);
-    if(errors.length > 0) throw new Error(errors[0].error.message);
+    const errs = results.filter(r => r.error);
+    if(errs.length) throw new Error(errs[0].error.message);
     updates.forEach(u => _dirty.delete(String(u.id)));
     refreshTbody(catKey);
-    toast(`${CATEGORIES.find(c=>c.key===catKey)?.label} enregistré ✓`, 'ok');
-  } catch(e){ toast('Erreur enregistrement: '+e.message, 'err'); }
+    const label = CATEGORIES.find(c => c.key === catKey)?.label || catKey;
+    toast(`${label} enregistré ✓`, 'ok');
+  } catch(e){ toast('Erreur: '+e.message, 'err'); }
 }
 
-// ── Refresh un tableau ────────────────────────────────────────────────
+// ── Refresh tbody ───────────────────────────────────────────────
 function refreshTbody(catKey){
-  const tbody = document.getElementById('tbody-'+catKey);
-  const count = document.getElementById('count-'+catKey);
+  const tbody  = document.getElementById('tbody-'+catKey);
+  const countEl = document.getElementById('count-'+catKey);
   if(!tbody) return;
   const items = allData[catKey] || [];
-  if(items.length === 0){
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Aucune valeur — ajoutez-en une ci-dessous.</td></tr>';
-  } else {
-    tbody.innerHTML = items.map((item, i) => buildRow(catKey, item, i+1)).join('');
-  }
-  if(count){ count.textContent = `${items.length} valeur${items.length!==1?'s':''}`; }
+  tbody.innerHTML = items.length === 0
+    ? '<tr class="empty-row"><td colspan="7">Aucune valeur — cliquez sur Ajouter.</td></tr>'
+    : items.map((item, i) => buildRow(catKey, item, i+1)).join('');
+  if(countEl) countEl.textContent = `${items.length} valeur${items.length!==1?'s':''}`;
 }
 
-// ── Utils ─────────────────────────────────────────────────────────────
+// ── Utils ────────────────────────────────────────────────────────
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
-
 function toast(msg, type='ok'){
   const bar = document.getElementById('toast-bar');
   const el = document.createElement('div');
@@ -455,13 +589,10 @@ function toast(msg, type='ok'){
   setTimeout(() => el.remove(), 3500);
 }
 
-// ── Boot ──────────────────────────────────────────────────────────────
+// ── Boot ─────────────────────────────────────────────────────────
 function waitAndInit(){
-  if(typeof supabase !== 'undefined' && supabase.createClient){
-    init();
-  } else {
-    setTimeout(waitAndInit, 50);
-  }
+  if(typeof supabase !== 'undefined' && supabase.createClient){ init(); }
+  else { setTimeout(waitAndInit, 50); }
 }
 window.addEventListener('load', waitAndInit);
 </script>
