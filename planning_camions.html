@@ -551,7 +551,14 @@ function render(){
 }
 function buildRow(idx, heure, lbl, isExtra, lineNum){
   const r=rows[idx]||{};
-  const sl=r.statut_ligne||(_params['statut_ligne']||[{valeur:'Actif'}])[0].valeur;
+  const _slDefParams = _params['statut_ligne']||[{valeur:'ACTIF'},{valeur:'INACTIF'}];
+  const _isWkEnd = (()=>{ const d=new Date(curDate+'T00:00:00').getDay(); return d===0||d===6; })();
+  const _wkInactif = [0,1,7,8,9];
+  const sl = r.statut_ligne || (
+    (_isWkEnd && _wkInactif.includes(idx))
+      ? (_slDefParams[1]?.valeur || _slDefParams[0].valeur)
+      : _slDefParams[0].valeur
+  );
   const _slP=_params['statut_ligne']||[]; const _vAnnule=_slP[2]?_slP[2].valeur:'Annulé'; const ann=sl===_vAnnule;
   const hcls=isExtra?'extra':slotCls(heure);
   const dot=hcls==='now';
