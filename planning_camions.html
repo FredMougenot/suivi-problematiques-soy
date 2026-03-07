@@ -621,6 +621,8 @@ function fchg(idx, field, val){
   if(field==='statut_ligne'){
     const tr=document.getElementById('tr'+idx);
     if(tr){ val==='Annulé'?tr.classList.add('row-annule'):tr.classList.remove('row-annule'); }
+    render(); // Recalcule destinations (BOBTAIL) et type_camion au changement de statut
+    return;
   }
   updateStats();
 }
