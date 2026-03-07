@@ -372,7 +372,7 @@ let isViewer = false;
 async function loadParams(){
   try {
     const {data,error} = await sb.from('planning_params')
-      .select('categorie,valeur,text_color,border_color,border_opacity,font_weight,ordre')
+      .select('categorie,valeur,text_color,border_color,border_opacity,font_weight,has_background,ordre')
       .order('ordre').order('created_at');
     if(error) throw error;
     _params = {};
