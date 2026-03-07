@@ -602,7 +602,7 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
 
     <td>${(()=>{
       const items=_params['dest_arrivee']||[];
-      const cur=r.dest_arrivee||'SOY';
+      const cur=r.dest_arrivee||'';
       const st=getParamStyle('dest_arrivee',cur);
       const opts=items.length
         ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
@@ -612,14 +612,15 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
 
     <td>${(()=>{
       const items=_params['statut_arrivee']||[];
-      const cur=r.statut||'ATTENTE';
+      const cur=r.statut||'';
       const st=getParamStyle('statut_arrivee',cur);
       const opts=items.length
         ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
         : `<option${cur==='ATTENTE'?' selected':''}>ATTENTE</option><option${cur==='FAIT'?' selected':''}>FAIT</option>`;
       const bgSA=getBgStyle('statut_arrivee',cur);
       return `<span class="statut-badge" style="${bgSA}">
-        <select class="cs statut-sel" style="${st}" onchange="fchg(${idx},'statut',this.value);updStatut(this)" data-cat="statut_arrivee">${opts}</select>
+        <select class="cs statut-sel" style="${st}" onchange="fchg(${idx},'statut',this.value);updStatut(this)" data-cat="statut_arrivee">
+          <option value=""${!cur?' selected':''}>—</option>${opts}</select>
       </span>`;
     })()}</td>
 
@@ -638,14 +639,15 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
 
     <td>${(()=>{
       const items=_params['chargement']||[];
-      const cur=r.chargement||'ATTENTE';
+      const cur=r.chargement||'';
       const st=getParamStyle('chargement',cur);
       const opts=items.length
         ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
         : `<option${cur==='ATTENTE'?' selected':''}>ATTENTE</option><option${cur==='PRÊTE'?' selected':''}>PRÊTE</option><option${cur==='EN CHARGEMENT'?' selected':''}>EN CHARGEMENT</option>`;
       const bgCH=getBgStyle('chargement',cur);
       return `<span class="statut-badge" style="${bgCH}">
-        <select class="cs statut-sel" style="min-width:135px;${st}" onchange="fchg(${idx},'chargement',this.value);updCharg(this)" data-cat="chargement">${opts}</select>
+        <select class="cs statut-sel" style="min-width:135px;${st}" onchange="fchg(${idx},'chargement',this.value);updCharg(this)" data-cat="chargement">
+          <option value=""${!cur?' selected':''}>—</option>${opts}</select>
       </span>`;
     })()}</td>
 
@@ -688,7 +690,7 @@ async function saveAll(){
       type_camion:(r.type_camion==='__VIDE__'?null:r.type_camion||null),
       num_arrivee:r.num_arrivee||null,
       num_depart:r.num_depart||null,
-      dest_arrivee:r.dest_arrivee||'SOY',
+      dest_arrivee:r.dest_arrivee||null,
       destination:r.destination||null,
       description:r.description||null,
       statut:r.statut||null,
@@ -724,7 +726,7 @@ async function saveRow(idx){
     type_camion:r.type_camion||null,
     num_arrivee:r.num_arrivee||null,
     num_depart:r.num_depart||null,
-    dest_arrivee:r.dest_arrivee||'SOY',
+    dest_arrivee:r.dest_arrivee||null,
     destination:r.destination||null,
     description:r.description||null,
     statut:r.statut||null,
@@ -929,8 +931,8 @@ function exportPDF() {
       type:      r.type_camion || '—',
       desc:      r.description || '—',
       dest:      r.destination || '—',
-      arrivee:   r.statut      || 'ATTENTE',
-      charg:     r.chargement  || 'ATTENTE',
+      arrivee:   r.statut      || '',
+      charg:     r.chargement  || '',
       hReelle:   r.heure_reelle|| '—',
       retard:    retardStr,
       gh:        r.short_gh ? 'Oui' : '',
