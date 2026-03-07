@@ -593,10 +593,11 @@ function render(){
   const _BOBTAIL = 'AUCUN REPARTIR BOBTAIL';
   const _VENIR   = 'VENIR BOBTAIL';
   SLOTS.forEach(s => {
+    if(!rows[s.idx]) rows[s.idx] = {slot_index: s.idx}; // garantir l'objet existe
     if(s.idx === _idxDernierActif){
       rows[s.idx].destination = _BOBTAIL; // Toujours écraser — dernier actif
     } else {
-      if(rows[s.idx] && rows[s.idx].destination === _BOBTAIL){
+      if(rows[s.idx].destination === _BOBTAIL){
         rows[s.idx].destination = '';
       }
     }
@@ -613,10 +614,11 @@ function render(){
 
     // ── 1er camion actif → VENIR BOBTAIL (champ #1), toujours écraser
     SLOTS.forEach(s => {
+      if(!rows[s.idx]) rows[s.idx] = {slot_index: s.idx};
       if(s.idx === _idxPremierActif){
         rows[s.idx].description = _descVal(1);
       } else {
-        if(rows[s.idx] && rows[s.idx].description === _descVal(1) && _descVal(1))
+        if(rows[s.idx].description === _descVal(1) && _descVal(1))
           rows[s.idx].description = '';
       }
     });
