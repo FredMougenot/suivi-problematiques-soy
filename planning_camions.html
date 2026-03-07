@@ -527,6 +527,29 @@ async function load(){
 
 // ── RENDER ─────────────────────────────────────────────────────────
 function render(){
+  // Calculer 1er et 2ème slot actif (semaine uniquement) pour type_camion
+  const _rDow = new Date(curDate+'T00:00:00').getDay();
+  const _rIsWkEnd = _rDow===0||_rDow===6;
+  const _rSlParams = _params['statut_ligne']||[{valeur:'ACTIF'},{valeur:'INACTIF'}];
+  const _rVActif = _rSlParams[0]?.valeur||'ACTIF';
+  const _rWkInactif = [0,1,7,8,9];
+  const _rSlotsTries = [...SLOTS].sort((a,b)=> a.h<b.h?-1:a.h>b.h?1:a.idx-b.idx);
+
+  window._renderIdxPremierActif = null;
+  window._renderIdxDeuxiemeActif = null;
+  if(!_rIsWkEnd){
+    let _cnt=0;
+    for(const s of _rSlotsTries){
+      const dbSt = (rows[s.idx]||{}).statut_ligne;
+      const st = dbSt || _rVActif; // defaut = actif en semaine
+      if(st === _rVActif){
+        _cnt++;
+        if(_cnt===1) window._renderIdxPremierActif = s.idx;
+        else if(_cnt===2){ window._renderIdxDeuxiemeActif = s.idx; break; }
+      }
+    }
+  }
+
   const extras=Object.keys(rows).map(Number).filter(i=>i>=10).sort((a,b)=>a-b);
 
   // Construire la liste complète des entrées avec leur heure pour tri
@@ -587,7 +610,21 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
 
     <td>${(()=>{
       const items=_params['type_camion']||[];
-      const cur=r.type_camion||'__VIDE__';
+      const _tcP = _params['type_camion']||[];
+      const _tcVide   = '__VIDE__';
+      const _tcReefer  = _tcP[0]?.valeur||'REEFER';    // #1
+      const _tcChauffe = _tcP[1]?.valeur||'CHAUFFÉE';  // #2
+      let _tcDef;
+      if(_isWkEnd){
+        // Weekend : toutes les lignes -> #2
+        _tcDef = _tcChauffe;
+      } else {
+        // Semaine : 1er actif -> vide, 2ème actif -> #1, autres -> #2
+        if(idx === window._renderIdxPremierActif)       _tcDef = _tcVide;
+        else if(idx === window._renderIdxDeuxiemeActif) _tcDef = _tcReefer;
+        else                                             _tcDef = _tcChauffe;
+      }
+      const cur = r.type_camion || _tcDef;
       const st=cur==='__VIDE__'?'':getParamStyle('type_camion',cur);
       const opts=items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('');
       return `<select class="cs" style="min-width:105px;${st}" onchange="fchg(${idx},'type_camion',this.value);updTypeSel(this)" data-cat="type_camion">
