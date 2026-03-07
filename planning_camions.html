@@ -486,7 +486,7 @@ function render(){
     }
   });
 
-  // ── Règle 1 : 1er slot Actif → type_camion TOUJOURS vide (7 jours/7) ──
+  // ── Règle 1 : 1er slot Actif → type vide — tous les autres Actifs → CHAUFFÉE ──
   const _sortedSlots = [...SLOTS].sort((a,b)=> a.h<b.h?-1:a.h>b.h?1:a.idx-b.idx);
   let _firstActifFound = false;
   for(const s of _sortedSlots){
@@ -496,7 +496,10 @@ function render(){
     if(sl === 'Actif'){
       if(!_firstActifFound){
         _firstActifFound = true;
-        rows[s.idx].type_camion = ''; // Toujours écraser, sans exception
+        rows[s.idx].type_camion = ''; // 1er actif : toujours vide
+      } else {
+        // Tous les autres actifs : forcer CHAUFFÉE si pas déjà une valeur explicite
+        if(!rows[s.idx].type_camion) rows[s.idx].type_camion = 'CHAUFFÉE';
       }
     }
   }
