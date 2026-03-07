@@ -559,7 +559,7 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
       ? (_slDefParams[1]?.valeur || _slDefParams[0].valeur)
       : _slDefParams[0].valeur
   );
-  const _slP=_params['statut_ligne']||[]; const _vAnnule=_slP[2]?_slP[2].valeur:'Annulé'; const ann=sl===_vAnnule;
+  const _slP=_params['statut_ligne']||[]; const _vInactif=_slP[1]?.valeur||'INACTIF'; const ann=sl===_vInactif;
   const hcls=isExtra?'extra':slotCls(heure);
   const dot=hcls==='now';
 
@@ -943,7 +943,7 @@ function exportPDF() {
       hReelle:   r.heure_reelle|| '—',
       retard:    retardStr,
       gh:        r.short_gh ? 'Oui' : '',
-      isAnnule:  sl === ((_params['statut_ligne']||[null,null,{valeur:'Annulé'}])[2]?.valeur||'Annulé'),
+      isAnnule:  sl === ((_params['statut_ligne']||[null,{valeur:'INACTIF'}])[1]?.valeur||'INACTIF'),
       isFait:    r.statut === 'FAIT',
     });
   });
