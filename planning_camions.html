@@ -486,6 +486,34 @@ function render(){
     }
   });
 
+  // ── Règle 1 : 1er slot Actif → type_camion vide (sauf si sauvegardé manuellement) ──
+  // Construire la liste triée pour trouver le 1er actif
+  const _sortedSlots = [...SLOTS].sort((a,b)=> a.h<b.h?-1:a.h>b.h?1:a.idx-b.idx);
+  let _firstActifFound = false;
+  for(const s of _sortedSlots){
+    const r = rows[s.idx];
+    if(!r) continue;
+    const sl = r.statut_ligne || 'Actif';
+    if(sl === 'Actif'){
+      if(!_firstActifFound){
+        _firstActifFound = true;
+        // Appliquer uniquement si pas encore sauvegardé en DB (pas d'id)
+        // OU si le type n'a pas été changé manuellement (type est CHAUFFÉE par défaut)
+        if(!r.id || r.type_camion === 'CHAUFFÉE' || r.type_camion === ''){
+          rows[s.idx].type_camion = '';
+        }
+      }
+    }
+  }
+
+  // ── Règle 2 : Lundi–Vendredi → Camion B (idx 1) toujours REEFER ──
+  if(!_isWeekend && rows[1]){
+    // Appliquer uniquement si pas sauvegardé manuellement comme autre chose
+    if(!rows[1].id || rows[1].type_camion === 'CHAUFFÉE' || rows[1].type_camion === '' || rows[1].type_camion === 'REEFER'){
+      rows[1].type_camion = 'REEFER';
+    }
+  }
+
   const extras=Object.keys(rows).map(Number).filter(i=>i>=10).sort((a,b)=>a-b);
 
   // Construire la liste complète des entrées avec leur heure pour tri
