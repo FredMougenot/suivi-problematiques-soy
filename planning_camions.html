@@ -618,16 +618,29 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
   const ann=sl==='Annulé';
   const hcls=isExtra?'extra':slotCls(heure);
   const dot=hcls==='now';
+
+  // Statut ligne : style inline sur le <tr> si Annulé
+  const slStyle = ann ? getParamStyle('statut_ligne', sl) : '';
+  // row-annule garde la barure (non paramétrable) + on surcharge la couleur si définie
   const trCls=(ann?'row-annule':'')+(isExtra?' row-extra':'');
-  const selDests=DESTS.map(d=>`<option${r.destination===d?' selected':''}>${esc(d)}</option>`).join('');
+  const trStyle = slStyle ? `style="${slStyle}"` : '';
+
   const svgSave='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
-  return `<tr id="tr${idx}" class="${trCls}">
+
+  return `<tr id="tr${idx}" class="${trCls}" ${trStyle}>
     <td style="text-align:center;font-weight:700;color:var(--text-muted);font-size:.8rem">${lineNum}</td>
     <td><span class="h-badge ${hcls}">${dot?'<span class="now-dot"></span>':''}${esc(lbl)}</span></td>
-    <td><select class="cs" onchange="fchg(${idx},'statut_ligne',this.value)">
-      <option${sl==='Actif'?' selected':''}>Actif</option>
-      <option${sl==='Annulé'?' selected':''}>Annulé</option>
-    </select></td>
+
+    <td>${(()=>{
+      const items=(_params['statut_ligne']||[]);
+      const cur=sl;
+      const st=getParamStyle('statut_ligne',cur);
+      const opts=items.length
+        ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
+        : `<option${cur==='Actif'?' selected':''}>Actif</option><option${cur==='Annulé'?' selected':''}>Annulé</option>`;
+      return `<select class="cs" style="${st}" onchange="fchg(${idx},'statut_ligne',this.value)" data-cat="statut_ligne">${opts}</select>`;
+    })()}</td>
+
     <td>${(()=>{
       const items=_params['type_camion']||[];
       const cur=r.type_camion||'__VIDE__';
@@ -636,44 +649,72 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
       return `<select class="cs" style="min-width:105px;${st}" onchange="fchg(${idx},'type_camion',this.value);updTypeSel(this)" data-cat="type_camion">
         <option value="__VIDE__"${cur==='__VIDE__'?' selected':''}>—</option>${opts}</select>`;
     })()}</td>
+
     <td><input class="ci" style="max-width:95px" value="${esc(r.num_arrivee||'')}" placeholder="N° arrivée" oninput="fchg(${idx},'num_arrivee',this.value)"></td>
-    <td>
-      <select class="cs desc-sel" style="min-width:150px" onchange="fchg(${idx},'description',this.value)">
-        <option value="" ${!r.description?'selected':''}>—</option>
-        ${DESC_OPTS.map(o=>`<option value="${esc(o)}"${r.description===o?' selected':''}>${esc(o)}</option>`).join('')}
-        ${r.description==='—'?`<option value="—" selected>—</option>`:''}
-      </select>
-    </td>
-    <td><select class="cs" style="min-width:95px" onchange="fchg(${idx},'dest_arrivee',this.value)">
-      <option${(r.dest_arrivee||'SOY')==='SOY'?' selected':''}>SOY</option>
-      <option${r.dest_arrivee==='GH'?' selected':''}>GH</option>
-      <option${r.dest_arrivee==='ADVANTECH'?' selected':''}>ADVANTECH</option>
-      <option${r.dest_arrivee==='PROACTIVE'?' selected':''}>PROACTIVE</option>
-      <option${r.dest_arrivee==='LJDERY'?' selected':''}>LJDERY</option>
-    </select></td>
-    <td><span class="statut-badge ${r.statut==='FAIT'?'s-fait':'s-attente'}">
-      <select class="cs statut-sel" onchange="fchg(${idx},'statut',this.value);updStatut(this)">
-        <option${r.statut==='ATTENTE'||!r.statut?' selected':''}>ATTENTE</option>
-        <option${r.statut==='FAIT'?' selected':''}>FAIT</option>
-      </select>
-    </span></td>
-    <td><select class="cs" style="min-width:170px" onchange="fchg(${idx},'destination',this.value)">
-      <option value="">—</option>${selDests}
-    </select></td>
+
+    <td>${(()=>{
+      const items=_params['description']||[];
+      const cur=r.description||'';
+      const st=getParamStyle('description',cur);
+      const opts=items.length
+        ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
+        : DESC_OPTS.map(o=>`<option value="${esc(o)}"${cur===o?' selected':''}>${esc(o)}</option>`).join('');
+      return `<select class="cs desc-sel" style="min-width:150px;${st}" onchange="fchg(${idx},'description',this.value)" data-cat="description">
+        <option value=""${!cur?' selected':''}>—</option>${opts}</select>`;
+    })()}</td>
+
+    <td>${(()=>{
+      const items=_params['dest_arrivee']||[];
+      const cur=r.dest_arrivee||'SOY';
+      const st=getParamStyle('dest_arrivee',cur);
+      const opts=items.length
+        ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
+        : ['SOY','GH','ADVANTECH','PROACTIVE','LJDERY'].map(v=>`<option${cur===v?' selected':''}>${v}</option>`).join('');
+      return `<select class="cs" style="min-width:95px;${st}" onchange="fchg(${idx},'dest_arrivee',this.value)" data-cat="dest_arrivee">${opts}</select>`;
+    })()}</td>
+
+    <td>${(()=>{
+      const items=_params['statut_arrivee']||[];
+      const cur=r.statut||'ATTENTE';
+      const st=getParamStyle('statut_arrivee',cur);
+      const opts=items.length
+        ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
+        : `<option${cur==='ATTENTE'?' selected':''}>ATTENTE</option><option${cur==='FAIT'?' selected':''}>FAIT</option>`;
+      return `<span class="statut-badge">
+        <select class="cs statut-sel" style="${st}" onchange="fchg(${idx},'statut',this.value);updStatut(this)" data-cat="statut_arrivee">${opts}</select>
+      </span>`;
+    })()}</td>
+
+    <td>${(()=>{
+      const items=_params['destination']||[];
+      const cur=r.destination||'';
+      const st=getParamStyle('destination',cur);
+      const opts=items.length
+        ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
+        : DESTS.map(d=>`<option${cur===d?' selected':''}>${esc(d)}</option>`).join('');
+      return `<select class="cs" style="min-width:170px;${st}" onchange="fchg(${idx},'destination',this.value)" data-cat="destination">
+        <option value="">—</option>${opts}</select>`;
+    })()}</td>
+
     <td><input class="ci" style="max-width:95px" value="${esc(r.num_depart||'')}" placeholder="N° départ" oninput="fchg(${idx},'num_depart',this.value)"></td>
-    <td><span class="statut-badge ${r.chargement==='PRÊTE'?'c-prete':r.chargement==='EN CHARGEMENT'?'c-encours':'c-attente'}">
-      <select class="cs statut-sel" style="min-width:135px" onchange="fchg(${idx},'chargement',this.value);updCharg(this)">
-        <option${r.chargement==='ATTENTE'||!r.chargement?' selected':''}>ATTENTE</option>
-        <option${r.chargement==='PRÊTE'?' selected':''}>PRÊTE</option>
-        <option${r.chargement==='EN CHARGEMENT'?' selected':''}>EN CHARGEMENT</option>
-      </select>
-    </span></td>
+
+    <td>${(()=>{
+      const items=_params['chargement']||[];
+      const cur=r.chargement||'ATTENTE';
+      const st=getParamStyle('chargement',cur);
+      const opts=items.length
+        ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
+        : `<option${cur==='ATTENTE'?' selected':''}>ATTENTE</option><option${cur==='PRÊTE'?' selected':''}>PRÊTE</option><option${cur==='EN CHARGEMENT'?' selected':''}>EN CHARGEMENT</option>`;
+      return `<span class="statut-badge">
+        <select class="cs statut-sel" style="min-width:135px;${st}" onchange="fchg(${idx},'chargement',this.value);updCharg(this)" data-cat="chargement">${opts}</select>
+      </span>`;
+    })()}</td>
+
     <td><input class="ci-t" type="time" value="${esc(r.heure_reelle||'')}" oninput="fchg(${idx},'heure_reelle',this.value)"></td>
     <td><div class="chk${r.short_gh?' on':''}" onclick="togGH(${idx},this)"></div></td>
     ${isExtra?`<td style="text-align:center"><button onclick="delRow(${idx})" title="Supprimer ce camion" style="background:none;border:none;cursor:pointer;color:var(--text-faint);font-size:1rem;padding:2px 6px;border-radius:var(--r-sm);transition:color var(--t-fast);" onmouseover="this.style.color='var(--ruby)'" onmouseout="this.style.color='var(--text-faint)'">✕</button></td>`:'<td></td>'}
   </tr>`;
 }
-
 // ── CHAMPS ─────────────────────────────────────────────────────────
 function fchg(idx, field, val){
   if(!rows[idx]) rows[idx]={slot_index:idx};
@@ -824,14 +865,10 @@ function updTypeSel(sel){
   sel.setAttribute('style','min-width:105px;'+st);
 }
 function updStatut(sel){
-  const wrap=sel.closest('.statut-badge');
-  if(!wrap) return;
-  wrap.className='statut-badge '+(sel.value==='FAIT'?'s-fait':'s-attente');
+  sel.style.cssText = getParamStyle('statut_arrivee', sel.value) || '';
 }
 function updCharg(sel){
-  const wrap=sel.closest('.statut-badge');
-  if(!wrap) return;
-  wrap.className='statut-badge '+(sel.value==='PRÊTE'?'c-prete':sel.value==='EN CHARGEMENT'?'c-encours':'c-attente');
+  sel.style.cssText = getParamStyle('chargement', sel.value) || '';
 }
 
 // ── GRAPHIQUES ────────────────────────────────────────────────────
