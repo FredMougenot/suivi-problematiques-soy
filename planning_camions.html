@@ -783,7 +783,17 @@ function fchg(idx, field, val){
   if(field==='statut_ligne'){
     const tr=document.getElementById('tr'+idx);
     if(tr){ val==='Annulé'?tr.classList.add('row-annule'):tr.classList.remove('row-annule'); }
-    render(); // Recalcule destinations (BOBTAIL) et type_camion au changement de statut
+    // Snapshot destinations avant render pour détecter les slots affectés
+    const _destBefore = {};
+    SLOTS.forEach(s => { _destBefore[s.idx] = (rows[s.idx]||{}).destination||''; });
+    render();
+    // Sauvegarder le slot modifié + tous les slots dont destination a changé
+    const toSave = new Set([idx]);
+    SLOTS.forEach(s => {
+      const after = (rows[s.idx]||{}).destination||'';
+      if(after !== _destBefore[s.idx]) toSave.add(s.idx);
+    });
+    toSave.forEach(i => saveRow(i));
     return;
   }
   updateStats();
