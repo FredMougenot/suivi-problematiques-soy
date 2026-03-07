@@ -466,15 +466,17 @@ function render(){
 
   SLOTS.forEach(s => {
     if(!rows[s.idx]) rows[s.idx]={slot_index:s.idx};
-    // 1er actif → sentinel __VIDE__ (affiché —), Camion B semaine → REEFER, sinon défaut
+    // 1er actif → sentinel __VIDE__ (affiché —), Camion B semaine → REEFER, sinon CHAUFFÉE
     if(s.idx === _idxPremierActif){
-      rows[s.idx].type_camion = '__VIDE__'; // Toujours écraser — sentinel pour le select
+      rows[s.idx].type_camion = '__VIDE__'; // Toujours écraser — 7j/7
     } else if(!_isWeekend && s.idx === 1){
-      rows[s.idx].type_camion = 'REEFER'; // Camion B lundi-vendredi
-    } else if(!rows[s.idx].type_camion || rows[s.idx].type_camion === '__VIDE__'){
-      // Weekend : pas de type pour les camions de 6h (annulés)
-      if(_isWeekend && (s.idx===0||s.idx===1)) rows[s.idx].type_camion='__VIDE__';
-      else rows[s.idx].type_camion=s.defType||'CHAUFFÉE';
+      rows[s.idx].type_camion = 'REEFER'; // Camion B lundi-vendredi — toujours écraser
+    } else {
+      // Tous les autres : appliquer le défaut seulement si pas de valeur DB explicite
+      if(!rows[s.idx].type_camion || rows[s.idx].type_camion === '__VIDE__'){
+        if(_isWeekend && (s.idx===0||s.idx===1)) rows[s.idx].type_camion='__VIDE__';
+        else rows[s.idx].type_camion=s.defType||'CHAUFFÉE';
+      }
     }
     // Description : overrides weekend
     if(_isWeekend){
