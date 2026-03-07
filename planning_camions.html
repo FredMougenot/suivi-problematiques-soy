@@ -590,8 +590,13 @@ function render(){
   for(const s of [..._slotsTries].reverse()){
     if(_statutsEffectifs[s.idx] === 'Actif'){ _idxDernierActif = s.idx; break; }
   }
-  const _BOBTAIL = 'AUCUN REPARTIR BOBTAIL';
-  const _VENIR   = 'VENIR BOBTAIL';
+  // Lire depuis _params pour être cohérent avec ce qui est affiché dans les selects
+  const _destParamsList = _params['destination'] || [];
+  const _BOBTAIL = _destParamsList.length
+    ? _destParamsList[_destParamsList.length - 1].valeur
+    : 'AUCUN REPARTIR BOBTAIL';
+  const _descParamsList0 = _params['description'] || [];
+  const _VENIR = _descParamsList0.length ? _descParamsList0[0].valeur : 'VENIR BOBTAIL';
   SLOTS.forEach(s => {
     if(!rows[s.idx]) rows[s.idx] = {slot_index: s.idx}; // garantir l'objet existe
     if(s.idx === _idxDernierActif){
@@ -788,16 +793,13 @@ function fchg(idx, field, val){
     // Snapshot destinations avant render pour détecter les slots affectés
     const _destBefore = {};
     SLOTS.forEach(s => { _destBefore[s.idx] = (rows[s.idx]||{}).destination||''; });
-    console.log('[fchg statut_ligne] idx='+idx+' val='+val+' destBefore='+JSON.stringify(_destBefore));
     render();
     // Sauvegarder le slot modifié + tous les slots dont destination a changé
     const toSave = new Set([idx]);
     SLOTS.forEach(s => {
       const after = (rows[s.idx]||{}).destination||'';
-      console.log('[fchg après render] slot '+s.idx+' dest: '+_destBefore[s.idx]+' → '+after);
-      if(after !== _destBefore[s.idx]) toSave.add(s.idx);
+        if(after !== _destBefore[s.idx]) toSave.add(s.idx);
     });
-    console.log('[fchg] toSave='+JSON.stringify([...toSave]));
     toSave.forEach(i => saveRow(i));
     return;
   }
@@ -857,7 +859,6 @@ async function saveRow(idx){
   if(btn){btn.disabled=true;btn.textContent='…';}
   const slot=SLOTS.find(s=>s.idx===idx);
   const r=rows[idx]||{};
-  console.log('[saveRow] idx='+idx+' destination='+r.destination+' id='+r.id);
   const payload={
     date_jour:curDate, slot_index:idx,
     heure_planif:r.heure_planif||(slot?slot.h:'00:00'),
