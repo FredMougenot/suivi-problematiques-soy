@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paramètres — Planification Camions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-void:#06070B;--bg-deep:#0B0D13;--bg-base:#0F1118;
+  --bg-raised:#15181F;--bg-float:#1A1E2A;--bg-hover:#1F2436;
+  --copper:#C8843A;--copper-light:#E0A870;--copper-pale:#EDD4A8;
+  --copper-glow:rgba(200,132,58,.22);--copper-dim:rgba(200,132,58,.10);
+  --text-primary:#F0EAE0;--text-secondary:#BEC5D6;
+  --text-muted:#7A82A0;--text-faint:#2C3350;
+  --emerald:#2DD4A0;--ruby:#E05555;--amber:#E8A43A;--sapphire:#4A9EE8;
+  --r-sm:4px;--r-md:10px;--r-lg:16px;
+  --t-fast:.15s;--ease:cubic-bezier(.4,0,.2,1);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100vh;background:var(--bg-base);color:var(--text-primary);
+  font-family:'Outfit',sans-serif;font-size:15px;}
+
+/* ══ TOPBAR ══════════════════════════════════════════════════════ */
+.topbar{position:sticky;top:0;z-index:100;height:64px;
+  background:rgba(15,17,24,.94);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--text-faint);padding:0 28px;
+  display:flex;align-items:center;justify-content:space-between;}
+.tb-left{display:flex;align-items:center;gap:14px;}
+.tb-back{display:flex;align-items:center;gap:7px;padding:7px 14px;
+  border-radius:var(--r-md);background:var(--bg-float);
+  border:1px solid var(--text-faint);color:var(--text-secondary);
+  font-size:.82rem;font-weight:500;cursor:pointer;text-decoration:none;
+  transition:all var(--t-fast);}
+.tb-back:hover{border-color:var(--copper);color:var(--copper-light);}
+.tb-brand{display:flex;align-items:center;gap:10px;}
+.tb-icon{width:32px;height:32px;border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--copper),var(--copper-light));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Playfair Display',serif;font-weight:700;font-size:1rem;color:#0F1118;}
+.tb-title{font-size:.95rem;font-weight:700;color:var(--text-primary);}
+
+/* ══ MAIN ════════════════════════════════════════════════════════ */
+.main{max-width:960px;margin:0 auto;padding:32px 28px 64px;}
+
+/* ══ PAGE HEADER ═════════════════════════════════════════════════ */
+.page-eyebrow{font-size:.62rem;font-weight:800;color:var(--copper);
+  letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;}
+.page-title{font-family:'Playfair Display',serif;font-size:1.6rem;
+  font-weight:700;color:var(--text-primary);}
+.page-sub{font-size:.82rem;color:var(--text-muted);margin-top:5px;}
+.page-hdr{margin-bottom:36px;}
+
+/* ══ SECTION PAR CATÉGORIE ═══════════════════════════════════════ */
+.section{margin-bottom:40px;}
+.section-head{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+.section-title{display:flex;align-items:center;gap:10px;}
+.section-name{font-size:1rem;font-weight:700;color:var(--text-primary);}
+.section-desc{font-size:.76rem;color:var(--text-muted);margin-top:2px;}
+.item-count{font-size:.74rem;color:var(--text-muted);font-weight:600;
+  padding:4px 10px;background:var(--bg-raised);
+  border:1px solid var(--text-faint);border-radius:20px;}
+
+.btn-add-row{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
+  border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--copper),var(--copper-light));
+  color:#0F1118;font-size:.78rem;font-weight:800;border:none;cursor:pointer;
+  transition:opacity .15s,transform .1s;white-space:nowrap;font-family:'Outfit',sans-serif;}
+.btn-add-row:hover{opacity:.88;transform:translateY(-1px);}
+
+/* ══ TABLE PARAMÈTRES ════════════════════════════════════════════ */
+.ptbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);
+  border-radius:var(--r-lg);overflow:hidden;position:relative;}
+.ptbl-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--copper),transparent);
+  pointer-events:none;}
+.ptbl{width:100%;border-collapse:collapse;}
+.ptbl thead tr{background:var(--bg-float);border-bottom:1px solid var(--text-faint);}
+.ptbl thead th{padding:12px 16px;font-size:.6rem;font-weight:800;
+  text-transform:uppercase;letter-spacing:.12em;color:var(--text-muted);
+  text-align:left;white-space:nowrap;}
+.ptbl thead th.th-num{width:44px;text-align:center;}
+.ptbl thead th.th-color{width:160px;}
+.ptbl thead th.th-act{width:52px;text-align:center;}
+.ptbl tbody tr{border-bottom:1px solid rgba(44,51,80,.5);transition:background .1s;}
+.ptbl tbody tr:hover{background:var(--bg-hover);}
+.ptbl tbody tr:last-child{border-bottom:none;}
+.ptbl tbody td{padding:9px 12px;font-size:.86rem;color:var(--text-primary);
+  vertical-align:middle;}
+.ptbl tbody td.td-num{text-align:center;color:var(--text-muted);
+  font-size:.76rem;font-weight:700;}
+.ptbl tbody td.td-act{text-align:center;}
+
+/* Inputs */
+.inp-val{background:transparent;border:none;border-bottom:1px solid transparent;
+  color:var(--text-primary);font-size:.86rem;font-family:'Outfit',sans-serif;
+  outline:none;padding:4px 6px;width:100%;transition:border-color .15s;}
+.inp-val:hover{border-bottom-color:var(--text-faint);}
+.inp-val:focus{border-bottom-color:var(--copper);}
+
+/* Sélecteur couleur */
+.color-wrap{display:flex;align-items:center;gap:8px;}
+.color-swatch{width:22px;height:22px;border-radius:var(--r-sm);border:1px solid var(--text-faint);
+  cursor:pointer;flex-shrink:0;transition:transform .1s;}
+.color-swatch:hover{transform:scale(1.15);}
+.inp-color{background:transparent;border:none;border-bottom:1px solid transparent;
+  color:var(--text-muted);font-size:.76rem;font-family:'Outfit',sans-serif;
+  outline:none;padding:4px 6px;width:90px;transition:border-color .15s;
+  cursor:pointer;}
+.inp-color:hover{border-bottom-color:var(--text-faint);}
+.inp-color:focus{border-bottom-color:var(--copper);color:var(--text-primary);}
+input[type="color"].native-picker{
+  width:28px;height:28px;padding:0;border:none;background:none;cursor:pointer;
+  border-radius:var(--r-sm);overflow:hidden;flex-shrink:0;}
+
+/* Bouton supprimer */
+.btn-rm{width:28px;height:28px;border-radius:var(--r-sm);background:transparent;
+  border:1px solid transparent;color:var(--text-muted);cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;transition:all .15s;}
+.btn-rm:hover{background:rgba(224,85,85,.1);border-color:rgba(224,85,85,.3);color:var(--ruby);}
+
+/* Ligne vide */
+.empty-row td{text-align:center;color:var(--text-muted);font-size:.8rem;
+  padding:20px;font-style:italic;}
+
+/* Bouton Enregistrer section */
+.btn-save-sec{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;
+  border-radius:var(--r-md);background:rgba(45,212,160,.08);
+  border:1px solid rgba(45,212,160,.3);color:var(--emerald);
+  font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;
+  transition:all .15s;white-space:nowrap;}
+.btn-save-sec:hover{background:rgba(45,212,160,.15);}
+
+/* Spinner */
+.spinner{display:flex;align-items:center;justify-content:center;padding:40px;
+  gap:12px;color:var(--text-muted);font-size:.84rem;}
+.sp-ring{width:22px;height:22px;border:2px solid var(--text-faint);
+  border-top-color:var(--copper);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Toast */
+.toast-bar{position:fixed;bottom:24px;right:24px;z-index:999;
+  display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+.toast{padding:11px 18px;border-radius:var(--r-md);font-size:.82rem;font-weight:600;
+  border:1px solid;animation:tin .2s var(--ease);max-width:320px;pointer-events:auto;}
+.toast.ok{background:rgba(45,212,160,.12);color:var(--emerald);border-color:rgba(45,212,160,.3);}
+.toast.err{background:rgba(224,85,85,.12);color:var(--ruby);border-color:rgba(224,85,85,.3);}
+@keyframes tin{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+
+@media(max-width:700px){
+  .main{padding:20px 14px 50px;}
+  .ptbl{min-width:400px;}
+  .ptbl-wrap{overflow-x:auto;}
+  .section-head{flex-direction:column;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="tb-left">
+    <a href="planning_camions.html" class="tb-back">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Planification
+    </a>
+    <div class="tb-brand">
+      <div class="tb-icon">S</div>
+      <div class="tb-title">Paramètres — Planification Camions</div>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+
+  <div class="page-hdr">
+    <div class="page-eyebrow">Configuration</div>
+    <div class="page-title">Paramètres de planification</div>
+    <div class="page-sub">Gérez les valeurs disponibles dans chaque menu déroulant du tableau. Chaque valeur peut avoir un code couleur associé.</div>
+  </div>
+
+  <div id="sections-wrap">
+    <div class="spinner"><div class="sp-ring"></div> Chargement…</div>
+  </div>
+
+</main>
+
+<div class="toast-bar" id="toast-bar"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM0NTM2ODgsImV4cCI6MjA1OTAyOTY4OH0.r9-BFvpXKfqV4t0R1bKVvzlJaRPxUZNY7KlP6gBDQbE';
+let sb;
+
+// ── Catégories ────────────────────────────────────────────────────────
+const CATEGORIES = [
+  { key: 'statut_ligne',   label: 'Statut ligne',
+    desc: 'Valeurs du champ Statut ligne (ex: Actif, Annulé, Retardé…)' },
+  { key: 'type_camion',    label: 'Type camion',
+    desc: 'Types de camion disponibles dans le menu (ex: CHAUFFÉE, REEFER…)' },
+  { key: 'heure_planif',   label: 'Heure planifiée',
+    desc: 'Heures planifiées prédéfinies pour les camions extra (ex: 06:00, 07:30…)' },
+  { key: 'description',    label: 'Description',
+    desc: 'Descriptions prédéfinies disponibles dans le menu du tableau.' },
+  { key: 'dest_arrivee',   label: 'Destination arrivée',
+    desc: "Destinations d'arrivée disponibles (ex: SOY, GH, ADVANTECH…)" },
+  { key: 'destination',    label: 'Destination départ',
+    desc: 'Destinations de départ disponibles.' },
+  { key: 'statut_arrivee', label: 'Statut arrivée',
+    desc: "Statuts d'arrivée disponibles (ex: ATTENTE, FAIT…)" },
+  { key: 'chargement',     label: 'Chargement',
+    desc: 'États de chargement disponibles (ex: ATTENTE, PRÊTE, EN CHARGEMENT…)' },
+];
+
+// ── Données en mémoire ────────────────────────────────────────────────
+let allData = {}; // { key: [{id, categorie, valeur, couleur, ordre}] }
+
+// ── Init ──────────────────────────────────────────────────────────────
+async function init(){
+  sb = supabase.createClient(SB_URL, SB_KEY);
+  try {
+    const { data:{ session } } = await sb.auth.getSession();
+    if(!session){ window.location.href='index.html'; return; }
+    await loadAll();
+  } catch(e){ window.location.href='index.html'; }
+}
+
+async function loadAll(){
+  try {
+    const { data, error } = await sb.from('planning_params')
+      .select('*').order('ordre').order('created_at');
+    if(error) throw error;
+    allData = {};
+    CATEGORIES.forEach(c => { allData[c.key] = []; });
+    (data||[]).forEach(r => {
+      if(allData[r.categorie]) allData[r.categorie].push(r);
+    });
+    renderAll();
+  } catch(e){
+    toast('Erreur chargement: '+e.message, 'err');
+    document.getElementById('sections-wrap').innerHTML =
+      '<p style="color:var(--ruby);padding:20px;">Erreur de connexion à la base de données.</p>';
+  }
+}
+
+// ── Rendu ─────────────────────────────────────────────────────────────
+function renderAll(){
+  const wrap = document.getElementById('sections-wrap');
+  wrap.innerHTML = CATEGORIES.map(c => buildSection(c)).join('');
+}
+
+function buildSection(cat){
+  const items = allData[cat.key] || [];
+  const rows = items.length === 0
+    ? `<tr class="empty-row"><td colspan="4">Aucune valeur — ajoutez-en une ci-dessous.</td></tr>`
+    : items.map((item, i) => buildRow(cat.key, item, i+1)).join('');
+
+  return `
+  <div class="section" id="sec-${cat.key}">
+    <div class="section-head">
+      <div>
+        <div class="section-title">
+          <span class="section-name">${cat.label}</span>
+          <span class="item-count" id="count-${cat.key}">${items.length} valeur${items.length!==1?'s':''}</span>
+        </div>
+        <div class="section-desc">${cat.desc}</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn-save-sec" onclick="saveSection('${cat.key}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Enregistrer
+        </button>
+        <button class="btn-add-row" onclick="addRow('${cat.key}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter
+        </button>
+      </div>
+    </div>
+
+    <div class="ptbl-wrap">
+      <table class="ptbl">
+        <thead><tr>
+          <th class="th-num">#</th>
+          <th>Valeur</th>
+          <th class="th-color">Code couleur</th>
+          <th class="th-act"></th>
+        </tr></thead>
+        <tbody id="tbody-${cat.key}">${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function buildRow(catKey, item, num){
+  const couleur = item.couleur || '';
+  const swatchBg = couleur || 'var(--bg-float)';
+  const swatchBorder = couleur ? 'none' : '1px solid var(--text-faint)';
+  return `
+  <tr id="row-${item.id}" data-id="${item.id}" data-cat="${catKey}">
+    <td class="td-num">${num}</td>
+    <td><input class="inp-val" type="text" value="${esc(item.valeur)}"
+      data-field="valeur" oninput="markDirty('${item.id}')"></td>
+    <td>
+      <div class="color-wrap">
+        <input type="color" class="native-picker"
+          value="${couleur || '#C8843A'}"
+          oninput="onColorPick(this,'${item.id}')">
+        <input class="inp-color" type="text"
+          value="${esc(couleur)}" placeholder="— aucune couleur"
+          data-field="couleur" id="cinp-${item.id}"
+          oninput="onColorText(this,'${item.id}')"
+          onchange="syncColorPicker(this,'${item.id}')">
+        <div class="color-swatch" id="cswatch-${item.id}"
+          style="background:${swatchBg};border:${swatchBorder};"
+          onclick="document.querySelector('#row-${item.id} .native-picker').click()"></div>
+      </div>
+    </td>
+    <td class="td-act">
+      <button class="btn-rm" onclick="deleteRow('${item.id}','${catKey}')" title="Supprimer">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </td>
+  </tr>`;
+}
+
+// ── Couleur ───────────────────────────────────────────────────────────
+function onColorPick(picker, id){
+  const hex = picker.value;
+  const cinp = document.getElementById('cinp-'+id);
+  const swatch = document.getElementById('cswatch-'+id);
+  if(cinp){ cinp.value = hex; }
+  if(swatch){ swatch.style.background = hex; swatch.style.border = 'none'; }
+  markDirty(id);
+}
+
+function onColorText(inp, id){
+  const val = inp.value.trim();
+  const swatch = document.getElementById('cswatch-'+id);
+  if(!val){
+    if(swatch){ swatch.style.background = 'var(--bg-float)'; swatch.style.border = '1px solid var(--text-faint)'; }
+    return;
+  }
+  if(/^#[0-9A-Fa-f]{6}$/.test(val)){
+    if(swatch){ swatch.style.background = val; swatch.style.border = 'none'; }
+  }
+  markDirty(id);
+}
+
+function syncColorPicker(inp, id){
+  const val = inp.value.trim();
+  if(/^#[0-9A-Fa-f]{6}$/.test(val)){
+    const picker = document.querySelector(`#row-${id} .native-picker`);
+    if(picker) picker.value = val;
+  }
+}
+
+// ── Dirty tracking ────────────────────────────────────────────────────
+const _dirty = new Set();
+function markDirty(id){ _dirty.add(String(id)); }
+
+// ── Ajouter une ligne ─────────────────────────────────────────────────
+async function addRow(catKey){
+  try {
+    const ordre = (allData[catKey]||[]).length + 1;
+    const { data, error } = await sb.from('planning_params')
+      .insert({ categorie: catKey, valeur: '', couleur: null, ordre })
+      .select().single();
+    if(error) throw error;
+    if(!allData[catKey]) allData[catKey] = [];
+    allData[catKey].push(data);
+    refreshTbody(catKey);
+    // Focus sur le champ valeur de la nouvelle ligne
+    setTimeout(() => {
+      const row = document.getElementById('row-'+data.id);
+      if(row){ const inp = row.querySelector('.inp-val'); if(inp) inp.focus(); }
+    }, 50);
+  } catch(e){ toast('Erreur: '+e.message, 'err'); }
+}
+
+// ── Supprimer une ligne ───────────────────────────────────────────────
+async function deleteRow(id, catKey){
+  try {
+    const { error } = await sb.from('planning_params').delete().eq('id', id);
+    if(error) throw error;
+    allData[catKey] = (allData[catKey]||[]).filter(r => String(r.id) !== String(id));
+    _dirty.delete(String(id));
+    refreshTbody(catKey);
+    toast('Valeur supprimée', 'ok');
+  } catch(e){ toast('Erreur suppression: '+e.message, 'err'); }
+}
+
+// ── Enregistrer une section ───────────────────────────────────────────
+async function saveSection(catKey){
+  const tbody = document.getElementById('tbody-'+catKey);
+  if(!tbody) return;
+  const rows = tbody.querySelectorAll('tr[data-id]');
+  const updates = [];
+
+  rows.forEach((tr, i) => {
+    const id = tr.dataset.id;
+    const valInput = tr.querySelector('.inp-val');
+    const colInput = tr.querySelector('.inp-color');
+    const valeur = valInput ? valInput.value.trim() : '';
+    const couleur = colInput ? colInput.value.trim() : '';
+    updates.push({ id: parseInt(id), valeur, couleur: couleur || null, ordre: i+1 });
+    // Mettre à jour allData en mémoire
+    const item = (allData[catKey]||[]).find(r => String(r.id) === String(id));
+    if(item){ item.valeur = valeur; item.couleur = couleur || null; item.ordre = i+1; }
+  });
+
+  if(updates.length === 0){ toast('Rien à enregistrer', 'ok'); return; }
+
+  try {
+    const promises = updates.map(u =>
+      sb.from('planning_params')
+        .update({ valeur: u.valeur, couleur: u.couleur, ordre: u.ordre })
+        .eq('id', u.id)
+    );
+    const results = await Promise.all(promises);
+    const errors = results.filter(r => r.error);
+    if(errors.length > 0) throw new Error(errors[0].error.message);
+    updates.forEach(u => _dirty.delete(String(u.id)));
+    refreshTbody(catKey);
+    toast(`${CATEGORIES.find(c=>c.key===catKey)?.label} enregistré ✓`, 'ok');
+  } catch(e){ toast('Erreur enregistrement: '+e.message, 'err'); }
+}
+
+// ── Refresh un tableau ────────────────────────────────────────────────
+function refreshTbody(catKey){
+  const tbody = document.getElementById('tbody-'+catKey);
+  const count = document.getElementById('count-'+catKey);
+  if(!tbody) return;
+  const items = allData[catKey] || [];
+  if(items.length === 0){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Aucune valeur — ajoutez-en une ci-dessous.</td></tr>';
+  } else {
+    tbody.innerHTML = items.map((item, i) => buildRow(catKey, item, i+1)).join('');
+  }
+  if(count){ count.textContent = `${items.length} valeur${items.length!==1?'s':''}`; }
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+
+function toast(msg, type='ok'){
+  const bar = document.getElementById('toast-bar');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  bar.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────
+function waitAndInit(){
+  if(typeof supabase !== 'undefined' && supabase.createClient){
+    init();
+  } else {
+    setTimeout(waitAndInit, 50);
+  }
+}
+window.addEventListener('load', waitAndInit);
+</script>
+</body>
+</html>
