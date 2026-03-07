@@ -202,6 +202,17 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
     </div>
   </div>
   <div class="tb-right">
+    <button id="btn-params" onclick="openParams()"
+      style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
+             border-radius:var(--r-md);background:var(--bg-float);
+             border:1px solid var(--text-faint);color:var(--text-secondary);
+             font-size:.82rem;font-weight:600;font-family:'Outfit',sans-serif;
+             cursor:pointer;transition:all .15s;"
+      onmouseover="this.style.borderColor='var(--copper)';this.style.color='var(--copper-light)'"
+      onmouseout="this.style.borderColor='var(--text-faint)';this.style.color='var(--text-secondary)'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Paramètres
+    </button>
     <button id="btn-viewer-logout" onclick="viewerLogout()"
       style="display:none;align-items:center;gap:7px;padding:7px 14px;
              border-radius:var(--r-md);background:transparent;
@@ -239,7 +250,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
         <th>Heure planifiée</th>
         <th>Statut ligne</th>
         <th>Type camion</th>
-        <th>N° commande</th>
+        <th>N° arrivée</th>
         
         <th>Description</th>
         <th>Destination</th>
@@ -399,6 +410,9 @@ function applyReadOnly(){
   // Masquer le bouton Radar Ponctualité
   const btnRadar = document.getElementById('btn-radar');
   if(btnRadar) btnRadar.style.display = 'none';
+  // Masquer le bouton Paramètres (viewer = lecture seule)
+  const btnParams = document.getElementById('btn-params');
+  if(btnParams) btnParams.style.display = 'none';
   // Afficher le bouton déconnexion topbar
   const btnLogout = document.getElementById('btn-viewer-logout');
   if(btnLogout) btnLogout.style.display = 'inline-flex';
@@ -411,6 +425,112 @@ function applyReadOnly(){
   bar.textContent = '👁  Mode lecture seule — consultation uniquement';
   const wrap = document.querySelector('.tbl-outer') || document.querySelector('main');
   if(wrap) wrap.parentNode.insertBefore(bar, wrap);
+}
+
+// ── PARAMÈTRES PLANNING ─────────────────────────────────────────────
+let _pCat = 'statut_ligne';
+let _pData = {};  // { categorie: [{id, valeur, ordre}] }
+
+const P_META = {
+  statut_ligne:   { label: 'Statut ligne',        desc: 'Valeurs du champ Statut ligne (ex: Actif, Annulé, Retardé…)' },
+  type_camion:    { label: 'Type camion',          desc: 'Types de camion disponibles (ex: CHAUFFÉE, REEFER, CITERNE…)' },
+  heure_planif:   { label: 'Heure planifiée',     desc: 'Heures planifiées prédéfinies pour les camions extra (ex: 06:00, 07:30…)' },
+  description:    { label: 'Description',         desc: 'Descriptions prédéfinies affichées dans le menu du tableau.' },
+  dest_arrivee:   { label: 'Destination arrivée', desc: 'Destinations d'arrivée disponibles (ex: SOY, GH, ADVANTECH…)' },
+  destination:    { label: 'Destination départ',  desc: 'Destinations de départ disponibles.' },
+  statut_arrivee: { label: 'Statut arrivée',      desc: 'Statuts d'arrivée disponibles (ex: ATTENTE, FAIT…)' },
+  chargement:     { label: 'Chargement',          desc: 'États de chargement disponibles (ex: ATTENTE, PRÊTE, EN CHARGEMENT…)' },
+};
+
+async function openParams(){
+  document.getElementById('modal-params').classList.add('open');
+  await loadPData();
+}
+
+function closeParams(){
+  document.getElementById('modal-params').classList.remove('open');
+}
+
+async function loadPData(){
+  const list = document.getElementById('params-list');
+  list.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:.82rem;padding:16px;">Chargement…</div>';
+  try {
+    const {data, error} = await sb.from('planning_params').select('*').order('ordre').order('created_at');
+    if(error) throw error;
+    _pData = {};
+    (data||[]).forEach(r => {
+      if(!_pData[r.categorie]) _pData[r.categorie] = [];
+      _pData[r.categorie].push(r);
+    });
+    renderPList();
+  } catch(e){ toast('Erreur chargement paramètres: '+e.message,'error'); }
+}
+
+function switchPTab(cat, btn){
+  _pCat = cat;
+  document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('params-new-val').value = '';
+  renderPList();
+}
+
+function renderPList(){
+  const list = document.getElementById('params-list');
+  const desc = document.getElementById('ptab-desc');
+  const meta = P_META[_pCat] || {};
+  desc.textContent = meta.desc || '';
+  const items = _pData[_pCat] || [];
+  if(items.length === 0){
+    list.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:.82rem;padding:14px 0;">Aucune valeur — ajoutez-en une ci-dessous.</div>';
+    return;
+  }
+  list.innerHTML = items.map((item, i) => `
+    <div class="prow" id="prow-${item.id}">
+      <span class="prow-val">${esc(item.valeur)}</span>
+      <span class="prow-badge">#${i+1}</span>
+      <button class="prow-del" onclick="deletePVal(${item.id})" title="Supprimer cette valeur">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  `).join('');
+}
+
+async function addParamVal(){
+  const input = document.getElementById('params-new-val');
+  const val = input.value.trim();
+  if(!val){ input.style.borderColor='var(--ruby)'; setTimeout(()=>input.style.borderColor='var(--text-faint)',1200); return; }
+  try {
+    const ordre = (_pData[_pCat]||[]).length + 1;
+    const {data, error} = await sb.from('planning_params')
+      .insert({categorie: _pCat, valeur: val, ordre})
+      .select().single();
+    if(error) throw error;
+    if(!_pData[_pCat]) _pData[_pCat] = [];
+    _pData[_pCat].push(data);
+    input.value = '';
+    renderPList();
+    showParamsSaved('Valeur ajoutée ✓');
+  } catch(e){ toast('Erreur: '+e.message,'error'); }
+}
+
+async function deletePVal(id){
+  try {
+    const {error} = await sb.from('planning_params').delete().eq('id', id);
+    if(error) throw error;
+    Object.keys(_pData).forEach(cat => {
+      _pData[cat] = _pData[cat].filter(r => r.id !== id);
+    });
+    renderPList();
+    showParamsSaved('Valeur supprimée');
+  } catch(e){ toast('Erreur: '+e.message,'error'); }
+}
+
+function showParamsSaved(msg){
+  const el = document.getElementById('params-saved-msg');
+  if(!el) return;
+  el.textContent = msg;
+  el.style.opacity = '1';
+  setTimeout(() => { el.style.opacity = '0'; }, 2500);
 }
 
 async function viewerLogout(){
@@ -1051,6 +1171,80 @@ function exportPDF() {
     </div>
   </div>
 </div>
+
+
+
+<!-- MODAL PARAMÈTRES PLANNING -->
+<div class="overlay" id="modal-params">
+  <div class="modal" style="width:640px;max-height:88vh;display:flex;flex-direction:column;">
+
+    <div class="modal-title" style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--copper)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Paramètres — Planification Camions
+    </div>
+    <p style="font-size:.8rem;color:var(--text-secondary);margin:0 0 16px;flex-shrink:0;">
+      Gérez les valeurs disponibles dans chaque menu déroulant du tableau.
+    </p>
+
+    <!-- Onglets -->
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px;flex-shrink:0;">
+      <button class="ptab active" onclick="switchPTab('statut_ligne',this)">Statut ligne</button>
+      <button class="ptab" onclick="switchPTab('type_camion',this)">Type camion</button>
+      <button class="ptab" onclick="switchPTab('heure_planif',this)">Heure planifiée</button>
+      <button class="ptab" onclick="switchPTab('description',this)">Description</button>
+      <button class="ptab" onclick="switchPTab('dest_arrivee',this)">Dest. arrivée</button>
+      <button class="ptab" onclick="switchPTab('destination',this)">Destination départ</button>
+      <button class="ptab" onclick="switchPTab('statut_arrivee',this)">Statut arrivée</button>
+      <button class="ptab" onclick="switchPTab('chargement',this)">Chargement</button>
+    </div>
+
+    <!-- Description catégorie -->
+    <div id="ptab-desc" style="font-size:.76rem;color:var(--text-muted);margin-bottom:10px;flex-shrink:0;"></div>
+
+    <!-- Liste des valeurs -->
+    <div style="flex:1;overflow-y:auto;min-height:0;">
+      <div id="params-list" style="display:flex;flex-direction:column;gap:5px;margin-bottom:12px;min-height:40px;"></div>
+
+      <!-- Ajouter -->
+      <div style="display:flex;gap:8px;align-items:center;padding-top:10px;border-top:1px solid var(--text-faint);">
+        <input id="params-new-val" type="text" placeholder="Nouvelle valeur…"
+          style="flex:1;background:var(--bg-raised);border:1px solid var(--text-faint);
+                 color:var(--text-primary);border-radius:var(--r-md);padding:8px 12px;
+                 font-size:.84rem;font-family:'Outfit',sans-serif;outline:none;"
+          onfocus="this.style.borderColor='var(--copper)'"
+          onblur="this.style.borderColor='var(--text-faint)'"
+          onkeydown="if(event.key==='Enter')addParamVal()">
+        <button onclick="addParamVal()" class="btn-ok" style="white-space:nowrap;flex-shrink:0;">
+          + Ajouter
+        </button>
+      </div>
+    </div>
+
+    <div class="m-acts" style="flex-shrink:0;margin-top:14px;padding-top:12px;border-top:1px solid var(--text-faint);">
+      <span id="params-saved-msg" style="font-size:.78rem;color:var(--emerald);opacity:0;transition:opacity .4s;margin-right:auto;"></span>
+      <button class="btn-cx" onclick="closeParams()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.ptab{padding:5px 12px;border-radius:var(--r-md);background:var(--bg-raised);
+  border:1px solid var(--text-faint);color:var(--text-secondary);
+  font-size:.76rem;font-weight:600;font-family:'Outfit',sans-serif;cursor:pointer;transition:all .15s;}
+.ptab.active{background:var(--copper-dim);border-color:rgba(200,132,58,.45);color:var(--copper-light);}
+.ptab:hover:not(.active){border-color:var(--copper);color:var(--copper-light);}
+.prow{display:flex;align-items:center;gap:8px;padding:7px 10px;
+  background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);
+  transition:border-color .15s;}
+.prow:hover{border-color:rgba(200,132,58,.3);}
+.prow-val{flex:1;font-size:.84rem;color:var(--text-primary);font-family:'Outfit',sans-serif;}
+.prow-badge{font-size:.68rem;padding:2px 7px;border-radius:20px;background:var(--bg-float);
+  color:var(--text-muted);border:1px solid var(--text-faint);white-space:nowrap;}
+.prow-del{width:26px;height:26px;border-radius:var(--r-sm);background:transparent;
+  border:1px solid transparent;color:var(--text-muted);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+.prow-del:hover{background:rgba(224,85,85,.12);border-color:var(--ruby);color:var(--ruby);}
+</style>
 
 </body>
 </html>
