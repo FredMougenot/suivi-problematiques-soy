@@ -667,7 +667,7 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
       const opts=items.length
         ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
         : (_params['statut_ligne']||[]).map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('') || `<option${cur==='Actif'?' selected':''}>Actif</option>`;
-      return `<select class="cs" style="${st}" onchange="fchg(${idx},'statut_ligne',this.value)" data-cat="statut_ligne">${opts}</select>`;
+      return `<select class="cs" style="${st}" onchange="fchg(${idx},'statut_ligne',this.value);updStatutLigne(this)" data-cat="statut_ligne">${opts}</select>`;
     })()}</td>
 
     <td>${(()=>{
@@ -702,7 +702,7 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
       const opts=items.length
         ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
         : DESC_OPTS.map(o=>`<option value="${esc(o)}"${cur===o?' selected':''}>${esc(o)}</option>`).join('');
-      return `<select class="cs desc-sel" style="min-width:150px;${st}" onchange="fchg(${idx},'description',this.value)" data-cat="description">
+      return `<select class="cs desc-sel" style="min-width:150px;${st}" onchange="fchg(${idx},'description',this.value);updDesc(this)" data-cat="description">
         <option value=""${!cur?' selected':''}>—</option>${opts}</select>`;
     })()}</td>
 
@@ -713,7 +713,7 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
       const opts=items.length
         ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
         : ['SOY','GH','ADVANTECH','PROACTIVE','LJDERY'].map(v=>`<option${cur===v?' selected':''}>${v}</option>`).join('');
-      return `<select class="cs" style="min-width:95px;${st}" onchange="fchg(${idx},'dest_arrivee',this.value)" data-cat="dest_arrivee">${opts}</select>`;
+      return `<select class="cs" style="min-width:95px;${st}" onchange="fchg(${idx},'dest_arrivee',this.value);updDestArrivee(this)" data-cat="dest_arrivee">${opts}</select>`;
     })()}</td>
 
     <td>${(()=>{
@@ -740,7 +740,7 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
       const opts=items.length
         ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
         : DESTS.map(d=>`<option${cur===d?' selected':''}>${esc(d)}</option>`).join('');
-      return `<select class="cs" style="min-width:170px;${st}" onchange="fchg(${idx},'destination',this.value)" data-cat="destination">
+      return `<select class="cs" style="min-width:170px;${st}" onchange="fchg(${idx},'destination',this.value);updDestSel(this)" data-cat="destination">
         <option value="">—</option>${opts}</select>`;
     })()}</td>
 
@@ -929,6 +929,22 @@ function updTypeSel(sel){
   sel.classList.remove('type-chauf','type-reefer');
   const st = sel.value==='__VIDE__' ? '' : getParamStyle('type_camion', sel.value);
   sel.setAttribute('style','min-width:105px;'+st);
+}
+function updDestSel(sel){
+  const st = getParamStyle('destination', sel.value);
+  sel.setAttribute('style','min-width:170px;'+st);
+}
+function updStatutLigne(sel){
+  const st = getParamStyle('statut_ligne', sel.value);
+  sel.setAttribute('style', st);
+}
+function updDesc(sel){
+  const st = getParamStyle('description', sel.value);
+  sel.setAttribute('style','min-width:150px;'+st);
+}
+function updDestArrivee(sel){
+  const st = getParamStyle('dest_arrivee', sel.value);
+  sel.setAttribute('style','min-width:95px;'+st);
 }
 function updStatut(sel){
   applySelectStyle(sel, 'statut_arrivee', sel.value);
