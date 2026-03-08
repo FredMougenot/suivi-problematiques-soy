@@ -1211,24 +1211,24 @@ function exportPDF() {
     head: [[
       '#', 'Heure', 'Créneau', 'Statut', 'Type',
       'N° Arr.', 'Description', 'Dest. Arr.', 'Arrivée',
-      'Destination', 'N° Dép.', 'Chargement', 'Retard'
+      'Destination', 'N° Dép.', 'Chargement'
     ]],
 
-    body: tableData.map(r => [
+    body: tableData.filter(r => !r.isInactif).map(r => [
       r.num, r.heure, r.slot, r.statut, r.type,
       r.numArr, r.desc, r.destArr, r.arrivee,
-      r.dest, r.numDep, r.charg, r.retard
+      r.dest, r.numDep, r.charg
     ]),
 
     styles: {
       font: 'helvetica',
-      fontSize: 7.5,
+      fontSize: 7,
       cellPadding: { top: 2.5, bottom: 2.5, left: 3, right: 3 },
       textColor: C.textMain,
       lineColor: C.border,
       lineWidth: 0.18,
       fillColor: C.rowNormal,
-      overflow: 'ellipsize',
+      overflow: 'hidden',
       minCellHeight: 8,
     },
 
@@ -1248,18 +1248,17 @@ function exportPDF() {
 
     columnStyles: {
       0:  { cellWidth: 6,  halign: 'center', textColor: C.textFaint },   // #
-      1:  { cellWidth: 12, halign: 'center', fontStyle: 'bold', textColor: C.colHeure }, // Heure
-      2:  { cellWidth: 28 },   // Créneau
-      3:  { cellWidth: 16, halign: 'center' },   // Statut
-      4:  { cellWidth: 18, halign: 'center' },   // Type
-      5:  { cellWidth: 14, halign: 'center' },   // N° Arr.
-      6:  { cellWidth: 32 },   // Description
-      7:  { cellWidth: 20 },   // Dest. Arr.
-      8:  { cellWidth: 16, halign: 'center' },   // Arrivée
-      9:  { cellWidth: 26 },   // Destination départ
-      10: { cellWidth: 14, halign: 'center' },   // N° Dép.
-      11: { cellWidth: 22, halign: 'center' },   // Chargement
-      12: { cellWidth: 14, halign: 'center' },   // Retard
+      1:  { cellWidth: 13, halign: 'center', fontStyle: 'bold', textColor: C.colHeure }, // Heure
+      2:  { cellWidth: 34 },   // Créneau
+      3:  { cellWidth: 20, halign: 'center' },   // Statut
+      4:  { cellWidth: 22, halign: 'center' },   // Type
+      5:  { cellWidth: 15, halign: 'center' },   // N° Arr.
+      6:  { cellWidth: 40 },   // Description
+      7:  { cellWidth: 24 },   // Dest. Arr.
+      8:  { cellWidth: 18, halign: 'center' },   // Arrivée
+      9:  { cellWidth: 32 },   // Destination départ
+      10: { cellWidth: 15, halign: 'center' },   // N° Dép.
+      11: { cellWidth: 26, halign: 'center' },   // Chargement
     },
 
     willDrawCell: function(data) {
@@ -1292,19 +1291,7 @@ function exportPDF() {
         data.cell.styles.fontStyle = 'bold';
       }
 
-      // Colonne Retard (index 12)
-      if (data.column.index === 12 && r.retardMin !== null) {
-        if (r.retardMin <= 0) {
-          data.cell.styles.textColor = C.ok;
-          data.cell.styles.fontStyle = 'bold';
-        } else if (r.retardMin <= 30) {
-          data.cell.styles.textColor = C.warn;
-          data.cell.styles.fontStyle = 'bold';
-        } else {
-          data.cell.styles.textColor = C.late;
-          data.cell.styles.fontStyle = 'bold';
-        }
-      }
+
     },
   });
 
