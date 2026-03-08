@@ -18,6 +18,7 @@
   --text-primary:#F0EAE0; --text-secondary:#BEC5D6;
   --text-muted:#7A82A0; --text-faint:#2C3350;
   --emerald:#2DD4A0; --ruby:#E05555; --amber:#E8A43A; --sapphire:#4A9EE8;
+  --slate:#64748B;
   --r-sm:4px; --r-md:10px; --r-lg:16px; --r-xl:24px;
   --t-fast:.15s; --ease:cubic-bezier(.4,0,.2,1);
 }
@@ -76,13 +77,17 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
 .kpi.yellow::after{background:var(--amber);}
 .kpi.red::after{background:var(--ruby);}
 .kpi.copper::after{background:linear-gradient(90deg,var(--copper),var(--copper-light));}
+.kpi.blue::after{background:var(--sapphire);}
+.kpi.slate::after{background:var(--slate);}
 .kpi-eyebrow{font-size:.58rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);margin-bottom:6px;}
 .kpi-val{font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:700;line-height:1;letter-spacing:-.02em;margin-bottom:8px;}
 .kpi-val.green{color:var(--emerald);}
 .kpi-val.yellow{color:var(--amber);}
 .kpi-val.red{color:var(--ruby);}
 .kpi-val.copper{color:var(--copper-light);}
-.kpi-sub{font-size:.72rem;color:var(--text-muted);}
+.kpi-val.blue{color:var(--sapphire);}
+.kpi-val.slate{color:var(--slate);}
+.kpi-sub{font-size:.72rem;color:var(--text-muted);line-height:1.5;}
 .kpi-bar{height:3px;background:var(--bg-float);border-radius:2px;margin-top:10px;overflow:hidden;}
 .kpi-bar-fill{height:100%;border-radius:2px;transition:width .8s var(--ease);}
 
@@ -138,11 +143,15 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
 .tl-item{display:flex;align-items:center;gap:9px;padding:7px 11px;
   background:var(--bg-float);border-radius:var(--r-md);transition:background var(--t-fast);}
 .tl-item:hover{background:var(--bg-hover);}
+.tl-item.inactif{opacity:.3;pointer-events:none;}
 .tl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .tl-dot.ok{background:var(--emerald);}
 .tl-dot.warn{background:var(--amber);}
 .tl-dot.bad{background:var(--ruby);}
-.tl-dot.wait{background:var(--text-faint);}
+.tl-dot.attente{background:var(--sapphire);animation:pulse 2s ease-in-out infinite;}
+.tl-dot.nonlivre{background:var(--ruby);opacity:.45;}
+.tl-dot.inactif{background:var(--text-faint);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
 .tl-h{font-family:'DM Mono',monospace;font-size:.78rem;font-weight:500;color:var(--copper);width:42px;flex-shrink:0;}
 .tl-name{flex:1;font-size:.76rem;color:var(--text-secondary);}
 .tl-dest{font-size:.66rem;color:var(--text-faint);margin-left:6px;}
@@ -150,7 +159,18 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
 .tl-retard.ok{color:var(--emerald);}
 .tl-retard.warn{color:var(--amber);}
 .tl-retard.bad{color:var(--ruby);}
-.tl-retard.wait{color:var(--text-faint);font-weight:400;}
+.tl-retard.attente{color:var(--sapphire);font-weight:400;}
+.tl-retard.nonlivre{color:var(--ruby);opacity:.55;font-weight:400;font-style:italic;}
+.tl-retard.inactif{color:var(--text-faint);font-weight:400;}
+.tl-badge{font-size:.58rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  padding:2px 6px;border-radius:3px;margin-left:6px;}
+.tl-badge.inactif{background:var(--bg-hover);color:var(--text-faint);}
+.tl-badge.nonlivre{background:rgba(224,85,85,.12);color:rgba(224,85,85,.55);}
+
+/* ── LÉGENDE STATUTS ── */
+.legende{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--text-faint);}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:.65rem;color:var(--text-muted);}
+.leg-dot{width:7px;height:7px;border-radius:50%;}
 
 /* ── VIDE ── */
 .empty{text-align:center;padding:32px 16px;color:var(--text-muted);font-size:.82rem;}
@@ -282,13 +302,21 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
         </div>
         <div class="mp-desc">Au-delà de cette valeur, le retard passe en rouge critique sur tous les indicateurs.</div>
       </div>
-      <div class="mp-field" style="margin-bottom:0">
+      <div class="mp-field">
         <label class="mp-lbl">Objectif de ponctualité</label>
         <div class="mp-row">
           <input class="mp-inp" id="p-objectif" type="number" min="0" max="100" value="80">
           <span class="mp-unit">%</span>
         </div>
         <div class="mp-desc">Ligne de référence sur le graphique de tendance. Le KPI est "bon" au-dessus de ce seuil.</div>
+      </div>
+      <div class="mp-field" style="margin-bottom:0">
+        <label class="mp-lbl">Délai Non livré</label>
+        <div class="mp-row">
+          <input class="mp-inp" id="p-nonlivre" type="number" min="1" max="24" value="5">
+          <span class="mp-unit">h</span>
+        </div>
+        <div class="mp-desc">Un camion ACTIF sans heure réelle saisie, après ce délai depuis l'heure planifiée, est comptabilisé comme "Non livré".</div>
       </div>
     </div>
     <div class="mp-ft">
@@ -313,27 +341,28 @@ const SLOTS = [
 ];
 const HOURS = ['06:00','07:30','09:00','11:30','14:00','15:30','17:00','18:00','19:00'];
 
-let period    = 'day';
-let curDate   = todayStr();
+let period     = 'day';
+let curDate    = todayStr();
 let chartTrend = null, chartDist = null;
 let cachedData = null;
 
 // ── PARAMÈTRES GLOBAUX ───────────────────────────────────────────
-let SEUIL1   = 30;
-let SEUIL2   = 60;
-let OBJECTIF = 80;
+let SEUIL1   = 30;   // min — tolérance ponctualité acceptable
+let SEUIL2   = 60;   // min — seuil critique
+let OBJECTIF = 80;   // %   — cible ponctualité
+let DELAI_NL = 5;    // h   — délai avant classement "non livré"
 
 async function loadParams() {
   try {
-    const { data, error } = await sb.from('stats_parametres').select('*').eq('id', 1).maybeSingle();
-    if (error) throw error;
+    const { data } = await sb.from('stats_parametres').select('*').eq('id', 1).maybeSingle();
     if (data) {
-      SEUIL1   = data.seuil1   ?? 30;
-      SEUIL2   = data.seuil2   ?? 60;
-      OBJECTIF = data.objectif ?? 80;
+      SEUIL1   = data.seuil1    ?? 30;
+      SEUIL2   = data.seuil2    ?? 60;
+      OBJECTIF = data.objectif  ?? 80;
+      DELAI_NL = data.delai_nl  ?? 5;
     }
   } catch(e) {
-    console.warn('stats_parametres: impossible de charger les paramètres', e?.message);
+    console.warn('stats_parametres non accessible:', e?.message);
   }
 }
 
@@ -341,28 +370,29 @@ function openParams() {
   document.getElementById('p-seuil1').value   = SEUIL1;
   document.getElementById('p-seuil2').value   = SEUIL2;
   document.getElementById('p-objectif').value = OBJECTIF;
+  document.getElementById('p-nonlivre').value = DELAI_NL;
   document.getElementById('modal-params').classList.add('open');
 }
-function closeParams() {
-  document.getElementById('modal-params').classList.remove('open');
-}
+function closeParams() { document.getElementById('modal-params').classList.remove('open'); }
+
 async function saveParams() {
   const s1 = parseInt(document.getElementById('p-seuil1').value)   || 30;
   const s2 = parseInt(document.getElementById('p-seuil2').value)   || 60;
   const ob = parseInt(document.getElementById('p-objectif').value) || 80;
+  const nl = parseInt(document.getElementById('p-nonlivre').value) || 5;
   const btn = document.getElementById('p-save-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Enregistrement…'; }
   try {
     const { error } = await sb.from('stats_parametres').upsert({
-      id: 1, seuil1: s1, seuil2: s2, objectif: ob,
+      id: 1, seuil1: s1, seuil2: s2, objectif: ob, delai_nl: nl,
       updated_at: new Date().toISOString()
     }, { onConflict: 'id' });
     if (error) throw error;
-    SEUIL1 = s1; SEUIL2 = s2; OBJECTIF = ob;
+    SEUIL1 = s1; SEUIL2 = s2; OBJECTIF = ob; DELAI_NL = nl;
     closeParams();
     applyRender();
   } catch(e) {
-    alert("Erreur lors de l'enregistrement : " + (e?.message || 'Table stats_parametres introuvable — exécutez le SQL fourni dans Supabase.'));
+    alert("Erreur enregistrement : " + (e?.message || 'Table stats_parametres introuvable.'));
   }
   if (btn) { btn.disabled = false; btn.textContent = 'Enregistrer'; }
 }
@@ -373,6 +403,42 @@ function todayStr() {
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// LOGIQUE STATUTS — RÈGLES MÉTIER
+// ─────────────────────────────────────────────────────────────────
+// ACTIF  : camion comptabilisé dans toutes les stats
+// INACTIF: camion ignoré complètement (ni attente, ni livré, ni retard)
+//
+// Pour un camion ACTIF :
+//   heure_reelle renseignée → ARRIVÉ (ponctuel ou retard)
+//   heure_reelle vide + délai non atteint → EN ATTENTE
+//   heure_reelle vide + délai >= DELAI_NL heures → NON LIVRÉ
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function isActif(r) {
+  // ACTIF si statut_ligne vide/non défini OU explicitement 'ACTIF'
+  // INACTIF si statut_ligne === 'INACTIF' (insensible à la casse)
+  const sl = (r.statut_ligne || '').trim().toUpperCase();
+  return sl === '' || sl === 'ACTIF';
+}
+
+function statutCamion(r, dateJour) {
+  // Retourne : 'inactif' | 'arrive_ok' | 'arrive_retard' | 'attente' | 'nonlivre'
+  if (!isActif(r)) return 'inactif';
+  const d = diff(r.heure_planif, r.heure_reelle);
+  if (d !== null) return d <= SEUIL1 ? 'arrive_ok' : 'arrive_retard';
+  // Pas d'heure réelle — calculer si délai dépassé
+  if (!r.heure_planif) return 'attente';
+  const [ph, pm] = r.heure_planif.split(':').map(Number);
+  const planifMs = new Date(dateJour + 'T' + r.heure_planif + ':00').getTime();
+  const limiteMs = planifMs + DELAI_NL * 3600000;
+  const nowMs    = Date.now();
+  // Pour les journées passées, on compare avec fin de journée (23:59)
+  const isToday  = dateJour === todayStr();
+  const refMs    = isToday ? nowMs : new Date(dateJour + 'T23:59:59').getTime();
+  return refMs >= limiteMs ? 'nonlivre' : 'attente';
+}
+
 // ── NAVIGATION ───────────────────────────────────────────────────
 function setPeriod(p) {
   period = p;
@@ -381,9 +447,9 @@ function setPeriod(p) {
 }
 function navigate(dir) {
   const d = new Date(curDate+'T00:00:00');
-  if (period==='day')  d.setDate(d.getDate()+dir);
-  else if (period==='week') d.setDate(d.getDate()+dir*7);
-  else d.setMonth(d.getMonth()+dir);
+  if (period==='day')        d.setDate(d.getDate()+dir);
+  else if (period==='week')  d.setDate(d.getDate()+dir*7);
+  else                       d.setMonth(d.getMonth()+dir);
   curDate = d.toISOString().slice(0,10);
   loadAll();
 }
@@ -414,7 +480,7 @@ function periodLabel() {
 // ── FETCH ────────────────────────────────────────────────────────
 async function fetchData(start, end) {
   try {
-    const { data, error } = await sb.from('planning_camions').select('*')
+    const { data } = await sb.from('planning_camions').select('*')
       .gte('date_jour', start).lte('date_jour', end);
     return data || [];
   } catch(e) { return []; }
@@ -428,45 +494,52 @@ function diff(planif, reel) {
   return (rh*60+rm)-(ph*60+pm);
 }
 
-// cls : ok si ≤ SEUIL1, warn si ≤ SEUIL2, bad sinon
 function cls(d) {
-  if (d===null) return 'wait';
+  if (d===null) return 'attente';
   if (d <= SEUIL1) return 'ok';
   if (d <= SEUIL2) return 'warn';
   return 'bad';
 }
 
-// tcls : couleur KPI selon OBJECTIF
 function tcls(t) {
   if (t===null) return 'copper';
   if (t >= OBJECTIF) return 'green';
-  if (t >= OBJECTIF * 0.8) return 'yellow';
+  if (t >= OBJECTIF*0.8) return 'yellow';
   return 'red';
 }
 
-function analyze(rows) {
-  let onTime=0, late=0, total=0, annule=0;
+// ── ANALYZE ─────────────────────────────────────────────────────
+// Traite uniquement les camions ACTIFS.
+// INACTIF = hors scope, pas comptabilisé nulle part.
+function analyze(rows, dateJour) {
+  let onTime=0, late=0, attente=0, nonLivre=0, inactif=0;
   const retards = [];
   rows.forEach(r => {
-    if ((r.statut_ligne||'Actif')==='Annulé') { annule++; return; }
-    total++;
-    const d = diff(r.heure_planif, r.heure_reelle);
-    if (d===null) return;
-    if (d <= SEUIL1) onTime++; else { late++; retards.push(d); }
+    const st = statutCamion(r, dateJour || curDate);
+    if (st === 'inactif')        { inactif++; return; }
+    if (st === 'arrive_ok')      { onTime++; }
+    else if (st === 'arrive_retard') {
+      late++;
+      const d = diff(r.heure_planif, r.heure_reelle);
+      if (d !== null) retards.push(d);
+    }
+    else if (st === 'nonlivre')  { nonLivre++; }
+    else                         { attente++; }  // 'attente'
   });
-  const arrived = onTime+late;
-  const taux    = arrived>0 ? Math.round(onTime/arrived*100) : null;
+  const arrived = onTime + late;
+  const total   = onTime + late + attente + nonLivre; // actifs uniquement
+  // taux = ponctualité parmi les ARRIVÉS uniquement (heure réelle saisie)
+  const taux    = arrived > 0 ? Math.round(onTime/arrived*100) : null;
   const avgRet  = retards.length>0 ? Math.round(retards.reduce((a,b)=>a+b,0)/retards.length) : 0;
   const maxRet  = retards.length>0 ? Math.max(...retards) : 0;
-  return { onTime, late, total, arrived, annule, taux, avgRet, maxRet, retards };
+  return { onTime, late, attente, nonLivre, arrived, total, inactif, taux, avgRet, maxRet, retards };
 }
 
 // ── MAIN LOAD ────────────────────────────────────────────────────
 async function loadAll() {
   const spinner = document.getElementById('spinner');
   const content = document.getElementById('content');
-  spinner.style.display = 'flex';
-  content.style.display = 'none';
+  spinner.style.display = 'flex'; content.style.display = 'none';
   document.getElementById('period-lbl').textContent = periodLabel();
   if (chartTrend) { chartTrend.destroy(); chartTrend = null; }
   if (chartDist)  { chartDist.destroy();  chartDist  = null; }
@@ -474,13 +547,10 @@ async function loadAll() {
     await loadParams();
     const { start, end } = getRange();
     cachedData = await fetchData(start, end);
-    spinner.style.display = 'none';
-    content.style.display = 'block';
+    spinner.style.display = 'none'; content.style.display = 'block';
     applyRender();
   } catch(e) {
-    console.error('loadAll error:', e);
-    spinner.style.display = 'none';
-    content.style.display = 'block';
+    spinner.style.display = 'none'; content.style.display = 'block';
     content.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
       <div style="font-size:2rem;margin-bottom:12px;">⚠️</div>
       <div style="font-size:.9rem;">Erreur de chargement</div>
@@ -496,10 +566,8 @@ function applyRender() {
   if (!cachedData) return;
   if (chartTrend) { chartTrend.destroy(); chartTrend = null; }
   if (chartDist)  { chartDist.destroy();  chartDist  = null; }
-  try {
-    render(cachedData);
-  } catch(e) {
-    console.error('applyRender error:', e);
+  try { render(cachedData); }
+  catch(e) {
     document.getElementById('content').innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
       <div style="font-size:2rem;margin-bottom:12px;">⚠️</div>
       <div style="font-size:.9rem;">Erreur d'affichage : ${e?.message||''}</div>
@@ -511,17 +579,18 @@ function applyRender() {
 }
 
 function render(data) {
-  const A = analyze(data);
+  const { start } = getRange();
+  const A = analyze(data, start);
   const c = document.getElementById('content');
   c.innerHTML = '';
   c.insertAdjacentHTML('beforeend', buildKPIs(A));
   if (period==='day') {
-    c.insertAdjacentHTML('beforeend', buildDayPanels(data));
+    c.insertAdjacentHTML('beforeend', buildDayPanels(data, start));
   } else {
     c.insertAdjacentHTML('beforeend', buildHeatmap(data));
     c.insertAdjacentHTML('beforeend', buildTrendRow());
   }
-  c.insertAdjacentHTML('beforeend', buildBottomRow(data));
+  c.insertAdjacentHTML('beforeend', buildBottomRow(data, start));
   setTimeout(() => {
     drawDist(A.retards);
     if (period!=='day') drawTrend(data);
@@ -531,81 +600,129 @@ function render(data) {
 
 // ── KPIs ─────────────────────────────────────────────────────────
 function buildKPIs(A) {
-  const tc = tcls(A.taux);
-  const barCol = tc==='green'?'var(--emerald)':tc==='yellow'?'var(--amber)':tc==='red'?'var(--ruby)':'var(--copper-light)';
-  const waitN  = A.total - A.arrived;
-  const retardCls = A.avgRet > SEUIL2 ? 'red' : A.avgRet > SEUIL1 ? 'yellow' : 'green';
-  const retardBar = A.avgRet > SEUIL2 ? 'var(--ruby)' : 'var(--amber)';
+  const tc      = tcls(A.taux);
+  const barCol  = tc==='green'?'var(--emerald)':tc==='yellow'?'var(--amber)':tc==='red'?'var(--ruby)':'var(--copper-light)';
+  const retCls  = A.avgRet>SEUIL2?'red':A.avgRet>SEUIL1?'yellow':'green';
+  const covPct  = A.total>0 ? Math.round(A.arrived/A.total*100) : 0;
+  const nlCls   = A.nonLivre>2?'red':A.nonLivre>0?'yellow':'slate';
+
   return `<div class="kpi-row anim d1">
+
     <div class="kpi ${tc}">
       <div class="kpi-eyebrow">Ponctualité</div>
       <div class="kpi-val ${tc}">${A.taux!==null?A.taux+'%':'—'}</div>
-      <div class="kpi-sub">${A.onTime} à l'heure · ${A.late} en retard · objectif ${OBJECTIF}%</div>
+      <div class="kpi-sub">
+        ${A.onTime} à l'heure · ${A.late} en retard<br>
+        Objectif ${OBJECTIF}% · sur ${A.arrived} arrivés
+      </div>
       <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${A.taux||0}%;background:${barCol}"></div></div>
     </div>
-    <div class="kpi ${retardCls}">
+
+    <div class="kpi ${retCls}">
       <div class="kpi-eyebrow">Retard moyen</div>
-      <div class="kpi-val ${retardCls}">${A.avgRet}<span style="font-size:1.1rem;margin-left:3px">min</span></div>
-      <div class="kpi-sub">parmi les ${A.late} camion${A.late>1?'s':''} en retard · max ${A.maxRet} min · critique &gt;${SEUIL2}min</div>
-      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${Math.min(100,A.avgRet/(SEUIL2*2)*100)}%;background:${retardBar}"></div></div>
+      <div class="kpi-val ${retCls}">${A.avgRet}<span style="font-size:1.1rem;margin-left:3px">min</span></div>
+      <div class="kpi-sub">
+        Sur ${A.late} camion${A.late>1?'s':''} en retard<br>
+        Max ${A.maxRet} min · Critique &gt;${SEUIL2} min
+      </div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${Math.min(100,A.avgRet/(SEUIL2*2)*100)}%;background:var(--ruby)"></div></div>
     </div>
+
     <div class="kpi copper">
-      <div class="kpi-eyebrow">Arrivées</div>
+      <div class="kpi-eyebrow">Couverture</div>
       <div class="kpi-val copper">${A.arrived}<span style="font-size:1.1rem;margin-left:3px">/ ${A.total}</span></div>
-      <div class="kpi-sub">${A.total>0?Math.round(A.arrived/A.total*100):0}% couverture · ${waitN} en attente</div>
-      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${A.total>0?Math.round(A.arrived/A.total*100):0}%;background:linear-gradient(90deg,var(--copper),var(--copper-light))"></div></div>
+      <div class="kpi-sub">
+        ${covPct}% des actifs arrivés<br>
+        ${A.attente} en attente · ${A.inactif} inactif${A.inactif>1?'s':''}
+      </div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${covPct}%;background:linear-gradient(90deg,var(--copper),var(--copper-light))"></div></div>
     </div>
-    <div class="kpi ${A.annule>3?'red':A.annule>1?'yellow':'copper'}">
-      <div class="kpi-eyebrow">Annulations</div>
-      <div class="kpi-val ${A.annule>3?'red':A.annule>1?'yellow':'copper'}">${A.annule}</div>
-      <div class="kpi-sub">camion${A.annule>1?'s':''} annulé${A.annule>1?'s':''} sur ${A.total+A.annule} planifiés</div>
-      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${A.total+A.annule>0?Math.round(A.annule/(A.total+A.annule)*100):0}%;background:var(--ruby)"></div></div>
+
+    <div class="kpi ${nlCls}">
+      <div class="kpi-eyebrow">Non livrés</div>
+      <div class="kpi-val ${nlCls}">${A.nonLivre}</div>
+      <div class="kpi-sub">
+        Actif · sans heure réelle · +${DELAI_NL}h<br>
+        ${A.total>0?Math.round(A.nonLivre/A.total*100):0}% des actifs planifiés
+      </div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${A.total>0?Math.round(A.nonLivre/A.total*100):0}%;background:var(--ruby)"></div></div>
     </div>
+
   </div>`;
 }
 
 // ── VUE JOURNÉE ───────────────────────────────────────────────────
-function buildDayPanels(data) {
+function buildDayPanels(data, dateJour) {
   const bySlot = {};
   data.forEach(r => { bySlot[r.slot_index] = r; });
   const extras = Object.keys(bySlot).map(Number).filter(i=>i>=10).sort((a,b)=>a-b);
-  const all = [...SLOTS.map(s=>({...s,extra:false})), ...extras.map(i=>({idx:i,h:bySlot[i]?.heure_planif||'—',lbl:'Extra',extra:true}))];
+  const all = [
+    ...SLOTS.map(s=>({...s,extra:false})),
+    ...extras.map(i=>({idx:i,h:bySlot[i]?.heure_planif||'—',lbl:'Extra',extra:true}))
+  ];
 
   let tlHtml = '';
   all.forEach(s => {
-    const r = bySlot[s.idx] || {};
-    if ((r.statut_ligne||'Actif')==='Annulé') {
-      tlHtml += `<div class="tl-item" style="opacity:.35">
-        <div class="tl-dot" style="background:var(--text-faint)"></div>
-        <div class="tl-h">${s.h}</div>
-        <div class="tl-name">${s.lbl} <span style="font-size:.65rem;color:var(--text-faint)">ANNULÉ</span></div>
-        <div class="tl-retard wait">—</div>
+    const r  = bySlot[s.idx] || {};
+    const st = statutCamion(r, dateJour);
+    const h  = r.heure_planif || s.h;
+    const dest = r.destination ? `<span class="tl-dest">${r.destination}</span>` : '';
+
+    if (st === 'inactif') {
+      tlHtml += `<div class="tl-item inactif">
+        <div class="tl-dot inactif"></div>
+        <div class="tl-h">${h}</div>
+        <div class="tl-name">${s.lbl}${dest}<span class="tl-badge inactif">Inactif</span></div>
+        <div class="tl-retard inactif">—</div>
       </div>`; return;
     }
-    const d  = diff(r.heure_planif||s.h, r.heure_reelle);
-    const c  = cls(d);
-    const lbl = d===null ? 'En attente' : d<=0 ? '✓ À l\'heure' : '+'+d+' min';
-    const dest = r.destination ? `<span class="tl-dest">${r.destination}</span>` : '';
+
+    let dotCls, retCls, retLbl;
+    if (st === 'arrive_ok') {
+      const d = diff(h, r.heure_reelle);
+      dotCls = 'ok'; retCls = 'ok';
+      retLbl = d!==null&&d<=0 ? '✓ À l\'heure' : (d!==null?'✓ +'+d+' min':'✓ À l\'heure');
+    } else if (st === 'arrive_retard') {
+      const d = diff(h, r.heure_reelle);
+      const c = cls(d); dotCls = c; retCls = c;
+      retLbl = d!==null ? '+'+d+' min' : 'Retard';
+    } else if (st === 'nonlivre') {
+      dotCls = 'nonlivre'; retCls = 'nonlivre'; retLbl = 'Non livré';
+    } else {
+      dotCls = 'attente'; retCls = 'attente'; retLbl = 'En attente';
+    }
+
+    const nlBadge = st==='nonlivre' ? `<span class="tl-badge nonlivre">Non livré</span>` : '';
     tlHtml += `<div class="tl-item">
-      <div class="tl-dot ${c}"></div>
-      <div class="tl-h">${r.heure_planif||s.h}</div>
-      <div class="tl-name">${s.lbl}${dest}</div>
-      <div class="tl-retard ${c}">${lbl}</div>
+      <div class="tl-dot ${dotCls}"></div>
+      <div class="tl-h">${h}</div>
+      <div class="tl-name">${s.lbl}${dest}${nlBadge}</div>
+      <div class="tl-retard ${retCls}">${retLbl}</div>
     </div>`;
   });
-  if (!tlHtml) tlHtml = `<div class="empty"><div class="empty-ico">📭</div>Aucune donnée</div>`;
+  if (!tlHtml) tlHtml = `<div class="empty"><div class="empty-ico">📭</div>Aucune donnée pour cette journée</div>`;
+
+  const legende = `<div class="legende">
+    <div class="leg-item"><div class="leg-dot" style="background:var(--emerald)"></div>À l'heure ≤${SEUIL1}min</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--amber)"></div>Retard ≤${SEUIL2}min</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--ruby)"></div>Critique &gt;${SEUIL2}min</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--sapphire)"></div>En attente</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--ruby);opacity:.45"></div>Non livré (+${DELAI_NL}h)</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--text-faint)"></div>Inactif (exclu)</div>
+  </div>`;
 
   return `<div class="panels-row panels-2 anim d2">
     <div class="panel">
       <div class="ph"><div class="ph-eye">Détail journée</div>
         <div class="ph-title">Timeline des arrivées</div>
-        <div class="ph-sub">Vert ≤${SEUIL1}min · Orange ≤${SEUIL2}min · Rouge &gt;${SEUIL2}min</div></div>
+        <div class="ph-sub">Camions ACTIFS uniquement · Inactifs affichés mais exclus des stats</div></div>
       <div class="tl-list">${tlHtml}</div>
+      ${legende}
     </div>
     <div class="panel">
       <div class="ph"><div class="ph-eye">Distribution</div>
         <div class="ph-title">Amplitude des retards</div>
-        <div class="ph-sub">Nombre de camions par tranche de retard</div></div>
+        <div class="ph-sub">Camions actifs arrivés avec retard uniquement</div></div>
       <div class="chart-box"><canvas id="chart-dist"></canvas></div>
     </div>
   </div>`;
@@ -620,8 +737,11 @@ function buildHeatmap(data) {
 
   const mat = {};
   HOURS.forEach(h => { mat[h] = {}; days.forEach(dt => { mat[h][dt] = null; }); });
+
   data.forEach(r => {
-    if ((r.statut_ligne||'Actif')==='Annulé') return;
+    // Heatmap : ACTIFS avec heure_reelle seulement
+    if (!isActif(r)) return;
+    if (!r.heure_reelle) return; // en attente / non livré non représentés
     const h = r.heure_planif;
     if (!HOURS.includes(h)) return;
     if (!mat[h][r.date_jour]) mat[h][r.date_jour] = { n:0, onTime:0 };
@@ -640,7 +760,7 @@ function buildHeatmap(data) {
     if (t>=OBJECTIF*0.50)  return 'rgba(232,164,58,.45)';
     return 'rgba(224,85,85,.5)';
   }
-  function hmTxt(cell) { if (!cell||cell.n===0) return ''; return Math.round(cell.onTime/cell.n*100)+'%'; }
+  function hmTxt(cell)    { if (!cell||cell.n===0) return ''; return Math.round(cell.onTime/cell.n*100)+'%'; }
   function hmTxtCol(cell) { if (!cell||cell.n===0) return 'transparent'; return Math.round(cell.onTime/cell.n*100)>=55?'#0a0b0f':'#F0EAE0'; }
   const fmtD = s => new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'});
 
@@ -650,7 +770,7 @@ function buildHeatmap(data) {
     g += `<div class="hm-h-lbl">${h}</div>`;
     days.forEach(dt => {
       const cell = mat[h][dt];
-      const tip  = cell&&cell.n>0 ? `${h} · ${fmtD(dt)} : ${Math.round(cell.onTime/cell.n*100)}% (${cell.onTime}/${cell.n} arrivés)` : '';
+      const tip  = cell&&cell.n>0 ? `${h} · ${fmtD(dt)} : ${Math.round(cell.onTime/cell.n*100)}% (${cell.onTime}/${cell.n} à l'heure)` : '';
       g += `<div class="hm-cell" style="background:${hmBg(cell)};color:${hmTxtCol(cell)}" ${tip?`data-tip="${tip}"`:''}>${hmTxt(cell)}</div>`;
     });
   });
@@ -659,7 +779,7 @@ function buildHeatmap(data) {
   return `<div class="panels-row anim d2"><div class="panel panel-full">
     <div class="ph"><div class="ph-eye">Carte de chaleur</div>
       <div class="ph-title">Ponctualité par créneau et par jour</div>
-      <div class="ph-sub">Objectif ${OBJECTIF}% · Tolérance ${SEUIL1}min acceptable / ${SEUIL2}min critique</div></div>
+      <div class="ph-sub">Camions ACTIFS arrivés (heure réelle saisie) · Objectif ${OBJECTIF}% · Tolérance ${SEUIL1}min / ${SEUIL2}min critique</div></div>
     ${g}
   </div></div>`;
 }
@@ -670,7 +790,7 @@ function buildTrendRow() {
     <div class="panel">
       <div class="ph"><div class="ph-eye">Évolution</div>
         <div class="ph-title">Taux de ponctualité par jour</div>
-        <div class="ph-sub">Ligne de référence à ${OBJECTIF}%</div></div>
+        <div class="ph-sub">Camions actifs arrivés uniquement · Objectif ${OBJECTIF}%</div></div>
       <div class="chart-box"><canvas id="chart-trend"></canvas></div>
     </div>
     <div class="panel">
@@ -683,27 +803,28 @@ function buildTrendRow() {
 }
 
 // ── BOTTOM ROW ────────────────────────────────────────────────────
-function buildBottomRow(data) {
-  // Destinations
+function buildBottomRow(data, dateJour) {
+  // Destinations — ACTIFS avec heure_reelle saisie seulement
   const dm = {};
   data.forEach(r => {
-    if ((r.statut_ligne||'Actif')==='Annulé') return;
+    if (!isActif(r)) return;
+    const d2 = diff(r.heure_planif, r.heure_reelle);
+    if (d2===null) return; // en attente / non livré = pas de donnée de ponctualité
     const k = r.destination || 'Non défini';
     if (!dm[k]) dm[k] = { on:0, late:0, n:0 };
-    const d2 = diff(r.heure_planif, r.heure_reelle);
-    if (d2===null) return;
     dm[k].n++;
     if (d2 <= SEUIL1) dm[k].on++; else dm[k].late++;
   });
   const dests = Object.entries(dm).filter(([,v])=>v.n>0).sort((a,b)=>a[1].on/a[1].n - b[1].on/b[1].n);
 
   let destHtml = '';
-  if (!dests.length) { destHtml = `<div class="empty"><div class="empty-ico">📭</div>Aucune donnée</div>`; }
-  else {
+  if (!dests.length) {
+    destHtml = `<div class="empty"><div class="empty-ico">📭</div>Aucune donnée</div>`;
+  } else {
     destHtml = `<div class="dest-list">`;
     dests.forEach(([name,v]) => {
-      const t = Math.round(v.on/v.n*100);
-      const col = t>=OBJECTIF ? 'var(--emerald)' : t>=OBJECTIF*0.8 ? 'var(--amber)' : 'var(--ruby)';
+      const t   = Math.round(v.on/v.n*100);
+      const col = t>=OBJECTIF?'var(--emerald)':t>=OBJECTIF*0.8?'var(--amber)':'var(--ruby)';
       destHtml += `<div class="dest-row">
         <div class="dest-name">${name}</div>
         <div class="dest-track"><div class="dest-fill" style="width:${t}%;background:${col}">${t>18?t+'%':''}</div></div>
@@ -713,10 +834,10 @@ function buildBottomRow(data) {
     destHtml += `</div>`;
   }
 
-  // Pires créneaux
+  // Pires créneaux — ACTIFS avec retard seulement
   const sm = {};
   data.forEach(r => {
-    if ((r.statut_ligne||'Actif')==='Annulé') return;
+    if (!isActif(r)) return;
     const d2 = diff(r.heure_planif, r.heure_reelle);
     if (d2===null || d2<=SEUIL1) return;
     const k = r.heure_planif || '?';
@@ -730,12 +851,13 @@ function buildBottomRow(data) {
   })).sort((a,b)=>b.avg-a.avg).slice(0,5);
 
   let worstHtml = '';
-  if (!worst.length) { worstHtml = `<div class="empty"><div class="empty-ico">✅</div>Aucun créneau problématique</div>`; }
-  else {
+  if (!worst.length) {
+    worstHtml = `<div class="empty"><div class="empty-ico">✅</div>Aucun créneau problématique</div>`;
+  } else {
     worstHtml = `<div class="worst-list">`;
     worst.forEach((s,i) => {
-      const c   = s.avg > SEUIL2 ? 'bad' : 'warn';
-      const col = c==='bad' ? 'var(--ruby)' : 'var(--amber)';
+      const c   = s.avg>SEUIL2?'bad':'warn';
+      const col = c==='bad'?'var(--ruby)':'var(--amber)';
       worstHtml += `<div class="worst-item ${c}">
         <div class="worst-rank">${i+1}</div>
         <div class="worst-info">
@@ -752,13 +874,13 @@ function buildBottomRow(data) {
     <div class="panel">
       <div class="ph"><div class="ph-eye">Par destination</div>
         <div class="ph-title">Ponctualité selon la destination</div>
-        <div class="ph-sub">% des camions arrivés dans la tolérance de ${SEUIL1} min</div></div>
+        <div class="ph-sub">Camions ACTIFS arrivés · tolérance ≤${SEUIL1} min</div></div>
       ${destHtml}
     </div>
     <div class="panel">
       <div class="ph"><div class="ph-eye">Points chauds</div>
         <div class="ph-title">Créneaux les plus problématiques</div>
-        <div class="ph-sub">Orange &gt;${SEUIL1}min · Rouge &gt;${SEUIL2}min</div></div>
+        <div class="ph-sub">Camions ACTIFS en retard · Orange &gt;${SEUIL1}min · Rouge &gt;${SEUIL2}min</div></div>
       ${worstHtml}
     </div>
   </div>`;
@@ -780,7 +902,7 @@ function drawDist(retards) {
   const labels = Object.keys(buckets), vals = Object.values(buckets);
   const cols = labels.map(l => {
     const v = parseInt(l);
-    return v > SEUIL2 ? 'rgba(224,85,85,.72)' : v > SEUIL1 ? 'rgba(232,164,58,.72)' : 'rgba(45,212,160,.72)';
+    return v>SEUIL2?'rgba(224,85,85,.72)':v>SEUIL1?'rgba(232,164,58,.72)':'rgba(45,212,160,.72)';
   });
   chartDist = new Chart(el, {
     type:'bar',
@@ -804,7 +926,8 @@ function drawTrend(data) {
   let d = new Date(start+'T00:00:00'), ed = new Date(end+'T00:00:00');
   while (d<=ed) { days.push(d.toISOString().slice(0,10)); d.setDate(d.getDate()+1); }
   const labels = days.map(s => new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'}));
-  const vals   = days.map(dt => { const A = analyze(data.filter(r=>r.date_jour===dt)); return A.taux; });
+  // Passer la date de chaque journée à analyze pour le calcul non-livré correct
+  const vals   = days.map(dt => analyze(data.filter(r=>r.date_jour===dt), dt).taux);
   const ptCols = vals.map(v => v===null?'rgba(0,0,0,0)':v>=OBJECTIF?'#2DD4A0':v>=OBJECTIF*0.8?'#E8A43A':'#E05555');
   chartTrend = new Chart(el, {
     type:'line',
@@ -834,7 +957,7 @@ function setupTip() {
       tip.style.left = (e.clientX+14)+'px';
       tip.style.top  = (e.clientY-32)+'px';
     });
-    el.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+    el.addEventListener('mouseleave', () => { tip.style.display='none'; });
   });
 }
 
