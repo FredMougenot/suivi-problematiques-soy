@@ -855,18 +855,19 @@ function buildHeatmap(data) {
     const h = r.heure_planif;
     if (!HOURS.includes(h)) return;
     if (isNonLivre(r) && !r.heure_reelle) {
-      // NON LIVRÉ sans heure réelle → violet dans heatmap + pénalise mat si d'autres sont arrivés
+      // NON LIVRÉ → compter dans matNL (violet) ET dans mat.nl (pénalise taux)
       matNL[h][r.date_jour] = (matNL[h][r.date_jour]||0) + 1;
-      // Aussi compter dans mat pour pénaliser le taux (n++ mais pas onTime++)
-      if (!mat[h][r.date_jour]) mat[h][r.date_jour] = { n:0, onTime:0, retards:[] };
+      if (!mat[h][r.date_jour]) mat[h][r.date_jour] = { n:0, onTime:0, retards:[], nl:0, arrived:0 };
       mat[h][r.date_jour].n++;
+      mat[h][r.date_jour].nl = (mat[h][r.date_jour].nl||0) + 1;
       return;
     }
     if (!r.heure_reelle) return; // ACTIF en attente → pas encore de donnée
-    if (!mat[h][r.date_jour]) mat[h][r.date_jour] = { n:0, onTime:0, retards:[] };
+    if (!mat[h][r.date_jour]) mat[h][r.date_jour] = { n:0, onTime:0, retards:[], nl:0, arrived:0 };
     const d2 = diff(r.heure_planif, r.heure_reelle);
     if (d2===null) return;
     mat[h][r.date_jour].n++;
+    mat[h][r.date_jour].arrived = (mat[h][r.date_jour].arrived||0) + 1;
     if (d2 <= SEUIL1) mat[h][r.date_jour].onTime++;
     else mat[h][r.date_jour].retards.push(d2);
   });
@@ -964,11 +965,12 @@ function buildHeatmap(data) {
       const cx = colLW + ci*(CELL+GAP);
       const cell = mat[h][dt];
       const nlCount = (matNL[h]&&matNL[h][dt]) || 0;
+      const arrivedCount = (cell&&cell.arrived)||0;
       const t = cell&&cell.n>0 ? Math.round(cell.onTime/cell.n*100) : -1;
       const col = hmColor(t);
       const hasData = t >= 0;
-      // Violet si non-livré ET aucun arrivé sur ce créneau
-      const hasNL = nlCount > 0 && !hasData;
+      // Violet si NON LIVRÉS présents ET aucun camion réellement arrivé sur ce créneau
+      const hasNL = nlCount > 0 && arrivedCount === 0;
       const avgRet = cell&&cell.retards.length>0 ? Math.round(cell.retards.reduce((a,b)=>a+b,0)/cell.retards.length) : 0;
 
       // Couleurs violet non-livré
