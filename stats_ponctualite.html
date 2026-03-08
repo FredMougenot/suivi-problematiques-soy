@@ -60,7 +60,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
 .nav-btn:hover{border-color:var(--copper);color:var(--copper-light);}
 .period-lbl{font-family:'Outfit',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text-primary);
   padding:8px 22px;background:var(--bg-raised);border:1px solid var(--text-faint);
-  border-radius:var(--r-md);min-width:260px;text-align:center;}
+  border-radius:var(--r-md);min-width:300px;text-align:center;}
 
 /* ── MAIN ── */
 .dash{padding:20px;max-width:1400px;margin:0 auto;}
@@ -517,9 +517,16 @@ function getRange() {
 
 function periodLabel() {
   const { start, end } = getRange();
-  const fmt  = s => new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{day:'numeric',month:'long',year:'numeric'});
+  // Journée : "Mardi · 8 mars 2026"
+  const fmtDay = s => {
+    const d = new Date(s+'T00:00:00');
+    const jour = d.toLocaleDateString('fr-CA',{weekday:'long'});
+    const date = d.toLocaleDateString('fr-CA',{day:'numeric',month:'long',year:'numeric'});
+    // Capitaliser le jour
+    return jour.charAt(0).toUpperCase()+jour.slice(1)+' · '+date;
+  };
   const fmts = s => new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{day:'2-digit',month:'short'});
-  if (period==='day')   return fmt(start);
+  if (period==='day')   return fmtDay(start);
   if (period==='week')  return fmts(start)+' – '+fmts(end);
   return new Date(start+'T00:00:00').toLocaleDateString('fr-CA',{month:'long',year:'numeric'});
 }
@@ -748,9 +755,13 @@ function buildDayPanels(data, dateJour) {
 
   let tlHtml = '';
   all.forEach(s => {
-    const r  = bySlot[s.idx] || {};
-    const st = statutCamion(r, dateJour);
-    const h  = r.heure_planif || s.h;
+    const r = bySlot[s.idx];  // undefined si pas de row DB pour ce slot
+
+    // Slot sans row DB = non planifié ce jour → on ne l'affiche pas
+    if (r === undefined) return;
+
+    const st   = statutCamion(r, dateJour);
+    const h    = r.heure_planif || s.h;
     const dest = r.destination ? `<span class="tl-dest">${r.destination}</span>` : '';
 
     if (st === 'inactif') {
@@ -836,30 +847,30 @@ function buildHeatmap(data) {
   });
 
   // Palette de couleurs interpolée (rouge → amber → emerald)
+  // Alpha constant pour que vert et rouge aient la même intensité visuelle
   function hmColor(t) {
-    // t: 0-100
-    if (t < 0) return { fill:'rgba(255,255,255,.04)', stroke:'rgba(255,255,255,.06)' };
-    // Interpolation tri-couleur
+    if (t < 0) return { fill:'rgba(255,255,255,.04)', stroke:'rgba(255,255,255,.06)', text:'transparent' };
     const stops = [
-      { at:0,   r:224, g:85,  b:85  },   // ruby
-      { at:50,  r:232, g:164, b:58  },   // amber
-      { at:75,  r:200, g:132, b:58  },   // copper
-      { at:100, r:45,  g:212, b:160 },   // emerald
+      { at:0,   r:220, g:60,  b:60  },   // rouge vif
+      { at:50,  r:230, g:160, b:50  },   // amber
+      { at:75,  r:180, g:120, b:40  },   // copper (transition neutre)
+      { at:100, r:40,  g:200, b:120 },   // vert émeraude
     ];
     let lo = stops[0], hi = stops[stops.length-1];
     for (let i=0; i<stops.length-1; i++) {
       if (t >= stops[i].at && t <= stops[i+1].at) { lo=stops[i]; hi=stops[i+1]; break; }
     }
-    const f = (t - lo.at) / (hi.at - lo.at);
+    const f = lo.at === hi.at ? 1 : (t - lo.at) / (hi.at - lo.at);
     const r = Math.round(lo.r + (hi.r-lo.r)*f);
     const g = Math.round(lo.g + (hi.g-lo.g)*f);
     const b = Math.round(lo.b + (hi.b-lo.b)*f);
-    const alpha = 0.18 + (t/100)*0.52;
-    const strokeA = 0.25 + (t/100)*0.45;
+    // Alpha constant = même intensité visuelle pour rouge et vert
+    const FILL_ALPHA   = 0.52;
+    const STROKE_ALPHA = 0.70;
     return {
-      fill:`rgba(${r},${g},${b},${alpha.toFixed(2)})`,
-      stroke:`rgba(${r},${g},${b},${strokeA.toFixed(2)})`,
-      text: t >= 55 ? `rgb(${r},${g},${b})` : `rgba(${r},${g},${b},.7)`,
+      fill:   `rgba(${r},${g},${b},${FILL_ALPHA})`,
+      stroke: `rgba(${r},${g},${b},${STROKE_ALPHA})`,
+      text:   t >= 45 ? `rgb(${Math.min(255,r+40)},${Math.min(255,g+40)},${Math.min(255,b+40)})` : `rgba(${r},${g},${b},.75)`,
       r, g, b
     };
   }
