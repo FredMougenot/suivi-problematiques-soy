@@ -1114,10 +1114,31 @@ function exportPDF() {
 
   // ── Construire les données du tableau
   const allIdx = [...new Set([...SLOTS.map(s => s.idx), ...Object.keys(rows).map(Number)])].sort((a,b)=>a-b);
-  const _slParams = _params['statut_ligne'] || [];
-  const vActif    = _slParams[0]?.valeur || 'ACTIF';
-  const vInactif  = _slParams[1]?.valeur || 'INACTIF';
-  const vNL       = _slParams[2]?.valeur || '';
+  // Parametres
+  const _slPDF   = _params['statut_ligne']    || [];
+  const _tcP     = _params['type_camion']     || [];
+  const _saP     = _params['statut_arrivee']  || [];
+  const _destP   = _params['destination']     || [];
+  const _daP     = _params['dest_arrivee']    || [];
+  const _chgP    = _params['chargement']      || [];
+  const vActif   = _slPDF[0]?.valeur || 'ACTIF';
+  const vInactif = _slPDF[1]?.valeur || 'INACTIF';
+  const vNL      = _slPDF[2]?.valeur || '';
+  const _tcReefer  = _tcP[0]?.valeur || 'REEFER';
+  const _tcChauffe = _tcP[1]?.valeur || 'CHAUFFÉE';
+  const _isWkEndPDF = (()=>{ const d=new Date(curDate+'T00:00:00').getDay(); return d===0||d===6; })();
+  const _wkInactifPDF = [0,1,7,8,9];
+
+  // Calculer 1er et 2ème slot actif (logique type_camion)
+  let _pdfCntActif=0, _pdfIdxP1=null, _pdfIdxP2=null;
+  allIdx.forEach(idx => {
+    const r2=rows[idx]||{};
+    const sl2=r2.statut_ligne||((_isWkEndPDF&&_wkInactifPDF.includes(idx))?vInactif:vActif);
+    if(sl2!==vInactif){ _pdfCntActif++;
+      if(_pdfCntActif===1) _pdfIdxP1=idx;
+      else if(_pdfCntActif===2) _pdfIdxP2=idx;
+    }
+  });
 
   const tableData = [];
   let lineNum = 1;
@@ -1125,70 +1146,98 @@ function exportPDF() {
   allIdx.forEach(idx => {
     const slot = SLOTS.find(s => s.idx === idx);
     const r    = rows[idx] || {};
-    const sl   = r.statut_ligne || vActif;
-    const h    = r.heure_planif || (slot ? slot.h : '—');
+    const sl   = r.statut_ligne || ((_isWkEndPDF&&_wkInactifPDF.includes(idx))?vInactif:vActif);
+    const h    = r.heure_planif || (slot ? slot.h : '');
     const lbl  = slot ? slot.lbl : ('Extra ' + h);
 
-    let retardStr = '';
-    if (r.heure_reelle && r.heure_planif) {
-      const d = timeDiffMin(r.heure_planif, r.heure_reelle);
-      retardStr = d <= 0 ? 'À l\'heure' : '+' + d + ' min';
+    const isInactif = sl === vInactif;
+    const isNL      = vNL && sl === vNL;
+
+    // Type camion — identique à buildRow
+    let _tcDef;
+    if(_isWkEndPDF){
+      _tcDef = (idx===_pdfIdxP1) ? '' : _tcChauffe;
+    } else {
+      if(idx===_pdfIdxP1)      _tcDef='';
+      else if(idx===_pdfIdxP2) _tcDef=_tcReefer;
+      else                      _tcDef=_tcChauffe;
+    }
+    const typeVal = (r.type_camion && r.type_camion!=='__VIDE__') ? r.type_camion : (_tcDef||'');
+
+    // Statut arrivée
+    const arriveeVal = r.statut || (r.heure_reelle ? _saP[0]?.valeur : _saP[1]?.valeur) || '';
+
+    // Destination départ (colonne "Destination")
+    const destVal = r.destination || _destP[0]?.valeur || '';
+
+    // Destination arrivée
+    const destArrVal = r.dest_arrivee || _daP[0]?.valeur || '';
+
+    // Chargement — défaut index 1
+    const chargVal = r.chargement || _chgP[1]?.valeur || '';
+
+    // Retard
+    let retardStr='', retardMin=null;
+    if(r.heure_reelle && r.heure_planif){
+      const d=timeDiffMin(r.heure_planif,r.heure_reelle);
+      retardMin=d; retardStr=d<=0?'À l\'heure':'+'+d+' min';
     }
 
-    const isInactif  = sl === vInactif;
-    const isNL       = vNL && sl === vNL;
-
     tableData.push({
-      num:      lineNum++,
-      heure:    h,
-      slot:     lbl,
-      statut:   sl,
-      type:     r.type_camion  || '—',
-      desc:     r.description  || '—',
-      dest:     r.destination  || '—',
-      arrivee:  r.statut       || '—',
-      charg:    r.chargement   || '—',
-      retard:   retardStr      || '—',
-      isInactif,
-      isNL,
-      isFait:   r.statut === ((_params['statut_arrivee']||[{valeur:'FAIT'}])[0]?.valeur||'FAIT'),
-      retardMin: (r.heure_reelle && r.heure_planif) ? timeDiffMin(r.heure_planif, r.heure_reelle) : null,
+      num:     lineNum++,
+      heure:   h,
+      slot:    lbl,
+      statut:  sl,
+      type:    typeVal,
+      numArr:  r.num_arrivee || '',
+      desc:    r.description || '',
+      destArr: destArrVal,
+      arrivee: arriveeVal,
+      dest:    destVal,
+      numDep:  r.num_depart  || '',
+      charg:   chargVal,
+      retard:  retardStr,
+      isInactif, isNL,
+      isFait:  arriveeVal===(_saP[0]?.valeur||'FAIT'),
+      retardMin,
     });
   });
 
   // ── Tableau autoTable
   doc.autoTable({
     startY: 28,
-    margin: { left: 8, right: 8 },
+    margin: { left: 5, right: 5 },
 
     head: [[
-      '#', 'Heure', 'Créneau', 'Statut ligne', 'Type camion',
-      'Description', 'Destination', 'Arrivée', 'Chargement', 'Retard'
+      '#', 'Heure', 'Créneau', 'Statut', 'Type',
+      'N° Arr.', 'Description', 'Dest. Arr.', 'Arrivée',
+      'Destination', 'N° Dép.', 'Chargement', 'Retard'
     ]],
 
     body: tableData.map(r => [
       r.num, r.heure, r.slot, r.statut, r.type,
-      r.desc, r.dest, r.arrivee, r.charg, r.retard
+      r.numArr, r.desc, r.destArr, r.arrivee,
+      r.dest, r.numDep, r.charg, r.retard
     ]),
 
     styles: {
       font: 'helvetica',
-      fontSize: 8,
-      cellPadding: { top: 3.5, bottom: 3.5, left: 4, right: 4 },
+      fontSize: 7.5,
+      cellPadding: { top: 2.5, bottom: 2.5, left: 3, right: 3 },
       textColor: C.textMain,
       lineColor: C.border,
       lineWidth: 0.18,
       fillColor: C.rowNormal,
-      overflow: 'linebreak',
-      minCellHeight: 10,
+      overflow: 'ellipsize',
+      minCellHeight: 8,
     },
 
     headStyles: {
       fillColor: C.headerBg,
       textColor: C.headerText,
       fontStyle: 'bold',
-      fontSize: 7.5,
-      cellPadding: { top: 4, bottom: 4, left: 4, right: 4 },
+      fontSize: 7,
+      cellPadding: { top: 3, bottom: 3, left: 3, right: 3 },
       lineColor: C.copper,
       lineWidth: { bottom: 1 },
     },
@@ -1198,16 +1247,19 @@ function exportPDF() {
     },
 
     columnStyles: {
-      0: { cellWidth: 8,  halign: 'center', textColor: C.textFaint },
-      1: { cellWidth: 14, halign: 'center', fontStyle: 'bold', textColor: C.colHeure },
-      2: { cellWidth: 30 },
-      3: { cellWidth: 22, halign: 'center' },
-      4: { cellWidth: 20, halign: 'center' },
-      5: { cellWidth: 40 },
-      6: { cellWidth: 28 },
-      7: { cellWidth: 18, halign: 'center' },
-      8: { cellWidth: 26, halign: 'center' },
-      9: { cellWidth: 18, halign: 'center' },
+      0:  { cellWidth: 6,  halign: 'center', textColor: C.textFaint },   // #
+      1:  { cellWidth: 12, halign: 'center', fontStyle: 'bold', textColor: C.colHeure }, // Heure
+      2:  { cellWidth: 28 },   // Créneau
+      3:  { cellWidth: 16, halign: 'center' },   // Statut
+      4:  { cellWidth: 18, halign: 'center' },   // Type
+      5:  { cellWidth: 14, halign: 'center' },   // N° Arr.
+      6:  { cellWidth: 32 },   // Description
+      7:  { cellWidth: 20 },   // Dest. Arr.
+      8:  { cellWidth: 16, halign: 'center' },   // Arrivée
+      9:  { cellWidth: 26 },   // Destination départ
+      10: { cellWidth: 14, halign: 'center' },   // N° Dép.
+      11: { cellWidth: 22, halign: 'center' },   // Chargement
+      12: { cellWidth: 14, halign: 'center' },   // Retard
     },
 
     willDrawCell: function(data) {
@@ -1234,14 +1286,14 @@ function exportPDF() {
         data.cell.styles.fontStyle = 'bold';
       }
 
-      // Colonne Arrivée
-      if (data.column.index === 7 && r.isFait) {
+      // Colonne Arrivée (index 8)
+      if (data.column.index === 8 && r.isFait) {
         data.cell.styles.textColor = C.fait;
         data.cell.styles.fontStyle = 'bold';
       }
 
-      // Colonne Retard
-      if (data.column.index === 9 && r.retardMin !== null) {
+      // Colonne Retard (index 12)
+      if (data.column.index === 12 && r.retardMin !== null) {
         if (r.retardMin <= 0) {
           data.cell.styles.textColor = C.ok;
           data.cell.styles.fontStyle = 'bold';
