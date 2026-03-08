@@ -390,6 +390,12 @@ let SEUIL1   = 30;   // min — tolérance ponctualité acceptable
 let SEUIL2   = 60;   // min — seuil critique
 let OBJECTIF = 80;   // %   — cible ponctualité
 
+// Valeurs statut_ligne chargées depuis planning_params
+// Fallback sur valeurs hardcodées si non chargées
+let _SL_ACTIF    = 'ACTIF';
+let _SL_INACTIF  = 'INACTIF';
+let _SL_NONLIVRE = null; // valeur #3 — si null, toute valeur tierce = NON LIVRÉ
+
 async function loadParams() {
   try {
     const { data } = await sb.from('stats_parametres').select('*').eq('id', 1).maybeSingle();
@@ -400,6 +406,18 @@ async function loadParams() {
     }
   } catch(e) {
     console.warn('stats_parametres non accessible:', e?.message);
+  }
+  // Charger les vraies valeurs statut_ligne depuis planning_params
+  try {
+    const { data: slData } = await sb.from('planning_params')
+      .select('valeur,ordre').eq('categorie','statut_ligne').order('ordre');
+    if (slData && slData.length >= 1) {
+      _SL_ACTIF   = slData[0]?.valeur || 'ACTIF';
+      _SL_INACTIF = slData[1]?.valeur || 'INACTIF';
+      _SL_NONLIVRE = slData[2]?.valeur || null;
+    }
+  } catch(e) {
+    console.warn('planning_params statut_ligne non accessible:', e?.message);
   }
 }
 
@@ -451,16 +469,19 @@ function todayStr() {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 function isActif(r) {
-  // ACTIF si statut_ligne vide/non défini OU explicitement 'ACTIF'
-  // INACTIF ou NON LIVRÉ → pas actif
-  const sl = (r.statut_ligne || '').trim().toUpperCase();
-  return sl === '' || sl === 'ACTIF';
+  // ACTIF si statut_ligne vide/non défini OU correspond à la valeur ACTIF des params
+  const sl = (r.statut_ligne || '').trim();
+  return sl === '' || sl.toUpperCase() === _SL_ACTIF.toUpperCase();
 }
 function isNonLivre(r) {
-  // NON LIVRÉ si statut_ligne est ni vide, ni ACTIF, ni INACTIF
-  // = toute valeur tierce comme 'NON LIVRÉ', 'NON LIVRE', etc.
-  const sl = (r.statut_ligne || '').trim().toUpperCase();
-  return sl !== '' && sl !== 'ACTIF' && sl !== 'INACTIF';
+  // NON LIVRÉ si statut_ligne correspond exactement à la valeur #3 des params
+  // OU si valeur tierce (ni vide, ni ACTIF, ni INACTIF) quand #3 non configuré
+  const sl = (r.statut_ligne || '').trim();
+  if (!sl) return false;
+  if (_SL_NONLIVRE) return sl.toUpperCase() === _SL_NONLIVRE.toUpperCase();
+  // Fallback : toute valeur qui n'est ni ACTIF ni INACTIF
+  return sl.toUpperCase() !== _SL_ACTIF.toUpperCase()
+      && sl.toUpperCase() !== _SL_INACTIF.toUpperCase();
 }
 
 function statutCamion(r, dateJour) {
@@ -570,8 +591,10 @@ function analyze(rows, dateJour) {
   });
   const arrived = onTime + late;
   const total   = onTime + late + attente + nonLivre; // actifs uniquement
-  // taux = ponctualité parmi les ARRIVÉS uniquement (heure réelle saisie)
-  const taux    = arrived > 0 ? Math.round(onTime/arrived*100) : null;
+  // taux = ponctualité sur ARRIVÉS + NON LIVRÉS (échec garanti)
+  // Si tout le monde est NON LIVRÉ → taux = 0%
+  const tauxBase = arrived + nonLivre;
+  const taux    = tauxBase > 0 ? Math.round(onTime/tauxBase*100) : (total > 0 ? 0 : null);
   const avgRet  = retards.length>0 ? Math.round(retards.reduce((a,b)=>a+b,0)/retards.length) : 0;
   const maxRet  = retards.length>0 ? Math.max(...retards) : 0;
   return { onTime, late, attente, nonLivre, arrived, total, inactif, taux, avgRet, maxRet, retards };
@@ -827,16 +850,19 @@ function buildHeatmap(data) {
     days.forEach(dt => { mat[h][dt] = null; matNL[h][dt] = 0; });
   });
   data.forEach(r => {
-    if (!isActif(r)) return;
+    // Exclure seulement les vrais INACTIF
+    if (!isActif(r) && !isNonLivre(r)) return;
     const h = r.heure_planif;
     if (!HOURS.includes(h)) return;
-    if (!r.heure_reelle) {
-      // Non-livré lu directement depuis statut_ligne (géré par planning_camions)
-      if (isNonLivre(r)) {
-        matNL[h][r.date_jour] = (matNL[h][r.date_jour]||0) + 1;
-      }
+    if (isNonLivre(r) && !r.heure_reelle) {
+      // NON LIVRÉ sans heure réelle → violet dans heatmap + pénalise mat si d'autres sont arrivés
+      matNL[h][r.date_jour] = (matNL[h][r.date_jour]||0) + 1;
+      // Aussi compter dans mat pour pénaliser le taux (n++ mais pas onTime++)
+      if (!mat[h][r.date_jour]) mat[h][r.date_jour] = { n:0, onTime:0, retards:[] };
+      mat[h][r.date_jour].n++;
       return;
     }
+    if (!r.heure_reelle) return; // ACTIF en attente → pas encore de donnée
     if (!mat[h][r.date_jour]) mat[h][r.date_jour] = { n:0, onTime:0, retards:[] };
     const d2 = diff(r.heure_planif, r.heure_reelle);
     if (d2===null) return;
