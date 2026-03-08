@@ -293,7 +293,7 @@ async function init(){
 async function loadAll(){
   try {
     const { data, error } = await sb.from('planning_params')
-      .select('id,categorie,valeur,text_color,border_color,border_opacity,font_weight,has_background,ordre').order('ordre').order('created_at');
+      .select('id,categorie,valeur,text_color,border_color,border_opacity,font_weight,has_background,ordre,delai_nl').order('ordre').order('created_at');
     if(error) throw error;
     allData = {};
     CATEGORIES.forEach(c => { allData[c.key] = []; });
@@ -360,6 +360,7 @@ function buildSection(cat){
             <th style="width:90px;">border_opacity</th>
             <th style="width:90px;">font_weight</th>
             <th style="width:110px;text-align:center;">has_background</th>
+            ${cat.key==='statut_ligne'?'<th style="width:90px;text-align:center;padding:0 6px;" title="Heures avant qu'un camion ACTIF sans arrivée soit considéré NON LIVRÉ">Délai NL (h)</th>':''}
             <th class="th-act"></th>
           </tr></thead>
           <tbody id="tbody-${cat.key}">${rows}</tbody>
@@ -408,6 +409,12 @@ function buildRow(catKey, item, num){
         <span class="tog-slider"></span>
       </label>
     </td>
+    ${catKey==='statut_ligne'?`<td style="text-align:center;padding:0 4px;">
+      <input type="number" min="0" max="48" step="0.5" id="dnl-${item.id}"
+        value="${item.delai_nl!=null?item.delai_nl:''}" placeholder="—"
+        style="width:64px;background:var(--bg-float);border:1px solid var(--border);border-radius:6px;color:var(--text-main);padding:4px 6px;text-align:center;font-size:.8rem;"
+        oninput="markDirty('${item.id}')">
+    </td>`:''}
     <td class="td-act">
       <button class="btn-rm" onclick="deleteRow('${item.id}','${catKey}')" title="Supprimer">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -560,6 +567,8 @@ async function saveSection(catKey){
     const border_opacity = document.getElementById(`bo-${id}`)?.value.trim() || null;
     const font_weight    = document.getElementById(`fw-${id}`)?.value.trim() || null;
     const has_background = document.getElementById(`bg-${id}`)?.checked || false;
+    const _dnlRaw = document.getElementById(`dnl-${id}`)?.value.trim();
+    const delai_nl = (_dnlRaw !== undefined && _dnlRaw !== '') ? parseFloat(_dnlRaw) : null;
     updates.push({
       id: parseInt(id),
       valeur,
@@ -568,17 +577,19 @@ async function saveSection(catKey){
       border_opacity: border_opacity || null,
       font_weight:    font_weight    || null,
       has_background,
+      delai_nl:       (delai_nl != null && !isNaN(delai_nl)) ? delai_nl : null,
       ordre: i+1,
     });
     const item = (allData[catKey]||[]).find(r => String(r.id) === String(id));
-    if(item) Object.assign(item, { valeur, text_color, border_color, border_opacity, font_weight, has_background, ordre: i+1 });
+    if(item) Object.assign(item, { valeur, text_color, border_color, border_opacity, font_weight, has_background, delai_nl, ordre: i+1 });
   });
 
   try {
     const results = await Promise.all(
       updates.map(u => sb.from('planning_params').update({
         valeur:u.valeur, text_color:u.text_color, border_color:u.border_color,
-        border_opacity:u.border_opacity, font_weight:u.font_weight, has_background:u.has_background, ordre:u.ordre
+        border_opacity:u.border_opacity, font_weight:u.font_weight, has_background:u.has_background,
+        delai_nl:u.delai_nl, ordre:u.ordre
       }).eq('id', u.id))
     );
     const errs = results.filter(r => r.error);

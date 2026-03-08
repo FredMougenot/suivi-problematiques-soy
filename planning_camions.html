@@ -372,7 +372,7 @@ let isViewer = false;
 async function loadParams(){
   try {
     const {data,error} = await sb.from('planning_params')
-      .select('categorie,valeur,text_color,border_color,border_opacity,font_weight,has_background,ordre')
+      .select('categorie,valeur,text_color,border_color,border_opacity,font_weight,has_background,ordre,delai_nl')
       .order('ordre').order('created_at');
     if(error) throw error;
     _params = {};
@@ -621,6 +621,48 @@ function render(){
         }
       }
     });
+  }
+
+  // ── Auto-détection NON LIVRÉ ────────────────────────────────────────
+  // Si un slot est ACTIF, sans heure_reelle, et que le délai configuré est dépassé
+  // → remplacer statut_ligne par la valeur #3 des params (NON LIVRÉ) et sauvegarder
+  {
+    const _slP2 = _params['statut_ligne']||[];
+    const _vActif2 = _slP2[0]?.valeur||'ACTIF';
+    const _vNonLivre = _slP2[2]?.valeur||null; // valeur #3
+    const _isWkEnd2 = _rIsWkEnd;
+    const _wkI2 = [0,1,7,8,9];
+    const _nowMs = Date.now();
+
+    if(_vNonLivre){
+      const _allIdxNL = [...SLOTS.map(s=>s.idx),
+        ...Object.keys(rows).map(Number).filter(i=>i>=10)];
+      _allIdxNL.forEach(i => {
+        const r2 = rows[i];
+        if(!r2) return;
+        // Statut effectif
+        const dbSt2 = r2.statut_ligne;
+        const stEff2 = dbSt2 || (_isWkEnd2 && _wkI2.includes(i) ? (_slP2[1]?.valeur||'INACTIF') : _vActif2);
+        if(stEff2 !== _vActif2) return; // pas actif → ignorer
+        if(r2.heure_reelle) return;     // déjà arrivé → ignorer
+        // Trouver le délai configuré sur la ligne ACTIF (valeur #1)
+        const _actifParam = _slP2[0];
+        const _delaiH = _actifParam?.delai_nl ?? null;
+        if(_delaiH == null) return; // pas de délai configuré → ignorer
+        // Calculer heure limite = heure_planif + délai
+        const hPlanif = r2.heure_planif || (SLOTS.find(s=>s.idx===i)?.h) || null;
+        if(!hPlanif) return;
+        const planifMs = new Date(curDate + 'T' + hPlanif + ':00').getTime();
+        const limiteMs = planifMs + _delaiH * 3600000;
+        if(_nowMs >= limiteMs){
+          // Délai dépassé → basculer vers NON LIVRÉ et sauvegarder
+          if(rows[i].statut_ligne !== _vNonLivre){
+            rows[i].statut_ligne = _vNonLivre;
+            saveRow(i); // sauvegarde silencieuse en DB
+          }
+        }
+      });
+    }
   }
 
   const extras=Object.keys(rows).map(Number).filter(i=>i>=10).sort((a,b)=>a-b);
