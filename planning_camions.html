@@ -1209,13 +1209,13 @@ function exportPDF() {
     margin: { left: 5, right: 5 },
 
     head: [[
-      '#', 'Heure', 'Créneau', 'Statut', 'Type',
+      '#', 'Créneau', 'Statut', 'Type',
       'N° Arr.', 'Description', 'Dest. Arr.', 'Arrivée',
       'Destination', 'N° Dép.', 'Chargement'
     ]],
 
     body: tableData.filter(r => !r.isInactif).map(r => [
-      r.num, r.heure, r.slot, r.statut, r.type,
+      r.num, r.slot, r.statut, r.type,
       r.numArr, r.desc, r.destArr, r.arrivee,
       r.dest, r.numDep, r.charg
     ]),
@@ -1248,17 +1248,16 @@ function exportPDF() {
 
     columnStyles: {
       0:  { cellWidth: 6,  halign: 'center', textColor: C.textFaint },   // #
-      1:  { cellWidth: 13, halign: 'center', fontStyle: 'bold', textColor: C.colHeure }, // Heure
-      2:  { cellWidth: 34 },   // Créneau
-      3:  { cellWidth: 20, halign: 'center' },   // Statut
-      4:  { cellWidth: 22, halign: 'center' },   // Type
-      5:  { cellWidth: 15, halign: 'center' },   // N° Arr.
-      6:  { cellWidth: 40 },   // Description
-      7:  { cellWidth: 24 },   // Dest. Arr.
-      8:  { cellWidth: 18, halign: 'center' },   // Arrivée
-      9:  { cellWidth: 32 },   // Destination départ
-      10: { cellWidth: 15, halign: 'center' },   // N° Dép.
-      11: { cellWidth: 26, halign: 'center' },   // Chargement
+      1:  { cellWidth: 36 },   // Créneau
+      2:  { cellWidth: 20, halign: 'center' },   // Statut
+      3:  { cellWidth: 22, halign: 'center' },   // Type
+      4:  { cellWidth: 15, halign: 'center' },   // N° Arr.
+      5:  { cellWidth: 40 },   // Description
+      6:  { cellWidth: 30 },   // Dest. Arr. (agrandi)
+      7:  { cellWidth: 18, halign: 'center' },   // Arrivée
+      8:  { cellWidth: 34 },   // Destination départ
+      9:  { cellWidth: 15, halign: 'center' },   // N° Dép.
+      10: { cellWidth: 26, halign: 'center' },   // Chargement
     },
 
     willDrawCell: function(data) {
@@ -1285,8 +1284,8 @@ function exportPDF() {
         data.cell.styles.fontStyle = 'bold';
       }
 
-      // Colonne Arrivée (index 8)
-      if (data.column.index === 8 && r.isFait) {
+      // Colonne Arrivée (index 7)
+      if (data.column.index === 7 && r.isFait) {
         data.cell.styles.textColor = C.fait;
         data.cell.styles.fontStyle = 'bold';
       }
