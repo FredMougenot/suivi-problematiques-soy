@@ -537,12 +537,16 @@ function render(){
 
   window._renderIdxPremierActif = null;
   window._renderIdxDeuxiemeActif = null;
-  if(!_rIsWkEnd){
+  {
+    // Calculer 1er et 2ème slot actif — semaine ET weekend
+    // En semaine  : défaut = ACTIF pour tous sauf _rWkInactif
+    // En weekend  : défaut = INACTIF pour _rWkInactif, ACTIF pour les autres
+    const _rVInactifCalc = _rSlParams[1]?.valeur||'INACTIF';
     let _cnt=0;
     for(const s of _rSlotsTries){
       const dbSt = (rows[s.idx]||{}).statut_ligne;
-      const st = dbSt || _rVActif; // defaut = actif en semaine
-      if(st === _rVActif){
+      const stEff = dbSt || (_rIsWkEnd && _rWkInactif.includes(s.idx) ? _rVInactifCalc : _rVActif);
+      if(stEff === _rVActif){
         _cnt++;
         if(_cnt===1) window._renderIdxPremierActif = s.idx;
         else if(_cnt===2){ window._renderIdxDeuxiemeActif = s.idx; break; }
@@ -577,17 +581,13 @@ function render(){
     });
   }
 
-  // ── Règles description automatiques (lun-ven uniquement) ──────────────────
-  if(!_rIsWkEnd){
+  // ── Règles description automatiques ──────────────────────────────
+  {
     const _dscP = _params['description']||[];
     const _dv = (n) => _dscP[n-1]?.valeur||''; // valeur #n depuis params
     const _isLundi = _rDow===1;
-
-    // Récupérer les indices déjà calculés
     const _p1 = window._renderIdxPremierActif;
     const _p2 = window._renderIdxDeuxiemeActif;
-
-    // Calculer tous les slots actifs en semaine
     const _rVInactifD = _rSlParams[1]?.valeur||'INACTIF';
     const _wkID = [0,1,7,8,9];
 
@@ -600,14 +600,25 @@ function render(){
       const stEff=dbSt||(_rIsWkEnd&&_wkID.includes(i)?_rVInactifD:_rVActif);
       if(stEff!==_rVActif) return; // ignorer inactifs
 
-      if(i===_p1){
-        rows[i].description=_dv(1);
-      } else if(i===_p2){
-        rows[i].description=_isLundi?_dv(5):_dv(4);
-      } else if(i===4){
-        rows[i].description=_dv(2);
-      } else if(i===5){
-        rows[i].description=_dv(3);
+      if(_rIsWkEnd){
+        // ── Weekend : 1er actif → param #1, 2ème actif → param #4 ──
+        if(i===_p1){
+          rows[i].description=_dv(1);
+        } else if(i===_p2){
+          rows[i].description=_dv(4);
+        }
+        // autres slots actifs weekend → description vide par défaut
+      } else {
+        // ── Semaine (lun-ven) ──
+        if(i===_p1){
+          rows[i].description=_dv(1);
+        } else if(i===_p2){
+          rows[i].description=_isLundi?_dv(5):_dv(4);
+        } else if(i===4){
+          rows[i].description=_dv(2);
+        } else if(i===5){
+          rows[i].description=_dv(3);
+        }
       }
     });
   }
@@ -678,8 +689,9 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
       const _tcChauffe = _tcP[1]?.valeur||'CHAUFFÉE';  // #2
       let _tcDef;
       if(_isWkEnd){
-        // Weekend : toutes les lignes -> #2
-        _tcDef = _tcChauffe;
+        // Weekend : 1er actif → vide, autres → #2
+        if(idx === window._renderIdxPremierActif) _tcDef = _tcVide;
+        else                                      _tcDef = _tcChauffe;
       } else {
         // Semaine : 1er actif -> vide, 2ème actif -> #1, autres -> #2
         if(idx === window._renderIdxPremierActif)       _tcDef = _tcVide;
