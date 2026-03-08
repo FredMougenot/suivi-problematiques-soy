@@ -98,10 +98,6 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 .ci-t{background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-sm);padding:6px 8px;font-size:.8rem;font-family:'Outfit',sans-serif;width:96px;outline:none;transition:border-color var(--t-fast);}
 .ci-t:focus{border-color:var(--copper);}
 
-/* Short GH */
-.chk{width:22px;height:22px;border-radius:5px;border:1.5px solid var(--text-faint);background:var(--bg-float);cursor:pointer;display:flex;align-items:center;justify-content:center;margin:0 auto;transition:all var(--t-fast);}
-.chk.on{background:rgba(224,85,85,.18);border-color:var(--ruby);}
-.chk.on::after{content:'✓';font-size:.75rem;font-weight:800;color:var(--ruby);}
 
 /* Boutons */
 .btn-sv{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--r-sm);background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;font-size:.75rem;font-weight:700;border:none;cursor:pointer;transition:all var(--t-fast);}
@@ -258,8 +254,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
         <th>Destination départ</th>
         <th>N° départ</th>
         <th>Chargement</th>
-        <th>Heure réelle</th>
-        <th>GH court</th>
+        <th id="th-hreelle">Heure réelle</th>
         <th></th>
       </tr></thead>
       <tbody id="tbody"></tbody>
@@ -463,11 +458,6 @@ function applyReadOnly(){
     el.style.pointerEvents = 'none';
     el.style.opacity = '0.7';
   });
-  // Masquer les checkboxes GH
-  document.querySelectorAll('#tbody .chk').forEach(el => {
-    el.style.pointerEvents = 'none';
-    el.style.opacity = '0.7';
-  });
   // Masquer les boutons ✕ suppression camions extra
   document.querySelectorAll('#tbody button').forEach(btn => {
     btn.style.display = 'none';
@@ -478,6 +468,10 @@ function applyReadOnly(){
   // Masquer le bouton Paramètres (viewer = lecture seule)
   const btnParams = document.getElementById('btn-params');
   if(btnParams) btnParams.style.display = 'none';
+  // Masquer colonne Heure réelle
+  const thHr = document.getElementById('th-hreelle');
+  if(thHr) thHr.style.display = 'none';
+  document.querySelectorAll('#tbody .td-hreelle').forEach(td => td.style.display = 'none');
   // Afficher le bouton déconnexion topbar
   const btnLogout = document.getElementById('btn-viewer-logout');
   if(btnLogout) btnLogout.style.display = 'inline-flex';
@@ -821,8 +815,7 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
       </span>`;
     })()}</td>
 
-    <td><input class="ci-t" type="time" value="${esc(r.heure_reelle||'')}" oninput="fchg(${idx},'heure_reelle',this.value)"></td>
-    <td><div class="chk${r.short_gh?' on':''}" onclick="togGH(${idx},this)"></div></td>
+    <td class="td-hreelle"><input class="ci-t" type="time" value="${esc(r.heure_reelle||'')}" oninput="fchg(${idx},'heure_reelle',this.value)"></td>
     ${isExtra?`<td style="text-align:center"><button onclick="delRow(${idx})" title="Supprimer ce camion" style="background:none;border:none;cursor:pointer;color:var(--text-faint);font-size:1rem;padding:2px 6px;border-radius:var(--r-sm);transition:color var(--t-fast);" onmouseover="this.style.color='var(--ruby)'" onmouseout="this.style.color='var(--text-faint)'">✕</button></td>`:'<td></td>'}
   </tr>`;
 }
@@ -854,12 +847,7 @@ function fchg(idx, field, val){
     return;
   }
   updateStats();
-}function togGH(idx, el){
-  if(!rows[idx]) rows[idx]={slot_index:idx};
-  const v=!rows[idx].short_gh;
-  rows[idx].short_gh=v;
-  v?el.classList.add('on'):el.classList.remove('on');
-}
+};
 
 // ── SAVE ───────────────────────────────────────────────────────────
 async function saveAll(){
@@ -885,7 +873,6 @@ async function saveAll(){
       statut:r.statut||null,
       chargement:r.chargement||null,
       heure_reelle:r.heure_reelle||null,
-      short_gh:r.short_gh||false,
       updated_at:new Date().toISOString(),
     };
     if(r.id){
@@ -921,7 +908,6 @@ async function saveRow(idx){
     statut:r.statut||null,
     chargement:r.chargement||null,
     heure_reelle:r.heure_reelle||null,
-    short_gh:r.short_gh||false,
     updated_at:new Date().toISOString(),
   };
   let error;
@@ -1140,7 +1126,6 @@ function exportPDF() {
       charg:     r.chargement  || '',
       hReelle:   r.heure_reelle|| '—',
       retard:    retardStr,
-      gh:        r.short_gh ? 'Oui' : '',
       isAnnule:  sl === ((_params['statut_ligne']||[null,{valeur:'INACTIF'}])[1]?.valeur||'INACTIF'),
       isFait:    r.statut === 'FAIT',
     });
@@ -1154,12 +1139,12 @@ function exportPDF() {
 
     head: [[
       '#', 'Heure', 'Créneau', 'Ligne', 'Type',
-      'Description', 'Destination', 'Arrivée', 'Chargement', 'H. Réelle', 'Retard', 'GH'
+      'Description', 'Destination', 'Arrivée', 'Chargement', 'H. Réelle', 'Retard'
     ]],
 
     body: tableData.map(r => [
       r.num, r.heure, r.slot, r.statut, r.type,
-      r.desc, r.dest, r.arrivee, r.charg, r.hReelle, r.retard, r.gh
+      r.desc, r.dest, r.arrivee, r.charg, r.hReelle, r.retard
     ]),
 
     // Style global
@@ -1203,7 +1188,6 @@ function exportPDF() {
       8:  { cellWidth: 26, halign: 'center' },  // Chargement
       9:  { cellWidth: 16, halign: 'center' },  // H. Réelle
       10: { cellWidth: 16, halign: 'center' },  // Retard
-      11: { cellWidth: 10, halign: 'center' },  // GH
     },
 
     // Couleurs par ligne selon statut
