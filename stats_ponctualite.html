@@ -833,11 +833,29 @@ function buildHeatmap(data) {
 
   // Construire matrice
   const mat = {};
-  HOURS.forEach(h => { mat[h] = {}; days.forEach(dt => { mat[h][dt] = null; }); });
+  const matNL = {}; // non-livrés (violet) — ACTIF + pas heure_reelle + DELAI_NL dépassé
+  HOURS.forEach(h => {
+    mat[h] = {}; matNL[h] = {};
+    days.forEach(dt => { mat[h][dt] = null; matNL[h][dt] = 0; });
+  });
   data.forEach(r => {
-    if (!isActif(r) || !r.heure_reelle) return;
+    if (!isActif(r)) return;
     const h = r.heure_planif;
     if (!HOURS.includes(h)) return;
+    if (!r.heure_reelle) {
+      // Non-livré si DELAI_NL heures après heure planifiée — même logique que statutCamion
+      // Valable aujourd'hui ET journées passées
+      if (r.heure_planif) {
+        const planifMs = new Date(r.date_jour + 'T' + r.heure_planif + ':00').getTime();
+        const limiteMs = planifMs + DELAI_NL * 3600000;
+        const isToday  = r.date_jour === todayStr();
+        const refMs    = isToday ? Date.now() : new Date(r.date_jour + 'T23:59:59').getTime();
+        if (refMs >= limiteMs) {
+          matNL[h][r.date_jour] = (matNL[h][r.date_jour]||0) + 1;
+        }
+      }
+      return;
+    }
     if (!mat[h][r.date_jour]) mat[h][r.date_jour] = { n:0, onTime:0, retards:[] };
     const d2 = diff(r.heure_planif, r.heure_reelle);
     if (d2===null) return;
@@ -938,23 +956,50 @@ function buildHeatmap(data) {
     days.forEach((dt, ci) => {
       const cx = colLW + ci*(CELL+GAP);
       const cell = mat[h][dt];
+      const nlCount = (matNL[h]&&matNL[h][dt]) || 0;
       const t = cell&&cell.n>0 ? Math.round(cell.onTime/cell.n*100) : -1;
       const col = hmColor(t);
       const hasData = t >= 0;
+      // Violet si non-livré ET aucun arrivé sur ce créneau
+      const hasNL = nlCount > 0 && !hasData;
       const avgRet = cell&&cell.retards.length>0 ? Math.round(cell.retards.reduce((a,b)=>a+b,0)/cell.retards.length) : 0;
+
+      // Couleurs violet non-livré
+      const NL_FILL   = 'rgba(139,62,255,0.52)';
+      const NL_STROKE = 'rgba(167,100,255,0.75)';
+      const NL_TEXT   = 'rgba(210,170,255,0.92)';
+
+      const fillC   = hasNL ? NL_FILL   : col.fill;
+      const strokeC = hasNL ? NL_STROKE : (hasData?col.stroke:'rgba(255,255,255,.04)');
+      const swC     = (hasData||hasNL) ? '0.8' : '0.4';
+      const cursor  = (hasData||hasNL) ? 'pointer' : 'default';
+      const dataAttr = hasData
+        ? `data-h="${h}" data-dt="${dt}" data-t="${t}" data-n="${cell.n}" data-on="${cell.onTime}" data-avgret="${avgRet}"`
+        : hasNL ? `data-h="${h}" data-dt="${dt}" data-nl="${nlCount}"` : '';
 
       // Carré principal
       svg += `<rect x="${cx}" y="${cy}" width="${CELL}" height="${CELL}" rx="6"
-        fill="${col.fill}" stroke="${hasData?col.stroke:'rgba(255,255,255,.04)'}" stroke-width="${hasData?'0.8':'0.4'}"
-        class="hm-svg-cell" style="cursor:${hasData?'pointer':'default'};transition:filter .15s;"
-        ${hasData?`data-h="${h}" data-dt="${dt}" data-t="${t}" data-n="${cell.n}" data-on="${cell.onTime}" data-avgret="${avgRet}"`:''} />`;
+        fill="${fillC}" stroke="${strokeC}" stroke-width="${swC}"
+        class="hm-svg-cell" style="cursor:${cursor};transition:filter .15s;"
+        ${dataAttr} />`;
 
-      if (hasData) {
+      if (hasNL) {
+        // Shine violet
+        svg += `<rect x="${cx+1}" y="${cy+1}" width="${CELL-2}" height="${Math.floor(CELL*0.38)}" rx="5"
+          fill="rgba(255,255,255,.05)" pointer-events="none"/>`;
+        // Texte NL centré
+        svg += `<text x="${cx+CELL/2}" y="${cy+CELL/2+1}" text-anchor="middle" dominant-baseline="middle"
+          font-size="9" font-weight="800" font-family="DM Mono,monospace"
+          fill="${NL_TEXT}" pointer-events="none">NL</text>`;
+        // Barre violette pleine en bas
+        svg += `<rect x="${cx+5}" y="${cy+CELL-5}" width="${CELL-10}" height="2" rx="1" fill="${NL_STROKE}" pointer-events="none"/>`;
+
+      } else if (hasData) {
         // Shine interne
         svg += `<rect x="${cx+1}" y="${cy+1}" width="${CELL-2}" height="${Math.floor(CELL*0.38)}" rx="5"
           fill="rgba(255,255,255,.055)" pointer-events="none"/>`;
 
-        // Pourcentage — taille adaptée au carré de 38px
+        // Pourcentage
         const pctStr = t + '%';
         svg += `<text x="${cx+CELL/2}" y="${cy+CELL/2+1}" text-anchor="middle" dominant-baseline="middle"
           font-size="10" font-weight="800" font-family="DM Mono,monospace"
@@ -965,7 +1010,7 @@ function buildHeatmap(data) {
         svg += `<rect x="${cx+5}" y="${cy+CELL-5}" width="${CELL-10}" height="2" rx="1" fill="rgba(255,255,255,.07)" pointer-events="none"/>`;
         svg += `<rect x="${cx+5}" y="${cy+CELL-5}" width="${barW}" height="2" rx="1" fill="${col.stroke}" pointer-events="none"/>`;
 
-        // Indicateur retard en coin — cercle 2.5px
+        // Indicateur retard en coin
         if (avgRet > SEUIL2) {
           svg += `<circle cx="${cx+CELL-5}" cy="${cy+5}" r="2.5" fill="rgba(224,85,85,.85)" pointer-events="none"/>`;
         } else if (avgRet > SEUIL1) {
@@ -982,6 +1027,7 @@ function buildHeatmap(data) {
     <div class="hm-legend-left">
       <div style="font-size:.65rem;color:var(--text-muted);margin-bottom:2px">Camions ACTIFS avec heure réelle · Objectif ${OBJECTIF}%</div>
       <div style="font-size:.62rem;color:var(--text-faint)">● rouge = retard critique moyen</div>
+      <div style="font-size:.62rem;color:rgba(167,100,255,.85);margin-top:1px">■ <b>NL</b> = non livré · ACTIF sans arrivée +${DELAI_NL}h après heure planifiée</div>
     </div>
     <div class="hm-legend-scale">
       <span style="font-size:.62rem;color:var(--text-muted)">0%</span>
