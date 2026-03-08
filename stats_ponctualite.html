@@ -356,14 +356,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
         </div>
         <div class="mp-desc">Ligne de référence sur le graphique de tendance. Le KPI est "bon" au-dessus de ce seuil.</div>
       </div>
-      <div class="mp-field" style="margin-bottom:0">
-        <label class="mp-lbl">Délai Non livré</label>
-        <div class="mp-row">
-          <input class="mp-inp" id="p-nonlivre" type="number" min="1" max="24" value="5">
-          <span class="mp-unit">h</span>
-        </div>
-        <div class="mp-desc">Un camion ACTIF sans heure réelle saisie, après ce délai depuis l'heure planifiée, est comptabilisé comme "Non livré".</div>
-      </div>
+
     </div>
     <div class="mp-ft">
       <button class="mp-cancel" onclick="closeParams()">Annuler</button>
@@ -396,7 +389,6 @@ let cachedData = null;
 let SEUIL1   = 30;   // min — tolérance ponctualité acceptable
 let SEUIL2   = 60;   // min — seuil critique
 let OBJECTIF = 80;   // %   — cible ponctualité
-let DELAI_NL = 5;    // h   — délai avant classement "non livré"
 
 async function loadParams() {
   try {
@@ -405,7 +397,6 @@ async function loadParams() {
       SEUIL1   = data.seuil1    ?? 30;
       SEUIL2   = data.seuil2    ?? 60;
       OBJECTIF = data.objectif  ?? 80;
-      DELAI_NL = data.delai_nl  ?? 5;
     }
   } catch(e) {
     console.warn('stats_parametres non accessible:', e?.message);
@@ -416,7 +407,6 @@ function openParams() {
   document.getElementById('p-seuil1').value   = SEUIL1;
   document.getElementById('p-seuil2').value   = SEUIL2;
   document.getElementById('p-objectif').value = OBJECTIF;
-  document.getElementById('p-nonlivre').value = DELAI_NL;
   document.getElementById('modal-params').classList.add('open');
 }
 function closeParams() { document.getElementById('modal-params').classList.remove('open'); }
@@ -425,16 +415,15 @@ async function saveParams() {
   const s1 = parseInt(document.getElementById('p-seuil1').value)   || 30;
   const s2 = parseInt(document.getElementById('p-seuil2').value)   || 60;
   const ob = parseInt(document.getElementById('p-objectif').value) || 80;
-  const nl = parseInt(document.getElementById('p-nonlivre').value) || 5;
   const btn = document.getElementById('p-save-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Enregistrement…'; }
   try {
     const { error } = await sb.from('stats_parametres').upsert({
-      id: 1, seuil1: s1, seuil2: s2, objectif: ob, delai_nl: nl,
+      id: 1, seuil1: s1, seuil2: s2, objectif: ob,
       updated_at: new Date().toISOString()
     }, { onConflict: 'id' });
     if (error) throw error;
-    SEUIL1 = s1; SEUIL2 = s2; OBJECTIF = ob; DELAI_NL = nl;
+    SEUIL1 = s1; SEUIL2 = s2; OBJECTIF = ob;
     closeParams();
     applyRender();
   } catch(e) {
@@ -457,32 +446,31 @@ function todayStr() {
 //
 // Pour un camion ACTIF :
 //   heure_reelle renseignée → ARRIVÉ (ponctuel ou retard)
-//   heure_reelle vide + délai non atteint → EN ATTENTE
-//   heure_reelle vide + délai >= DELAI_NL heures → NON LIVRÉ
+//   statut_ligne = NON LIVRÉ (valeur tierce) → NON LIVRÉ (lu depuis planning)
+//   heure_reelle vide + ACTIF → EN ATTENTE
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 function isActif(r) {
   // ACTIF si statut_ligne vide/non défini OU explicitement 'ACTIF'
-  // INACTIF si statut_ligne === 'INACTIF' (insensible à la casse)
+  // INACTIF ou NON LIVRÉ → pas actif
   const sl = (r.statut_ligne || '').trim().toUpperCase();
   return sl === '' || sl === 'ACTIF';
+}
+function isNonLivre(r) {
+  // NON LIVRÉ si statut_ligne est ni vide, ni ACTIF, ni INACTIF
+  // = toute valeur tierce comme 'NON LIVRÉ', 'NON LIVRE', etc.
+  const sl = (r.statut_ligne || '').trim().toUpperCase();
+  return sl !== '' && sl !== 'ACTIF' && sl !== 'INACTIF';
 }
 
 function statutCamion(r, dateJour) {
   // Retourne : 'inactif' | 'arrive_ok' | 'arrive_retard' | 'attente' | 'nonlivre'
-  if (!isActif(r)) return 'inactif';
+  // NON LIVRÉ lu directement depuis statut_ligne en DB (géré par planning_camions)
+  if (isNonLivre(r)) return 'nonlivre';
+  if (!isActif(r))   return 'inactif';
   const d = diff(r.heure_planif, r.heure_reelle);
   if (d !== null) return d <= SEUIL1 ? 'arrive_ok' : 'arrive_retard';
-  // Pas d'heure réelle — calculer si délai dépassé
-  if (!r.heure_planif) return 'attente';
-  const [ph, pm] = r.heure_planif.split(':').map(Number);
-  const planifMs = new Date(dateJour + 'T' + r.heure_planif + ':00').getTime();
-  const limiteMs = planifMs + DELAI_NL * 3600000;
-  const nowMs    = Date.now();
-  // Pour les journées passées, on compare avec fin de journée (23:59)
-  const isToday  = dateJour === todayStr();
-  const refMs    = isToday ? nowMs : new Date(dateJour + 'T23:59:59').getTime();
-  return refMs >= limiteMs ? 'nonlivre' : 'attente';
+  return 'attente'; // ACTIF sans heure_reelle = en attente
 }
 
 // ── NAVIGATION ───────────────────────────────────────────────────
@@ -734,7 +722,7 @@ function buildKPIs(A) {
       <div class="kpi-eyebrow">Non livrés</div>
       <div class="kpi-val ${nlCls}">${A.nonLivre}</div>
       <div class="kpi-sub">
-        Actif · sans heure réelle · +${DELAI_NL}h<br>
+        Statut Non livré dans le planning<br>
         ${A.total>0?Math.round(A.nonLivre/A.total*100):0}% des actifs planifiés
       </div>
       <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${A.total>0?Math.round(A.nonLivre/A.total*100):0}%;background:var(--ruby)"></div></div>
@@ -803,7 +791,7 @@ function buildDayPanels(data, dateJour) {
     <div class="leg-item"><div class="leg-dot" style="background:var(--amber)"></div>Retard ≤${SEUIL2}min</div>
     <div class="leg-item"><div class="leg-dot" style="background:var(--ruby)"></div>Critique &gt;${SEUIL2}min</div>
     <div class="leg-item"><div class="leg-dot" style="background:var(--sapphire)"></div>En attente</div>
-    <div class="leg-item"><div class="leg-dot" style="background:var(--ruby);opacity:.45"></div>Non livré (+${DELAI_NL}h)</div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--ruby);opacity:.45"></div>Non livré</div>
     <div class="leg-item"><div class="leg-dot" style="background:var(--text-faint)"></div>Inactif (exclu)</div>
   </div>`;
 
@@ -843,16 +831,9 @@ function buildHeatmap(data) {
     const h = r.heure_planif;
     if (!HOURS.includes(h)) return;
     if (!r.heure_reelle) {
-      // Non-livré si DELAI_NL heures après heure planifiée — même logique que statutCamion
-      // Valable aujourd'hui ET journées passées
-      if (r.heure_planif) {
-        const planifMs = new Date(r.date_jour + 'T' + r.heure_planif + ':00').getTime();
-        const limiteMs = planifMs + DELAI_NL * 3600000;
-        const isToday  = r.date_jour === todayStr();
-        const refMs    = isToday ? Date.now() : new Date(r.date_jour + 'T23:59:59').getTime();
-        if (refMs >= limiteMs) {
-          matNL[h][r.date_jour] = (matNL[h][r.date_jour]||0) + 1;
-        }
+      // Non-livré lu directement depuis statut_ligne (géré par planning_camions)
+      if (isNonLivre(r)) {
+        matNL[h][r.date_jour] = (matNL[h][r.date_jour]||0) + 1;
       }
       return;
     }
@@ -1027,7 +1008,7 @@ function buildHeatmap(data) {
     <div class="hm-legend-left">
       <div style="font-size:.65rem;color:var(--text-muted);margin-bottom:2px">Camions ACTIFS avec heure réelle · Objectif ${OBJECTIF}%</div>
       <div style="font-size:.62rem;color:var(--text-faint)">● rouge = retard critique moyen</div>
-      <div style="font-size:.62rem;color:rgba(167,100,255,.85);margin-top:1px">■ <b>NL</b> = non livré · ACTIF sans arrivée +${DELAI_NL}h après heure planifiée</div>
+      <div style="font-size:.62rem;color:rgba(167,100,255,.85);margin-top:1px">■ <b>NL</b> = statut Non livré (défini dans le planning)</div>
     </div>
     <div class="hm-legend-scale">
       <span style="font-size:.62rem;color:var(--text-muted)">0%</span>
