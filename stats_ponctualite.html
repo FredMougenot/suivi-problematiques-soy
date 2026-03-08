@@ -294,7 +294,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
     <div class="tb-icon">S</div>
     <div>
       <div class="tb-title">Radar de Ponctualité</div>
-      <div class="tb-sub">Analyse des arrivées camions</div>
+      <div class="tb-sub">Analyse des arrivées camions <span id="refresh-badge" style="display:none;font-size:.6rem;color:var(--emerald);margin-left:4px;opacity:.7">● live</span></div>
     </div>
   </div>
   <button class="btn-params" onclick="openParams()">
@@ -489,6 +489,7 @@ function statutCamion(r, dateJour) {
 function setPeriod(p) {
   period = p;
   ['day','week','month'].forEach(x => document.getElementById('ptab-'+x).classList.toggle('active', x===p));
+  stopAutoRefresh();
   loadAll();
 }
 function navigate(dir) {
@@ -582,7 +583,35 @@ function analyze(rows, dateJour) {
 }
 
 // ── MAIN LOAD ────────────────────────────────────────────────────
+let _refreshTimer = null;
+
+function startAutoRefresh() {
+  stopAutoRefresh();
+  // Refresh silencieux toutes les 30s uniquement en vue journée
+  const badge = document.getElementById('refresh-badge');
+  if (badge) badge.style.display = 'inline';
+  _refreshTimer = setInterval(async () => {
+    if (period !== 'day') return;
+    try {
+      const { start, end } = getRange();
+      const fresh = await fetchData(start, end);
+      // Ne re-rendre que si les données ont changé
+      if (JSON.stringify(fresh) !== JSON.stringify(cachedData)) {
+        cachedData = fresh;
+        applyRender();
+      }
+    } catch(e) { /* silence */ }
+  }, 30000);
+}
+
+function stopAutoRefresh() {
+  if (_refreshTimer) { clearInterval(_refreshTimer); _refreshTimer = null; }
+  const badge = document.getElementById('refresh-badge');
+  if (badge) badge.style.display = 'none';
+}
+
 async function loadAll() {
+  stopAutoRefresh();
   const spinner = document.getElementById('spinner');
   const content = document.getElementById('content');
   spinner.style.display = 'flex'; content.style.display = 'none';
@@ -595,6 +624,7 @@ async function loadAll() {
     cachedData = await fetchData(start, end);
     spinner.style.display = 'none'; content.style.display = 'block';
     applyRender();
+    if (period === 'day') startAutoRefresh();
   } catch(e) {
     spinner.style.display = 'none'; content.style.display = 'block';
     content.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
@@ -837,15 +867,18 @@ function buildHeatmap(data) {
   const fmtD = s => new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'});
   const fmtDL = s => new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'long',day:'numeric',month:'long'});
 
-  // Dimensions SVG
-  const cellW = Math.max(56, Math.min(88, Math.floor((900-64)/(days.length||1))));
-  const cellH = 42;
-  const rowH  = cellH + 5;
-  const colLW = 52;
-  const hdrH  = 48;
-  const padT  = 8;
-  const W     = colLW + days.length * (cellW+4) + 20;
-  const H     = padT + hdrH + HOURS.length * rowH + 20;
+  // Dimensions SVG — carrés fixes compacts
+  const CELL   = 38;          // carré strict
+  const GAP    = 4;           // espace entre cellules
+  const colLW  = 46;          // largeur étiquette heure
+  const hdrH   = 44;          // hauteur header jours
+  const padT   = 6;
+  const padR   = 12;
+  const cellW  = CELL;
+  const cellH  = CELL;
+  const rowH   = CELL + GAP;
+  const W      = colLW + days.length * (CELL + GAP) - GAP + padR;
+  const H      = padT + hdrH + HOURS.length * rowH - GAP + 12;
 
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="font-family:'Outfit',sans-serif">`;
   svg += `<defs>
@@ -858,73 +891,74 @@ function buildHeatmap(data) {
 
   // Fond colonne headers alternées
   days.forEach((dt, ci) => {
-    const x = colLW + ci*(cellW+4);
+    const x = colLW + ci*(CELL+GAP);
     const dow = new Date(dt+'T00:00:00').getDay();
     const isWknd = dow===0||dow===6;
-    if (isWknd) svg += `<rect x="${x}" y="${padT}" width="${cellW}" height="${H-padT-8}" rx="6" fill="rgba(255,255,255,.015)"/>`;
+    if (isWknd) svg += `<rect x="${x-2}" y="${padT}" width="${CELL+4}" height="${H-padT-6}" rx="5" fill="rgba(255,255,255,.013)"/>`;
   });
 
   // Lignes de séparation horizontales subtiles
   HOURS.forEach((h, ri) => {
-    const y = padT + hdrH + ri*rowH + rowH;
-    svg += `<line x1="${colLW}" y1="${y}" x2="${W-8}" y2="${y}" stroke="rgba(255,255,255,.04)" stroke-width="1"/>`;
+    const y = padT + hdrH + ri*rowH - GAP/2;
+    svg += `<line x1="${colLW}" y1="${y}" x2="${W-padR+4}" y2="${y}" stroke="rgba(255,255,255,.035)" stroke-width="0.5"/>`;
   });
 
   // En-têtes colonnes (jours)
   days.forEach((dt, ci) => {
-    const x = colLW + ci*(cellW+4) + cellW/2;
+    const x = colLW + ci*(CELL+GAP) + CELL/2;
     const y = padT;
     const dObj = new Date(dt+'T00:00:00');
     const dayN = dObj.toLocaleDateString('fr-CA',{day:'numeric'});
-    const dayW = dObj.toLocaleDateString('fr-CA',{weekday:'short'}).toUpperCase().slice(0,3);
+    const dayW = dObj.toLocaleDateString('fr-CA',{weekday:'short'}).toUpperCase().slice(0,2);
     const dow = dObj.getDay();
     const isWknd = dow===0||dow===6;
-    // Cercle date
-    svg += `<text x="${x}" y="${y+16}" text-anchor="middle" font-size="9" font-weight="800" letter-spacing="1.5" fill="${isWknd?'rgba(200,132,58,.5)':'rgba(190,197,214,.35)'}">${dayW}</text>`;
-    svg += `<text x="${x}" y="${y+34}" text-anchor="middle" font-size="13" font-weight="700" fill="${isWknd?'var(--copper-light)':'rgba(240,234,224,.7)'}">${dayN}</text>`;
+    svg += `<text x="${x}" y="${y+14}" text-anchor="middle" font-size="8" font-weight="800" letter-spacing="1.2" fill="${isWknd?'rgba(200,132,58,.55)':'rgba(190,197,214,.3)'}">${dayW}</text>`;
+    svg += `<text x="${x}" y="${y+30}" text-anchor="middle" font-size="12" font-weight="700" fill="${isWknd?'var(--copper-light)':'rgba(240,234,224,.65)'}">${dayN}</text>`;
   });
 
   // En-têtes lignes (heures) + cellules
   HOURS.forEach((h, ri) => {
     const cy = padT + hdrH + ri*rowH;
-    // Étiquette heure
-    svg += `<text x="${colLW-8}" y="${cy+cellH/2+5}" text-anchor="end" font-size="10" font-weight="600" font-family="DM Mono,monospace" fill="rgba(122,130,160,.7)">${h}</text>`;
+    // Étiquette heure — police condensée
+    svg += `<text x="${colLW-6}" y="${cy+CELL/2+4}" text-anchor="end"
+      font-size="9" font-weight="600" font-family="DM Mono,monospace"
+      fill="rgba(122,130,160,.65)">${h}</text>`;
 
     days.forEach((dt, ci) => {
-      const cx = colLW + ci*(cellW+4);
+      const cx = colLW + ci*(CELL+GAP);
       const cell = mat[h][dt];
       const t = cell&&cell.n>0 ? Math.round(cell.onTime/cell.n*100) : -1;
       const col = hmColor(t);
       const hasData = t >= 0;
       const avgRet = cell&&cell.retards.length>0 ? Math.round(cell.retards.reduce((a,b)=>a+b,0)/cell.retards.length) : 0;
 
-      // Cellule principale
-      svg += `<rect x="${cx}" y="${cy}" width="${cellW}" height="${cellH}" rx="7"
-        fill="${col.fill}" stroke="${hasData?col.stroke:'rgba(255,255,255,.05)'}" stroke-width="${hasData?'1':'0.5'}"
+      // Carré principal
+      svg += `<rect x="${cx}" y="${cy}" width="${CELL}" height="${CELL}" rx="6"
+        fill="${col.fill}" stroke="${hasData?col.stroke:'rgba(255,255,255,.04)'}" stroke-width="${hasData?'0.8':'0.4'}"
         class="hm-svg-cell" style="cursor:${hasData?'pointer':'default'};transition:filter .15s;"
-        ${hasData?`data-h="${h}" data-dt="${dt}" data-t="${t}" data-n="${cell.n}" data-on="${cell.onTime}" data-avgret="${avgRet}"`:''}/>`;
+        ${hasData?`data-h="${h}" data-dt="${dt}" data-t="${t}" data-n="${cell.n}" data-on="${cell.onTime}" data-avgret="${avgRet}"`:''} />`;
 
       if (hasData) {
-        // Shine interne subtil
-        svg += `<rect x="${cx+1}" y="${cy+1}" width="${cellW-2}" height="${Math.floor(cellH*0.4)}" rx="6"
-          fill="rgba(255,255,255,.06)" pointer-events="none"/>`;
+        // Shine interne
+        svg += `<rect x="${cx+1}" y="${cy+1}" width="${CELL-2}" height="${Math.floor(CELL*0.38)}" rx="5"
+          fill="rgba(255,255,255,.055)" pointer-events="none"/>`;
 
-        // Pourcentage centré
+        // Pourcentage — taille adaptée au carré de 38px
         const pctStr = t + '%';
-        svg += `<text x="${cx+cellW/2}" y="${cy+cellH/2+1}" text-anchor="middle" dominant-baseline="middle"
-          font-size="${cellW>70?13:11}" font-weight="800" font-family="DM Mono,monospace"
+        svg += `<text x="${cx+CELL/2}" y="${cy+CELL/2+1}" text-anchor="middle" dominant-baseline="middle"
+          font-size="10" font-weight="800" font-family="DM Mono,monospace"
           fill="${col.text}" pointer-events="none">${pctStr}</text>`;
 
-        // Barre de progression mini en bas de la cellule
-        const barW = Math.round((cellW-16) * (t/100));
-        svg += `<rect x="${cx+8}" y="${cy+cellH-6}" width="${cellW-16}" height="2" rx="1" fill="rgba(255,255,255,.08)" pointer-events="none"/>`;
-        svg += `<rect x="${cx+8}" y="${cy+cellH-6}" width="${barW}" height="2" rx="1" fill="${col.stroke}" pointer-events="none"/>`;
+        // Mini barre en bas
+        const barW = Math.round((CELL-10) * (t/100));
+        svg += `<rect x="${cx+5}" y="${cy+CELL-5}" width="${CELL-10}" height="2" rx="1" fill="rgba(255,255,255,.07)" pointer-events="none"/>`;
+        svg += `<rect x="${cx+5}" y="${cy+CELL-5}" width="${barW}" height="2" rx="1" fill="${col.stroke}" pointer-events="none"/>`;
 
-        // Point indicateur retard moyen si mauvais
+        // Indicateur retard en coin — cercle 2.5px
         if (avgRet > SEUIL2) {
-          svg += `<circle cx="${cx+cellW-7}" cy="${cy+7}" r="3" fill="rgba(224,85,85,.8)" pointer-events="none"/>`;
+          svg += `<circle cx="${cx+CELL-5}" cy="${cy+5}" r="2.5" fill="rgba(224,85,85,.85)" pointer-events="none"/>`;
         } else if (avgRet > SEUIL1) {
-          svg += `<circle cx="${cx+cellW-7}" cy="${cy+7}" r="3" fill="rgba(232,164,58,.8)" pointer-events="none"/>`;
+          svg += `<circle cx="${cx+CELL-5}" cy="${cy+5}" r="2.5" fill="rgba(232,164,58,.85)" pointer-events="none"/>`;
         }
       }
     });
