@@ -526,6 +526,13 @@ async function load(){
 }
 
 // ── RENDER ─────────────────────────────────────────────────────────
+// Helper : un NON LIVRÉ était ACTIF au départ → traité comme actif pour les règles auto
+function _isActifOuNL(stEff, vActif, vInactif){
+  if(stEff === vActif) return true;
+  // Valeur tierce (ni ACTIF ni INACTIF) = NON LIVRÉ → compter comme actif
+  if(stEff !== vActif && stEff !== vInactif && stEff !== '') return true;
+  return false;
+}
 function render(){
   // Calculer 1er et 2ème slot actif (semaine uniquement) pour type_camion
   const _rDow = new Date(curDate+'T00:00:00').getDay();
@@ -546,7 +553,7 @@ function render(){
     for(const s of _rSlotsTries){
       const dbSt = (rows[s.idx]||{}).statut_ligne;
       const stEff = dbSt || (_rIsWkEnd && _rWkInactif.includes(s.idx) ? _rVInactifCalc : _rVActif);
-      if(stEff === _rVActif){
+      if(_isActifOuNL(stEff, _rVActif, _rVInactifCalc)){
         _cnt++;
         if(_cnt===1) window._renderIdxPremierActif = s.idx;
         else if(_cnt===2){ window._renderIdxDeuxiemeActif = s.idx; break; }
@@ -565,7 +572,7 @@ function render(){
     // Calculer le statut effectif (meme logique que buildRow)
     const _wkI = [0,1,7,8,9];
     const stEff = dbSt || (_rIsWkEnd && _wkI.includes(s.idx) ? _rVInactif : _rVActif);
-    if(stEff === _rVActif){ _idxDernierActif = s.idx; break; }
+    if(_isActifOuNL(stEff, _rVActif, _rVInactif)){ _idxDernierActif = s.idx; break; }
   }
   window._renderIdxDernierActif = _idxDernierActif;
   // Appliquer : dernier actif → _BOBTAIL, les autres → vide si _BOBTAIL
@@ -598,7 +605,7 @@ function render(){
       if(!rows[i]) rows[i]={slot_index:i};
       const dbSt=(rows[i]||{}).statut_ligne;
       const stEff=dbSt||(_rIsWkEnd&&_wkID.includes(i)?_rVInactifD:_rVActif);
-      if(stEff!==_rVActif) return; // ignorer inactifs
+      if(!_isActifOuNL(stEff, _rVActif, _rVInactifD)) return; // ignorer inactifs
 
       if(_rIsWkEnd){
         // ── Weekend : 1er actif → param #1, 2ème actif → param #4 ──
@@ -646,9 +653,9 @@ function render(){
         if(stEff2 !== _vActif2) return; // pas actif → ignorer
         if(r2.heure_reelle) return;     // déjà arrivé → ignorer
         // Trouver le délai configuré sur la ligne ACTIF (valeur #1)
-        const _actifParam = _slP2[0];
-        const _delaiH = _actifParam?.delai_nl ?? null;
-        if(_delaiH == null) return; // pas de délai configuré → ignorer
+        // Lire delai_nl sur n'importe quelle ligne de statut_ligne qui en a une
+        const _delaiH = _slP2.reduce((acc, p) => acc ?? (p.delai_nl != null ? parseFloat(p.delai_nl) : null), null);
+        if(_delaiH == null || isNaN(_delaiH)) return; // pas de délai configuré → ignorer
         // Calculer heure limite = heure_planif + délai
         const hPlanif = r2.heure_planif || (SLOTS.find(s=>s.idx===i)?.h) || null;
         if(!hPlanif) return;
