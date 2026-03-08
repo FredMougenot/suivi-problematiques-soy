@@ -1041,61 +1041,83 @@ function exportPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
-  // ── Couleurs palette
+  // ── Palette fond blanc
   const C = {
-    void:    [6,  7,  11],
-    deep:    [11, 13, 19],
-    raised:  [21, 24, 31],
-    float:   [26, 30, 42],
-    copper:  [200,132,58],
-    copperL: [224,168,112],
-    text:    [240,234,224],
-    muted:   [122,130,160],
-    faint:   [44, 51, 80],
-    emerald: [45, 212,160],
-    ruby:    [224,85, 85],
-    amber:   [232,164,58],
-    white:   [255,255,255],
+    white:      [255, 255, 255],
+    pageBg:     [250, 249, 247],
+    headerBg:   [45,  40,  33 ],   // brun foncé élégant
+    headerText: [255, 255, 255],
+    copper:     [184, 115, 51 ],
+    copperDk:   [140, 85,  30 ],
+    rowAlt:     [245, 242, 237],   // beige très léger
+    rowNormal:  [255, 255, 255],
+    textMain:   [30,  28,  25 ],
+    textSub:    [100, 90,  75 ],
+    textFaint:  [170, 160, 145],
+    colHeure:   [120, 80,  20 ],   // brun/cuivre pour heure
+    // statuts
+    inactif:    [200, 195, 188],   // gris chaud
+    nonLivre:   [180, 80,  80 ],   // rouge discret
+    // retard
+    ok:         [40,  160, 100],
+    warn:       [200, 140, 30 ],
+    late:       [200, 60,  60 ],
+    // arrivée
+    fait:       [40,  160, 100],
+    border:     [210, 200, 185],
   };
 
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
 
-  // ── Fond page
-  doc.setFillColor(...C.void);
+  // ── Fond page légèrement crème
+  doc.setFillColor(...C.pageBg);
   doc.rect(0, 0, W, H, 'F');
 
-  // ── Bande titre
-  doc.setFillColor(...C.raised);
-  doc.rect(0, 0, W, 22, 'F');
-  // Ligne cuivrée sous le titre
-  doc.setDrawColor(...C.copper);
-  doc.setLineWidth(0.6);
-  doc.line(0, 22, W, 22);
+  // ── Bande titre foncée
+  doc.setFillColor(...C.headerBg);
+  doc.rect(0, 0, W, 24, 'F');
+
+  // Accent cuivré bas de la bande
+  doc.setFillColor(...C.copper);
+  doc.rect(0, 23, W, 1.2, 'F');
+
+  // ── Logo / sigle SOY
+  doc.setFillColor(...C.copper);
+  doc.roundedRect(10, 5, 14, 14, 2, 2, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...C.headerText);
+  doc.text('SOY', 17, 13.5, { align: 'center' });
 
   // ── Titre
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
-  doc.setTextColor(...C.copperL);
-  doc.text('Planification Camions', 14, 10);
+  doc.setFontSize(15);
+  doc.setTextColor(...C.headerText);
+  doc.text('Planification Camions', 28, 11);
 
-  // ── Sous-titre date
+  // ── Date
   const dateObj = new Date(curDate + 'T00:00:00');
   const dateLbl = dateObj.toLocaleDateString('fr-CA', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
   });
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(...C.muted);
-  doc.text(dateLbl.charAt(0).toUpperCase() + dateLbl.slice(1), 14, 17);
+  doc.setFontSize(8.5);
+  doc.setTextColor(210, 195, 170);
+  doc.text(dateLbl.charAt(0).toUpperCase() + dateLbl.slice(1), 28, 19);
 
-  // ── Timestamp export
-  const now = new Date().toLocaleString('fr-CA', { hour:'2-digit', minute:'2-digit' });
+  // ── Timestamp export (droite)
+  const now = new Date().toLocaleString('fr-CA', { hour: '2-digit', minute: '2-digit' });
   doc.setFontSize(7);
-  doc.text('Exporté le ' + new Date().toLocaleDateString('fr-CA') + ' à ' + now, W - 14, 17, { align: 'right' });
+  doc.setTextColor(150, 135, 110);
+  doc.text('Exporté le ' + new Date().toLocaleDateString('fr-CA') + ' à ' + now, W - 10, 19, { align: 'right' });
 
   // ── Construire les données du tableau
   const allIdx = [...new Set([...SLOTS.map(s => s.idx), ...Object.keys(rows).map(Number)])].sort((a,b)=>a-b);
+  const _slParams = _params['statut_ligne'] || [];
+  const vActif    = _slParams[0]?.valeur || 'ACTIF';
+  const vInactif  = _slParams[1]?.valeur || 'INACTIF';
+  const vNL       = _slParams[2]?.valeur || '';
 
   const tableData = [];
   let lineNum = 1;
@@ -1103,129 +1125,151 @@ function exportPDF() {
   allIdx.forEach(idx => {
     const slot = SLOTS.find(s => s.idx === idx);
     const r    = rows[idx] || {};
-    const _slPst=_params['statut_ligne']||[{valeur:'Actif'}]; const sl = r.statut_ligne || _slPst[0].valeur;
+    const sl   = r.statut_ligne || vActif;
     const h    = r.heure_planif || (slot ? slot.h : '—');
     const lbl  = slot ? slot.lbl : ('Extra ' + h);
 
-    // Calculer retard si applicable
     let retardStr = '';
     if (r.heure_reelle && r.heure_planif) {
       const d = timeDiffMin(r.heure_planif, r.heure_reelle);
-      retardStr = d <= 0 ? '✓' : '+' + d + ' min';
+      retardStr = d <= 0 ? 'À l\'heure' : '+' + d + ' min';
     }
 
+    const isInactif  = sl === vInactif;
+    const isNL       = vNL && sl === vNL;
+
     tableData.push({
-      num:       lineNum++,
-      heure:     h,
-      slot:      lbl,
-      statut:    sl,
-      type:      r.type_camion || '—',
-      desc:      r.description || '—',
-      dest:      r.destination || '—',
-      arrivee:   r.statut      || '',
-      charg:     r.chargement  || '',
-      hReelle:   r.heure_reelle|| '—',
-      retard:    retardStr,
-      isAnnule:  sl === ((_params['statut_ligne']||[null,{valeur:'INACTIF'}])[1]?.valeur||'INACTIF'),
-      isFait:    r.statut === 'FAIT',
+      num:      lineNum++,
+      heure:    h,
+      slot:     lbl,
+      statut:   sl,
+      type:     r.type_camion  || '—',
+      desc:     r.description  || '—',
+      dest:     r.destination  || '—',
+      arrivee:  r.statut       || '—',
+      charg:    r.chargement   || '—',
+      retard:   retardStr      || '—',
+      isInactif,
+      isNL,
+      isFait:   r.statut === ((_params['statut_arrivee']||[{valeur:'FAIT'}])[0]?.valeur||'FAIT'),
+      retardMin: (r.heure_reelle && r.heure_planif) ? timeDiffMin(r.heure_planif, r.heure_reelle) : null,
     });
   });
 
   // ── Tableau autoTable
   doc.autoTable({
-    startY: 27,
-    margin: { left: 6, right: 6 },
-    tableWidth: 'auto',
+    startY: 28,
+    margin: { left: 8, right: 8 },
 
     head: [[
-      '#', 'Heure', 'Créneau', 'Ligne', 'Type',
-      'Description', 'Destination', 'Arrivée', 'Chargement', 'H. Réelle', 'Retard'
+      '#', 'Heure', 'Créneau', 'Statut ligne', 'Type camion',
+      'Description', 'Destination', 'Arrivée', 'Chargement', 'Retard'
     ]],
 
     body: tableData.map(r => [
       r.num, r.heure, r.slot, r.statut, r.type,
-      r.desc, r.dest, r.arrivee, r.charg, r.hReelle, r.retard
+      r.desc, r.dest, r.arrivee, r.charg, r.retard
     ]),
 
-    // Style global
     styles: {
       font: 'helvetica',
-      fontSize: 7.5,
-      cellPadding: { top: 3, bottom: 3, left: 3, right: 3 },
-      textColor: C.text,
-      lineColor: C.faint,
-      lineWidth: 0.2,
-      fillColor: C.deep,
+      fontSize: 8,
+      cellPadding: { top: 3.5, bottom: 3.5, left: 4, right: 4 },
+      textColor: C.textMain,
+      lineColor: C.border,
+      lineWidth: 0.18,
+      fillColor: C.rowNormal,
       overflow: 'linebreak',
-      minCellHeight: 9,
+      minCellHeight: 10,
     },
 
-    // Style en-tête
     headStyles: {
-      fillColor: C.float,
-      textColor: C.copperL,
+      fillColor: C.headerBg,
+      textColor: C.headerText,
       fontStyle: 'bold',
-      fontSize: 7,
+      fontSize: 7.5,
+      cellPadding: { top: 4, bottom: 4, left: 4, right: 4 },
       lineColor: C.copper,
-      lineWidth: { bottom: 0.5 },
+      lineWidth: { bottom: 1 },
     },
 
-    // Style lignes alternées
     alternateRowStyles: {
-      fillColor: [15, 17, 26],
+      fillColor: C.rowAlt,
     },
 
-    // Largeurs des colonnes
     columnStyles: {
-      0:  { cellWidth: 8,  halign: 'center' },  // #
-      1:  { cellWidth: 15, halign: 'center', textColor: C.copperL },  // Heure
-      2:  { cellWidth: 28 },  // Créneau
-      3:  { cellWidth: 16, halign: 'center' },  // Ligne
-      4:  { cellWidth: 18, halign: 'center' },  // Type
-      5:  { cellWidth: 38 },  // Description
-      6:  { cellWidth: 24 },  // Destination
-      7:  { cellWidth: 18, halign: 'center' },  // Arrivée
-      8:  { cellWidth: 26, halign: 'center' },  // Chargement
-      9:  { cellWidth: 16, halign: 'center' },  // H. Réelle
-      10: { cellWidth: 16, halign: 'center' },  // Retard
+      0: { cellWidth: 8,  halign: 'center', textColor: C.textFaint },
+      1: { cellWidth: 14, halign: 'center', fontStyle: 'bold', textColor: C.colHeure },
+      2: { cellWidth: 30 },
+      3: { cellWidth: 22, halign: 'center' },
+      4: { cellWidth: 20, halign: 'center' },
+      5: { cellWidth: 40 },
+      6: { cellWidth: 28 },
+      7: { cellWidth: 18, halign: 'center' },
+      8: { cellWidth: 26, halign: 'center' },
+      9: { cellWidth: 18, halign: 'center' },
     },
 
-    // Couleurs par ligne selon statut
     willDrawCell: function(data) {
       if (data.section !== 'body') return;
       const r = tableData[data.row.index];
       if (!r) return;
 
-      if (r.isAnnule) {
-        data.cell.styles.textColor = C.faint;
-        data.cell.styles.fillColor = C.void;
-      } else if (r.isFait && data.column.index === 7) {
-        data.cell.styles.textColor = C.emerald;
+      // Lignes INACTIF → texte grisé, fond très léger
+      if (r.isInactif) {
+        data.cell.styles.textColor = C.inactif;
+        data.cell.styles.fontStyle = 'normal';
+        return;
       }
 
-      // Colonne retard colorée
-      if (data.column.index === 10 && data.cell.raw) {
-        const txt = String(data.cell.raw);
-        if (txt.startsWith('+')) {
-          const min = parseInt(txt);
-          data.cell.styles.textColor = min > 60 ? C.ruby : C.amber;
-        } else if (txt === '✓') {
-          data.cell.styles.textColor = C.emerald;
+      // Lignes NON LIVRÉ → fond rose très pâle + texte rouge
+      if (r.isNL) {
+        data.cell.styles.fillColor = [255, 240, 240];
+        data.cell.styles.textColor = C.nonLivre;
+        return;
+      }
+
+      // Colonne statut ligne → badge coloré selon valeur
+      if (data.column.index === 3) {
+        data.cell.styles.fontStyle = 'bold';
+      }
+
+      // Colonne Arrivée
+      if (data.column.index === 7 && r.isFait) {
+        data.cell.styles.textColor = C.fait;
+        data.cell.styles.fontStyle = 'bold';
+      }
+
+      // Colonne Retard
+      if (data.column.index === 9 && r.retardMin !== null) {
+        if (r.retardMin <= 0) {
+          data.cell.styles.textColor = C.ok;
+          data.cell.styles.fontStyle = 'bold';
+        } else if (r.retardMin <= 30) {
+          data.cell.styles.textColor = C.warn;
+          data.cell.styles.fontStyle = 'bold';
+        } else {
+          data.cell.styles.textColor = C.late;
+          data.cell.styles.fontStyle = 'bold';
         }
       }
     },
   });
 
   // ── Pied de page
-  const finalY = doc.lastAutoTable.finalY + 6;
-  if (finalY < H - 10) {
-    doc.setFontSize(6.5);
-    doc.setTextColor(...C.faint);
-    doc.text('SOY — Planification Camions', 14, finalY);
-    doc.text('Page 1 / 1', W - 14, finalY, { align: 'right' });
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    const py = H - 6;
+    doc.setDrawColor(...C.border);
+    doc.setLineWidth(0.3);
+    doc.line(8, py - 3, W - 8, py - 3);
+    doc.setFontSize(7);
+    doc.setTextColor(...C.textFaint);
+    doc.text('SOY — Planification Camions', 10, py);
+    doc.text('Page ' + i + ' / ' + pageCount, W - 10, py, { align: 'right' });
   }
 
-  // ── Téléchargement
   const fname = 'planification_' + curDate + '.pdf';
   doc.save(fname);
 }
