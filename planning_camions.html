@@ -1084,17 +1084,17 @@ function exportPDF() {
 
   // ── Logo / sigle SOY
   doc.setFillColor(...C.copper);
-  doc.roundedRect(10, 5, 14, 14, 2, 2, 'F');
+  doc.roundedRect(17, 5, 14, 14, 2, 2, 'F');
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
   doc.setTextColor(...C.headerText);
-  doc.text('SOY', 17, 13.5, { align: 'center' });
+  doc.text('SOY', 24, 13.5, { align: 'center' });
 
   // ── Titre
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(15);
   doc.setTextColor(...C.headerText);
-  doc.text('Planification Camions', 28, 11);
+  doc.text('Planification Camions', 38, 11);
 
   // ── Date
   const dateObj = new Date(curDate + 'T00:00:00');
@@ -1104,13 +1104,13 @@ function exportPDF() {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
   doc.setTextColor(210, 195, 170);
-  doc.text(dateLbl.charAt(0).toUpperCase() + dateLbl.slice(1), 28, 19);
+  doc.text(dateLbl.charAt(0).toUpperCase() + dateLbl.slice(1), 38, 19);
 
   // ── Timestamp export (droite)
   const now = new Date().toLocaleString('fr-CA', { hour: '2-digit', minute: '2-digit' });
   doc.setFontSize(7);
   doc.setTextColor(150, 135, 110);
-  doc.text('Exporté le ' + new Date().toLocaleDateString('fr-CA') + ' à ' + now, W - 8, 19, { align: 'right' });
+  doc.text('Exporté le ' + new Date().toLocaleDateString('fr-CA') + ' à ' + now, 276, 19, { align: 'right' });
 
   // ── Construire les données du tableau
   const allIdx = [...new Set([...SLOTS.map(s => s.idx), ...Object.keys(rows).map(Number)])].sort((a,b)=>a-b);
