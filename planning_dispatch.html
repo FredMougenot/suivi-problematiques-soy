@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOY · Dispatch Board</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void:       #07080a;
+  --surface:    #0e1014;
+  --raised:     #141720;
+  --card:       #191d26;
+  --border:     #242830;
+  --border-hi:  #353b4a;
+  --text:       #dde2ec;
+  --text-2:     #7a8299;
+  --text-3:     #3d4255;
+  --cold:       #38b8f0;
+  --cold-bg:    rgba(56,184,240,.08);
+  --cold-border:rgba(56,184,240,.3);
+  --warm:       #f0a838;
+  --warm-bg:    rgba(240,168,56,.08);
+  --warm-border:rgba(240,168,56,.3);
+  --green:      #38f0a0;
+  --green-bg:   rgba(56,240,160,.08);
+  --red:        #f03858;
+  --red-bg:     rgba(240,56,88,.1);
+  --amber:      #f0c838;
+  --copper:     #c87941;
+  --copper-bg:  rgba(200,121,65,.1);
+  --conflict:   #ff4466;
+  --conflict-bg:rgba(255,68,102,.12);
+  --gap-ok:     rgba(56,240,160,.06);
+  --t: .18s cubic-bezier(.4,0,.2,1);
+
+  /* Timeline */
+  --tl-start: 6;   /* 06h */
+  --tl-end:   20;  /* 20h */
+  --tl-range: 14;  /* heures */
+  --tl-h:     72px;
+  --label-w:  220px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+
+body {
+  background: var(--void);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ═══════════════════ SCAN LINES ═══════════════════ */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,.04) 2px,
+    rgba(0,0,0,.04) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ═══════════════════ HEADER ═══════════════════ */
+.hdr {
+  height: 56px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+
+.hdr-brand {
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+.hdr-badge {
+  width: 28px; height: 28px;
+  background: var(--copper);
+  border-radius: 6px;
+  display: grid; place-items: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600; font-size: .7rem;
+  color: #fff; letter-spacing: .05em;
+}
+.hdr-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.hdr-sub {
+  font-size: .62rem;
+  color: var(--text-3);
+  letter-spacing: .1em;
+}
+
+.hdr-sep { width: 1px; height: 28px; background: var(--border); flex-shrink: 0; }
+
+.hdr-date-nav {
+  display: flex; align-items: center; gap: 6px;
+}
+.nav-btn {
+  width: 26px; height: 26px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--raised);
+  color: var(--text-2);
+  cursor: pointer;
+  display: grid; place-items: center;
+  font-size: .9rem;
+  transition: var(--t);
+}
+.nav-btn:hover { border-color: var(--copper); color: var(--text); }
+
+.date-inp {
+  background: var(--raised);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .72rem;
+  padding: 4px 8px;
+  outline: none;
+  transition: var(--t);
+  cursor: pointer;
+}
+.date-inp:focus { border-color: var(--copper); }
+
+.hdr-day-lbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .7rem;
+  color: var(--text-2);
+  letter-spacing: .05em;
+}
+
+/* Status indicators */
+.hdr-status {
+  display: flex; align-items: center; gap: 12px;
+  margin-left: auto;
+}
+.status-dot {
+  display: flex; align-items: center; gap: 6px;
+  font-size: .65rem;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--text-2);
+  letter-spacing: .05em;
+}
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+.dot-green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.dot-red   { background: var(--red);   box-shadow: 0 0 6px var(--red); }
+.dot-amber { background: var(--amber); box-shadow: 0 0 6px var(--amber); animation: blink 1.2s infinite; }
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+.hdr-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: .72rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--t);
+  text-decoration: none;
+}
+.btn-ghost {
+  border: 1px solid var(--border);
+  background: var(--raised);
+  color: var(--text-2);
+}
+.btn-ghost:hover { border-color: var(--border-hi); color: var(--text); }
+.btn-primary {
+  border: 1px solid var(--copper);
+  background: var(--copper-bg);
+  color: var(--copper);
+}
+.btn-primary:hover { background: var(--copper); color: #fff; }
+
+/* ═══════════════════ MÉTRIQUES ═══════════════════ */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.metric {
+  background: var(--surface);
+  padding: 12px 20px;
+  display: flex; flex-direction: column; gap: 3px;
+  position: relative;
+  overflow: hidden;
+}
+.metric::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--m-color, var(--border));
+  opacity: .6;
+}
+.metric-n  { --m-color: var(--text-2); }
+.metric-c  { --m-color: var(--cold); }
+.metric-w  { --m-color: var(--warm); }
+.metric-g  { --m-color: var(--green); }
+.metric-r  { --m-color: var(--red); }
+.metric-a  { --m-color: var(--amber); }
+
+.metric-val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--m-color, var(--text));
+}
+.metric-lbl {
+  font-size: .6rem;
+  font-weight: 500;
+  color: var(--text-3);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+/* ═══════════════════ LAYOUT ═══════════════════ */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  height: calc(100vh - 56px - 52px);
+  overflow: hidden;
+}
+
+/* ═══════════════════ BOARD (timeline) ═══════════════════ */
+.board {
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--void);
+  padding: 24px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+/* En-tête timeline */
+.tl-header {
+  display: flex;
+  margin-bottom: 4px;
+  padding-left: var(--label-w);
+  position: sticky;
+  top: 0;
+  background: var(--void);
+  z-index: 10;
+  padding-bottom: 8px;
+}
+.tl-hour {
+  flex: 1;
+  text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .6rem;
+  color: var(--text-3);
+  letter-spacing: .08em;
+  position: relative;
+}
+.tl-hour::after {
+  content: '';
+  position: absolute;
+  bottom: -8px; left: 50%;
+  width: 1px; height: 6px;
+  background: var(--border);
+}
+
+/* Grille verticale */
+.tl-grid {
+  position: relative;
+}
+.tl-vline {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 1px;
+  background: var(--border);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ligne "maintenant" */
+.now-bar {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: var(--red);
+  box-shadow: 0 0 8px var(--red);
+  z-index: 50;
+  pointer-events: none;
+  display: none;
+}
+.now-bar::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -4px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 10px var(--red);
+}
+.now-bar-lbl {
+  position: absolute;
+  top: 14px; left: 4px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .58rem;
+  color: var(--red);
+  white-space: nowrap;
+  background: var(--void);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+/* ── LIGNE DE CAMION ── */
+.tl-row {
+  display: flex;
+  align-items: stretch;
+  margin-bottom: 6px;
+  position: relative;
+  z-index: 1;
+}
+
+.tl-label {
+  width: var(--label-w);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding-right: 16px;
+  text-align: right;
+}
+.tl-label-time {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .95rem;
+  font-weight: 500;
+  color: var(--text);
+}
+.tl-label-name {
+  font-size: .62rem;
+  color: var(--text-3);
+  letter-spacing: .08em;
+}
+
+/* Track de la ligne */
+.tl-track {
+  flex: 1;
+  height: var(--tl-h);
+  background: var(--raised);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  position: relative;
+  overflow: visible;
+  transition: border-color var(--t);
+}
+.tl-track.has-conflict {
+  border-color: var(--conflict);
+  box-shadow: 0 0 0 1px var(--conflict), inset 0 0 20px rgba(255,68,102,.05);
+}
+.tl-track.inactif {
+  opacity: .3;
+  pointer-events: none;
+}
+
+/* Zone tampon 1h30 */
+.gap-zone {
+  position: absolute;
+  top: 0; bottom: 0;
+  background: var(--gap-ok);
+  border-left: 1px dashed rgba(56,240,160,.2);
+  border-right: 1px dashed rgba(56,240,160,.2);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Zone conflit */
+.conflict-zone {
+  position: absolute;
+  top: 0; bottom: 0;
+  background: var(--conflict-bg);
+  border-left: 1px dashed rgba(255,68,102,.4);
+  border-right: 1px dashed rgba(255,68,102,.4);
+  pointer-events: none;
+  z-index: 1;
+}
+.conflict-label {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .55rem;
+  color: var(--conflict);
+  white-space: nowrap;
+  letter-spacing: .08em;
+}
+
+/* ── BLOC CAMION (le cœur) ── */
+.truck-block {
+  position: absolute;
+  top: 6px; bottom: 6px;
+  border-radius: 6px;
+  cursor: grab;
+  user-select: none;
+  transition: box-shadow var(--t), transform var(--t);
+  z-index: 10;
+  overflow: hidden;
+  min-width: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.truck-block:hover {
+  box-shadow: 0 4px 24px rgba(0,0,0,.5);
+  transform: scaleY(1.03);
+  z-index: 20;
+}
+.truck-block.dragging {
+  cursor: grabbing;
+  opacity: .85;
+  box-shadow: 0 12px 40px rgba(0,0,0,.6);
+  transform: scale(1.02);
+  z-index: 100;
+}
+.truck-block.in-conflict {
+  animation: conflict-pulse 1s infinite;
+}
+@keyframes conflict-pulse {
+  0%,100% { box-shadow: 0 0 0 2px var(--conflict); }
+  50%      { box-shadow: 0 0 12px 2px var(--conflict); }
+}
+
+/* Types de camions */
+.truck-block.cold {
+  background: linear-gradient(135deg, #0d2a3a 0%, #0a1e2a 100%);
+  border: 1px solid var(--cold-border);
+}
+.truck-block.warm {
+  background: linear-gradient(135deg, #2a1e08 0%, #1e1508 100%);
+  border: 1px solid var(--warm-border);
+}
+.truck-block.status-fait {
+  border-color: rgba(56,240,160,.4);
+}
+.truck-block.status-nl {
+  border-color: rgba(240,56,88,.4);
+  opacity: .65;
+  cursor: not-allowed;
+}
+.truck-block.inactif {
+  opacity: .2;
+  filter: grayscale(1);
+}
+
+/* Contenu bloc */
+.tb-top {
+  padding: 6px 10px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+.tb-time {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.cold .tb-time { color: var(--cold); }
+.warm .tb-time { color: var(--warm); }
+.status-fait .tb-time { color: var(--green); }
+.status-nl .tb-time { color: var(--red); }
+
+.tb-type {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .55rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  padding: 1px 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.cold .tb-type { background: rgba(56,184,240,.15); color: var(--cold); }
+.warm .tb-type { background: rgba(240,168,56,.15); color: var(--warm); }
+
+.tb-mid {
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+.tb-dest {
+  font-size: .68rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+.tb-arrow {
+  color: var(--text-3);
+  font-size: .7rem;
+  flex-shrink: 0;
+}
+.tb-desc {
+  font-size: .6rem;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tb-bottom {
+  padding: 3px 10px 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  border-top: 1px solid rgba(255,255,255,.04);
+}
+.tb-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .6rem;
+  color: var(--text-3);
+}
+.tb-status {
+  font-size: .55rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+.st-actif   { background: rgba(56,240,160,.1);  color: var(--green); }
+.st-attente { background: rgba(122,130,153,.1); color: var(--text-2); }
+.st-fait    { background: rgba(56,240,160,.2);  color: var(--green); }
+.st-nl      { background: rgba(240,56,88,.2);   color: var(--red); }
+.st-inactif { background: rgba(61,66,85,.2);    color: var(--text-3); }
+
+/* Stock tag */
+.tb-stock {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: .55rem;
+  font-weight: 600;
+  color: var(--copper);
+  letter-spacing: .06em;
+}
+
+/* ═══════════════════ PANNEAU LATÉRAL ═══════════════════ */
+.side-panel {
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Aucun sélectionné */
+.panel-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-3);
+  padding: 40px 20px;
+  text-align: center;
+}
+.panel-empty-icon {
+  font-size: 2.5rem;
+  opacity: .2;
+}
+.panel-empty p {
+  font-size: .72rem;
+  line-height: 1.6;
+}
+
+/* Formulaire de détail */
+.panel-form { display: none; flex-direction: column; flex: 1; }
+
+.pf-slot-info {
+  padding: 16px 20px;
+  background: var(--raised);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pf-time {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 1.8rem;
+  font-weight: 600;
+  line-height: 1;
+}
+.cold-text  { color: var(--cold); }
+.warm-text  { color: var(--warm); }
+.pf-meta { display: flex; flex-direction: column; gap: 3px; }
+.pf-meta-type {
+  font-size: .65rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.pf-meta-day {
+  font-size: .62rem;
+  color: var(--text-3);
+}
+
+/* Sections */
+.pf-section {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.pf-section-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .6rem;
+  font-weight: 600;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pf-section-title::before {
+  content: '';
+  width: 2px; height: 12px;
+  border-radius: 1px;
+  background: var(--copper);
+}
+
+.pf-field { margin-bottom: 10px; }
+.pf-field:last-child { margin-bottom: 0; }
+.pf-lbl {
+  display: block;
+  font-size: .58rem;
+  font-weight: 600;
+  color: var(--text-3);
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.pf-inp, .pf-sel {
+  width: 100%;
+  background: var(--raised);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: .78rem;
+  padding: 7px 10px;
+  outline: none;
+  transition: var(--t);
+  appearance: none;
+}
+.pf-inp:focus, .pf-sel:focus { border-color: var(--copper); }
+.pf-inp::placeholder { color: var(--text-3); }
+
+.pf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* Conflit alert */
+.conflict-alert {
+  margin: 12px 20px;
+  padding: 10px 14px;
+  background: var(--conflict-bg);
+  border: 1px solid rgba(255,68,102,.3);
+  border-radius: 8px;
+  font-size: .7rem;
+  color: var(--conflict);
+  display: none;
+  line-height: 1.5;
+}
+.conflict-alert.visible { display: block; }
+
+/* Actions panneau */
+.pf-actions {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+}
+.pf-btn {
+  width: 100%;
+  padding: 9px;
+  border-radius: 6px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: .75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--t);
+  letter-spacing: .04em;
+  border: none;
+}
+.pf-btn-save {
+  background: var(--copper);
+  color: #fff;
+}
+.pf-btn-save:hover { filter: brightness(1.1); }
+.pf-btn-nl {
+  background: var(--raised);
+  border: 1px solid var(--border);
+  color: var(--red);
+}
+.pf-btn-nl:hover { border-color: var(--red); background: var(--red-bg); }
+.pf-btn-inactif {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-3);
+  font-size: .68rem;
+}
+.pf-btn-inactif:hover { color: var(--text-2); border-color: var(--border-hi); }
+
+/* ═══════════════════ ALERTES CONFLITS ═══════════════════ */
+.alerts-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 320px;
+  background: var(--conflict-bg);
+  border-top: 1px solid rgba(255,68,102,.3);
+  padding: 8px 24px;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+}
+.alerts-bar.visible { display: flex; }
+.alert-icon { color: var(--conflict); font-size: .85rem; animation: blink 1s infinite; }
+.alert-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .68rem;
+  color: var(--conflict);
+  letter-spacing: .05em;
+  flex: 1;
+}
+
+/* ═══════════════════ TOAST ═══════════════════ */
+.toasts {
+  position: fixed;
+  bottom: 24px; right: 340px;
+  z-index: 9999;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.toast {
+  background: var(--card);
+  border: 1px solid var(--border-hi);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: .72rem;
+  display: flex; align-items: center; gap: 8px;
+  animation: toastIn .25s ease;
+  box-shadow: 0 8px 24px rgba(0,0,0,.5);
+}
+.toast.ok  { border-left: 3px solid var(--green); }
+.toast.err { border-left: 3px solid var(--red); }
+@keyframes toastIn {
+  from { opacity:0; transform: translateX(16px); }
+  to   { opacity:1; transform: translateX(0); }
+}
+
+/* ═══════════════════ DRAG GHOST ═══════════════════ */
+.drag-ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: .85;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 12px 40px rgba(0,0,0,.7);
+  display: none;
+}
+.drag-ghost.cold { background: #0d2a3a; border: 1px solid var(--cold-border); color: var(--cold); }
+.drag-ghost.warm { background: #2a1e08; border: 1px solid var(--warm-border); color: var(--warm); }
+
+/* ═══════════════════ DROP ZONES ═══════════════════ */
+.tl-track.drop-target {
+  border-color: var(--copper) !important;
+  box-shadow: inset 0 0 16px rgba(200,121,65,.1);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- DRAG GHOST -->
+<div class="drag-ghost" id="drag-ghost"></div>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-badge">SOY</div>
+    <div>
+      <div class="hdr-title">Dispatch Board</div>
+      <div class="hdr-sub">Gestion flux camions</div>
+    </div>
+  </div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-date-nav">
+    <button class="nav-btn" onclick="shiftDay(-1)">‹</button>
+    <input type="date" class="date-inp" id="date-inp">
+    <button class="nav-btn" onclick="shiftDay(1)">›</button>
+    <button class="nav-btn hdr-btn btn-primary" onclick="goToday()" style="width:auto;padding:0 10px;font-size:.65rem;letter-spacing:.08em;">AUJ.</button>
+  </div>
+  <span class="hdr-day-lbl" id="day-lbl">—</span>
+  <div class="hdr-status" id="hdr-status">
+    <span class="status-dot"><span class="dot dot-green"></span><span id="s-ok">0</span> ok</span>
+    <span class="status-dot"><span class="dot dot-amber" id="dot-conf"></span><span id="s-conf">0</span> conflits</span>
+    <span class="status-dot"><span class="dot dot-red"></span><span id="s-nl">0</span> non livrés</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <a href="planning_camions.html" class="hdr-btn btn-ghost">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+    Vue classique
+  </a>
+</header>
+
+<!-- MÉTRIQUES -->
+<div class="metrics" id="metrics">
+  <div class="metric metric-n"><div class="metric-val" id="m-total">—</div><div class="metric-lbl">Créneaux actifs</div></div>
+  <div class="metric metric-c"><div class="metric-val" id="m-cold">—</div><div class="metric-lbl">Réfrigérés</div></div>
+  <div class="metric metric-w"><div class="metric-val" id="m-warm">—</div><div class="metric-lbl">Tempérés</div></div>
+  <div class="metric metric-g"><div class="metric-val" id="m-livres">—</div><div class="metric-lbl">Livrés</div></div>
+  <div class="metric metric-r"><div class="metric-val" id="m-nl">—</div><div class="metric-lbl">Non livrés</div></div>
+  <div class="metric metric-a"><div class="metric-val" id="m-eff">—</div><div class="metric-lbl">Efficacité</div></div>
+</div>
+
+<!-- LAYOUT PRINCIPAL -->
+<div class="layout">
+
+  <!-- BOARD -->
+  <div class="board" id="board">
+    <!-- Généré par JS -->
+  </div>
+
+  <!-- PANNEAU LATÉRAL -->
+  <aside class="side-panel">
+    <div class="panel-header">
+      <span>Détail créneau</span>
+      <span id="panel-slot-badge" style="font-size:.6rem;color:var(--text-3);">—</span>
+    </div>
+
+    <div class="panel-empty" id="panel-empty">
+      <div class="panel-empty-icon">🎯</div>
+      <p>Cliquez sur un bloc<br>pour modifier ses détails</p>
+      <p style="font-size:.62rem;color:var(--text-3);margin-top:8px;">Glissez un bloc pour le<br>repositionner sur la timeline</p>
+    </div>
+
+    <div class="panel-form" id="panel-form">
+      <div class="pf-slot-info" id="pf-slot-info">
+        <div class="pf-time" id="pf-time">—</div>
+        <div class="pf-meta">
+          <div class="pf-meta-type" id="pf-type">—</div>
+          <div class="pf-meta-day" id="pf-day">—</div>
+        </div>
+      </div>
+
+      <div class="conflict-alert" id="pf-conflict">
+        ⚡ Conflit détecté — moins de 1h30 avec un autre créneau.
+        Déplacez ce bloc sur la timeline pour résoudre.
+      </div>
+
+      <!-- ARRIVÉE -->
+      <div class="pf-section">
+        <div class="pf-section-title">↓ Arrivée</div>
+        <div class="pf-row">
+          <div class="pf-field">
+            <label class="pf-lbl">N° camion entrant</label>
+            <input class="pf-inp" id="pf-num-arr" placeholder="ex: 4872">
+          </div>
+          <div class="pf-field">
+            <label class="pf-lbl">Provenance</label>
+            <select class="pf-sel" id="pf-dest-arr"></select>
+          </div>
+        </div>
+        <div class="pf-row">
+          <div class="pf-field">
+            <label class="pf-lbl">Statut arrivée</label>
+            <select class="pf-sel" id="pf-statut-arr"></select>
+          </div>
+          <div class="pf-field">
+            <label class="pf-lbl">Heure réelle</label>
+            <input class="pf-inp" id="pf-heure-reelle" type="time">
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTENU -->
+      <div class="pf-section">
+        <div class="pf-section-title">📦 Contenu</div>
+        <div class="pf-field">
+          <label class="pf-lbl">Description / stock</label>
+          <select class="pf-sel" id="pf-desc"></select>
+        </div>
+        <div class="pf-field">
+          <label class="pf-lbl">Type camion</label>
+          <select class="pf-sel" id="pf-type-camion"></select>
+        </div>
+      </div>
+
+      <!-- DÉPART -->
+      <div class="pf-section">
+        <div class="pf-section-title">↑ Départ</div>
+        <div class="pf-row">
+          <div class="pf-field">
+            <label class="pf-lbl">N° camion sortant</label>
+            <input class="pf-inp" id="pf-num-dep" placeholder="ex: 5103">
+          </div>
+          <div class="pf-field">
+            <label class="pf-lbl">Destination</label>
+            <select class="pf-sel" id="pf-dest"></select>
+          </div>
+        </div>
+        <div class="pf-field">
+          <label class="pf-lbl">Chargement</label>
+          <select class="pf-sel" id="pf-charg"></select>
+        </div>
+      </div>
+
+      <div class="pf-actions">
+        <button class="pf-btn pf-btn-save" onclick="savePanel()">💾 Enregistrer</button>
+        <button class="pf-btn pf-btn-nl" onclick="markNL()">✗ Marquer Non Livré</button>
+        <button class="pf-btn pf-btn-inactif" onclick="toggleInactif()">○ Désactiver ce créneau</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- ALERTES CONFLITS (bas de page) -->
+<div class="alerts-bar" id="alerts-bar">
+  <span class="alert-icon">⚡</span>
+  <span class="alert-text" id="alert-text">—</span>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+// ── CONFIG ─────────────────────────────────────────────────────
+const TL_START = 6 * 60;   // 06:00 en minutes
+const TL_END   = 20 * 60;  // 20:00
+const TL_RANGE = TL_END - TL_START;
+const GAP_MIN  = 90;        // Contrainte 1h30
+const WK_INACTIF = [0,1,7,8,9];
+
+const SLOTS = [
+  {idx:0, h:'06:00', lbl:'Camion A',   defType:'CHAUFFÉE'},
+  {idx:1, h:'06:00', lbl:'Camion B',   defType:'REEFER'},
+  {idx:2, h:'07:30', lbl:'Créneau 3',  defType:'CHAUFFÉE'},
+  {idx:3, h:'09:00', lbl:'Créneau 4',  defType:'CHAUFFÉE'},
+  {idx:4, h:'11:30', lbl:'Créneau 5',  defType:'CHAUFFÉE'},
+  {idx:5, h:'14:00', lbl:'Créneau 6',  defType:'CHAUFFÉE'},
+  {idx:6, h:'15:30', lbl:'Créneau 7',  defType:'CHAUFFÉE'},
+  {idx:7, h:'17:00', lbl:'Créneau 8',  defType:'CHAUFFÉE'},
+  {idx:8, h:'18:00', lbl:'Créneau 9',  defType:'CHAUFFÉE'},
+  {idx:9, h:'19:00', lbl:'Créneau 10', defType:'CHAUFFÉE'},
+];
+
+let curDate   = todayStr();
+let _params   = {};
+let _rows     = {};
+let _selIdx   = null;
+
+// ── UTILS ──────────────────────────────────────────────────────
+function todayStr() {
+  return new Date().toISOString().slice(0,10);
+}
+function toMin(hhmm) {
+  if (!hhmm) return 0;
+  const [h,m] = hhmm.split(':').map(Number);
+  return h*60+m;
+}
+function minToHHMM(m) {
+  const h = Math.floor(m/60), mm = m%60;
+  return String(h).padStart(2,'0') + ':' + String(mm).padStart(2,'0');
+}
+function pct(min) {
+  return Math.max(0, Math.min(100, (min - TL_START) / TL_RANGE * 100));
+}
+function isWkEnd() {
+  const d = new Date(curDate+'T12:00:00').getDay();
+  return d===0||d===6;
+}
+function vParam(type, idx) { return (_params[type]||[])[idx]?.valeur || ''; }
+function isInactif(s, row) {
+  const sl = (row?.statut_ligne||'').trim();
+  if (sl === vParam('statut_ligne',1)) return true;
+  if (!sl && isWkEnd() && WK_INACTIF.includes(s.idx)) return true;
+  return false;
+}
+function isNL(row)   { return (row?.statut_ligne||'').trim() === vParam('statut_ligne',2); }
+function isFait(row) { return (row?.statut_arrivee||'').trim() === vParam('statut_arrivee',0); }
+function isReefer(s, row) {
+  const tc = (row?.type_camion||'').trim();
+  return tc === vParam('type_camion',0) || (!tc && s.defType === 'REEFER');
+}
+function effectiveH(s, row) {
+  return row?.heure_planif || s.h;
+}
+
+// ── CHARGEMENT ─────────────────────────────────────────────────
+async function load() {
+  document.getElementById('board').innerHTML = '<div style="padding:60px;text-align:center;color:var(--text-3);font-family:IBM Plex Mono,monospace;font-size:.7rem;letter-spacing:.1em;">CHARGEMENT…</div>';
+
+  const { data: pData } = await sb.from('planning_params').select('*');
+  _params = {};
+  if (pData) {
+    pData.forEach(p => {
+      if (!_params[p.type]) _params[p.type] = [];
+      _params[p.type].push(p);
+    });
+    Object.values(_params).forEach(a => a.sort((x,y) => x.ordre - y.ordre));
+  }
+
+  const { data: rData } = await sb.from('planning_camions').select('*').eq('date_jour', curDate);
+  _rows = {};
+  if (rData) rData.forEach(r => { _rows[r.slot_index] = r; });
+
+  renderBoard();
+  updateMetrics();
+  checkConflicts();
+}
+
+// ── RENDER BOARD ───────────────────────────────────────────────
+function renderBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+
+  // En-tête heures
+  const hdrDiv = document.createElement('div');
+  hdrDiv.className = 'tl-header';
+  for (let h = 6; h <= 19; h++) {
+    const hd = document.createElement('div');
+    hd.className = 'tl-hour';
+    hd.textContent = h + 'h';
+    hdrDiv.appendChild(hd);
+  }
+  board.appendChild(hdrDiv);
+
+  // Grille avec ligne "maintenant"
+  const grid = document.createElement('div');
+  grid.className = 'tl-grid';
+  grid.id = 'tl-grid';
+
+  // Lignes verticales heures
+  for (let h = 6; h <= 19; h++) {
+    const vl = document.createElement('div');
+    vl.className = 'tl-vline';
+    vl.style.left = pct(h*60) + '%';
+    grid.appendChild(vl);
+  }
+
+  // Ligne NOW
+  const nowBar = document.createElement('div');
+  nowBar.className = 'now-bar';
+  nowBar.id = 'now-bar';
+  const nowLbl = document.createElement('div');
+  nowLbl.className = 'now-bar-lbl';
+  nowLbl.id = 'now-lbl';
+  nowBar.appendChild(nowLbl);
+  grid.appendChild(nowBar);
+
+  // Lignes de slots
+  for (const s of SLOTS) {
+    const row = _rows[s.idx];
+    const inactif = isInactif(s, row);
+    const nl      = isNL(row);
+    const fait    = isFait(row);
+    const reefer  = isReefer(s, row);
+    const h       = effectiveH(s, row);
+    const startMin = toMin(h);
+
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'tl-row';
+    rowDiv.dataset.idx = s.idx;
+
+    // Label
+    const lbl = document.createElement('div');
+    lbl.className = 'tl-label';
+    lbl.innerHTML = `
+      <div class="tl-label-time">${h.replace(':','h')}</div>
+      <div class="tl-label-name">${s.lbl}</div>
+    `;
+    rowDiv.appendChild(lbl);
+
+    // Track
+    const track = document.createElement('div');
+    track.className = 'tl-track' + (inactif ? ' inactif' : '');
+    track.id = 'track-' + s.idx;
+    track.dataset.idx = s.idx;
+
+    // Zones tampons gap (affichage de la contrainte 1h30)
+    SLOTS.forEach(s2 => {
+      if (s2.idx === s.idx) return;
+      const r2 = _rows[s2.idx];
+      if (isInactif(s2, r2)) return;
+      const h2 = toMin(effectiveH(s2, r2));
+      const diff = Math.abs(startMin - h2);
+      if (diff > 0 && diff < GAP_MIN) {
+        // Conflit — zone rouge
+        const later  = Math.max(startMin, h2);
+        const earlier = Math.min(startMin, h2);
+        const zoneL = pct(earlier + diff/2 - diff/4);
+        const zoneW = pct(earlier + diff) - pct(earlier);
+        if (zoneW > 0) {
+          const cz = document.createElement('div');
+          cz.className = 'conflict-zone';
+          cz.style.left  = pct(Math.min(startMin, h2)) + '%';
+          cz.style.width = pct(Math.max(startMin, h2)) - pct(Math.min(startMin, h2)) + '%';
+          const cl = document.createElement('div');
+          cl.className = 'conflict-label';
+          cl.textContent = '⚡ ' + diff + 'min';
+          cz.appendChild(cl);
+          track.appendChild(cz);
+        }
+      }
+    });
+
+    // Bloc camion
+    if (!inactif) {
+      const block = buildBlock(s, row, startMin, reefer, nl, fait);
+      track.appendChild(block);
+    }
+
+    // Drop target
+    track.addEventListener('dragover', e => {
+      e.preventDefault();
+      track.classList.add('drop-target');
+    });
+    track.addEventListener('dragleave', () => track.classList.remove('drop-target'));
+    track.addEventListener('drop', e => {
+      e.preventDefault();
+      track.classList.remove('drop-target');
+      handleDrop(e, s.idx, track);
+    });
+
+    rowDiv.appendChild(track);
+    grid.appendChild(rowDiv);
+  }
+
+  board.appendChild(grid);
+  updateNowBar();
+}
+
+// ── BUILD BLOC ─────────────────────────────────────────────────
+function buildBlock(s, row, startMin, reefer, nl, fait) {
+  const block = document.createElement('div');
+  const typeCls  = reefer ? 'cold' : 'warm';
+  const statusCls = nl ? 'status-nl' : fait ? 'status-fait' : '';
+  block.className = `truck-block ${typeCls} ${statusCls}`;
+  block.dataset.idx = s.idx;
+
+  // Position sur la timeline
+  const leftPct  = pct(startMin);
+  const widthPct = pct(startMin + 90) - pct(startMin); // 1h30 de largeur visuelle
+  block.style.left  = leftPct  + '%';
+  block.style.width = widthPct + '%';
+
+  // Données
+  const dest   = row?.destination  || vParam('destination',0);
+  const numDep = row?.num_dep      || '';
+  const numArr = row?.num_arr      || '';
+  const desc   = row?.description  || '';
+  const typeLbl= reefer ? 'REEFER' : 'CHAUFFÉE';
+  const hasStock = desc.toLowerCase().includes('stock') && !desc.toLowerCase().includes('0');
+
+  // Statut
+  let stCls = 'st-attente', stLbl = 'Attente';
+  if (nl)   { stCls = 'st-nl';    stLbl = 'Non livré'; }
+  else if (fait) { stCls = 'st-fait';  stLbl = 'Livré'; }
+
+  block.innerHTML = `
+    <div class="tb-top">
+      <span class="tb-time">${s.h.replace(':','h')}</span>
+      <span class="tb-type">${typeLbl}</span>
+    </div>
+    <div class="tb-mid">
+      ${numArr ? `<span class="tb-num">#${numArr}</span><span class="tb-arrow">→</span>` : ''}
+      <span class="tb-dest">${dest || '—'}</span>
+      ${numDep ? `<span class="tb-arrow">→</span><span class="tb-num">#${numDep}</span>` : ''}
+    </div>
+    <div class="tb-bottom">
+      ${hasStock ? `<span class="tb-stock">📦 STOCK</span>` : `<span class="tb-desc">${desc || '—'}</span>`}
+      <span class="tb-status ${stCls}">${stLbl}</span>
+    </div>
+  `;
+
+  // Drag
+  block.draggable = !nl;
+  block.addEventListener('dragstart', e => {
+    e.dataTransfer.setData('slotIdx', s.idx);
+    setTimeout(() => block.classList.add('dragging'), 0);
+    showDragGhost(s, reefer);
+  });
+  block.addEventListener('dragend', () => {
+    block.classList.remove('dragging');
+    hideDragGhost();
+  });
+
+  // Clic → panneau
+  block.addEventListener('click', e => {
+    e.stopPropagation();
+    selectSlot(s.idx);
+  });
+
+  return block;
+}
+
+// ── DRAG & DROP ────────────────────────────────────────────────
+function handleDrop(e, targetIdx, track) {
+  const sourceIdx = parseInt(e.dataTransfer.getData('slotIdx'));
+  if (sourceIdx === targetIdx) return;
+
+  const sourceSlot = SLOTS.find(s => s.idx === sourceIdx);
+  const targetSlot = SLOTS.find(s => s.idx === targetIdx);
+  if (!sourceSlot || !targetSlot) return;
+
+  // Calculer la position relative du drop sur la track
+  const rect = track.getBoundingClientRect();
+  const relX = (e.clientX - rect.left) / rect.width;
+  const dropMin = TL_START + relX * TL_RANGE;
+
+  // Snapper aux 30 minutes
+  const snapped = Math.round(dropMin / 30) * 30;
+  const newH = minToHHMM(Math.max(TL_START, Math.min(TL_END - 60, snapped)));
+
+  // Mettre à jour les données
+  if (!_rows[sourceIdx]) _rows[sourceIdx] = { slot_index: sourceIdx };
+  if (!_rows[targetIdx]) _rows[targetIdx] = { slot_index: targetIdx };
+
+  // Échanger les heures planifiées
+  const oldSourceH = _rows[sourceIdx].heure_planif || sourceSlot.h;
+  _rows[sourceIdx].heure_planif = _rows[targetIdx].heure_planif || targetSlot.h;
+  _rows[targetIdx].heure_planif = oldSourceH;
+
+  toast(`Échange : ${sourceSlot.lbl} ↔ ${targetSlot.lbl}`, 'ok');
+  renderBoard();
+  updateMetrics();
+  checkConflicts();
+
+  // Sauvegarder
+  saveRow(sourceIdx);
+  saveRow(targetIdx);
+}
+
+function showDragGhost(s, reefer) {
+  const g = document.getElementById('drag-ghost');
+  g.className = 'drag-ghost ' + (reefer ? 'cold' : 'warm');
+  g.textContent = s.h.replace(':','h') + ' · ' + s.lbl;
+  g.style.display = 'block';
+  document.addEventListener('dragover', moveDragGhost);
+}
+function hideDragGhost() {
+  const g = document.getElementById('drag-ghost');
+  g.style.display = 'none';
+  document.removeEventListener('dragover', moveDragGhost);
+}
+function moveDragGhost(e) {
+  const g = document.getElementById('drag-ghost');
+  g.style.left = (e.clientX + 16) + 'px';
+  g.style.top  = (e.clientY - 20) + 'px';
+}
+
+// ── LIGNE "NOW" ────────────────────────────────────────────────
+function updateNowBar() {
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const bar = document.getElementById('now-bar');
+  const lbl = document.getElementById('now-lbl');
+  if (curDate !== todayStr() || nowMin < TL_START || nowMin > TL_END) {
+    if (bar) bar.style.display = 'none';
+    return;
+  }
+  if (bar) {
+    bar.style.display = 'block';
+    bar.style.left = pct(nowMin) + '%';
+    lbl.textContent = now.getHours() + 'h' + String(now.getMinutes()).padStart(2,'0');
+  }
+}
+
+// ── SÉLECTION SLOT ─────────────────────────────────────────────
+function selectSlot(idx) {
+  _selIdx = idx;
+  const s   = SLOTS.find(s => s.idx === idx);
+  const row = _rows[idx] || {};
+  const reefer = isReefer(s, row);
+
+  document.getElementById('panel-empty').style.display = 'none';
+  document.getElementById('panel-form').style.display  = 'flex';
+  document.getElementById('panel-slot-badge').textContent = s.h.replace(':','h') + ' · ' + s.lbl;
+
+  // Info top
+  const pfTime = document.getElementById('pf-time');
+  pfTime.textContent = (row.heure_planif || s.h).replace(':','h');
+  pfTime.className   = 'pf-time ' + (reefer ? 'cold-text' : 'warm-text');
+
+  document.getElementById('pf-type').textContent = reefer ? '❄ Réfrigéré · REEFER' : '🔥 Tempéré · CHAUFFÉE';
+  document.getElementById('pf-type').className   = 'pf-meta-type ' + (reefer ? 'cold-text' : 'warm-text');
+  document.getElementById('pf-day').textContent  = formatDate(curDate);
+
+  // Conflit ?
+  const hasConf = checkSlotConflict(idx);
+  document.getElementById('pf-conflict').classList.toggle('visible', hasConf);
+
+  // Remplir les champs
+  document.getElementById('pf-num-arr').value     = row.num_arr || '';
+  document.getElementById('pf-num-dep').value     = row.num_dep || '';
+  document.getElementById('pf-heure-reelle').value = row.heure_reelle || '';
+
+  fillSelect('pf-dest-arr',    'dest_arrivee', row.dest_arrivee);
+  fillSelect('pf-statut-arr',  'statut_arrivee', row.statut_arrivee);
+  fillSelect('pf-desc',        'description',   row.description);
+  fillSelect('pf-type-camion', 'type_camion',   row.type_camion);
+  fillSelect('pf-dest',        'destination',   row.destination);
+  fillSelect('pf-charg',       'chargement',    row.chargement);
+
+  // Highlight bloc
+  document.querySelectorAll('.truck-block').forEach(b => b.style.outline = 'none');
+  const blk = document.querySelector(`.truck-block[data-idx="${idx}"]`);
+  if (blk) blk.style.outline = '2px solid var(--copper)';
+}
+
+function fillSelect(id, paramType, current) {
+  const sel = document.getElementById(id);
+  const items = _params[paramType] || [];
+  sel.innerHTML = '<option value="">—</option>' +
+    items.map(it => `<option value="${it.valeur}"${current===it.valeur?' selected':''}>${it.valeur}</option>`).join('');
+}
+
+// ── VÉRIFICATION CONFLITS ──────────────────────────────────────
+function checkSlotConflict(idx) {
+  const s   = SLOTS.find(s => s.idx === idx);
+  const row = _rows[idx];
+  if (isInactif(s, row)) return false;
+  const hA = toMin(effectiveH(s, row));
+
+  return SLOTS.some(s2 => {
+    if (s2.idx === idx) return false;
+    const r2 = _rows[s2.idx];
+    if (isInactif(s2, r2)) return false;
+    const hB = toMin(effectiveH(s2, r2));
+    return Math.abs(hA - hB) > 0 && Math.abs(hA - hB) < GAP_MIN;
+  });
+}
+
+function checkConflicts() {
+  const conflicts = [];
+  SLOTS.forEach(s => {
+    if (checkSlotConflict(s.idx)) conflicts.push(s);
+  });
+
+  const alertsBar = document.getElementById('alerts-bar');
+  const alertText = document.getElementById('alert-text');
+  document.getElementById('s-conf').textContent = conflicts.length;
+
+  const dotConf = document.getElementById('dot-conf');
+  dotConf.className = conflicts.length > 0 ? 'dot dot-amber' : 'dot dot-green';
+
+  if (conflicts.length > 0) {
+    alertsBar.classList.add('visible');
+    alertText.textContent = `⚡ ${conflicts.length} conflit(s) · contrainte 1h30 non respectée · ` +
+      conflicts.map(s => s.h.replace(':','h')).join(', ');
+  } else {
+    alertsBar.classList.remove('visible');
+  }
+}
+
+// ── MÉTRIQUES ──────────────────────────────────────────────────
+function updateMetrics() {
+  let total=0, cold=0, warm=0, livres=0, nl=0;
+  SLOTS.forEach(s => {
+    const row = _rows[s.idx];
+    if (isInactif(s, row)) return;
+    total++;
+    if (isReefer(s, row)) cold++; else warm++;
+    if (isNL(row))        nl++;
+    else if (isFait(row)) livres++;
+  });
+  document.getElementById('m-total').textContent  = total;
+  document.getElementById('m-cold').textContent   = cold;
+  document.getElementById('m-warm').textContent   = warm;
+  document.getElementById('m-livres').textContent = livres;
+  document.getElementById('m-nl').textContent     = nl;
+  document.getElementById('s-nl').textContent     = nl;
+  const denom = total - nl;
+  document.getElementById('m-eff').textContent = denom > 0 ? Math.round(livres/denom*100)+'%' : '—';
+  document.getElementById('s-ok').textContent  = livres;
+}
+
+// ── SAUVEGARDE ─────────────────────────────────────────────────
+async function savePanel() {
+  if (_selIdx === null) return;
+  const row = _rows[_selIdx] || {};
+  const s   = SLOTS.find(s => s.idx === _selIdx);
+
+  row.slot_index      = _selIdx;
+  row.date_jour       = curDate;
+  row.heure_planif    = row.heure_planif || s.h;
+  row.num_arr         = document.getElementById('pf-num-arr').value;
+  row.num_dep         = document.getElementById('pf-num-dep').value;
+  row.heure_reelle    = document.getElementById('pf-heure-reelle').value || null;
+  row.dest_arrivee    = document.getElementById('pf-dest-arr').value;
+  row.statut_arrivee  = document.getElementById('pf-statut-arr').value;
+  row.description     = document.getElementById('pf-desc').value;
+  row.type_camion     = document.getElementById('pf-type-camion').value;
+  row.destination     = document.getElementById('pf-dest').value;
+  row.chargement      = document.getElementById('pf-charg').value;
+
+  _rows[_selIdx] = row;
+  await saveRow(_selIdx);
+  renderBoard();
+  updateMetrics();
+}
+
+async function saveRow(idx) {
+  const row = _rows[idx];
+  if (!row) return;
+  const s = SLOTS.find(s => s.idx === idx);
+  const payload = {
+    slot_index:     idx,
+    date_jour:      curDate,
+    heure_planif:   row.heure_planif || s.h,
+    num_arr:        row.num_arr      || null,
+    num_dep:        row.num_dep      || null,
+    heure_reelle:   row.heure_reelle || null,
+    dest_arrivee:   row.dest_arrivee || null,
+    statut_arrivee: row.statut_arrivee || null,
+    description:    row.description  || null,
+    type_camion:    row.type_camion  || null,
+    destination:    row.destination  || null,
+    chargement:     row.chargement   || null,
+    statut_ligne:   row.statut_ligne || null,
+  };
+
+  const { error } = await sb.from('planning_camions')
+    .upsert(payload, { onConflict: 'date_jour,slot_index' });
+
+  if (error) toast('Erreur: ' + error.message, 'err');
+  else toast('Enregistré ✓', 'ok');
+}
+
+async function markNL() {
+  if (_selIdx === null) return;
+  if (!_rows[_selIdx]) _rows[_selIdx] = { slot_index: _selIdx };
+  _rows[_selIdx].statut_ligne = vParam('statut_ligne', 2);
+  await saveRow(_selIdx);
+  renderBoard();
+  updateMetrics();
+  selectSlot(_selIdx);
+}
+
+async function toggleInactif() {
+  if (_selIdx === null) return;
+  if (!_rows[_selIdx]) _rows[_selIdx] = { slot_index: _selIdx };
+  const cur = _rows[_selIdx].statut_ligne;
+  const vI  = vParam('statut_ligne', 1);
+  _rows[_selIdx].statut_ligne = cur === vI ? vParam('statut_ligne', 0) : vI;
+  await saveRow(_selIdx);
+  renderBoard();
+  updateMetrics();
+  document.getElementById('panel-empty').style.display = 'flex';
+  document.getElementById('panel-form').style.display  = 'none';
+  _selIdx = null;
+}
+
+// ── NAV DATE ───────────────────────────────────────────────────
+function formatDate(d) {
+  return new Date(d+'T12:00:00').toLocaleDateString('fr-CA', {
+    weekday:'long', day:'numeric', month:'long', year:'numeric'
+  }).replace(/^\w/, c => c.toUpperCase());
+}
+function updateDateUI() {
+  document.getElementById('day-lbl').textContent = formatDate(curDate);
+  document.getElementById('date-inp').value = curDate;
+}
+function shiftDay(delta) {
+  const d = new Date(curDate+'T12:00:00');
+  d.setDate(d.getDate()+delta);
+  curDate = d.toISOString().slice(0,10);
+  updateDateUI();
+  load();
+}
+function goToday() {
+  curDate = todayStr();
+  updateDateUI();
+  load();
+}
+document.getElementById('date-inp').addEventListener('change', e => {
+  curDate = e.target.value;
+  updateDateUI();
+  load();
+});
+
+// ── TOAST ──────────────────────────────────────────────────────
+function toast(msg, type='ok') {
+  const zone = document.getElementById('toasts');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  zone.appendChild(t);
+  setTimeout(() => t.remove(), 2800);
+}
+
+// ── INIT ───────────────────────────────────────────────────────
+updateDateUI();
+load();
+setInterval(updateNowBar, 30000);
+</script>
+</body>
+</html>
