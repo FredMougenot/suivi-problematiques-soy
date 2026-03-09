@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOY · Orchestration</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Geist+Mono:wght@300;400;500;600&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Palette raffinée */
+  --ink:        #0c0d10;
+  --depth:      #111318;
+  --surface:    #161a22;
+  --raised:     #1c2030;
+  --glass:      rgba(28,32,48,.7);
+  --edge:       #252b3a;
+  --edge-hi:    #323b52;
+  --text:       #e2e8f8;
+  --text-2:     #8892aa;
+  --text-3:     #454e66;
+  --text-4:     #2a3044;
+
+  /* Accents signature */
+  --gold:       #c9a84c;
+  --gold-dim:   rgba(201,168,76,.08);
+  --gold-glow:  rgba(201,168,76,.2);
+
+  /* Lignes de production */
+  --cold:       #5bb8d4;        /* Réfrigérée — bleu glacier */
+  --cold-prod:  #2a8fa8;        /* Production froide */
+  --cold-dim:   rgba(91,184,212,.07);
+  --cold-soft:  rgba(91,184,212,.18);
+  --warm:       #d4915b;        /* Tempérée — ambre brûlé */
+  --warm-prod:  #a86b2a;        /* Production chaude */
+  --warm-dim:   rgba(212,145,91,.07);
+  --warm-soft:  rgba(212,145,91,.18);
+
+  /* États */
+  --ok:         #5bd4a0;
+  --ok-dim:     rgba(91,212,160,.08);
+  --warn:       #d4c45b;
+  --warn-dim:   rgba(212,196,91,.08);
+  --danger:     #d45b7a;
+  --danger-dim: rgba(212,91,122,.1);
+
+  /* Timeline */
+  --TL_START_H: 6;
+  --TL_END_H:   20;
+
+  --t-ease: cubic-bezier(.4,0,.2,1);
+  --t: .2s var(--t-ease);
+  --t-slow: .5s var(--t-ease);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 13px; }
+
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: 'Geist', sans-serif;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* ═══ GRAIN TEXTURE ═══ */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0; opacity: .6;
+}
+
+/* ═══════════════════ HEADER ═══════════════════ */
+.hdr {
+  height: 52px;
+  background: var(--depth);
+  border-bottom: 1px solid var(--edge);
+  display: flex; align-items: center;
+  padding: 0 28px; gap: 20px;
+  position: relative; z-index: 100;
+}
+
+.hdr::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-glow), transparent);
+}
+
+.brand {
+  display: flex; align-items: center; gap: 14px;
+  flex-shrink: 0;
+}
+
+.brand-mark {
+  position: relative;
+  width: 30px; height: 30px;
+}
+.brand-mark-inner {
+  width: 100%; height: 100%;
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  display: grid; place-items: center;
+  background: linear-gradient(135deg, var(--gold-dim), transparent);
+}
+.brand-mark-inner span {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600; font-size: .85rem;
+  color: var(--gold); letter-spacing: .05em;
+}
+
+.brand-text { display: flex; flex-direction: column; gap: 1px; }
+.brand-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .95rem; font-weight: 500;
+  letter-spacing: .18em; text-transform: uppercase;
+  color: var(--text);
+  line-height: 1;
+}
+.brand-sub {
+  font-family: 'Geist Mono', monospace;
+  font-size: .55rem; font-weight: 400;
+  color: var(--text-3); letter-spacing: .2em;
+  text-transform: uppercase;
+}
+
+.hdr-divider { width: 1px; height: 24px; background: var(--edge); flex-shrink: 0; }
+
+/* Navigation date */
+.date-nav { display: flex; align-items: center; gap: 6px; }
+.nav-btn {
+  width: 24px; height: 24px;
+  border: 1px solid var(--edge);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  display: grid; place-items: center;
+  font-size: .8rem;
+  transition: var(--t);
+}
+.nav-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+.date-inp {
+  background: transparent;
+  border: 1px solid var(--edge);
+  border-radius: 5px;
+  color: var(--text-2);
+  font-family: 'Geist Mono', monospace;
+  font-size: .68rem; letter-spacing: .05em;
+  padding: 4px 8px; outline: none;
+  transition: var(--t); cursor: pointer;
+}
+.date-inp:focus { border-color: var(--gold); color: var(--text); }
+
+.day-lbl {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .92rem; font-weight: 400;
+  color: var(--text-2); letter-spacing: .06em;
+  font-style: italic;
+}
+
+/* KPIs header */
+.hdr-kpis {
+  display: flex; align-items: center; gap: 24px;
+  margin-left: auto;
+}
+.hdr-kpi {
+  display: flex; flex-direction: column; gap: 1px;
+  align-items: flex-end;
+}
+.hdr-kpi-val {
+  font-family: 'Geist Mono', monospace;
+  font-size: .9rem; font-weight: 600;
+  line-height: 1;
+}
+.hdr-kpi-lbl {
+  font-size: .55rem; font-weight: 400;
+  color: var(--text-3); letter-spacing: .15em;
+  text-transform: uppercase;
+}
+.kpi-green { color: var(--ok); }
+.kpi-gold  { color: var(--gold); }
+.kpi-red   { color: var(--danger); }
+.kpi-cold  { color: var(--cold); }
+.kpi-warm  { color: var(--warm); }
+
+.hdr-action {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-2);
+  font-family: 'Geist', sans-serif;
+  font-size: .7rem; font-weight: 400;
+  cursor: pointer; transition: var(--t);
+  text-decoration: none; white-space: nowrap;
+}
+.hdr-action:hover { border-color: var(--gold-glow); color: var(--text); }
+.btn-today {
+  border-color: var(--gold-glow);
+  color: var(--gold);
+  background: var(--gold-dim);
+}
+.btn-today:hover { background: var(--gold); color: var(--ink); }
+
+/* ═══════════════════ LÉGENDE LIGNES ═══════════════════ */
+.lines-legend {
+  display: grid; grid-template-columns: 1fr 1fr;
+  background: var(--depth);
+  border-bottom: 1px solid var(--edge);
+  position: relative; z-index: 10;
+}
+
+.line-header {
+  padding: 10px 28px;
+  display: flex; align-items: center; gap: 12px;
+  position: relative;
+}
+.line-header:first-child { border-right: 1px solid var(--edge); }
+
+.line-indicator {
+  width: 3px; height: 32px; border-radius: 2px; flex-shrink: 0;
+}
+.cold-ind { background: linear-gradient(180deg, var(--cold), var(--cold-prod)); }
+.warm-ind { background: linear-gradient(180deg, var(--warm), var(--warm-prod)); }
+
+.line-info { display: flex; flex-direction: column; gap: 2px; }
+.line-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .88rem; font-weight: 500;
+  letter-spacing: .1em;
+}
+.cold .line-name { color: var(--cold); }
+.warm .line-name { color: var(--warm); }
+.line-detail {
+  font-family: 'Geist Mono', monospace;
+  font-size: .58rem; color: var(--text-3);
+  letter-spacing: .12em; text-transform: uppercase;
+}
+
+.line-pulse {
+  width: 6px; height: 6px; border-radius: 50%; margin-left: auto;
+  flex-shrink: 0;
+}
+.cold .line-pulse { background: var(--cold); box-shadow: 0 0 8px var(--cold); animation: pulse 2.5s infinite; }
+.warm .line-pulse { background: var(--warm); box-shadow: 0 0 8px var(--warm); animation: pulse 2.5s .8s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.6)} }
+
+/* ═══════════════════ BOARD PRINCIPAL ═══════════════════ */
+.board-wrap {
+  height: calc(100vh - 52px - 54px);
+  display: flex; flex-direction: column;
+  overflow: hidden; position: relative; z-index: 1;
+}
+
+/* Heure scale */
+.time-scale {
+  display: flex;
+  padding-left: 180px;
+  padding-right: 16px;
+  padding-top: 12px;
+  padding-bottom: 8px;
+  background: var(--ink);
+  flex-shrink: 0;
+  position: relative;
+}
+.time-scale::after {
+  content: '';
+  position: absolute; bottom: 0; left: 180px; right: 16px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--edge), var(--edge-hi), var(--edge));
+}
+.ts-mark {
+  flex: 1; text-align: center;
+  font-family: 'Geist Mono', monospace;
+  font-size: .58rem; font-weight: 400;
+  color: var(--text-4); letter-spacing: .08em;
+  position: relative;
+}
+.ts-mark.highlight { color: var(--text-3); }
+.ts-mark::before {
+  content: '';
+  position: absolute; top: calc(100% + 8px); left: 50%;
+  width: 1px; height: 6px;
+  background: var(--edge);
+}
+
+/* Conteneur des rails */
+.rails {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  padding: 0 16px 24px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--edge) transparent;
+}
+
+/* ── GROUPE DE RAIL ── */
+.rail-group {
+  margin-bottom: 2px;
+}
+
+.rail-group-label {
+  padding: 8px 0 6px;
+  font-family: 'Geist Mono', monospace;
+  font-size: .58rem; font-weight: 500;
+  color: var(--text-4); letter-spacing: .2em;
+  text-transform: uppercase;
+  padding-left: 180px;
+  display: flex; align-items: center; gap: 8px;
+}
+.rail-group-label::before {
+  content: '';
+  width: 16px; height: 1px;
+  background: var(--edge);
+  margin-left: -24px;
+}
+
+/* ── RAIL ── */
+.rail {
+  display: flex; align-items: stretch;
+  height: 56px; margin-bottom: 3px;
+  animation: railIn .4s var(--t-ease) both;
+}
+@keyframes railIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.rail.inactif { opacity: .2; pointer-events: none; }
+
+.rail-label {
+  width: 180px; flex-shrink: 0;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: flex-end;
+  padding-right: 20px; gap: 2px;
+}
+.rail-time {
+  font-family: 'Geist Mono', monospace;
+  font-size: .92rem; font-weight: 500;
+  color: var(--text); line-height: 1;
+}
+.rail-slot {
+  font-size: .58rem; color: var(--text-3);
+  letter-spacing: .1em; text-transform: uppercase;
+}
+
+.rail-track {
+  flex: 1; position: relative;
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color var(--t);
+}
+.rail-track:hover { border-color: var(--edge-hi); }
+.rail-track.conflict {
+  border-color: rgba(212,91,122,.4);
+  box-shadow: inset 0 0 24px rgba(212,91,122,.04);
+}
+
+/* Lignes verticales heures */
+.v-line {
+  position: absolute; top: 0; bottom: 0;
+  width: 1px; background: var(--edge);
+  pointer-events: none; z-index: 1;
+}
+.v-line.major { background: var(--edge-hi); }
+
+/* ── BLOC PRODUCTION ── */
+.prod-block {
+  position: absolute; top: 4px; bottom: 4px;
+  border-radius: 5px;
+  pointer-events: none;
+  z-index: 2;
+  overflow: hidden;
+  display: flex; align-items: center;
+}
+.prod-block::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent, transparent 4px,
+    rgba(255,255,255,.025) 4px, rgba(255,255,255,.025) 8px
+  );
+}
+.prod-block-inner {
+  position: relative; z-index: 1;
+  padding: 0 10px;
+  font-family: 'Geist Mono', monospace;
+  font-size: .56rem; font-weight: 500;
+  letter-spacing: .1em; text-transform: uppercase;
+  white-space: nowrap; overflow: hidden;
+}
+.prod-cold {
+  background: linear-gradient(90deg, rgba(43,143,168,.35), rgba(43,143,168,.12));
+  border: 1px solid rgba(91,184,212,.2);
+}
+.prod-cold .prod-block-inner { color: var(--cold); }
+.prod-warm {
+  background: linear-gradient(90deg, rgba(168,107,42,.35), rgba(168,107,42,.12));
+  border: 1px solid rgba(212,145,91,.2);
+}
+.prod-warm .prod-block-inner { color: var(--warm); }
+
+/* ── BLOC CAMION ── */
+.truck-block {
+  position: absolute; top: 8px; bottom: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 10;
+  display: flex; flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  transition: all var(--t);
+  min-width: 60px;
+}
+.truck-block:hover {
+  transform: scaleY(1.06);
+  z-index: 20;
+  box-shadow: 0 6px 24px rgba(0,0,0,.5);
+}
+.truck-block.selected {
+  outline: 1.5px solid var(--gold);
+  outline-offset: 1px;
+  z-index: 25;
+}
+.truck-block.in-conflict {
+  animation: conflict-glow 1.5s infinite;
+}
+@keyframes conflict-glow {
+  0%,100% { box-shadow: 0 0 0 1px var(--danger); }
+  50%      { box-shadow: 0 0 10px 1px var(--danger); }
+}
+
+.tb-cold {
+  background: linear-gradient(160deg, rgba(91,184,212,.18) 0%, rgba(91,184,212,.06) 100%);
+  border: 1px solid rgba(91,184,212,.35);
+}
+.tb-warm {
+  background: linear-gradient(160deg, rgba(212,145,91,.18) 0%, rgba(212,145,91,.06) 100%);
+  border: 1px solid rgba(212,145,91,.35);
+}
+.tb-fait {
+  border-color: rgba(91,212,160,.4) !important;
+  background: linear-gradient(160deg, rgba(91,212,160,.12) 0%, rgba(91,212,160,.04) 100%) !important;
+}
+.tb-nl {
+  border-color: rgba(212,91,122,.3) !important;
+  background: linear-gradient(160deg, rgba(212,91,122,.1) 0%, rgba(212,91,122,.04) 100%) !important;
+  opacity: .6;
+}
+
+.tb-head {
+  padding: 4px 8px 2px;
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 4px;
+}
+.tb-heure {
+  font-family: 'Geist Mono', monospace;
+  font-size: .72rem; font-weight: 600; line-height: 1;
+}
+.tb-cold .tb-heure { color: var(--cold); }
+.tb-warm .tb-heure { color: var(--warm); }
+.tb-fait .tb-heure { color: var(--ok) !important; }
+.tb-nl   .tb-heure { color: var(--danger) !important; }
+
+.tb-tag {
+  font-family: 'Geist Mono', monospace;
+  font-size: .5rem; font-weight: 500;
+  letter-spacing: .08em;
+  padding: 1px 5px; border-radius: 3px;
+}
+.tag-cold { background: rgba(91,184,212,.12); color: var(--cold); }
+.tag-warm { background: rgba(212,145,91,.12); color: var(--warm); }
+.tag-fait { background: rgba(91,212,160,.12); color: var(--ok); }
+.tag-nl   { background: rgba(212,91,122,.12); color: var(--danger); }
+
+.tb-body {
+  padding: 0 8px;
+  font-size: .62rem;
+  color: var(--text-2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  flex: 1; display: flex; align-items: center;
+}
+
+.tb-foot {
+  padding: 2px 8px 4px;
+  display: flex; align-items: center;
+  gap: 4px; justify-content: space-between;
+  border-top: 1px solid rgba(255,255,255,.04);
+}
+.tb-num {
+  font-family: 'Geist Mono', monospace;
+  font-size: .54rem; color: var(--text-3);
+}
+.tb-stock {
+  font-size: .52rem; font-weight: 500;
+  color: var(--gold); letter-spacing: .06em;
+}
+
+/* ── ZONE CONFLIT ── */
+.conflict-band {
+  position: absolute; top: 0; bottom: 0;
+  background: rgba(212,91,122,.06);
+  border-left: 1px dashed rgba(212,91,122,.25);
+  border-right: 1px dashed rgba(212,91,122,.25);
+  pointer-events: none; z-index: 3;
+}
+.conflict-badge {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-family: 'Geist Mono', monospace;
+  font-size: .52rem; color: var(--danger);
+  letter-spacing: .08em; white-space: nowrap;
+  background: var(--surface);
+  padding: 1px 5px; border-radius: 3px;
+}
+
+/* ── LIGNE "NOW" ── */
+.now-bar {
+  position: absolute; top: 0; bottom: 0;
+  width: 1px;
+  background: var(--danger);
+  box-shadow: 0 0 6px var(--danger);
+  pointer-events: none; z-index: 50;
+  display: none;
+}
+.now-pip {
+  position: absolute; top: -3px; left: -3px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--danger);
+  box-shadow: 0 0 8px var(--danger);
+}
+
+/* ══════════════ PANNEAU DÉTAIL ══════════════ */
+.detail-overlay {
+  position: fixed;
+  right: 0; top: 0; bottom: 0;
+  width: 300px;
+  background: var(--depth);
+  border-left: 1px solid var(--edge);
+  z-index: 200;
+  display: flex; flex-direction: column;
+  transform: translateX(100%);
+  transition: transform var(--t-slow);
+  box-shadow: -20px 0 60px rgba(0,0,0,.4);
+}
+.detail-overlay.open { transform: translateX(0); }
+.detail-overlay::before {
+  content: '';
+  position: absolute; top: 0; left: 0; bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, var(--gold-glow), transparent);
+}
+
+.detail-hdr {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--edge);
+  display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 12px;
+  flex-shrink: 0;
+}
+.detail-close {
+  width: 24px; height: 24px;
+  border: 1px solid var(--edge);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer; font-size: .9rem;
+  display: grid; place-items: center;
+  transition: var(--t); flex-shrink: 0;
+}
+.detail-close:hover { border-color: var(--gold); color: var(--gold); }
+
+.detail-time {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.4rem; font-weight: 300;
+  line-height: 1; letter-spacing: -.01em;
+}
+.detail-type {
+  font-family: 'Geist Mono', monospace;
+  font-size: .6rem; font-weight: 500;
+  letter-spacing: .2em; text-transform: uppercase;
+  margin-top: 3px;
+}
+
+.detail-body { flex: 1; overflow-y: auto; padding: 0 0 16px; }
+
+.detail-section {
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--edge);
+}
+.detail-section-title {
+  font-family: 'Geist Mono', monospace;
+  font-size: .58rem; font-weight: 500;
+  color: var(--text-3); letter-spacing: .2em;
+  text-transform: uppercase; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.detail-section-title::after {
+  content: '';
+  flex: 1; height: 1px;
+  background: var(--edge);
+}
+
+.d-field { margin-bottom: 10px; }
+.d-field:last-child { margin-bottom: 0; }
+.d-lbl {
+  display: block;
+  font-size: .56rem; font-weight: 500;
+  color: var(--text-3); letter-spacing: .18em;
+  text-transform: uppercase; margin-bottom: 5px;
+}
+.d-inp, .d-sel {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'Geist', sans-serif;
+  font-size: .75rem; padding: 7px 10px;
+  outline: none; transition: var(--t);
+  appearance: none;
+}
+.d-inp:focus, .d-sel:focus { border-color: var(--gold); }
+.d-inp::placeholder { color: var(--text-4); }
+.d-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.detail-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--edge);
+  display: flex; flex-direction: column; gap: 7px;
+  flex-shrink: 0;
+}
+.d-btn {
+  width: 100%; padding: 9px 14px;
+  border-radius: 6px; cursor: pointer;
+  font-family: 'Geist', sans-serif;
+  font-size: .72rem; font-weight: 500;
+  transition: var(--t); border: none;
+  letter-spacing: .03em;
+}
+.d-btn-primary {
+  background: var(--gold);
+  color: var(--ink);
+}
+.d-btn-primary:hover { filter: brightness(1.1); }
+.d-btn-ghost {
+  background: transparent;
+  border: 1px solid var(--edge);
+  color: var(--text-2);
+}
+.d-btn-ghost:hover { border-color: var(--edge-hi); color: var(--text); }
+.d-btn-danger {
+  background: transparent;
+  border: 1px solid rgba(212,91,122,.3);
+  color: var(--danger);
+}
+.d-btn-danger:hover { background: var(--danger-dim); }
+
+/* Conflit warning dans le panneau */
+.detail-conflict {
+  margin: 0 24px 0;
+  padding: 10px 14px;
+  background: var(--danger-dim);
+  border: 1px solid rgba(212,91,122,.25);
+  border-radius: 7px;
+  font-size: .65rem; color: var(--danger);
+  line-height: 1.5; display: none;
+}
+.detail-conflict.show { display: block; }
+
+/* ══════════════ TOASTS ══════════════ */
+.toasts {
+  position: fixed; bottom: 20px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 6px;
+  pointer-events: none;
+}
+.toast {
+  background: var(--raised);
+  border: 1px solid var(--edge-hi);
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-family: 'Geist', sans-serif;
+  font-size: .72rem; color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+  animation: toastIn .25s var(--t-ease);
+  box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  backdrop-filter: blur(12px);
+  white-space: nowrap;
+}
+.toast.ok  { border-left: 2px solid var(--ok); }
+.toast.err { border-left: 2px solid var(--danger); }
+.toast.warn { border-left: 2px solid var(--warn); }
+@keyframes toastIn {
+  from { opacity:0; transform:translateY(8px) scale(.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+
+/* ══════════════ BARRE CONFLITS ══════════════ */
+.conflict-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: 36px;
+  background: rgba(20,12,16,.95);
+  border-top: 1px solid rgba(212,91,122,.25);
+  display: none; align-items: center;
+  padding: 0 28px; gap: 12px;
+  z-index: 150;
+  backdrop-filter: blur(8px);
+}
+.conflict-bar.show { display: flex; }
+.cb-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--danger); animation: blink 1s infinite; }
+.cb-text {
+  font-family: 'Geist Mono', monospace;
+  font-size: .62rem; color: var(--danger); letter-spacing: .06em;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-thumb { background: var(--edge-hi); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="brand">
+    <div class="brand-mark">
+      <div class="brand-mark-inner"><span>S</span></div>
+    </div>
+    <div class="brand-text">
+      <div class="brand-name">Expédition SOY</div>
+      <div class="brand-sub">Orchestration · Flux de production</div>
+    </div>
+  </div>
+  <div class="hdr-divider"></div>
+  <div class="date-nav">
+    <button class="nav-btn" onclick="shiftDay(-1)">‹</button>
+    <input type="date" class="date-inp" id="date-inp">
+    <button class="nav-btn" onclick="shiftDay(1)">›</button>
+  </div>
+  <span class="day-lbl" id="day-lbl">—</span>
+  <div class="hdr-kpis" id="hdr-kpis">
+    <div class="hdr-kpi"><div class="hdr-kpi-val kpi-cold" id="k-cold">—</div><div class="hdr-kpi-lbl">Réfrigérés</div></div>
+    <div class="hdr-kpi"><div class="hdr-kpi-val kpi-warm" id="k-warm">—</div><div class="hdr-kpi-lbl">Tempérés</div></div>
+    <div class="hdr-kpi"><div class="hdr-kpi-val kpi-green" id="k-ok">—</div><div class="hdr-kpi-lbl">Livrés</div></div>
+    <div class="hdr-kpi"><div class="hdr-kpi-val kpi-red" id="k-nl">—</div><div class="hdr-kpi-lbl">Non livrés</div></div>
+    <div class="hdr-kpi"><div class="hdr-kpi-val kpi-gold" id="k-eff">—</div><div class="hdr-kpi-lbl">Efficacité</div></div>
+  </div>
+  <div class="hdr-divider"></div>
+  <button class="hdr-action btn-today" onclick="goToday()">Aujourd'hui</button>
+  <a href="planning_camions.html" class="hdr-action">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+    Vue classique
+  </a>
+</header>
+
+<!-- LÉGENDE LIGNES -->
+<div class="lines-legend">
+  <div class="line-header cold">
+    <div class="line-indicator cold-ind"></div>
+    <div class="line-info">
+      <div class="line-name">Ligne Réfrigérée</div>
+      <div class="line-detail">Camions REEFER · Produits frais · Cycle production 4h</div>
+    </div>
+    <div class="line-pulse cold"></div>
+  </div>
+  <div class="line-header warm">
+    <div class="line-indicator warm-ind"></div>
+    <div class="line-info">
+      <div class="line-name">Ligne Tempérée</div>
+      <div class="line-detail">Camions CHAUFFÉE · Produits secs · Cycle production 4h</div>
+    </div>
+    <div class="line-pulse warm"></div>
+  </div>
+</div>
+
+<!-- BOARD -->
+<div class="board-wrap">
+  <div class="time-scale" id="time-scale"></div>
+  <div class="rails" id="rails">
+    <!-- généré JS -->
+  </div>
+</div>
+
+<!-- PANNEAU DÉTAIL -->
+<div class="detail-overlay" id="detail-panel">
+  <div class="detail-hdr">
+    <div>
+      <div class="detail-time" id="dp-time">—</div>
+      <div class="detail-type" id="dp-type">—</div>
+    </div>
+    <button class="detail-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="detail-conflict" id="dp-conflict">
+    ⚡ Conflit — moins de 1h30 avec un autre créneau actif.
+  </div>
+  <div class="detail-body">
+    <div class="detail-section">
+      <div class="detail-section-title">Arrivée</div>
+      <div class="d-row">
+        <div class="d-field">
+          <label class="d-lbl">N° camion entrant</label>
+          <input class="d-inp" id="dp-num-arr" placeholder="ex : 4872">
+        </div>
+        <div class="d-field">
+          <label class="d-lbl">Provenance</label>
+          <select class="d-sel" id="dp-dest-arr"></select>
+        </div>
+      </div>
+      <div class="d-row">
+        <div class="d-field">
+          <label class="d-lbl">Statut arrivée</label>
+          <select class="d-sel" id="dp-statut-arr"></select>
+        </div>
+        <div class="d-field">
+          <label class="d-lbl">Heure réelle</label>
+          <input class="d-inp" id="dp-hreelle" type="time">
+        </div>
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Contenu</div>
+      <div class="d-field">
+        <label class="d-lbl">Description</label>
+        <select class="d-sel" id="dp-desc"></select>
+      </div>
+      <div class="d-field">
+        <label class="d-lbl">Type camion</label>
+        <select class="d-sel" id="dp-type-camion"></select>
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Départ</div>
+      <div class="d-row">
+        <div class="d-field">
+          <label class="d-lbl">N° camion sortant</label>
+          <input class="d-inp" id="dp-num-dep" placeholder="ex : 5103">
+        </div>
+        <div class="d-field">
+          <label class="d-lbl">Destination</label>
+          <select class="d-sel" id="dp-dest"></select>
+        </div>
+      </div>
+      <div class="d-field">
+        <label class="d-lbl">Chargement</label>
+        <select class="d-sel" id="dp-charg"></select>
+      </div>
+    </div>
+  </div>
+  <div class="detail-footer">
+    <button class="d-btn d-btn-primary" onclick="savePanel()">Enregistrer</button>
+    <button class="d-btn d-btn-danger" onclick="markNL()">Marquer Non Livré</button>
+    <button class="d-btn d-btn-ghost" onclick="toggleInactif()">Désactiver ce créneau</button>
+  </div>
+</div>
+
+<!-- BARRE CONFLITS -->
+<div class="conflict-bar" id="conflict-bar">
+  <div class="cb-dot"></div>
+  <span class="cb-text" id="cb-text">—</span>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+const TL_START = 6 * 60;
+const TL_END   = 20 * 60;
+const TL_RANGE = TL_END - TL_START;
+const GAP_MIN  = 90;
+const PROD_DUR = 4 * 60; // 4h cycle production
+const WK_INACTIF = [0,1,7,8,9];
+
+const SLOTS = [
+  {idx:0, h:'06:00', lbl:'Camion A',   defType:'CHAUFFÉE'},
+  {idx:1, h:'06:00', lbl:'Camion B',   defType:'REEFER'},
+  {idx:2, h:'07:30', lbl:'Créneau 3',  defType:'CHAUFFÉE'},
+  {idx:3, h:'09:00', lbl:'Créneau 4',  defType:'CHAUFFÉE'},
+  {idx:4, h:'11:30', lbl:'Créneau 5',  defType:'CHAUFFÉE'},
+  {idx:5, h:'14:00', lbl:'Créneau 6',  defType:'CHAUFFÉE'},
+  {idx:6, h:'15:30', lbl:'Créneau 7',  defType:'CHAUFFÉE'},
+  {idx:7, h:'17:00', lbl:'Créneau 8',  defType:'CHAUFFÉE'},
+  {idx:8, h:'18:00', lbl:'Créneau 9',  defType:'CHAUFFÉE'},
+  {idx:9, h:'19:00', lbl:'Créneau 10', defType:'CHAUFFÉE'},
+];
+
+let curDate = todayStr();
+let _params = {}, _rows = {}, _selIdx = null;
+
+// ── UTILS ──────────────────────────────────────────────────────
+function todayStr() { return new Date().toISOString().slice(0,10); }
+function toMin(h)   { if (!h) return 0; const [a,b]=h.split(':').map(Number); return a*60+b; }
+function pct(m)     { return Math.max(0,Math.min(100,(m-TL_START)/TL_RANGE*100)); }
+function vP(t,i)    { return (_params[t]||[])[i]?.valeur||''; }
+function isWkEnd()  { const d=new Date(curDate+'T12:00:00').getDay(); return d===0||d===6; }
+
+function isInactif(s, r) {
+  const sl=(r?.statut_ligne||'').trim();
+  if (sl===vP('statut_ligne',1)) return true;
+  if (!sl && isWkEnd() && WK_INACTIF.includes(s.idx)) return true;
+  return false;
+}
+function isNL(r)    { return (r?.statut_ligne||'').trim()===vP('statut_ligne',2); }
+function isFait(r)  { return (r?.statut_arrivee||'').trim()===vP('statut_arrivee',0); }
+function isReefer(s,r) {
+  const tc=(r?.type_camion||'').trim();
+  return tc===vP('type_camion',0)||(!tc&&s.defType==='REEFER');
+}
+function effectiveH(s,r) { return r?.heure_planif||s.h; }
+
+// ── LOAD ───────────────────────────────────────────────────────
+async function load() {
+  document.getElementById('rails').innerHTML =
+    '<div style="padding:80px;text-align:center;color:var(--text-4);font-family:Geist Mono,monospace;font-size:.62rem;letter-spacing:.2em;">CHARGEMENT</div>';
+
+  const {data:pD} = await sb.from('planning_params').select('*');
+  _params = {};
+  if (pD) { pD.forEach(p=>{ if(!_params[p.type])_params[p.type]=[]; _params[p.type].push(p); }); Object.values(_params).forEach(a=>a.sort((x,y)=>x.ordre-y.ordre)); }
+
+  const {data:rD} = await sb.from('planning_camions').select('*').eq('date_jour',curDate);
+  _rows = {};
+  if (rD) rD.forEach(r=>{ _rows[r.slot_index]=r; });
+
+  buildTimeScale();
+  renderRails();
+  updateKPIs();
+  checkConflicts();
+  updateNowBar();
+}
+
+// ── TIME SCALE ─────────────────────────────────────────────────
+function buildTimeScale() {
+  const ts = document.getElementById('time-scale');
+  ts.innerHTML = '';
+  for (let h=6; h<=19; h++) {
+    const m = document.createElement('div');
+    m.className = 'ts-mark' + (h%2===0?' highlight':'');
+    m.textContent = h + 'h';
+    ts.appendChild(m);
+  }
+}
+
+// ── RENDER RAILS ───────────────────────────────────────────────
+function renderRails() {
+  const rails = document.getElementById('rails');
+  rails.innerHTML = '';
+
+  // Grouper : ligne réfrigérée d'abord, puis tempérée
+  const coldSlots = SLOTS.filter(s => isReefer(s, _rows[s.idx]));
+  const warmSlots = SLOTS.filter(s => !isReefer(s, _rows[s.idx]));
+
+  // Calculer les cycles de production (continu, indépendant)
+  // Réfrigérée : commence à 6h, cycle de 4h → 6h→10h, 10h→14h, 14h→18h
+  // Tempérée   : commence à 6h30, cycle de 4h → 6h30→10h30, ...
+  const prodCycles = {
+    cold: computeProdCycles(6*60,    PROD_DUR),
+    warm: computeProdCycles(6*60+30, PROD_DUR),
+  };
+
+  // Groupe réfrigéré
+  if (coldSlots.length > 0) {
+    const grp = document.createElement('div');
+    grp.className = 'rail-group';
+    const lbl = document.createElement('div');
+    lbl.className = 'rail-group-label';
+    lbl.innerHTML = '<span style="color:var(--cold)">❄</span> Ligne réfrigérée';
+    grp.appendChild(lbl);
+    coldSlots.forEach((s,i) => {
+      grp.appendChild(buildRail(s, _rows[s.idx], 'cold', prodCycles.cold, i));
+    });
+    rails.appendChild(grp);
+  }
+
+  // Groupe tempéré
+  if (warmSlots.length > 0) {
+    const grp = document.createElement('div');
+    grp.className = 'rail-group';
+    const lbl = document.createElement('div');
+    lbl.className = 'rail-group-label';
+    lbl.innerHTML = '<span style="color:var(--warm)">◈</span> Ligne tempérée';
+    grp.appendChild(lbl);
+    warmSlots.forEach((s,i) => {
+      grp.appendChild(buildRail(s, _rows[s.idx], 'warm', prodCycles.warm, i));
+    });
+    rails.appendChild(grp);
+  }
+}
+
+function computeProdCycles(startMin, durMin) {
+  const cycles = [];
+  let cur = startMin;
+  while (cur < TL_END) {
+    cycles.push({ start: cur, end: Math.min(cur + durMin, TL_END) });
+    cur += durMin;
+  }
+  return cycles;
+}
+
+function buildRail(s, row, lane, prodCycles, animIdx) {
+  const inactif = isInactif(s, row);
+  const nl      = isNL(row);
+  const fait    = isFait(row);
+  const h       = effectiveH(s, row);
+  const startMin = toMin(h);
+
+  const railDiv = document.createElement('div');
+  railDiv.className = 'rail' + (inactif ? ' inactif' : '');
+  railDiv.style.animationDelay = (animIdx * 60) + 'ms';
+
+  // Label
+  const lbl = document.createElement('div');
+  lbl.className = 'rail-label';
+  lbl.innerHTML = `<div class="rail-time">${h.replace(':','h')}</div><div class="rail-slot">${s.lbl}</div>`;
+  railDiv.appendChild(lbl);
+
+  // Track
+  const track = document.createElement('div');
+  track.className = 'rail-track' + (checkSlotConflict(s.idx) ? ' conflict' : '');
+  track.id = 'track-' + s.idx;
+
+  // Lignes verticales heures
+  for (let hh=6; hh<=19; hh++) {
+    const vl = document.createElement('div');
+    vl.className = 'v-line' + (hh%2===0?' major':'');
+    vl.style.left = pct(hh*60)+'%';
+    track.appendChild(vl);
+  }
+
+  // Blocs de production (cycles continus)
+  if (!inactif) {
+    prodCycles.forEach((cycle, ci) => {
+      const pb = document.createElement('div');
+      pb.className = `prod-block prod-${lane}`;
+      pb.style.left  = pct(cycle.start)+'%';
+      pb.style.width = (pct(cycle.end)-pct(cycle.start))+'%';
+      pb.style.opacity = '.7';
+      const inner = document.createElement('div');
+      inner.className = 'prod-block-inner';
+      inner.textContent = `Prod. ${ci+1} · ${Math.floor((cycle.end-cycle.start)/60)}h`;
+      pb.appendChild(inner);
+      pb.title = `Cycle de production ${ci+1} — ${Math.floor(cycle.start/60)}h${String(cycle.start%60).padStart(2,'0')} → ${Math.floor(cycle.end/60)}h${String(cycle.end%60).padStart(2,'0')}`;
+      track.appendChild(pb);
+    });
+
+    // Marqueur coïncidence : cercle sur la track au niveau du camion
+    // pour montrer où le camion "coupe" la production
+    const matchDiv = document.createElement('div');
+    matchDiv.style.cssText = `
+      position:absolute; top:0; bottom:0;
+      left:${pct(startMin)}%; width:2px;
+      background:${lane==='cold'?'rgba(91,184,212,.4)':'rgba(212,145,91,.4)'};
+      pointer-events:none; z-index:8;
+    `;
+    track.appendChild(matchDiv);
+  }
+
+  // Zone conflit
+  if (!inactif) {
+    SLOTS.forEach(s2 => {
+      if (s2.idx===s.idx) return;
+      const r2=_rows[s2.idx];
+      if (isInactif(s2,r2)) return;
+      const h2=toMin(effectiveH(s2,r2));
+      const diff=Math.abs(startMin-h2);
+      if (diff>0 && diff<GAP_MIN) {
+        const band = document.createElement('div');
+        band.className = 'conflict-band';
+        band.style.left  = pct(Math.min(startMin,h2))+'%';
+        band.style.width = (pct(Math.max(startMin,h2))-pct(Math.min(startMin,h2)))+'%';
+        const bdg = document.createElement('div');
+        bdg.className = 'conflict-badge';
+        bdg.textContent = '⚡ '+diff+'min';
+        band.appendChild(bdg);
+        track.appendChild(band);
+      }
+    });
+  }
+
+  // Ligne NOW
+  const nowBar = document.createElement('div');
+  nowBar.className = 'now-bar';
+  nowBar.id = 'nowbar-'+s.idx;
+  const pip = document.createElement('div');
+  pip.className = 'now-pip';
+  nowBar.appendChild(pip);
+  track.appendChild(nowBar);
+
+  // Bloc camion
+  if (!inactif) {
+    const block = buildTruckBlock(s, row, startMin, lane, nl, fait);
+    track.appendChild(block);
+  }
+
+  railDiv.appendChild(track);
+  return railDiv;
+}
+
+function buildTruckBlock(s, row, startMin, lane, nl, fait) {
+  const block = document.createElement('div');
+  const widthPct = pct(startMin+90)-pct(startMin);
+
+  let cls = `truck-block tb-${lane}`;
+  if (fait) cls += ' tb-fait';
+  if (nl)   cls += ' tb-nl';
+  if (checkSlotConflict(s.idx)) cls += ' in-conflict';
+
+  block.className = cls;
+  block.style.left  = pct(startMin)+'%';
+  block.style.width = Math.max(widthPct, 6)+'%';
+  block.dataset.idx = s.idx;
+
+  const dest    = row?.destination || vP('destination',0);
+  const numArr  = row?.num_arr  || '';
+  const numDep  = row?.num_dep  || '';
+  const desc    = row?.description || '';
+  const hasStock= desc.toLowerCase().includes('stock');
+
+  let tagCls='tag-'+lane, tagLbl=lane==='cold'?'REEFER':'CHAUFFÉE';
+  if (fait) { tagCls='tag-fait'; tagLbl='LIVRÉ'; }
+  if (nl)   { tagCls='tag-nl';   tagLbl='NON LIVRÉ'; }
+
+  block.innerHTML = `
+    <div class="tb-head">
+      <span class="tb-heure">${s.h.replace(':','h')}</span>
+      <span class="tb-tag ${tagCls}">${tagLbl}</span>
+    </div>
+    <div class="tb-body">${dest||'—'}</div>
+    <div class="tb-foot">
+      ${numArr||numDep ? `<span class="tb-num">${numArr?'↓'+numArr:''}${numArr&&numDep?' ':''}${numDep?'↑'+numDep:''}</span>` : '<span></span>'}
+      ${hasStock ? `<span class="tb-stock">📦 STOCK</span>` : `<span class="tb-num" style="color:var(--text-4)">${desc?desc.substring(0,12):'—'}</span>`}
+    </div>
+  `;
+
+  block.addEventListener('click', () => openPanel(s.idx));
+  return block;
+}
+
+// ── PANNEAU DÉTAIL ─────────────────────────────────────────────
+function openPanel(idx) {
+  _selIdx = idx;
+  const s   = SLOTS.find(s=>s.idx===idx);
+  const row = _rows[idx]||{};
+  const reefer = isReefer(s,row);
+
+  const panel = document.getElementById('detail-panel');
+  panel.classList.add('open');
+
+  const time = (row.heure_planif||s.h).replace(':','h');
+  document.getElementById('dp-time').textContent = time;
+  document.getElementById('dp-time').style.color = reefer ? 'var(--cold)' : 'var(--warm)';
+  document.getElementById('dp-type').textContent = reefer ? '❄  Réfrigéré · REEFER' : '◈  Tempéré · CHAUFFÉE';
+  document.getElementById('dp-type').style.color = reefer ? 'var(--cold)' : 'var(--warm)';
+
+  document.getElementById('dp-conflict').classList.toggle('show', checkSlotConflict(idx));
+
+  document.getElementById('dp-num-arr').value  = row.num_arr||'';
+  document.getElementById('dp-num-dep').value  = row.num_dep||'';
+  document.getElementById('dp-hreelle').value  = row.heure_reelle||'';
+
+  fillSel('dp-dest-arr',    'dest_arrivee',   row.dest_arrivee);
+  fillSel('dp-statut-arr',  'statut_arrivee', row.statut_arrivee);
+  fillSel('dp-desc',        'description',    row.description);
+  fillSel('dp-type-camion', 'type_camion',    row.type_camion);
+  fillSel('dp-dest',        'destination',    row.destination);
+  fillSel('dp-charg',       'chargement',     row.chargement);
+
+  document.querySelectorAll('.truck-block').forEach(b => b.classList.remove('selected'));
+  const blk = document.querySelector(`.truck-block[data-idx="${idx}"]`);
+  if (blk) blk.classList.add('selected');
+}
+
+function closePanel() {
+  document.getElementById('detail-panel').classList.remove('open');
+  document.querySelectorAll('.truck-block').forEach(b => b.classList.remove('selected'));
+  _selIdx = null;
+}
+
+function fillSel(id, type, current) {
+  const sel = document.getElementById(id);
+  sel.innerHTML = '<option value="">—</option>' +
+    (_params[type]||[]).map(it=>`<option value="${it.valeur}"${current===it.valeur?' selected':''}>${it.valeur}</option>`).join('');
+}
+
+// ── SAVE ───────────────────────────────────────────────────────
+async function savePanel() {
+  if (_selIdx===null) return;
+  const s = SLOTS.find(s=>s.idx===_selIdx);
+  if (!_rows[_selIdx]) _rows[_selIdx]={};
+  const r = _rows[_selIdx];
+  r.num_arr        = document.getElementById('dp-num-arr').value;
+  r.num_dep        = document.getElementById('dp-num-dep').value;
+  r.heure_reelle   = document.getElementById('dp-hreelle').value||null;
+  r.dest_arrivee   = document.getElementById('dp-dest-arr').value;
+  r.statut_arrivee = document.getElementById('dp-statut-arr').value;
+  r.description    = document.getElementById('dp-desc').value;
+  r.type_camion    = document.getElementById('dp-type-camion').value;
+  r.destination    = document.getElementById('dp-dest').value;
+  r.chargement     = document.getElementById('dp-charg').value;
+  await saveRow(_selIdx);
+  renderRails(); updateKPIs(); checkConflicts();
+  toast('Enregistré', 'ok');
+}
+
+async function saveRow(idx) {
+  const r=_rows[idx]||{}; const s=SLOTS.find(s=>s.idx===idx);
+  const {error} = await sb.from('planning_camions').upsert({
+    slot_index:idx, date_jour:curDate,
+    heure_planif:   r.heure_planif||s.h,
+    num_arr:        r.num_arr||null,
+    num_dep:        r.num_dep||null,
+    heure_reelle:   r.heure_reelle||null,
+    dest_arrivee:   r.dest_arrivee||null,
+    statut_arrivee: r.statut_arrivee||null,
+    description:    r.description||null,
+    type_camion:    r.type_camion||null,
+    destination:    r.destination||null,
+    chargement:     r.chargement||null,
+    statut_ligne:   r.statut_ligne||null,
+  }, {onConflict:'date_jour,slot_index'});
+  if (error) toast('Erreur: '+error.message,'err');
+}
+
+async function markNL() {
+  if (_selIdx===null) return;
+  if (!_rows[_selIdx]) _rows[_selIdx]={};
+  _rows[_selIdx].statut_ligne = vP('statut_ligne',2);
+  await saveRow(_selIdx);
+  renderRails(); updateKPIs(); checkConflicts();
+  toast('Marqué Non Livré','warn');
+  closePanel();
+}
+
+async function toggleInactif() {
+  if (_selIdx===null) return;
+  if (!_rows[_selIdx]) _rows[_selIdx]={};
+  const cur=_rows[_selIdx].statut_ligne;
+  _rows[_selIdx].statut_ligne = cur===vP('statut_ligne',1) ? vP('statut_ligne',0) : vP('statut_ligne',1);
+  await saveRow(_selIdx);
+  renderRails(); updateKPIs();
+  closePanel();
+}
+
+// ── CONFLITS ───────────────────────────────────────────────────
+function checkSlotConflict(idx) {
+  const s=SLOTS.find(s=>s.idx===idx); const r=_rows[idx];
+  if (isInactif(s,r)) return false;
+  const hA=toMin(effectiveH(s,r));
+  return SLOTS.some(s2 => {
+    if (s2.idx===idx) return false;
+    const r2=_rows[s2.idx];
+    if (isInactif(s2,r2)) return false;
+    const hB=toMin(effectiveH(s2,r2));
+    return Math.abs(hA-hB)>0 && Math.abs(hA-hB)<GAP_MIN;
+  });
+}
+
+function checkConflicts() {
+  const conflicts = SLOTS.filter(s=>checkSlotConflict(s.idx));
+  const bar = document.getElementById('conflict-bar');
+  if (conflicts.length>0) {
+    bar.classList.add('show');
+    document.getElementById('cb-text').textContent =
+      conflicts.length+' conflit'+(conflicts.length>1?'s':'')+' détecté'+(conflicts.length>1?'s':'')+' · contrainte 1h30 · '+
+      conflicts.map(s=>s.h.replace(':','h')).join(', ');
+  } else {
+    bar.classList.remove('show');
+  }
+}
+
+// ── KPIs ───────────────────────────────────────────────────────
+function updateKPIs() {
+  let cold=0,warm=0,ok=0,nl=0,total=0;
+  SLOTS.forEach(s=>{
+    const r=_rows[s.idx]; if(isInactif(s,r))return;
+    total++; if(isReefer(s,r))cold++;else warm++;
+    if(isNL(r))nl++; else if(isFait(r))ok++;
+  });
+  document.getElementById('k-cold').textContent = cold;
+  document.getElementById('k-warm').textContent = warm;
+  document.getElementById('k-ok').textContent   = ok;
+  document.getElementById('k-nl').textContent   = nl;
+  const denom=total-nl;
+  document.getElementById('k-eff').textContent  = denom>0?Math.round(ok/denom*100)+'%':'—';
+}
+
+// ── NOW BAR ────────────────────────────────────────────────────
+function updateNowBar() {
+  const now=new Date();
+  const m=now.getHours()*60+now.getMinutes();
+  document.querySelectorAll('.now-bar').forEach(b=>{
+    if (curDate!==todayStr()||m<TL_START||m>TL_END) { b.style.display='none'; return; }
+    b.style.display='block'; b.style.left=pct(m)+'%';
+  });
+}
+
+// ── DATE NAV ───────────────────────────────────────────────────
+function formatDate(d) {
+  return new Date(d+'T12:00:00').toLocaleDateString('fr-CA',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+    .replace(/^\w/,c=>c.toUpperCase());
+}
+function updateDateUI() {
+  document.getElementById('day-lbl').textContent  = formatDate(curDate);
+  document.getElementById('date-inp').value = curDate;
+}
+function shiftDay(d) {
+  const dt=new Date(curDate+'T12:00:00'); dt.setDate(dt.getDate()+d);
+  curDate=dt.toISOString().slice(0,10); updateDateUI(); load();
+}
+function goToday() { curDate=todayStr(); updateDateUI(); load(); }
+document.getElementById('date-inp').addEventListener('change',e=>{ curDate=e.target.value; updateDateUI(); load(); });
+
+// ── TOAST ──────────────────────────────────────────────────────
+function toast(msg,type='ok') {
+  const z=document.getElementById('toasts');
+  const t=document.createElement('div');
+  t.className='toast '+type; t.textContent=msg;
+  z.appendChild(t);
+  setTimeout(()=>t.remove(),2600);
+}
+
+// ── INIT ───────────────────────────────────────────────────────
+updateDateUI(); load();
+setInterval(updateNowBar, 60000);
+</script>
+</body>
+</html>
