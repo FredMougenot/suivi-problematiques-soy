@@ -1110,7 +1110,7 @@ function exportPDF() {
   const now = new Date().toLocaleString('fr-CA', { hour: '2-digit', minute: '2-digit' });
   doc.setFontSize(7);
   doc.setTextColor(150, 135, 110);
-  doc.text('Exporté le ' + new Date().toLocaleDateString('fr-CA') + ' à ' + now, W - 10, 19, { align: 'right' });
+  doc.text('Exporté le ' + new Date().toLocaleDateString('fr-CA') + ' à ' + now, W - 8, 19, { align: 'right' });
 
   // ── Construire les données du tableau
   const allIdx = [...new Set([...SLOTS.map(s => s.idx), ...Object.keys(rows).map(Number)])].sort((a,b)=>a-b);
@@ -1206,7 +1206,7 @@ function exportPDF() {
   // ── Tableau autoTable
   doc.autoTable({
     startY: 28,
-    margin: { left: 5, right: 5 },
+    margin: { left: 8, right: 8 },
 
     head: [[
       '#', 'Créneau', 'Statut', 'Type',
@@ -1252,12 +1252,12 @@ function exportPDF() {
       2:  { cellWidth: 20, halign: 'center' },   // Statut
       3:  { cellWidth: 22, halign: 'center' },   // Type
       4:  { cellWidth: 15, halign: 'center' },   // N° Arr.
-      5:  { cellWidth: 40 },   // Description
+      5:  { cellWidth: 36 },   // Description
       6:  { cellWidth: 18, halign: 'center' },   // Dest. Arr.
       7:  { cellWidth: 18, halign: 'center' },   // Arrivée
-      8:  { cellWidth: 46 },   // Destination départ (agrandi)
+      8:  { cellWidth: 42 },   // Destination départ
       9:  { cellWidth: 15, halign: 'center' },   // N° Dép.
-      10: { cellWidth: 26, halign: 'center' },   // Chargement
+      10: { cellWidth: 32, halign: 'center' },   // Chargement (agrandi)
     },
 
     willDrawCell: function(data) {
