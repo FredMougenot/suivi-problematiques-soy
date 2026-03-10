@@ -249,21 +249,23 @@ function switchTab(t,btn){
 }
 
 async function fetchRange(a,b){
-  const{data,error}=await sb.from('planning_camions')
-    .select('slot_index,date_jour,heure_planif,statut_ligne,erreur_q1,erreur_q2,erreur_q3')
-    .gte('date_jour',a).lte('date_jour',b)
-    .order('date_jour').order('slot_index');
-  if(error){toast('Erreur chargement: '+error.message,'e');return[];}
-  const rows=data||[];
-  // DEBUG — afficher dans la console ce que Supabase retourne
-  console.log('[EP] fetchRange',a,'→',b,'→',rows.length,'lignes');
-  rows.forEach(r=>console.log('  row',r.date_jour,'slot',r.slot_index,'q1=',r.erreur_q1,'q2=',r.erreur_q2,'q3=',r.erreur_q3,'type q1=',typeof r.erreur_q1));
-  // Normaliser : true/false/"true"/1/0/null
-  return rows.map(r=>({
+  // Même pattern exact que planning_camions qui fonctionne : select('*')
+  // Pour un seul jour on utilise .eq, pour une plage on fetch jour par jour
+  const days=daysInRange(a,b);
+  let allRows=[];
+  for(const day of days){
+    const{data,error}=await sb.from('planning_camions')
+      .select('*')
+      .eq('date_jour',day)
+      .order('slot_index');
+    if(error){toast('Erreur: '+error.message,'e');continue;}
+    allRows=[...allRows,...(data||[])];
+  }
+  return allRows.map(r=>({
     ...r,
-    erreur_q1: r.erreur_q1===true || r.erreur_q1==='true' || r.erreur_q1===1,
-    erreur_q2: r.erreur_q2===true || r.erreur_q2==='true' || r.erreur_q2===1,
-    erreur_q3: r.erreur_q3===true || r.erreur_q3==='true' || r.erreur_q3===1,
+    erreur_q1: r.erreur_q1===true,
+    erreur_q2: r.erreur_q2===true,
+    erreur_q3: r.erreur_q3===true,
   }));
 }
 
@@ -698,13 +700,25 @@ function goJour(){
 
 async function initApp(){
   sb=supabase.createClient(SB_URL,SB_KEY);
-  const{data:{session}}=await sb.auth.getSession();
-  if(!session){window.location.href='index.html';return;}
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    if(!session){window.location.href='index.html';return;}
+    // Requête admins identique à planning_camions — établit le contexte RLS
+    const email=session.user.email;
+    await sb.from('admins').select('email').eq('email',email).maybeSingle();
+  }catch(e){ /* session invalide mais on continue */ }
   refreshDateUI();
   render();
 }
 
-document.addEventListener('DOMContentLoaded',initApp);
+function waitForSupabaseAndInit(){
+  if(typeof supabase!=='undefined'&&supabase.createClient){
+    initApp();
+  } else {
+    setTimeout(waitForSupabaseAndInit,50);
+  }
+}
+window.addEventListener('load',waitForSupabaseAndInit);
 </script>
 </body>
 </html>
