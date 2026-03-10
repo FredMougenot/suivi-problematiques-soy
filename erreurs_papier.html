@@ -529,8 +529,35 @@ function fmtWD(s){return new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{wee
 function weekRange(s){const d=new Date(s+'T00:00:00');const dow=d.getDay();const diff=dow===0?-6:1-dow;const m=new Date(d);m.setDate(d.getDate()+diff);const su=new Date(m);su.setDate(m.getDate()+6);return[m,su].map(x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0'));}
 function monthRange(s){const[y,m]=s.split('-').map(Number);return[`${y}-${String(m).padStart(2,'0')}-01`,`${y}-${String(m).padStart(2,'0')}-${String(new Date(y,m,0).getDate()).padStart(2,'0')}`];}
 function daysInRange(a,b){const r=[];let d=a;while(d<=b){r.push(d);d=addDays(d,1);}return r;}
-function isActif(r){return!r.statut_ligne||r.statut_ligne.toUpperCase()!=='INACTIF';}
+
+/*
+ * isComptable : une ligne est comptée dans le dénominateur seulement si
+ *   1. statut_ligne != 'INACTIF'
+ *   2. destination est remplie ET n'est pas "AUCUN REPARTIR BOBTAIL"
+ * → si destination est vide ou BOBTAIL, le camion n'était pas vraiment prévu : on l'exclut.
+ */
+function isComptable(r){
+  const sl=(r.statut_ligne||'').toUpperCase();
+  if(sl==='INACTIF') return false;
+  const dest=(r.destination||'').trim();
+  if(!dest) return false;
+  if(dest.toUpperCase().includes('BOBTAIL')) return false;
+  return true;
+}
+
+/*
+ * tauxEff : (lignes comptables sans erreur sur ce quart) / lignes comptables
+ * e = nb erreurs quart i, t = nb lignes comptables
+ */
 function tauxEff(e,t){if(!t)return null;return Math.round((1-e/t)*100);}
+
+/* Heure d'une ligne : heure_planif en priorité, sinon SLOTS_H[slot_index], sinon '?' */
+function heureRow(r){
+  if(r.heure_planif&&r.heure_planif.trim()) return r.heure_planif.trim().slice(0,5);
+  const idx=Number(r.slot_index);
+  if(!isNaN(idx)&&idx>=0&&idx<SLOTS_H.length) return SLOTS_H[idx];
+  return '?';
+}
 
 function effColor(pct){
   if(pct===null)return'#3D4F6E';
@@ -583,11 +610,16 @@ async function render(){
 
 /* ═══════════════════════════════════════════════════
    COMPOSANT QUART CARDS (commun aux 3 vues)
+   rows  = toutes les lignes de la période concernée
+   tq    = [nb erreurs Q1, Q2, Q3]
+   Le dénominateur = lignes isComptable() de la période
 ═══════════════════════════════════════════════════ */
-function quartsHTML(tq, actifs){
-  const C=2*Math.PI*24; // r=24
+function quartsHTML(tq, rows){
+  const C=2*Math.PI*24; // circonférence r=24
+  // Lignes comptables pour le dénominateur
+  const comptables=rows.filter(r=>isComptable(r)).length;
   return `<div class="quart-cards">`+Q.map((q,i)=>{
-    const pct=tauxEff(tq[i],actifs);
+    const pct=tauxEff(tq[i],comptables);
     const eff=effColor(pct);
     const offset=pct===null?C:C*(1-pct/100);
     const errLabel=tq[i]===0?'Aucune erreur':tq[i]===1?'1 erreur détectée':tq[i]+' erreurs détectées';
@@ -607,7 +639,7 @@ function quartsHTML(tq, actifs){
         <div class="qc-left">
           <div class="qc-count">${tq[i]}</div>
           <div class="qc-count-label">${errLabel}</div>
-          <div class="qc-eff-label">${pct===null?'—':pct+'% d\'efficacité'} · ${actifs} lignes</div>
+          <div class="qc-eff-label">${pct===null?'—':pct+'% d\'efficacité'} · ${comptables} camion${comptables!==1?'s':''}</div>
         </div>
       </div>
       <div class="qc-bg-bar"></div>
@@ -623,18 +655,18 @@ function renderJour(data){
   const tq=[0,0,0];
   rows.forEach(r=>{if(r.erreur_q1)tq[0]++;if(r.erreur_q2)tq[1]++;if(r.erreur_q3)tq[2]++;});
   const tot=tq[0]+tq[1]+tq[2];
-  const actifs=rows.filter(r=>isActif(r)).length;
+  const comptables=rows.filter(r=>isComptable(r)).length;
 
   document.getElementById('content').innerHTML=`
     <div class="content-section-title">Journée du ${fmtLong(curDate)}</div>
 
-    ${quartsHTML(tq,actifs)}
+    ${quartsHTML(tq,rows)}
 
     <div class="g2">
       <div class="panel">
         <div class="panel-hd">
           <span class="panel-ttl"><div class="panel-ttl-dot" style="background:var(--q1);box-shadow:0 0 8px var(--q1)"></div>Journal des erreurs</span>
-          <span class="panel-meta">${tot} TOTAL</span>
+          <span class="panel-meta">${tot} TOTAL · ${comptables} CAMION${comptables!==1?'S':''}</span>
         </div>
         <div class="panel-body-sm" id="jour-list"></div>
       </div>
@@ -666,7 +698,7 @@ function renderJour(data){
 
   /* liste */
   const errs=[];
-  rows.forEach(r=>{Q.forEach(q=>{if(r['erreur_q'+q.id])errs.push({h:r.heure_planif||SLOTS_H[r.slot_index]||'?',q});});});
+  rows.forEach(r=>{Q.forEach(q=>{if(r['erreur_q'+q.id])errs.push({h:heureRow(r),q});});});
   errs.sort((a,b)=>a.h<b.h?-1:1);
   const listEl=document.getElementById('jour-list');
   if(!errs.length){
@@ -690,11 +722,11 @@ function renderJour(data){
     tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+ctx.raw+(ctx.raw>1?' erreurs':' erreur')}}
   }}}));
 
-  /* bar slots */
+  /* bar slots — utilise heureRow */
   const bCtx=document.getElementById('c-slots').getContext('2d');
   charts.push(new Chart(bCtx,{type:'bar',data:{
     labels:UNI_SLOTS,
-    datasets:Q.map(q=>({label:q.l,data:UNI_SLOTS.map(h=>rows.filter(r=>(r.heure_planif||SLOTS_H[r.slot_index]||'?')===h&&r['erreur_q'+q.id]).length),backgroundColor:q.b,borderColor:q.c,borderWidth:1.5,borderRadius:4}))
+    datasets:Q.map(q=>({label:q.l,data:UNI_SLOTS.map(h=>rows.filter(r=>heureRow(r)===h&&r['erreur_q'+q.id]).length),backgroundColor:q.b,borderColor:q.c,borderWidth:1.5,borderRadius:4}))
   },options:{responsive:true,maintainAspectRatio:false,
     scales:{
       x:{stacked:true,grid:{color:'rgba(30,36,56,.8)'},ticks:{font:{size:9}}},
@@ -720,18 +752,18 @@ function renderSemaine(data,a,b){
   const tq=[0,0,0];days.forEach(d=>{tq[0]+=bd[d].q1;tq[1]+=bd[d].q2;tq[2]+=bd[d].q3;});
   const tot=tq[0]+tq[1]+tq[2];
   const touch=days.filter(d=>bd[d].tot>0).length;
-  const actifs=data.filter(r=>isActif(r)).length;
+  const comptablesTotal=data.filter(r=>isComptable(r)).length;
 
   document.getElementById('content').innerHTML=`
     <div class="content-section-title">Semaine du ${fmtShort(a)} au ${fmtShort(b)}</div>
 
-    ${quartsHTML(tq,actifs)}
+    ${quartsHTML(tq,data)}
 
     <div class="kpi-strip">
       <div class="kpi-pill" style="--ka:var(--q1)">
         <div class="kpi-pill-label">Total semaine</div>
         <div class="kpi-pill-val">${tot}</div>
-        <div class="kpi-pill-sub">${actifs} lignes actives</div>
+        <div class="kpi-pill-sub">${comptablesTotal} camion${comptablesTotal!==1?'s':''} comptabilisé${comptablesTotal!==1?'s':''}</div>
       </div>
       <div class="kpi-pill" style="--ka:#22D3A0">
         <div class="kpi-pill-label">Jours touchés</div>
@@ -852,20 +884,20 @@ function renderMois(data,a,b){
   const tot=tq[0]+tq[1]+tq[2];
   const touch=days.filter(d=>bd[d].tot>0).length;
   const maxD=Math.max(1,...days.map(d=>bd[d].tot));
-  const actifs=data.filter(r=>isActif(r)).length;
+  const comptablesTotal=data.filter(r=>isComptable(r)).length;
   const moisNom=new Date(a+'T00:00:00').toLocaleDateString('fr-CA',{month:'long',year:'numeric'});
   const pireQ=Q[tq.indexOf(Math.max(...tq))];
 
   document.getElementById('content').innerHTML=`
     <div class="content-section-title">${moisNom}</div>
 
-    ${quartsHTML(tq,actifs)}
+    ${quartsHTML(tq,data)}
 
     <div class="kpi-strip">
       <div class="kpi-pill" style="--ka:var(--q1)">
         <div class="kpi-pill-label">Total mensuel</div>
         <div class="kpi-pill-val">${tot}</div>
-        <div class="kpi-pill-sub">${actifs} lignes actives</div>
+        <div class="kpi-pill-sub">${comptablesTotal} camion${comptablesTotal!==1?'s':''} comptabilisé${comptablesTotal!==1?'s':''}</div>
       </div>
       <div class="kpi-pill" style="--ka:#22D3A0">
         <div class="kpi-pill-label">Jours touchés</div>
@@ -967,7 +999,7 @@ function renderMois(data,a,b){
 ═══════════════════════════════════════════════════ */
 function buildHeatmap(id,data,days){
   const el=document.getElementById(id);if(!el)return;
-  const get=(h,d)=>data.filter(r=>r.date_jour===d&&(r.heure_planif||SLOTS_H[r.slot_index]||'?')===h)
+  const get=(h,d)=>data.filter(r=>r.date_jour===d&&heureRow(r)===h)
     .reduce((s,r)=>s+(r.erreur_q1?1:0)+(r.erreur_q2?1:0)+(r.erreur_q3?1:0),0);
   const max=Math.max(1,...UNI_SLOTS.flatMap(h=>days.map(d=>get(h,d))));
 
