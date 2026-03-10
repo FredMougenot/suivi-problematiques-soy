@@ -534,7 +534,9 @@ function daysInRange(a,b){const r=[];let d=a;while(d<=b){r.push(d);d=addDays(d,1
  * isComptable : une ligne est comptée dans le dénominateur seulement si
  *   1. statut_ligne != 'INACTIF'
  *   2. destination est remplie ET n'est pas "AUCUN REPARTIR BOBTAIL"
+ *   3. numero_depart est rempli (condition ESSENTIELLE)
  * → si destination est vide ou BOBTAIL, le camion n'était pas vraiment prévu : on l'exclut.
+ * → si numero_depart est vide, la ligne n'est PAS à comptabiliser.
  */
 function isComptable(r){
   const sl=(r.statut_ligne||'').toUpperCase();
@@ -542,6 +544,9 @@ function isComptable(r){
   const dest=(r.destination||'').trim();
   if(!dest) return false;
   if(dest.toUpperCase().includes('BOBTAIL')) return false;
+  // CRITIQUE : une ligne sans numéro de départ n'est PAS comptable
+  const numDepart=(r.numero_depart||'').trim();
+  if(!numDepart) return false;
   return true;
 }
 
