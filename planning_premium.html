@@ -244,6 +244,15 @@ body{background:var(--ink);color:var(--text);font-family:'Geist',sans-serif;heig
     <input type="range" class="sim-range" id="sim-range" min="0" max="1439" value="360" oninput="onSim()">
     <span class="sim-val" id="sim-val">06h00</span>
   </div>
+  <div class="ssep"></div>
+  <div class="tgl-wrap">
+    <label class="tgl" style="cursor:pointer" title="Mode cascade — tous les camions après se déplacent aussi">
+      <input type="checkbox" id="tgl-casc" onchange="toggleCascMode()">
+      <div class="tgl-t" id="casc-track" style="transition:background .2s,border-color .2s"></div>
+      <div class="tgl-k" id="casc-thumb" style="transition:left .2s,background .2s"></div>
+    </label>
+    <span class="tgl-lbl" id="casc-lbl" style="color:var(--text-4);transition:color .2s">Mode cascade</span>
+  </div>
   <button class="pbtn" id="pbtn" onclick="toggleParams()">
     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     Paramètres production
@@ -335,7 +344,7 @@ let P={coldStart:360,coldRate:6,coldActive:true,warmStart:390,warmRate:5,warmAct
 const TL_R=1440,GAP=90,WK_I=[0,1,7,8,9];
 let QUAYS=[{id:0,name:'Quai 1',type:'cold'},{id:1,name:'Quai 2',type:'cold'},{id:2,name:'Quai 3',type:'warm'},{id:3,name:'Quai 4',type:'warm'}];
 const BASE=[{idx:0,h:'06:00',lbl:'A',quay:0},{idx:1,h:'06:00',lbl:'B',quay:1},{idx:2,h:'07:30',lbl:'3',quay:2},{idx:3,h:'09:00',lbl:'4',quay:3},{idx:4,h:'11:30',lbl:'5',quay:0},{idx:5,h:'14:00',lbl:'6',quay:1},{idx:6,h:'15:30',lbl:'7',quay:2},{idx:7,h:'17:00',lbl:'8',quay:3},{idx:8,h:'18:00',lbl:'9',quay:0},{idx:9,h:'19:00',lbl:'10',quay:1}];
-let curDate=todayStr(),_params={},_rows={},_slots=[],_sel=null,simMode=false,simMin=360;
+let curDate=todayStr(),_params={},_rows={},_slots=[],_sel=null,simMode=false,simMin=360,cascadeMode=false;
 
 function todayStr(){return new Date().toISOString().slice(0,10)}
 function toMin(h){if(!h)return 0;const[a,b]=h.split(':').map(Number);return a*60+b}
@@ -511,7 +520,36 @@ function setupTouch(el2,idx,qi){
   el2.addEventListener('touchcancel',()=>{clearTimeout(timer);drag=false;el2.classList.remove('dragging');hideG();hiC(idx,false)});
 }
 function hiC(idx,on){const s=_slots.find(s=>s.idx===idx),om=toMin(s.h);_slots.forEach(s2=>{if(s2.idx===idx||isInactif(s2,_rows[s2.idx]))return;if(toMin(s2.h)>=om){const e2=document.getElementById('truck-'+s2.idx);if(e2)e2.style.opacity=on?'.35':''}})}
-function cascade(idx,newH){const s=_slots.find(s=>s.idx===idx),om=toMin(s.h),nm=toMin(newH),d=nm-om;if(d===0){render();return}const aff=_slots.filter(s2=>s2.idx!==idx&&!isInactif(s2,_rows[s2.idx])&&toMin(s2.h)>=om).sort((a,b)=>toMin(a.h)-toMin(b.h));s.h=newH;aff.forEach(s2=>{s2.h=minH(Math.max(0,Math.min(TL_R-30,toMin(s2.h)+d)))});toast(`${d>0?'+':''}${d}min · ${aff.length} en cascade`,'warn');document.getElementById('sb-cas').style.display='inline-flex';setTimeout(()=>document.getElementById('sb-cas').style.display='none',3500);render();updateKPIs();checkConf();saveH(idx);aff.forEach(s2=>saveH(s2.idx))}
+function toggleCascMode(){
+  cascadeMode=document.getElementById('tgl-casc').checked;
+  const lbl=document.getElementById('casc-lbl');
+  const thumb=document.getElementById('casc-thumb');
+  const track=document.getElementById('casc-track');
+  if(cascadeMode){
+    lbl.style.color='var(--warn)';lbl.textContent='Cascade ON';
+    thumb.style.background='var(--warn)';
+    track.style.background='rgba(212,184,82,.15)';track.style.borderColor='rgba(212,184,82,.4)';
+    toast('Mode cascade activé — tous les camions suivants se déplaceront','warn');
+  } else {
+    lbl.style.color='var(--text-4)';lbl.textContent='Mode cascade';
+    thumb.style.background='var(--text-3)';
+    track.style.background='';track.style.borderColor='';
+  }
+}
+function cascade(idx,newH){
+  const s=_slots.find(s=>s.idx===idx),om=toMin(s.h),nm=toMin(newH),d=nm-om;
+  if(d===0){render();return}
+  s.h=newH;
+  if(cascadeMode){
+    const aff=_slots.filter(s2=>s2.idx!==idx&&!isInactif(s2,_rows[s2.idx])&&toMin(s2.h)>=om).sort((a,b)=>toMin(a.h)-toMin(b.h));
+    aff.forEach(s2=>{s2.h=minH(Math.max(0,Math.min(TL_R-30,toMin(s2.h)+d)))});
+    if(aff.length>0){toast(`${d>0?'+':''}${d}min · ${aff.length} camion${aff.length>1?'s':''}  décalé${aff.length>1?'s':''} en cascade`,'warn');document.getElementById('sb-cas').style.display='inline-flex';setTimeout(()=>document.getElementById('sb-cas').style.display='none',3500);}
+    aff.forEach(s2=>saveH(s2.idx));
+  } else {
+    toast(`${d>0?'+':''}${d}min · camion seul déplacé`,'ok');
+  }
+  render();updateKPIs();checkConf();saveH(idx);
+}
 
 function checkConf(){const c=_slots.filter(s=>hasConflict(s.idx));const el2=document.getElementById('sb-conf');if(c.length){el2.style.display='inline-flex';document.getElementById('sb-ct').textContent=c.length+' conflit'+(c.length>1?'s':'')+' · '+c.map(s=>s.h.replace(':','h')).join(', ')}else el2.style.display='none'}
 
