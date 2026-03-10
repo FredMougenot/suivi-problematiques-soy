@@ -453,33 +453,20 @@ function hxRgb(hex){
 }
 
 
-function dbg(msg, col){
-  const el = document.getElementById('spinner');
-  if(el) el.innerHTML = `<div style="font-size:.75rem;color:${col||'#BEC5D6'};padding:8px;text-align:center;font-family:monospace;max-width:320px;">${msg}</div>`;
-}
-
 async function initApp(){
-  dbg('1. Création client Supabase…');
   sb = supabase.createClient(SB_URL, SB_KEY);
   try{
-    dbg('2. Vérification session…');
-    const { data:{ session }, error:sErr } = await sb.auth.getSession();
-    if(sErr) { dbg('❌ getSession error: '+sErr.message, '#E05555'); return; }
-    if(!session){ dbg('❌ Pas de session → redirection', '#E8A43A'); window.location.href='index.html'; return; }
-    dbg('3. Session OK — email: '+session.user.email);
+    const { data:{ session } } = await sb.auth.getSession();
+    if(!session){ window.location.href='index.html'; return; }
     const email = session.user.email;
     const {data:adm} = await sb.from('admins').select('email').eq('email',email).maybeSingle();
     if(!adm){
       const {data:vwr} = await sb.from('viewers').select('email').eq('email',email).maybeSingle();
       isViewer = !!vwr;
     }
-  } catch(e){ dbg('❌ Auth catch: '+(e?.message||e), '#E05555'); setTimeout(()=>{ window.location.href='index.html'; },3000); return; }
-
-  dbg('4. refreshDateUI…');
+  } catch(e){ window.location.href='index.html'; return; }
   refreshDateUI();
-  dbg('5. loadParams…');
-  try{ await loadParams(); } catch(e){ dbg('⚠️ loadParams erreur: '+(e?.message||e),'#E8A43A'); }
-  dbg('6. load() en cours…');
+  try{ await loadParams(); } catch(e){ console.warn('loadParams:', e?.message); }
   await load();
   if(isViewer) applyReadOnly();
 }
@@ -545,11 +532,7 @@ async function load(){
     (data||[]).forEach(r=>{ rows[r.slot_index]=r; });
   } catch(e){ toast('Connexion impossible.','error'); }
   finally{
-    try{ render(); } catch(re){
-      const spinnerEl2 = document.getElementById('spinner');
-      if(spinnerEl2) spinnerEl2.innerHTML = '<div style="color:#E05555;font-size:.75rem;padding:8px;font-family:monospace;text-align:center">❌ render() error: '+re?.message+'</div>';
-      console.error('render error:', re);
-    }
+    try{ render(); } catch(re){ console.error('render error:', re); }
     try{ applyLockRules(); } catch(e){}
     try{ applyEpHighlight(); } catch(e){}
     const spinnerEl = document.getElementById('spinner');
@@ -1062,7 +1045,7 @@ async function saveErreurPapier(idx, quart, val) {
 
   const r = rows[idx];
   if(!r.id) {
-    toast('Sauvegardez d'abord la ligne avant de cocher une erreur', 'error');
+    toast("Sauvegardez d'abord la ligne avant de cocher une erreur", "error");
     // Remettre le checkbox à l'état précédent
     const cb = document.querySelector(`input[data-idx="${idx}"][data-quart="${quart}"]`);
     if(cb) cb.checked = !val;
