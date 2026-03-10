@@ -698,22 +698,13 @@ function goJour(){
 
 async function initApp(){
   sb=supabase.createClient(SB_URL,SB_KEY);
-  try{
-    const{data:{session}}=await sb.auth.getSession();
-    if(!session){window.location.href='index.html';return;}
-  }catch(e){window.location.href='index.html';return;}
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='index.html';return;}
   refreshDateUI();
   render();
 }
 
-function waitForSupabaseAndInit(){
-  if(typeof supabase!=='undefined'&&supabase.createClient){
-    try{initApp();}catch(e){console.error('initApp error:',e);}
-  } else {
-    setTimeout(waitForSupabaseAndInit,50);
-  }
-}
-window.addEventListener('load',waitForSupabaseAndInit);
+document.addEventListener('DOMContentLoaded',initApp);
 </script>
 </body>
 </html>
