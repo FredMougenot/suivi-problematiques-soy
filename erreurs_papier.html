@@ -6,484 +6,497 @@
 <title>Erreurs Papier — SOY</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-/* ── TOKENS ─────────────────────────────────────────────────── */
 :root {
-  --ink:    #080A0F;
-  --ink1:   #0D1017;
-  --ink2:   #121620;
-  --ink3:   #181D28;
-  --ink4:   #1E2535;
-  --wire:   #232D42;
-  --wire2:  #2A3650;
-  --dim:    #3D4F6E;
-  --muted:  #5C7099;
-  --ghost:  #8898BB;
-  --pale:   #C8D4EE;
-  --snow:   #EDF1FA;
+  /* Fond */
+  --void:   #07080C;
+  --base:   #0C0E16;
+  --surf:   #10131C;
+  --surf2:  #151923;
+  --surf3:  #1B2030;
+  --line:   #1E2438;
+  --line2:  #252D42;
+  --muted:  #3D4F6E;
+  --ghost:  #607090;
+  --soft:   #8899BB;
+  --pale:   #C8D5EE;
+  --snow:   #EEF2FA;
 
-  --amber:  #F0A030;
-  --amber2: #FFD080;
-  --amber-: rgba(240,160,48,.12);
-  --blue:   #5B8EF0;
-  --blue2:  #A0C0FF;
-  --blue-:  rgba(91,142,240,.12);
-  --violet: #A870E8;
-  --violet2:#D0A8FF;
-  --violet-:rgba(168,112,232,.12);
-  --green:  #30C898;
-  --red:    #E84848;
+  /* Quarts — couleurs signature très distinctes */
+  --q1:     #F5A623;   /* or brûlé */
+  --q1b:    rgba(245,166,35,.13);
+  --q1s:    rgba(245,166,35,.06);
+  --q1g:    rgba(245,166,35,.35);
 
-  --q1c: var(--amber);  --q1d: var(--amber-);  --q1t: var(--amber2);
-  --q2c: var(--blue);   --q2d: var(--blue-);   --q2t: var(--blue2);
-  --q3c: var(--violet); --q3d: var(--violet-); --q3t: var(--violet2);
+  --q2:     #00D4FF;   /* cyan électrique */
+  --q2b:    rgba(0,212,255,.12);
+  --q2s:    rgba(0,212,255,.05);
+  --q2g:    rgba(0,212,255,.30);
 
-  --r3: 3px; --r6: 6px; --r10: 10px; --r16: 16px;
+  --q3:     #FF5E7D;   /* corail vif */
+  --q3b:    rgba(255,94,125,.13);
+  --q3s:    rgba(255,94,125,.06);
+  --q3g:    rgba(255,94,125,.32);
+
+  /* Status */
+  --green:  #22D3A0;
+  --yellow: #F5C842;
+  --orange: #F07840;
+  --red:    #EE4444;
+
+  /* Or accent topbar */
+  --gold:   #C9963A;
+  --gold-:  rgba(201,150,58,.15);
+
+  --r6: 6px; --r10: 10px; --r14: 14px; --r20: 20px;
+  --fast: .15s; --mid: .3s;
   --ease: cubic-bezier(.4,0,.2,1);
-  --fast: .14s; --mid: .28s;
-
-  --font-ui:   'Syne', sans-serif;
-  --font-mono: 'Space Mono', monospace;
-  --font-disp: 'Instrument Serif', serif;
 }
 
-/* ── RESET ──────────────────────────────────────────────────── */
 *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
 html { font-size:14px; }
-body { font-family:var(--font-ui); background:var(--ink); color:var(--pale);
-       min-height:100vh; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+body {
+  font-family:'IBM Plex Sans', sans-serif;
+  background:var(--void);
+  color:var(--pale);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
 button { cursor:pointer; border:none; background:none; font-family:inherit; color:inherit; }
 ::-webkit-scrollbar { width:3px; height:3px; }
 ::-webkit-scrollbar-track { background:transparent; }
-::-webkit-scrollbar-thumb { background:var(--wire2); border-radius:3px; }
+::-webkit-scrollbar-thumb { background:var(--line2); border-radius:3px; }
 
-/* ── GRID BACKGROUND ────────────────────────────────────────── */
+/* Texture subtile */
 body::before {
   content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
-  background-image:
-    linear-gradient(var(--wire) 1px, transparent 1px),
-    linear-gradient(90deg, var(--wire) 1px, transparent 1px);
-  background-size: 48px 48px;
-  opacity:.08;
-  mask-image: radial-gradient(ellipse 80% 80% at 50% 20%, black, transparent);
-}
-/* Grain */
-body::after {
-  content:''; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.022;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size:180px;
+  opacity:.016;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:250px;
 }
 
-/* ── TOPBAR ─────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════
+   TOPBAR
+═══════════════════════════════════════════════════ */
 .topbar {
   position:sticky; top:0; z-index:200;
-  height:56px; padding:0 20px;
-  background:rgba(8,10,15,.95); backdrop-filter:blur(16px);
-  border-bottom:1px solid var(--wire);
-  display:flex; align-items:center; gap:14px;
+  height:58px; padding:0 24px;
+  display:flex; align-items:center; gap:16px;
+  background:rgba(7,8,12,.96); backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--line);
 }
 .tb-back {
   display:inline-flex; align-items:center; gap:6px;
-  padding:6px 12px; border-radius:var(--r6);
-  border:1px solid var(--wire2); color:var(--muted);
-  font-family:var(--font-mono); font-size:.68rem; font-weight:700;
-  text-decoration:none; letter-spacing:.06em;
-  transition:all var(--fast) var(--ease);
-}
-.tb-back:hover { border-color:var(--amber); color:var(--amber); background:var(--amber-); }
-.tb-back svg { flex-shrink:0; }
-.tb-sep { width:1px; height:24px; background:var(--wire2); }
-.tb-icon {
-  width:28px; height:28px; border-radius:var(--r6);
-  background:var(--amber-); border:1px solid rgba(240,160,48,.25);
-  display:flex; align-items:center; justify-content:center;
-  font-family:var(--font-disp); font-style:italic; font-size:.88rem; color:var(--amber);
-}
-.tb-name { font-size:.92rem; font-weight:700; color:var(--snow); letter-spacing:.02em; }
-.tb-sub  { font-family:var(--font-mono); font-size:.55rem; color:var(--muted); letter-spacing:.14em; text-transform:uppercase; margin-top:1px; }
-.tb-right { margin-left:auto; display:flex; align-items:center; gap:8px; }
-/* live indicator */
-.tb-live {
-  display:flex; align-items:center; gap:5px;
-  font-family:var(--font-mono); font-size:.58rem; letter-spacing:.1em; color:var(--muted);
-}
-.tb-live-dot {
-  width:6px; height:6px; border-radius:50%; background:var(--green);
-  animation:pulse 2s ease-in-out infinite;
-}
-@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.8)} }
-
-/* ── DATE ZONE ──────────────────────────────────────────────── */
-.date-zone {
-  position:relative; z-index:1;
-  padding:20px 20px 0;
-  display:flex; align-items:center; gap:8px;
-  flex-wrap:wrap;
-}
-.date-arr {
-  width:32px; height:32px; border-radius:var(--r6);
-  border:1px solid var(--wire2); color:var(--muted);
-  display:flex; align-items:center; justify-content:center;
-  font-size:.9rem; transition:all var(--fast);
+  padding:6px 14px; border-radius:var(--r6);
+  border:1px solid var(--line2); color:var(--ghost);
+  font-size:.76rem; font-weight:500; letter-spacing:.02em;
+  text-decoration:none; transition:all var(--fast);
   flex-shrink:0;
 }
-.date-arr:hover { border-color:var(--amber); color:var(--amber); background:var(--amber-); }
-.date-display {
+.tb-back:hover { border-color:var(--gold); color:var(--gold); background:var(--gold-); }
+.tb-divider { width:1px; height:22px; background:var(--line2); flex-shrink:0; }
+.tb-logo {
+  width:30px; height:30px; border-radius:8px;
+  background:var(--gold-); border:1px solid rgba(201,150,58,.3);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Cormorant Garamond', serif; font-style:italic;
+  font-size:1rem; font-weight:600; color:var(--gold);
+  flex-shrink:0;
+}
+.tb-text .tb-title { font-size:.9rem; font-weight:600; color:var(--snow); }
+.tb-text .tb-sub {
+  font-family:'IBM Plex Mono', monospace;
+  font-size:.56rem; color:var(--ghost); letter-spacing:.1em; text-transform:uppercase; margin-top:1px;
+}
+.tb-pulse {
+  margin-left:auto; display:flex; align-items:center; gap:6px;
+  font-family:'IBM Plex Mono', monospace; font-size:.58rem; color:var(--muted); letter-spacing:.08em;
+}
+.pulse-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:pdot 2.2s ease-in-out infinite; }
+@keyframes pdot { 0%,100%{opacity:1;box-shadow:0 0 0 0 var(--green)} 50%{opacity:.5;box-shadow:0 0 0 4px rgba(34,211,160,0)} }
+
+/* ═══════════════════════════════════════════════════
+   CONTRÔLES DATE + TABS
+═══════════════════════════════════════════════════ */
+.controls {
+  position:relative; z-index:1;
+  padding:20px 24px 0;
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+}
+.date-nav { display:flex; align-items:center; gap:6px; }
+.arr {
+  width:34px; height:34px; border-radius:var(--r6);
+  border:1px solid var(--line2); color:var(--ghost);
+  display:flex; align-items:center; justify-content:center;
+  font-size:.95rem; transition:all var(--fast); flex-shrink:0;
+}
+.arr:hover { border-color:var(--q1); color:var(--q1); background:var(--q1b); }
+.date-box {
   display:flex; align-items:center; gap:10px;
-  padding:7px 18px; flex:1; min-width:220px; max-width:400px;
-  background:var(--ink2); border:1px solid var(--wire2); border-radius:var(--r6);
-  position:relative; overflow:hidden;
+  padding:8px 18px; background:var(--surf);
+  border:1px solid var(--line2); border-radius:var(--r10);
+  min-width:240px; position:relative; overflow:hidden;
 }
-.date-display::before {
+.date-box::before {
   content:''; position:absolute; left:0; top:0; bottom:0; width:2px;
-  background:var(--amber); opacity:.7;
+  background:linear-gradient(to bottom, var(--q1), var(--q3)); opacity:.7;
 }
-.date-txt {
-  font-family:var(--font-mono); font-size:.78rem; font-weight:700;
-  color:var(--snow); letter-spacing:.02em; text-transform:uppercase; flex:1;
+.date-label {
+  font-family:'IBM Plex Mono', monospace; font-size:.76rem; font-weight:500;
+  color:var(--snow); text-transform:uppercase; letter-spacing:.03em; flex:1;
 }
-.today-chip {
-  font-family:var(--font-mono); font-size:.52rem; font-weight:700;
-  color:var(--amber); background:var(--amber-); border:1px solid rgba(240,160,48,.3);
-  padding:2px 7px; border-radius:20px; letter-spacing:.1em; text-transform:uppercase;
+.today-badge {
+  font-family:'IBM Plex Mono', monospace; font-size:.52rem; font-weight:600;
+  padding:2px 8px; border-radius:20px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--q1); background:var(--q1s); border:1px solid rgba(245,166,35,.3);
 }
 .btn-today {
-  padding:7px 14px; border-radius:var(--r6);
-  border:1px solid var(--wire2); color:var(--muted);
-  font-family:var(--font-mono); font-size:.62rem; font-weight:700;
-  letter-spacing:.08em; text-transform:uppercase;
+  padding:8px 16px; border-radius:var(--r6);
+  border:1px solid var(--line2); color:var(--ghost);
+  font-size:.72rem; font-weight:500; letter-spacing:.04em;
   transition:all var(--fast);
 }
-.btn-today:hover { border-color:var(--amber); color:var(--amber); }
+.btn-today:hover { border-color:var(--q1); color:var(--q1); }
 
-/* ── TABS ───────────────────────────────────────────────────── */
-.tabs-zone {
-  position:relative; z-index:1;
-  display:flex; align-items:center; gap:2px;
-  padding:14px 20px 0;
+/* Tabs */
+.tabs {
+  display:flex; align-items:center; gap:3px;
+  background:var(--surf); border:1px solid var(--line2);
+  border-radius:var(--r10); padding:3px;
+  margin-left:auto;
 }
-.tab-btn {
-  padding:7px 20px; border-radius:var(--r6);
-  font-family:var(--font-mono); font-size:.62rem; font-weight:700;
-  letter-spacing:.1em; text-transform:uppercase;
-  border:1px solid transparent; color:var(--muted);
-  transition:all var(--fast);
+.tab {
+  padding:6px 18px; border-radius:var(--r6);
+  font-size:.74rem; font-weight:600; letter-spacing:.04em;
+  color:var(--ghost); transition:all var(--fast);
 }
-.tab-btn:hover { color:var(--pale); background:var(--ink3); }
-.tab-btn.on {
-  color:var(--amber); border-color:rgba(240,160,48,.3);
-  background:var(--amber-);
-  box-shadow:0 0 12px rgba(240,160,48,.12);
+.tab:hover { color:var(--pale); }
+.tab.on {
+  background:var(--surf3); color:var(--snow);
+  box-shadow:0 1px 3px rgba(0,0,0,.4);
 }
 
-/* ── CONTENT ────────────────────────────────────────────────── */
-.content { position:relative; z-index:1; padding:20px; max-width:1400px; margin:0 auto 60px; }
-
-/* ── SECTION TITLE ──────────────────────────────────────────── */
-.sec-title {
-  font-family:var(--font-mono); font-size:.55rem; font-weight:700;
-  color:var(--dim); letter-spacing:.2em; text-transform:uppercase;
-  margin-bottom:10px; padding-bottom:6px;
-  border-bottom:1px solid var(--wire);
-  display:flex; align-items:center; gap:8px;
+/* ═══════════════════════════════════════════════════
+   QUART CARDS — identiques sur les 3 vues
+═══════════════════════════════════════════════════ */
+.quart-cards {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px;
+  margin-bottom:20px;
 }
-.sec-title::before { content:'//'; color:var(--amber); opacity:.6; }
+@media(max-width:700px){ .quart-cards { grid-template-columns:1fr; } }
 
-/* ── QUART GAUGES — vue journée ─────────────────────────────── */
-.quart-row { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
-@media(max-width:600px){ .quart-row { grid-template-columns:1fr; } }
-
-.quart-gauge {
-  background:var(--ink2); border:1px solid var(--wire);
-  border-radius:var(--r10); padding:18px 20px;
+.qcard {
+  background:var(--surf);
+  border:1px solid var(--qline);
+  border-radius:var(--r14);
+  padding:20px 22px 18px;
   position:relative; overflow:hidden;
-  animation:fadeUp .4s var(--ease) both;
+  animation:cardIn .4s var(--ease) both;
+  transition:border-color var(--fast), box-shadow var(--fast);
 }
-.quart-gauge:nth-child(2){ animation-delay:.06s; }
-.quart-gauge:nth-child(3){ animation-delay:.12s; }
-@keyframes fadeUp{ from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+.qcard:nth-child(2){animation-delay:.07s;}
+.qcard:nth-child(3){animation-delay:.14s;}
+.qcard:hover { border-color:var(--qc); box-shadow:0 0 24px var(--qg); }
+@keyframes cardIn { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
 
-/* ligne de couleur gauche */
-.quart-gauge::before {
-  content:''; position:absolute; left:0; top:12px; bottom:12px;
-  width:2px; border-radius:2px;
-  background:var(--qc);
-  box-shadow:0 0 8px var(--qc);
+/* glow en coin */
+.qcard::after {
+  content:''; position:absolute; top:-40px; right:-40px;
+  width:150px; height:150px; border-radius:50%;
+  background:radial-gradient(circle, var(--qg), transparent 70%);
+  pointer-events:none; opacity:.5;
+  transition:opacity var(--mid);
 }
-/* fond glow subtil */
-.quart-gauge::after {
-  content:''; position:absolute; right:-30px; top:-30px;
-  width:120px; height:120px; border-radius:50%;
-  background:radial-gradient(circle,var(--qc),transparent 70%);
-  opacity:.06; pointer-events:none;
+.qcard:hover::after { opacity:.9; }
+
+.qc-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.qc-tag {
+  display:inline-flex; align-items:center; gap:7px;
+  padding:5px 12px 5px 8px; border-radius:20px;
+  background:var(--qb); border:1px solid var(--qline);
+  font-size:.7rem; font-weight:700; color:var(--qc); letter-spacing:.06em;
+}
+.qc-tag-dot { width:7px; height:7px; border-radius:50%; background:var(--qc); box-shadow:0 0 6px var(--qc); }
+
+/* Anneau SVG efficacité */
+.qc-ring-wrap { position:relative; width:60px; height:60px; flex-shrink:0; }
+.qc-ring { width:60px; height:60px; transform:rotate(-90deg); }
+.ring-bg { fill:none; stroke:var(--line2); stroke-width:4; cx:30; cy:30; r:24; }
+.ring-fg {
+  fill:none; stroke-width:4; stroke-linecap:round;
+  cx:30; cy:30; r:24;
+  stroke:var(--qc);
+  filter:drop-shadow(0 0 4px var(--qc));
+  stroke-dasharray:150.8;
+  stroke-dashoffset:150.8;
+  transition:stroke-dashoffset 1.1s var(--ease);
+}
+.qc-ring-pct {
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-family:'IBM Plex Mono', monospace; font-size:.6rem; font-weight:600;
+  color:var(--qc); line-height:1;
 }
 
-.qg-head {
-  display:flex; align-items:center; justify-content:space-between;
-  margin-bottom:12px;
-}
-.qg-tag {
-  font-family:var(--font-mono); font-size:.6rem; font-weight:700;
-  letter-spacing:.12em; text-transform:uppercase;
-  color:var(--qc); padding:3px 9px;
-  border:1px solid var(--qc); border-radius:20px;
-  background:var(--qd); opacity:.9;
-}
-.qg-eff {
-  font-family:var(--font-mono); font-size:.68rem; font-weight:700;
-  padding:3px 9px; border-radius:20px; border:1px solid;
-}
-.qg-eff.hi  { color:#30C898; border-color:rgba(48,200,152,.3); background:rgba(48,200,152,.08); }
-.qg-eff.mid { color:var(--amber); border-color:rgba(240,160,48,.3); background:var(--amber-); }
-.qg-eff.lo  { color:#F07850; border-color:rgba(240,120,80,.3); background:rgba(240,120,80,.08); }
-.qg-eff.bad { color:var(--red); border-color:rgba(232,72,72,.3); background:rgba(232,72,72,.08); }
-.qg-eff.na  { color:var(--dim); border-color:var(--wire); }
-
-.qg-count {
-  font-family:var(--font-mono); font-size:3.2rem; font-weight:700;
-  color:var(--qc); line-height:1; margin-bottom:6px;
-  text-shadow:0 0 20px var(--qc);
+/* Gros chiffre erreurs */
+.qc-body { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; }
+.qc-left {}
+.qc-count {
+  font-family:'Cormorant Garamond', serif;
+  font-size:4.8rem; font-weight:600; line-height:.9;
+  color:var(--qc);
+  text-shadow:0 0 30px var(--qg);
+  letter-spacing:-.02em;
   transition:all .6s var(--ease);
 }
-.qg-label {
-  font-size:.68rem; font-weight:600; color:var(--ghost);
-  letter-spacing:.04em;
+.qc-count-label {
+  font-size:.68rem; font-weight:500; color:var(--ghost);
+  margin-top:6px; letter-spacing:.04em;
 }
-.qg-sub { font-family:var(--font-mono); font-size:.58rem; color:var(--muted); margin-top:3px; }
-
-/* arc de progression */
-.qg-arc {
-  position:absolute; bottom:12px; right:14px;
-  width:52px; height:52px;
-}
-.qg-arc circle {
-  fill:none; stroke-width:3; stroke-linecap:round;
-  cx:26; cy:26; r:22;
-  transform:rotate(-90deg); transform-origin:50% 50%;
-  transition:stroke-dashoffset .9s var(--ease);
-}
-.arc-bg { stroke:var(--wire2); }
-.arc-fg { stroke:var(--qc); filter:drop-shadow(0 0 3px var(--qc)); }
-.qg-arc-pct {
-  position:absolute; inset:0;
-  display:flex; align-items:center; justify-content:center;
-  font-family:var(--font-mono); font-size:.5rem; font-weight:700; color:var(--qc);
+.qc-eff-label {
+  font-size:.62rem; font-weight:600; color:var(--qc);
+  margin-top:3px; opacity:.8;
 }
 
-/* ── KPI GRID (semaine/mois) ────────────────────────────────── */
-.kpi-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:20px; }
-@media(max-width:1100px){ .kpi-grid{grid-template-columns:repeat(3,1fr);} }
-@media(max-width:600px){ .kpi-grid{grid-template-columns:1fr 1fr;} }
+/* Barre de fond décorative */
+.qc-bg-bar {
+  position:absolute; bottom:0; left:0; right:0; height:3px;
+  background:linear-gradient(to right, transparent, var(--qc), transparent);
+  opacity:.3;
+}
 
-.kpi {
-  background:var(--ink2); border:1px solid var(--wire);
-  border-radius:var(--r10); padding:16px 18px;
-  position:relative; overflow:hidden;
-  animation:fadeUp .35s var(--ease) both;
-  transition:border-color var(--fast);
-}
-.kpi:hover { border-color:var(--wire2); }
-.kpi::after {
-  content:''; position:absolute; top:0; left:0; right:0; height:1px;
-  background:linear-gradient(90deg,transparent,var(--ka,var(--amber)),transparent);
-  opacity:.5;
-}
-.kpi-label {
-  font-family:var(--font-mono); font-size:.52rem; font-weight:700;
-  color:var(--muted); letter-spacing:.16em; text-transform:uppercase;
-  margin-bottom:8px;
-}
-.kpi-val {
-  font-family:var(--font-mono); font-size:2rem; font-weight:700;
-  color:var(--ka,var(--amber)); line-height:1;
-  text-shadow:0 0 16px var(--ka,var(--amber));
-  margin-bottom:4px;
-}
-.kpi-eff {
-  font-family:var(--font-mono); font-size:.6rem; font-weight:700;
-  display:inline-block; padding:2px 7px; border-radius:12px;
-  border:1px solid; margin-top:3px;
-}
-.kpi-hint { font-family:var(--font-mono); font-size:.55rem; color:var(--muted); margin-top:4px; }
-
-/* ── PANELS ─────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════
+   PANELS
+═══════════════════════════════════════════════════ */
 .panel {
-  background:var(--ink2); border:1px solid var(--wire);
-  border-radius:var(--r10); overflow:hidden;
+  background:var(--surf); border:1px solid var(--line2);
+  border-radius:var(--r14); overflow:hidden;
   margin-bottom:14px;
-  animation:fadeUp .4s var(--ease) both;
+  animation:cardIn .45s var(--ease) both;
 }
-.panel-h {
-  padding:14px 18px 12px;
-  border-bottom:1px solid var(--wire);
-  display:flex; align-items:center; justify-content:space-between;
-  gap:12px;
+.panel-hd {
+  padding:14px 20px 12px;
+  border-bottom:1px solid var(--line);
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
 }
-.panel-title {
-  font-size:.82rem; font-weight:700; color:var(--snow);
-  display:flex; align-items:center; gap:8px;
+.panel-ttl {
+  font-size:.88rem; font-weight:600; color:var(--snow);
+  display:flex; align-items:center; gap:9px;
 }
-.panel-title::before {
-  content:''; width:6px; height:6px; border-radius:50%;
-  background:var(--amber); box-shadow:0 0 6px var(--amber);
+.panel-ttl-dot {
+  width:8px; height:8px; border-radius:50%;
+  background:var(--q1); box-shadow:0 0 8px var(--q1);
   flex-shrink:0;
 }
 .panel-meta {
-  font-family:var(--font-mono); font-size:.55rem;
-  color:var(--muted); letter-spacing:.08em; text-transform:uppercase;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:.56rem; color:var(--ghost); letter-spacing:.1em; text-transform:uppercase;
 }
-.panel-b { padding:18px; }
-.panel-b-sm { padding:12px 18px; }
+.panel-body { padding:20px; }
+.panel-body-sm { padding:14px 20px; }
 
-/* ── GRIDS ───────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════
+   KPI ROW (semaine/mois) — compact, sous les qcards
+═══════════════════════════════════════════════════ */
+.kpi-strip { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+.kpi-pill {
+  flex:1; min-width:130px; padding:14px 18px;
+  background:var(--surf); border:1px solid var(--line2);
+  border-radius:var(--r10); position:relative; overflow:hidden;
+  animation:cardIn .4s var(--ease) both;
+}
+.kpi-pill::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg, transparent, var(--ka,var(--q1)), transparent);
+  opacity:.6;
+}
+.kpi-pill-label {
+  font-family:'IBM Plex Mono', monospace; font-size:.55rem; font-weight:600;
+  color:var(--ghost); letter-spacing:.12em; text-transform:uppercase; margin-bottom:6px;
+}
+.kpi-pill-val {
+  font-family:'Cormorant Garamond', serif; font-size:2.4rem; font-weight:600;
+  color:var(--ka,var(--q1)); line-height:1; letter-spacing:-.01em;
+}
+.kpi-pill-sub { font-size:.62rem; color:var(--muted); margin-top:4px; }
+
+/* ═══════════════════════════════════════════════════
+   GRILLES
+═══════════════════════════════════════════════════ */
 .g2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 @media(max-width:900px){ .g2{grid-template-columns:1fr;} }
 
-/* ── CHART HEIGHTS ──────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════
+   CHART HEIGHTS
+═══════════════════════════════════════════════════ */
 .ch-160 { height:160px; position:relative; }
-.ch-240 { height:240px; position:relative; }
+.ch-220 { height:220px; position:relative; }
 .ch-280 { height:280px; position:relative; }
 .ch-320 { height:320px; position:relative; }
 
-/* ── ERR LIST ────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════
+   BARS
+═══════════════════════════════════════════════════ */
+.bar-row { display:flex; align-items:center; gap:10px; margin-bottom:9px; }
+.bar-row:last-child { margin-bottom:0; }
+.bar-tag {
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:.64rem; font-weight:700; padding:2px 9px; border-radius:12px;
+  border:1px solid; letter-spacing:.04em; min-width:54px; justify-content:center;
+}
+.bt1 { color:var(--q1); border-color:rgba(245,166,35,.3); background:var(--q1s); }
+.bt2 { color:var(--q2); border-color:rgba(0,212,255,.25); background:var(--q2s); }
+.bt3 { color:var(--q3); border-color:rgba(255,94,125,.3); background:var(--q3s); }
+.bar-track { flex:1; height:5px; background:var(--surf3); border-radius:3px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:3px; transition:width 1s var(--ease); }
+.bar-num { font-family:'IBM Plex Mono', monospace; font-size:.64rem; color:var(--soft); min-width:22px; text-align:right; }
+
+/* ═══════════════════════════════════════════════════
+   ERR LIST
+═══════════════════════════════════════════════════ */
 .err-list { display:flex; flex-direction:column; gap:6px; }
 .err-item {
   display:flex; align-items:center; gap:10px;
-  padding:8px 12px;
-  background:var(--ink3); border:1px solid var(--wire);
-  border-radius:var(--r6);
-  border-left:2px solid var(--ec, var(--amber));
+  padding:9px 13px; background:var(--surf2);
+  border:1px solid var(--line); border-radius:var(--r10);
+  border-left:2px solid var(--ec);
   transition:background var(--fast);
 }
-.err-item:hover { background:var(--ink4); }
-.err-h { font-family:var(--font-mono); font-size:.7rem; color:var(--ghost); min-width:42px; }
-.err-tag {
-  font-family:var(--font-mono); font-size:.6rem; font-weight:700;
-  padding:2px 8px; border-radius:12px; border:1px solid;
-  letter-spacing:.08em; text-transform:uppercase;
+.err-item:hover { background:var(--surf3); }
+.err-time {
+  font-family:'IBM Plex Mono', monospace; font-size:.68rem;
+  color:var(--ghost); min-width:42px; flex-shrink:0;
 }
-.err-tag.q1 { color:var(--amber); border-color:rgba(240,160,48,.3); background:var(--amber-); }
-.err-tag.q2 { color:var(--blue);  border-color:rgba(91,142,240,.3);  background:var(--blue-); }
-.err-tag.q3 { color:var(--violet);border-color:rgba(168,112,232,.3); background:var(--violet-); }
 .err-none {
-  text-align:center; padding:32px; color:var(--muted);
-  font-family:var(--font-mono); font-size:.68rem; letter-spacing:.08em;
+  padding:36px 20px; text-align:center;
+  font-family:'IBM Plex Mono', monospace; font-size:.66rem;
+  color:var(--muted); letter-spacing:.06em;
 }
-.err-none::before { content:'[ '; } .err-none::after { content:' ]'; }
 
-/* ── BAR ROWS ────────────────────────────────────────────────── */
-.bar-r { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
-.bar-r:last-child { margin-bottom:0; }
-.bar-lbl { min-width:56px; }
-.bar-track { flex:1; height:4px; background:var(--ink3); border-radius:2px; overflow:hidden; }
-.bar-fill { height:100%; border-radius:2px; transition:width 1s var(--ease); }
-.bar-num { font-family:var(--font-mono); font-size:.62rem; color:var(--ghost); min-width:20px; text-align:right; }
-
-/* ── HEATMAP ─────────────────────────────────────────────────── */
-.hm-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+/* ═══════════════════════════════════════════════════
+   HEATMAP
+═══════════════════════════════════════════════════ */
+.hm-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
 .hm-table { border-collapse:separate; border-spacing:3px; }
-.hm-th {
-  font-family:var(--font-mono); font-size:.5rem; font-weight:700;
-  color:var(--dim); letter-spacing:.08em; text-transform:uppercase;
-  padding:2px 4px; text-align:center; white-space:nowrap;
+.hm-col-head {
+  font-family:'IBM Plex Mono', monospace; font-size:.52rem;
+  color:var(--muted); letter-spacing:.06em; text-transform:uppercase;
+  padding:3px 4px; text-align:center; white-space:nowrap;
 }
-.hm-th-row {
-  font-family:var(--font-mono); font-size:.58rem; color:var(--muted);
-  text-align:right; padding-right:10px; white-space:nowrap;
+.hm-row-head {
+  font-family:'IBM Plex Mono', monospace; font-size:.58rem;
+  color:var(--ghost); text-align:right; padding-right:10px; white-space:nowrap;
 }
 .hm-cell {
-  width:32px; height:28px; border-radius:3px;
+  width:34px; height:30px; border-radius:4px;
   display:flex; align-items:center; justify-content:center;
-  font-family:var(--font-mono); font-size:.55rem; font-weight:700;
-  cursor:default; transition:transform var(--fast),filter var(--fast);
+  font-family:'IBM Plex Mono', monospace; font-size:.54rem; font-weight:600;
+  cursor:default; transition:transform var(--fast), filter var(--fast);
 }
-.hm-cell:hover { transform:scale(1.2); filter:brightness(1.3); z-index:2; position:relative; }
+.hm-cell:hover { transform:scale(1.18); filter:brightness(1.4); z-index:2; position:relative; }
 
-/* ── CALENDAR ────────────────────────────────────────────────── */
-.cal-hdr { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; margin-bottom:4px; }
-.cal-dn { font-family:var(--font-mono); font-size:.5rem; color:var(--dim); text-align:center; letter-spacing:.06em; text-transform:uppercase; }
-.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+/* ═══════════════════════════════════════════════════
+   CALENDRIER
+═══════════════════════════════════════════════════ */
+.cal-week-hdr { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin-bottom:4px; }
+.cal-week-dn {
+  font-family:'IBM Plex Mono', monospace; font-size:.52rem;
+  color:var(--muted); text-align:center; letter-spacing:.05em;
+}
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
 .cal-day {
-  aspect-ratio:1; border-radius:4px;
-  border:1px solid var(--wire);
+  aspect-ratio:1; border-radius:5px;
+  border:1px solid var(--line2);
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   cursor:pointer; transition:transform var(--fast), border-color var(--fast);
 }
-.cal-day:hover { transform:scale(1.12); z-index:2; position:relative; }
-.cal-n { font-family:var(--font-mono); font-size:.5rem; line-height:1; color:var(--muted); }
-.cal-v { font-family:var(--font-mono); font-size:.62rem; font-weight:700; line-height:1.2; }
+.cal-day:hover { transform:scale(1.1); z-index:2; position:relative; }
+.cal-dn { font-family:'IBM Plex Mono', monospace; font-size:.5rem; color:var(--muted); line-height:1; }
+.cal-dv { font-family:'Cormorant Garamond', serif; font-size:.88rem; font-weight:600; line-height:1.1; }
 
-/* ── SPINNER ─────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════
+   DIVIDER
+═══════════════════════════════════════════════════ */
+.div { height:1px; background:var(--line); margin:14px 0; }
+
+/* ═══════════════════════════════════════════════════
+   SPINNER / TOASTS
+═══════════════════════════════════════════════════ */
 .spin-wrap {
-  display:flex; align-items:center; justify-content:center;
-  padding:80px; gap:10px;
-  font-family:var(--font-mono); font-size:.7rem; color:var(--muted); letter-spacing:.1em;
+  display:flex; align-items:center; justify-content:center; padding:90px;
+  gap:10px; font-family:'IBM Plex Mono', monospace;
+  font-size:.68rem; color:var(--muted); letter-spacing:.08em;
 }
 .spin {
   width:18px; height:18px; border-radius:50%;
-  border:2px solid var(--wire2); border-top-color:var(--amber);
-  animation:sp .7s linear infinite;
+  border:2px solid var(--line2); border-top-color:var(--q1);
+  animation:rot .75s linear infinite;
 }
-@keyframes sp { to{transform:rotate(360deg)} }
+@keyframes rot { to{transform:rotate(360deg)} }
 
-/* ── TOASTS ─────────────────────────────────────────────────── */
 #toasts { position:fixed; bottom:20px; right:20px; z-index:999; display:flex; flex-direction:column; gap:6px; }
 .toast {
-  padding:9px 16px; border-radius:var(--r6);
-  font-family:var(--font-mono); font-size:.66rem; font-weight:700; letter-spacing:.06em;
-  border:1px solid var(--wire); background:var(--ink3); color:var(--pale);
-  animation:tin .18s var(--ease);
+  padding:10px 16px; border-radius:var(--r10);
+  font-family:'IBM Plex Mono', monospace; font-size:.64rem; font-weight:600; letter-spacing:.04em;
+  border:1px solid var(--line2); background:var(--surf2); color:var(--pale);
+  animation:tin .2s var(--ease);
 }
-.toast.s { color:var(--green); border-color:rgba(48,200,152,.25); background:rgba(48,200,152,.06); }
-.toast.e { color:var(--red); border-color:rgba(232,72,72,.25); background:rgba(232,72,72,.06); }
-@keyframes tin { from{opacity:0;transform:translateX(8px)} to{opacity:1;transform:translateX(0)} }
+.toast.s { color:var(--green); border-color:rgba(34,211,160,.25); background:rgba(34,211,160,.06); }
+.toast.e { color:var(--red); border-color:rgba(238,68,68,.25); background:rgba(238,68,68,.06); }
+@keyframes tin { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
 
-/* ── DIVIDER ─────────────────────────────────────────────────── */
-.div { height:1px; background:var(--wire); margin:14px 0; }
+/* ═══════════════════════════════════════════════════
+   CONTENT
+═══════════════════════════════════════════════════ */
+.content { position:relative; z-index:1; padding:20px 24px 60px; max-width:1440px; margin:0 auto; }
+.content-section-title {
+  font-family:'IBM Plex Mono', monospace; font-size:.58rem; font-weight:600;
+  color:var(--muted); letter-spacing:.18em; text-transform:uppercase;
+  margin-bottom:14px; display:flex; align-items:center; gap:10px;
+}
+.content-section-title::after { content:''; flex:1; height:1px; background:var(--line); }
 </style>
 </head>
 <body>
 <div id="toasts"></div>
 
-<!-- TOPBAR -->
+<!-- ══════ TOPBAR ══════ -->
 <header class="topbar">
   <a href="index.html" class="tb-back">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-    RETOUR
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Retour
   </a>
-  <div class="tb-sep"></div>
-  <div class="tb-icon">S</div>
-  <div>
-    <div class="tb-name">Erreurs Papier</div>
+  <div class="tb-divider"></div>
+  <div class="tb-logo">S</div>
+  <div class="tb-text">
+    <div class="tb-title">Erreurs Papier</div>
     <div class="tb-sub">Statistiques · Quarts de travail</div>
   </div>
-  <div class="tb-right">
-    <div class="tb-live"><div class="tb-live-dot"></div>EN LIGNE</div>
-  </div>
+  <div class="tb-pulse"><div class="pulse-dot"></div>EN LIGNE</div>
 </header>
 
-<!-- DATE NAV -->
-<div class="date-zone">
-  <button class="date-arr" onclick="changeDay(-1)">&#8592;</button>
-  <div class="date-display">
-    <span class="date-txt" id="date-lbl">—</span>
-    <span class="today-chip" id="today-chip" style="display:none">AUJOURD'HUI</span>
+<!-- ══════ CONTRÔLES ══════ -->
+<div class="controls">
+  <div class="date-nav">
+    <button class="arr" onclick="changeDay(-1)">&#8592;</button>
+    <div class="date-box">
+      <span class="date-label" id="date-lbl">—</span>
+      <span class="today-badge" id="today-chip" style="display:none">Aujourd'hui</span>
+    </div>
+    <button class="arr" onclick="changeDay(1)">&#8594;</button>
   </div>
-  <button class="date-arr" onclick="changeDay(1)">&#8594;</button>
-  <button class="btn-today" onclick="goToday()">AUJOURD'HUI</button>
+  <button class="btn-today" onclick="goToday()">Aujourd'hui</button>
+  <div class="tabs">
+    <button class="tab on" onclick="switchTab('jour',this)">Journée</button>
+    <button class="tab" onclick="switchTab('semaine',this)">Semaine</button>
+    <button class="tab" onclick="switchTab('mois',this)">Mois</button>
+  </div>
 </div>
 
-<!-- TABS -->
-<div class="tabs-zone">
-  <button class="tab-btn on" onclick="switchTab('jour',this)">JOURNÉE</button>
-  <button class="tab-btn" onclick="switchTab('semaine',this)">SEMAINE</button>
-  <button class="tab-btn" onclick="switchTab('mois',this)">MOIS</button>
-</div>
-
-<!-- MAIN CONTENT -->
+<!-- ══════ CONTENU DYNAMIQUE ══════ -->
 <div class="content" id="content">
   <div class="spin-wrap"><div class="spin"></div>CHARGEMENT...</div>
 </div>
@@ -492,31 +505,22 @@ body::after {
 const SB_URL='https://xppzmdmnuztozgukrcta.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 let sb, curTab='jour', curDate=todayStr();
-let ch1=null, ch2=null;
+let charts=[];
 
-function isActif(r){ return !r.statut_ligne||r.statut_ligne.toUpperCase()!=='INACTIF'; }
-function tauxEff(e,t){ if(!t)return null; return Math.round((1-e/t)*100); }
-
-/* badge efficacité inline */
-function effBadge(pct, size='sm'){
-  if(pct===null) return `<span class="qg-eff na">—</span>`;
-  const cls=pct>=90?'hi':pct>=70?'mid':pct>=50?'lo':'bad';
-  return `<span class="qg-eff ${cls}">${pct}%</span>`;
-}
-function effClass(pct){ return pct===null?'na':pct>=90?'hi':pct>=70?'mid':pct>=50?'lo':'bad'; }
-
+/* Quarts */
 const Q=[
-  {id:1,s:'Q1',l:'Quart 1',c:'#F0A030',d:'rgba(240,160,48,.12)',t:'#FFD080',cssVar:'--q1c'},
-  {id:2,s:'Q2',l:'Quart 2',c:'#5B8EF0',d:'rgba(91,142,240,.12)',t:'#A0C0FF',cssVar:'--q2c'},
-  {id:3,s:'Q3',l:'Quart 3',c:'#A870E8',d:'rgba(168,112,232,.12)',t:'#D0A8FF',cssVar:'--q3c'},
+  {id:1,s:'Q1',l:'Quart 1',c:'#F5A623',b:'rgba(245,166,35,.13)',s2:'rgba(245,166,35,.06)',g:'rgba(245,166,35,.35)',line:'rgba(245,166,35,.25)'},
+  {id:2,s:'Q2',l:'Quart 2',c:'#00D4FF',b:'rgba(0,212,255,.12)',s2:'rgba(0,212,255,.05)',g:'rgba(0,212,255,.30)',line:'rgba(0,212,255,.22)'},
+  {id:3,s:'Q3',l:'Quart 3',c:'#FF5E7D',b:'rgba(255,94,125,.13)',s2:'rgba(255,94,125,.06)',g:'rgba(255,94,125,.32)',line:'rgba(255,94,125,.25)'},
 ];
 const SLOTS_H=['06:00','06:00','07:30','09:00','11:30','14:00','15:30','17:00','18:00','19:00'];
 const UNI_SLOTS=[...new Set(SLOTS_H)].sort();
 
 /* Chart.js defaults */
-Chart.defaults.font.family='Space Mono';
-Chart.defaults.color='#5C7099';
+Chart.defaults.font.family='IBM Plex Mono';
+Chart.defaults.color='#607090';
 
+/* ─── Helpers ─────────────────────────────────────────────── */
 function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function addDays(s,n){const d=new Date(s+'T00:00:00');d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function fmtLong(s){return new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});}
@@ -525,34 +529,45 @@ function fmtWD(s){return new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{wee
 function weekRange(s){const d=new Date(s+'T00:00:00');const dow=d.getDay();const diff=dow===0?-6:1-dow;const m=new Date(d);m.setDate(d.getDate()+diff);const su=new Date(m);su.setDate(m.getDate()+6);return[m,su].map(x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0'));}
 function monthRange(s){const[y,m]=s.split('-').map(Number);return[`${y}-${String(m).padStart(2,'0')}-01`,`${y}-${String(m).padStart(2,'0')}-${String(new Date(y,m,0).getDate()).padStart(2,'0')}`];}
 function daysInRange(a,b){const r=[];let d=a;while(d<=b){r.push(d);d=addDays(d,1);}return r;}
+function isActif(r){return!r.statut_ligne||r.statut_ligne.toUpperCase()!=='INACTIF';}
+function tauxEff(e,t){if(!t)return null;return Math.round((1-e/t)*100);}
+
+function effColor(pct){
+  if(pct===null)return'#3D4F6E';
+  if(pct>=90)return'#22D3A0';
+  if(pct>=70)return'#F5C842';
+  if(pct>=50)return'#F07840';
+  return'#EE4444';
+}
+function effLabel(pct){return pct===null?'—':pct+'%';}
 
 function toast(msg,t=''){const el=document.createElement('div');el.className='toast'+(t?' '+t:'');el.textContent=msg;document.getElementById('toasts').appendChild(el);setTimeout(()=>el.remove(),3200);}
 
 function refreshDateUI(){
-  document.getElementById('date-lbl').textContent=fmtLong(curDate).toUpperCase();
+  document.getElementById('date-lbl').textContent=fmtLong(curDate);
   document.getElementById('today-chip').style.display=curDate===todayStr()?'inline-flex':'none';
 }
 function changeDay(d){curDate=addDays(curDate,d);refreshDateUI();render();}
 function goToday(){curDate=todayStr();refreshDateUI();render();}
 function switchTab(t,btn){
   curTab=t;
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
   render();
 }
 
 async function fetchRange(a,b){
   const days=daysInRange(a,b);
-  let allRows=[];
+  let all=[];
   for(const day of days){
     const{data,error}=await sb.from('planning_camions').select('*').eq('date_jour',day).order('slot_index');
     if(error){toast('Erreur: '+error.message,'e');continue;}
-    allRows=[...allRows,...(data||[])];
+    all=[...all,...(data||[])];
   }
-  return allRows.map(r=>({...r,erreur_q1:r.erreur_q1===true,erreur_q2:r.erreur_q2===true,erreur_q3:r.erreur_q3===true}));
+  return all.map(r=>({...r,erreur_q1:r.erreur_q1===true,erreur_q2:r.erreur_q2===true,erreur_q3:r.erreur_q3===true}));
 }
 
-function killCharts(){[ch1,ch2].forEach(c=>{if(c)c.destroy();});ch1=null;ch2=null;}
+function killCharts(){charts.forEach(c=>c&&c.destroy());charts=[];}
 
 async function render(){
   document.getElementById('content').innerHTML='<div class="spin-wrap"><div class="spin"></div>CHARGEMENT...</div>';
@@ -566,89 +581,86 @@ async function render(){
   else renderMois(data,a,b);
 }
 
-/* ══════════════════════════════════════════════════════════════
-   ARC SVG helper
-══════════════════════════════════════════════════════════════ */
-function arcHTML(pct,color){
-  const C=2*Math.PI*22; // circonférence r=22
-  const offset=pct===null?C:C-(pct/100)*C;
-  return `<svg class="qg-arc" viewBox="0 0 52 52">
-    <circle class="arc-bg" cx="26" cy="26" r="22" stroke-dasharray="${C}" stroke-dashoffset="0"/>
-    <circle class="arc-fg" cx="26" cy="26" r="22" stroke="${color}"
-      stroke-dasharray="${C}" stroke-dashoffset="${offset}"
-      style="transition:stroke-dashoffset .9s cubic-bezier(.4,0,.2,1)"/>
-  </svg>
-  <div class="qg-arc-pct">${pct===null?'—':pct+'%'}</div>`;
+/* ═══════════════════════════════════════════════════
+   COMPOSANT QUART CARDS (commun aux 3 vues)
+═══════════════════════════════════════════════════ */
+function quartsHTML(tq, actifs){
+  const C=2*Math.PI*24; // r=24
+  return `<div class="quart-cards">`+Q.map((q,i)=>{
+    const pct=tauxEff(tq[i],actifs);
+    const eff=effColor(pct);
+    const offset=pct===null?C:C*(1-pct/100);
+    const errLabel=tq[i]===0?'Aucune erreur':tq[i]===1?'1 erreur détectée':tq[i]+' erreurs détectées';
+    return `<div class="qcard" style="--qc:${q.c};--qb:${q.b};--qg:${q.g};--qline:${q.line}">
+      <div class="qc-header">
+        <div class="qc-tag"><div class="qc-tag-dot"></div>${q.l}</div>
+        <div class="qc-ring-wrap">
+          <svg class="qc-ring" viewBox="0 0 60 60">
+            <circle class="ring-bg" cx="30" cy="30" r="24" stroke-dasharray="${C}" stroke-dashoffset="0"/>
+            <circle class="ring-fg" cx="30" cy="30" r="24" stroke="${eff}"
+              stroke-dasharray="${C}" stroke-dashoffset="${offset}"/>
+          </svg>
+          <div class="qc-ring-pct" style="color:${eff}">${effLabel(pct)}</div>
+        </div>
+      </div>
+      <div class="qc-body">
+        <div class="qc-left">
+          <div class="qc-count">${tq[i]}</div>
+          <div class="qc-count-label">${errLabel}</div>
+          <div class="qc-eff-label">${pct===null?'—':pct+'% d\'efficacité'} · ${actifs} lignes</div>
+        </div>
+      </div>
+      <div class="qc-bg-bar"></div>
+    </div>`;
+  }).join('')+'</div>';
 }
 
-/* ══════════════════════════════════════════════════════════════
-   JOURNÉE
-══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   VUE JOURNÉE
+═══════════════════════════════════════════════════ */
 function renderJour(data){
   const rows=data.filter(r=>r.date_jour===curDate);
   const tq=[0,0,0];
   rows.forEach(r=>{if(r.erreur_q1)tq[0]++;if(r.erreur_q2)tq[1]++;if(r.erreur_q3)tq[2]++;});
   const tot=tq[0]+tq[1]+tq[2];
   const actifs=rows.filter(r=>isActif(r)).length;
-  const pcts=tq.map(e=>tauxEff(e,actifs));
 
   document.getElementById('content').innerHTML=`
+    <div class="content-section-title">Journée du ${fmtLong(curDate)}</div>
 
-    <div class="sec-title">APERÇU DU QUART · ${fmtLong(curDate).toUpperCase()}</div>
-
-    <!-- GAUGES QUARTS -->
-    <div class="quart-row">
-      ${Q.map((q,i)=>`
-        <div class="quart-gauge" style="--qc:${q.c};--qd:${q.d}">
-          <div class="qg-head">
-            <span class="qg-tag">${q.s} · ${q.l}</span>
-            <span class="qg-eff ${effClass(pcts[i])}">${pcts[i]===null?'—':pcts[i]+'%'}</span>
-          </div>
-          <div class="qg-count" id="cnt-${q.id}">${tq[i]}</div>
-          <div class="qg-label">${tq[i]===0?'Aucune erreur':'Erreur${tq[i]>1?"s":""} détectée${tq[i]>1?"s":""}'}</div>
-          <div class="qg-sub">${actifs} ligne${actifs!==1?'s':''} active${actifs!==1?'s':''}</div>
-          ${arcHTML(pcts[i],q.c)}
-        </div>
-      `).join('')}
-    </div>
+    ${quartsHTML(tq,actifs)}
 
     <div class="g2">
-      <!-- LISTE DÉTAIL -->
       <div class="panel">
-        <div class="panel-h">
-          <span class="panel-title">Journal des erreurs</span>
+        <div class="panel-hd">
+          <span class="panel-ttl"><div class="panel-ttl-dot" style="background:var(--q1);box-shadow:0 0 8px var(--q1)"></div>Journal des erreurs</span>
           <span class="panel-meta">${tot} TOTAL</span>
         </div>
-        <div class="panel-b-sm" id="jour-list"></div>
+        <div class="panel-body-sm" id="jour-list"></div>
       </div>
-
-      <!-- DOUGHNUT -->
       <div class="panel">
-        <div class="panel-h">
-          <span class="panel-title">Répartition par quart</span>
-          <span class="panel-meta">${fmtShort(curDate).toUpperCase()}</span>
+        <div class="panel-hd">
+          <span class="panel-ttl"><div class="panel-ttl-dot" style="background:var(--q2);box-shadow:0 0 8px var(--q2)"></div>Répartition par quart</span>
+          <span class="panel-meta">${fmtShort(curDate)}</span>
         </div>
-        <div class="panel-b">
-          <div class="ch-240"><canvas id="c-doughnut"></canvas></div>
+        <div class="panel-body">
+          <div class="ch-220"><canvas id="c-doughnut"></canvas></div>
           <div class="div"></div>
-          ${Q.map((q,i)=>`
-            <div class="bar-r">
-              <div class="bar-lbl"><span class="err-tag q${q.id}">${q.s}</span></div>
-              <div class="bar-track"><div class="bar-fill" style="width:${tot?Math.round(tq[i]/tot*100):0}%;background:${q.c}"></div></div>
-              <div class="bar-num">${tq[i]}</div>
-            </div>
-          `).join('')}
+          ${Q.map((q,i)=>`<div class="bar-row">
+            <span class="bar-tag bt${q.id}">${q.s}</span>
+            <div class="bar-track"><div class="bar-fill" style="width:${tot?Math.round(tq[i]/tot*100):0}%;background:${q.c}"></div></div>
+            <span class="bar-num">${tq[i]}</span>
+          </div>`).join('')}
         </div>
       </div>
     </div>
 
-    <!-- BAR CRÉNEAUX -->
     <div class="panel">
-      <div class="panel-h">
-        <span class="panel-title">Distribution par créneau horaire</span>
-        <span class="panel-meta">TOUS QUARTS</span>
+      <div class="panel-hd">
+        <span class="panel-ttl"><div class="panel-ttl-dot" style="background:var(--q3);box-shadow:0 0 8px var(--q3)"></div>Distribution horaire</span>
+        <span class="panel-meta">ERREURS PAR CRÉNEAU</span>
       </div>
-      <div class="panel-b"><div class="ch-160"><canvas id="c-slots"></canvas></div></div>
+      <div class="panel-body"><div class="ch-160"><canvas id="c-slots"></canvas></div></div>
     </div>
   `;
 
@@ -658,43 +670,42 @@ function renderJour(data){
   errs.sort((a,b)=>a.h<b.h?-1:1);
   const listEl=document.getElementById('jour-list');
   if(!errs.length){
-    listEl.innerHTML='<div class="err-none">AUCUNE ERREUR DÉTECTÉE</div>';
-  } else {
+    listEl.innerHTML='<div class="err-none">✓ Aucune erreur papier enregistrée</div>';
+  }else{
     listEl.innerHTML='<div class="err-list">'+errs.map(e=>`
       <div class="err-item" style="--ec:${e.q.c}">
-        <span class="err-h">${e.h}</span>
-        <span class="err-tag q${e.q.id}">${e.q.s}</span>
-        <span style="font-size:.68rem;color:var(--ghost);font-family:var(--font-mono)">${e.q.l.toUpperCase()}</span>
+        <span class="err-time">${e.h}</span>
+        <span class="bar-tag bt${e.q.id}">${e.q.s}</span>
+        <span style="font-size:.72rem;color:var(--soft)">${e.q.l}</span>
       </div>`).join('')+'</div>';
   }
 
   /* doughnut */
   const dCtx=document.getElementById('c-doughnut').getContext('2d');
-  ch1=new Chart(dCtx,{type:'doughnut',data:{
+  charts.push(new Chart(dCtx,{type:'doughnut',data:{
     labels:Q.map(q=>q.l),
-    datasets:[{data:tq,backgroundColor:Q.map(q=>q.d),borderColor:Q.map(q=>q.c),borderWidth:2,hoverBackgroundColor:Q.map(q=>q.d.replace('.12',',.22'))}]
+    datasets:[{data:tq,backgroundColor:Q.map(q=>q.b),borderColor:Q.map(q=>q.c),borderWidth:2,hoverBackgroundColor:Q.map(q=>q.g)}]
   },options:{responsive:true,maintainAspectRatio:true,cutout:'72%',plugins:{
-    legend:{display:true,position:'bottom',labels:{font:{size:10},padding:14,usePointStyle:true,pointStyleWidth:7}},
+    legend:{display:true,position:'bottom',labels:{font:{size:10},padding:16,usePointStyle:true,pointStyleWidth:8}},
     tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+ctx.raw+(ctx.raw>1?' erreurs':' erreur')}}
-  }}});
+  }}}));
 
   /* bar slots */
-  const getSlotQ=(h,qi)=>rows.filter(r=>(r.heure_planif||SLOTS_H[r.slot_index]||'?')===h&&r['erreur_q'+qi]).length;
   const bCtx=document.getElementById('c-slots').getContext('2d');
-  ch2=new Chart(bCtx,{type:'bar',data:{
+  charts.push(new Chart(bCtx,{type:'bar',data:{
     labels:UNI_SLOTS,
-    datasets:Q.map(q=>({label:q.l,data:UNI_SLOTS.map(h=>getSlotQ(h,q.id)),backgroundColor:q.d,borderColor:q.c,borderWidth:1.5,borderRadius:3}))
+    datasets:Q.map(q=>({label:q.l,data:UNI_SLOTS.map(h=>rows.filter(r=>(r.heure_planif||SLOTS_H[r.slot_index]||'?')===h&&r['erreur_q'+q.id]).length),backgroundColor:q.b,borderColor:q.c,borderWidth:1.5,borderRadius:4}))
   },options:{responsive:true,maintainAspectRatio:false,
     scales:{
-      x:{stacked:true,grid:{color:'rgba(35,45,66,.5)'},ticks:{font:{size:9}}},
-      y:{stacked:true,grid:{color:'rgba(35,45,66,.5)'},ticks:{stepSize:1,font:{size:9}},beginAtZero:true}
+      x:{stacked:true,grid:{color:'rgba(30,36,56,.8)'},ticks:{font:{size:9}}},
+      y:{stacked:true,grid:{color:'rgba(30,36,56,.8)'},ticks:{stepSize:1,font:{size:9}},beginAtZero:true}
     },plugins:{legend:{display:false}}
-  }});
+  }}));
 }
 
-/* ══════════════════════════════════════════════════════════════
-   SEMAINE
-══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   VUE SEMAINE
+═══════════════════════════════════════════════════ */
 function renderSemaine(data,a,b){
   const days=daysInRange(a,b);
   const bd={};
@@ -709,98 +720,123 @@ function renderSemaine(data,a,b){
   const tq=[0,0,0];days.forEach(d=>{tq[0]+=bd[d].q1;tq[1]+=bd[d].q2;tq[2]+=bd[d].q3;});
   const tot=tq[0]+tq[1]+tq[2];
   const touch=days.filter(d=>bd[d].tot>0).length;
-  const totalActifs=data.filter(r=>isActif(r)).length;
-  const pcts=tq.map(e=>tauxEff(e,totalActifs));
+  const actifs=data.filter(r=>isActif(r)).length;
 
   document.getElementById('content').innerHTML=`
-    <div class="sec-title">VUE HEBDOMADAIRE · ${fmtShort(a).toUpperCase()} — ${fmtShort(b).toUpperCase()}</div>
+    <div class="content-section-title">Semaine du ${fmtShort(a)} au ${fmtShort(b)}</div>
 
-    <div class="kpi-grid">
-      <div class="kpi" style="--ka:var(--amber)" >
-        <div class="kpi-label">TOTAL SEMAINE</div>
-        <div class="kpi-val">${tot}</div>
-        <div class="kpi-hint">${totalActifs} LIGNES ACTIVES</div>
-      </div>
-      ${Q.map((q,i)=>`
-        <div class="kpi" style="--ka:${q.c}">
-          <div class="kpi-label">${q.l.toUpperCase()}</div>
-          <div class="kpi-val">${tq[i]}</div>
-          <span class="kpi-eff ${effClass(pcts[i])}" style="color:${pcts[i]===null?'var(--muted)':pcts[i]>=90?'#30C898':pcts[i]>=70?'#F0A030':pcts[i]>=50?'#F07850':'#E84848'};border-color:currentColor;background:currentColor11">${pcts[i]===null?'—':pcts[i]+'% EFF.'}</span>
-          <div class="kpi-hint">${totalActifs} ACTIVES</div>
-        </div>
-      `).join('')}
-      <div class="kpi" style="--ka:#E84848">
-        <div class="kpi-label">JOURS TOUCHÉS</div>
-        <div class="kpi-val">${touch}<span style="font-size:1rem;color:var(--muted)">/${days.length}</span></div>
-        <div class="kpi-hint">${Math.round(touch/days.length*100)}% DES JOURS</div>
-      </div>
-    </div>
+    ${quartsHTML(tq,actifs)}
 
-    <div class="g2">
-      <div class="panel">
-        <div class="panel-h">
-          <span class="panel-title">Évolution hebdomadaire</span>
-          <span class="panel-meta">PAR JOUR</span>
-        </div>
-        <div class="panel-b"><div class="ch-280"><canvas id="c-sem-line"></canvas></div></div>
+    <div class="kpi-strip">
+      <div class="kpi-pill" style="--ka:var(--q1)">
+        <div class="kpi-pill-label">Total semaine</div>
+        <div class="kpi-pill-val">${tot}</div>
+        <div class="kpi-pill-sub">${actifs} lignes actives</div>
       </div>
-      <div class="panel">
-        <div class="panel-h">
-          <span class="panel-title">Contribution par quart</span>
-          <span class="panel-meta">EMPILÉ</span>
-        </div>
-        <div class="panel-b">
-          <div class="ch-240"><canvas id="c-sem-stack"></canvas></div>
-          <div class="div"></div>
-          ${Q.map((q,i)=>`<div class="bar-r">
-            <div class="bar-lbl"><span class="err-tag q${q.id}">${q.s}</span></div>
-            <div class="bar-track"><div class="bar-fill" style="width:${tot?Math.round(tq[i]/tot*100):0}%;background:${q.c}"></div></div>
-            <div class="bar-num">${tq[i]}</div>
-          </div>`).join('')}
-        </div>
+      <div class="kpi-pill" style="--ka:#22D3A0">
+        <div class="kpi-pill-label">Jours touchés</div>
+        <div class="kpi-pill-val">${touch}<span style="font-size:1.2rem;color:var(--muted)"> / ${days.length}</span></div>
+        <div class="kpi-pill-sub">${Math.round(touch/days.length*100)}% des jours</div>
+      </div>
+      <div class="kpi-pill" style="--ka:var(--q2)">
+        <div class="kpi-pill-label">Moyenne / jour</div>
+        <div class="kpi-pill-val">${tot?+(tot/days.length).toFixed(1):0}</div>
+        <div class="kpi-pill-sub">erreurs par jour</div>
+      </div>
+      <div class="kpi-pill" style="--ka:var(--q3)">
+        <div class="kpi-pill-label">Pic journalier</div>
+        <div class="kpi-pill-val">${Math.max(...days.map(d=>bd[d].tot))}</div>
+        <div class="kpi-pill-sub">maximum sur la semaine</div>
       </div>
     </div>
 
     <div class="panel">
-      <div class="panel-h">
-        <span class="panel-title">Carte thermique — Créneau × Jour</span>
+      <div class="panel-hd">
+        <span class="panel-ttl"><div class="panel-ttl-dot"></div>Évolution hebdomadaire</span>
+        <span class="panel-meta">ERREURS PAR JOUR · TOUS QUARTS</span>
+      </div>
+      <div class="panel-body"><div class="ch-280"><canvas id="c-sem-line"></canvas></div></div>
+    </div>
+
+    <div class="g2">
+      <div class="panel">
+        <div class="panel-hd">
+          <span class="panel-ttl"><div class="panel-ttl-dot" style="background:var(--q2);box-shadow:0 0 8px var(--q2)"></div>Répartition des quarts</span>
+          <span class="panel-meta">CONTRIBUTION</span>
+        </div>
+        <div class="panel-body">
+          <div class="ch-220"><canvas id="c-sem-d"></canvas></div>
+          <div class="div"></div>
+          ${Q.map((q,i)=>`<div class="bar-row">
+            <span class="bar-tag bt${q.id}">${q.s}</span>
+            <div class="bar-track"><div class="bar-fill" style="width:${tot?Math.round(tq[i]/tot*100):0}%;background:${q.c}"></div></div>
+            <span class="bar-num">${tq[i]}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd">
+          <span class="panel-ttl"><div class="panel-ttl-dot" style="background:var(--q3);box-shadow:0 0 8px var(--q3)"></div>Empilé par jour</span>
+          <span class="panel-meta">Q1 · Q2 · Q3</span>
+        </div>
+        <div class="panel-body"><div class="ch-280"><canvas id="c-sem-stack"></canvas></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-hd">
+        <span class="panel-ttl"><div class="panel-ttl-dot" style="background:var(--q1);box-shadow:0 0 8px var(--q1)"></div>Carte thermique — Créneau × Jour</span>
         <span class="panel-meta">INTENSITÉ</span>
       </div>
-      <div class="panel-b"><div class="hm-wrap" id="hm-sem"></div></div>
+      <div class="panel-body"><div class="hm-scroll" id="hm-sem"></div></div>
     </div>
   `;
 
+  /* courbe semaine — avec remplissage dégradé */
   const lCtx=document.getElementById('c-sem-line').getContext('2d');
-  ch1=new Chart(lCtx,{type:'line',data:{
-    labels:days.map(d=>fmtWD(d).toUpperCase()),
+  const gradTotal=lCtx.createLinearGradient(0,0,0,280);
+  gradTotal.addColorStop(0,'rgba(245,166,35,.25)');
+  gradTotal.addColorStop(1,'rgba(245,166,35,.01)');
+  charts.push(new Chart(lCtx,{type:'line',data:{
+    labels:days.map(d=>fmtWD(d)),
     datasets:[
-      {label:'Total',data:days.map(d=>bd[d].tot),borderColor:'#F0A030',backgroundColor:'rgba(240,160,48,.06)',fill:true,tension:.4,pointRadius:5,pointBackgroundColor:'#F0A030',borderWidth:2.5},
-      ...Q.map(q=>({label:q.l,data:days.map(d=>bd[d]['q'+q.id]),borderColor:q.c,backgroundColor:'transparent',fill:false,tension:.4,pointRadius:4,pointBackgroundColor:q.c,borderWidth:1.5,borderDash:[4,3]}))
+      {label:'Total',data:days.map(d=>bd[d].tot),borderColor:'#F5A623',backgroundColor:gradTotal,fill:true,tension:.4,pointRadius:6,pointBackgroundColor:'#F5A623',pointBorderColor:'#07080C',pointBorderWidth:2,borderWidth:2.5},
+      ...Q.map(q=>({label:q.l,data:days.map(d=>bd[d]['q'+q.id]),borderColor:q.c,backgroundColor:'transparent',fill:false,tension:.4,pointRadius:4,pointBackgroundColor:q.c,pointBorderColor:'#07080C',pointBorderWidth:1.5,borderWidth:1.5,borderDash:[5,3]}))
     ]
   },options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
     scales:{
-      x:{grid:{color:'rgba(35,45,66,.5)'},ticks:{font:{size:9}}},
-      y:{grid:{color:'rgba(35,45,66,.5)'},ticks:{stepSize:1,font:{size:9}},beginAtZero:true,min:0}
-    },plugins:{legend:{labels:{font:{size:10},usePointStyle:true,pointStyleWidth:7}}}
-  }});
+      x:{grid:{color:'rgba(30,36,56,.8)'},ticks:{font:{size:9}}},
+      y:{grid:{color:'rgba(30,36,56,.8)'},ticks:{stepSize:1,font:{size:9}},beginAtZero:true,min:0}
+    },plugins:{legend:{labels:{font:{size:10},usePointStyle:true,pointStyleWidth:8,padding:16}}}
+  }}));
 
+  /* doughnut */
+  const dCtx=document.getElementById('c-sem-d').getContext('2d');
+  charts.push(new Chart(dCtx,{type:'doughnut',data:{
+    labels:Q.map(q=>q.l),
+    datasets:[{data:tq,backgroundColor:Q.map(q=>q.b),borderColor:Q.map(q=>q.c),borderWidth:2}]
+  },options:{responsive:true,maintainAspectRatio:true,cutout:'72%',plugins:{
+    legend:{display:true,position:'bottom',labels:{font:{size:10},padding:14,usePointStyle:true,pointStyleWidth:8}}
+  }}}));
+
+  /* stacked */
   const sCtx=document.getElementById('c-sem-stack').getContext('2d');
-  ch2=new Chart(sCtx,{type:'bar',data:{
-    labels:days.map(d=>fmtWD(d).toUpperCase()),
-    datasets:Q.map(q=>({label:q.l,data:days.map(d=>bd[d]['q'+q.id]),backgroundColor:q.d,borderColor:q.c,borderWidth:1.5,borderRadius:3}))
+  charts.push(new Chart(sCtx,{type:'bar',data:{
+    labels:days.map(d=>fmtWD(d)),
+    datasets:Q.map(q=>({label:q.l,data:days.map(d=>bd[d]['q'+q.id]),backgroundColor:q.b,borderColor:q.c,borderWidth:1.5,borderRadius:4}))
   },options:{responsive:true,maintainAspectRatio:false,
     scales:{
-      x:{stacked:true,grid:{color:'rgba(35,45,66,.5)'},ticks:{font:{size:9}}},
-      y:{stacked:true,grid:{color:'rgba(35,45,66,.5)'},ticks:{stepSize:1,font:{size:9}},beginAtZero:true}
+      x:{stacked:true,grid:{color:'rgba(30,36,56,.8)'},ticks:{font:{size:9}}},
+      y:{stacked:true,grid:{color:'rgba(30,36,56,.8)'},ticks:{stepSize:1,font:{size:9}},beginAtZero:true}
     },plugins:{legend:{display:false}}
-  }});
+  }}));
 
   buildHeatmap('hm-sem',data,days);
 }
 
-/* ══════════════════════════════════════════════════════════════
-   MOIS
-══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   VUE MOIS
+═══════════════════════════════════════════════════ */
 function renderMois(data,a,b){
   const days=daysInRange(a,b);
   const bd={};
@@ -816,131 +852,140 @@ function renderMois(data,a,b){
   const tot=tq[0]+tq[1]+tq[2];
   const touch=days.filter(d=>bd[d].tot>0).length;
   const maxD=Math.max(1,...days.map(d=>bd[d].tot));
-  const totalActifs=data.filter(r=>isActif(r)).length;
-  const pcts=tq.map(e=>tauxEff(e,totalActifs));
-  const moisNom=new Date(a+'T00:00:00').toLocaleDateString('fr-CA',{month:'long',year:'numeric'}).toUpperCase();
+  const actifs=data.filter(r=>isActif(r)).length;
+  const moisNom=new Date(a+'T00:00:00').toLocaleDateString('fr-CA',{month:'long',year:'numeric'});
   const pireQ=Q[tq.indexOf(Math.max(...tq))];
 
   document.getElementById('content').innerHTML=`
-    <div class="sec-title">VUE MENSUELLE · ${moisNom}</div>
+    <div class="content-section-title">${moisNom}</div>
 
-    <div class="kpi-grid">
-      <div class="kpi" style="--ka:var(--amber)">
-        <div class="kpi-label">${moisNom}</div>
-        <div class="kpi-val">${tot}</div>
-        <div class="kpi-hint">${totalActifs} LIGNES ACTIVES</div>
+    ${quartsHTML(tq,actifs)}
+
+    <div class="kpi-strip">
+      <div class="kpi-pill" style="--ka:var(--q1)">
+        <div class="kpi-pill-label">Total mensuel</div>
+        <div class="kpi-pill-val">${tot}</div>
+        <div class="kpi-pill-sub">${actifs} lignes actives</div>
       </div>
-      ${Q.map((q,i)=>`
-        <div class="kpi" style="--ka:${q.c}">
-          <div class="kpi-label">${q.l.toUpperCase()}</div>
-          <div class="kpi-val">${tq[i]}</div>
-          <span class="kpi-eff ${effClass(pcts[i])}" style="color:${pcts[i]===null?'var(--muted)':pcts[i]>=90?'#30C898':pcts[i]>=70?'#F0A030':pcts[i]>=50?'#F07850':'#E84848'};border-color:currentColor">${pcts[i]===null?'—':pcts[i]+'% EFF.'}</span>
-          <div class="kpi-hint">${totalActifs} ACTIVES</div>
-        </div>
-      `).join('')}
-      <div class="kpi" style="--ka:#E84848">
-        <div class="kpi-label">JOURS TOUCHÉS</div>
-        <div class="kpi-val">${touch}<span style="font-size:1rem;color:var(--muted)">/${days.length}</span></div>
-        <div class="kpi-hint">${Math.round(touch/days.length*100)}%</div>
+      <div class="kpi-pill" style="--ka:#22D3A0">
+        <div class="kpi-pill-label">Jours touchés</div>
+        <div class="kpi-pill-val">${touch}<span style="font-size:1.2rem;color:var(--muted)"> / ${days.length}</span></div>
+        <div class="kpi-pill-sub">${Math.round(touch/days.length*100)}%</div>
+      </div>
+      <div class="kpi-pill" style="--ka:var(--q2)">
+        <div class="kpi-pill-label">Moyenne / jour</div>
+        <div class="kpi-pill-val">${tot?+(tot/days.length).toFixed(1):0}</div>
+        <div class="kpi-pill-sub">erreurs / jour</div>
+      </div>
+      <div class="kpi-pill" style="--ka:${pireQ.c}">
+        <div class="kpi-pill-label">Quart critique</div>
+        <div class="kpi-pill-val" style="font-size:1.6rem">${pireQ.l}</div>
+        <div class="kpi-pill-sub">${Math.max(...tq)} erreurs</div>
       </div>
     </div>
 
     <div class="panel">
-      <div class="panel-h">
-        <span class="panel-title">Évolution mensuelle</span>
-        <span class="panel-meta">${moisNom}</span>
+      <div class="panel-hd">
+        <span class="panel-ttl"><div class="panel-ttl-dot"></div>Évolution mensuelle</span>
+        <span class="panel-meta">ERREURS PAR JOUR · ${moisNom.toUpperCase()}</span>
       </div>
-      <div class="panel-b"><div class="ch-320"><canvas id="c-mois-line"></canvas></div></div>
+      <div class="panel-body"><div class="ch-320"><canvas id="c-mois-line"></canvas></div></div>
     </div>
 
     <div class="g2">
       <div class="panel">
-        <div class="panel-h">
-          <span class="panel-title">Répartition des quarts</span>
-          <span class="panel-meta">${moisNom}</span>
+        <div class="panel-hd">
+          <span class="panel-ttl"><div class="panel-ttl-dot" style="background:var(--q2);box-shadow:0 0 8px var(--q2)"></div>Répartition des quarts</span>
+          <span class="panel-meta">${moisNom.toUpperCase()}</span>
         </div>
-        <div class="panel-b">
-          <div class="ch-240"><canvas id="c-mois-d"></canvas></div>
+        <div class="panel-body">
+          <div class="ch-220"><canvas id="c-mois-d"></canvas></div>
           <div class="div"></div>
-          ${Q.map((q,i)=>`<div class="bar-r">
-            <div class="bar-lbl"><span class="err-tag q${q.id}">${q.s}</span></div>
+          ${Q.map((q,i)=>`<div class="bar-row">
+            <span class="bar-tag bt${q.id}">${q.s}</span>
             <div class="bar-track"><div class="bar-fill" style="width:${tot?Math.round(tq[i]/tot*100):0}%;background:${q.c}"></div></div>
-            <div class="bar-num">${tq[i]}</div>
+            <span class="bar-num">${tq[i]}</span>
           </div>`).join('')}
           <div class="div"></div>
           <div style="display:flex;align-items:center;gap:8px;padding:4px 0">
-            <span class="err-tag q${pireQ.id}">${pireQ.s}</span>
-            <span style="font-family:var(--font-mono);font-size:.6rem;color:var(--ghost)">QUART LE PLUS PROBLÉMATIQUE CE MOIS</span>
+            <span class="bar-tag bt${pireQ.id}">${pireQ.s}</span>
+            <span style="font-size:.7rem;color:var(--soft)">Quart le plus problématique ce mois</span>
           </div>
         </div>
       </div>
       <div class="panel">
-        <div class="panel-h">
-          <span class="panel-title">Calendrier thermique</span>
+        <div class="panel-hd">
+          <span class="panel-ttl"><div class="panel-ttl-dot" style="background:var(--q1);box-shadow:0 0 8px var(--q1)"></div>Calendrier thermique</span>
           <span class="panel-meta">INTENSITÉ PAR JOUR</span>
         </div>
-        <div class="panel-b" id="cal-mois"></div>
+        <div class="panel-body" id="cal-mois"></div>
       </div>
     </div>
 
     <div class="panel">
-      <div class="panel-h">
-        <span class="panel-title">Carte thermique — Créneau × Jour</span>
-        <span class="panel-meta">TOUTES ERREURS</span>
+      <div class="panel-hd">
+        <span class="panel-ttl"><div class="panel-ttl-dot" style="background:var(--q3);box-shadow:0 0 8px var(--q3)"></div>Carte thermique — Créneau × Jour</span>
+        <span class="panel-meta">TOUTES ERREURS DU MOIS</span>
       </div>
-      <div class="panel-b"><div class="hm-wrap" id="hm-mois"></div></div>
+      <div class="panel-body"><div class="hm-scroll" id="hm-mois"></div></div>
     </div>
   `;
 
+  /* courbe mensuelle */
   const lCtx=document.getElementById('c-mois-line').getContext('2d');
-  ch1=new Chart(lCtx,{type:'line',data:{
+  const grd=lCtx.createLinearGradient(0,0,0,320);
+  grd.addColorStop(0,'rgba(245,166,35,.22)');
+  grd.addColorStop(1,'rgba(245,166,35,.01)');
+  charts.push(new Chart(lCtx,{type:'line',data:{
     labels:days.map(d=>String(new Date(d+'T00:00:00').getDate())),
     datasets:[
-      {label:'Total',data:days.map(d=>bd[d].tot),borderColor:'#F0A030',backgroundColor:'rgba(240,160,48,.05)',fill:true,tension:.35,pointRadius:3,pointBackgroundColor:'#F0A030',borderWidth:2.5,spanGaps:true},
+      {label:'Total',data:days.map(d=>bd[d].tot),borderColor:'#F5A623',backgroundColor:grd,fill:true,tension:.35,pointRadius:3,pointBackgroundColor:'#F5A623',pointBorderColor:'#07080C',pointBorderWidth:1.5,borderWidth:2.5,spanGaps:true},
       ...Q.map(q=>({label:q.l,data:days.map(d=>bd[d]['q'+q.id]),borderColor:q.c,backgroundColor:'transparent',fill:false,tension:.35,pointRadius:2,borderWidth:1.5,borderDash:[4,3],spanGaps:true}))
     ]
   },options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
     scales:{
-      x:{grid:{color:'rgba(35,45,66,.5)'},ticks:{maxTicksLimit:16,font:{size:9}}},
-      y:{grid:{color:'rgba(35,45,66,.5)'},ticks:{stepSize:1,font:{size:9}},beginAtZero:true,min:0}
-    },plugins:{legend:{labels:{font:{size:10},usePointStyle:true,pointStyleWidth:7}}}
-  }});
+      x:{grid:{color:'rgba(30,36,56,.8)'},ticks:{maxTicksLimit:16,font:{size:9}}},
+      y:{grid:{color:'rgba(30,36,56,.8)'},ticks:{stepSize:1,font:{size:9}},beginAtZero:true,min:0}
+    },plugins:{legend:{labels:{font:{size:10},usePointStyle:true,pointStyleWidth:8,padding:16}}}
+  }}));
 
+  /* doughnut */
   const dCtx=document.getElementById('c-mois-d').getContext('2d');
-  ch2=new Chart(dCtx,{type:'doughnut',data:{
+  charts.push(new Chart(dCtx,{type:'doughnut',data:{
     labels:Q.map(q=>q.l),
-    datasets:[{data:tq,backgroundColor:Q.map(q=>q.d),borderColor:Q.map(q=>q.c),borderWidth:2}]
+    datasets:[{data:tq,backgroundColor:Q.map(q=>q.b),borderColor:Q.map(q=>q.c),borderWidth:2}]
   },options:{responsive:true,maintainAspectRatio:true,cutout:'72%',plugins:{
-    legend:{display:true,position:'bottom',labels:{font:{size:10},padding:14,usePointStyle:true,pointStyleWidth:7}}
-  }}});
+    legend:{display:true,position:'bottom',labels:{font:{size:10},padding:14,usePointStyle:true,pointStyleWidth:8}}
+  }}}));
 
   buildCalendar('cal-mois',bd,days,maxD);
   buildHeatmap('hm-mois',data,days);
 }
 
-/* ══════════════════════════════════════════════════════════════
-   HEATMAP créneau × jour
-══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   HEATMAP
+═══════════════════════════════════════════════════ */
 function buildHeatmap(id,data,days){
   const el=document.getElementById(id);if(!el)return;
   const get=(h,d)=>data.filter(r=>r.date_jour===d&&(r.heure_planif||SLOTS_H[r.slot_index]||'?')===h)
     .reduce((s,r)=>s+(r.erreur_q1?1:0)+(r.erreur_q2?1:0)+(r.erreur_q3?1:0),0);
   const max=Math.max(1,...UNI_SLOTS.flatMap(h=>days.map(d=>get(h,d))));
 
-  let html='<table class="hm-table"><thead><tr><th class="hm-th-row" style="padding-right:10px">CRÉNEAUX</th>';
-  days.forEach(d=>{html+=`<th class="hm-th">${fmtWD(d).toUpperCase()}</th>`;});
+  let html='<table class="hm-table"><thead><tr><th class="hm-row-head">Créneau</th>';
+  days.forEach(d=>{html+=`<th class="hm-col-head">${fmtWD(d)}</th>`;});
   html+='</tr></thead><tbody>';
   UNI_SLOTS.forEach(h=>{
-    html+=`<tr><th class="hm-th-row">${h}</th>`;
+    html+=`<tr><th class="hm-row-head">${h}</th>`;
     days.forEach(d=>{
-      const v=get(h,d); const intensity=v/max;
-      const alpha=v===0?.04:.15+intensity*.75;
-      const r2=v===0?35:Math.round(240+intensity*15);
-      const g2=v===0?45:Math.round(160-intensity*112);
-      const b2=v===0?65:Math.round(48-intensity*48);
-      const bg=`rgba(${r2},${g2},${b2},${alpha})`;
-      const tc=v===0?'rgba(90,110,150,.2)':intensity>.5?'#EDF1FA':'#F0A030';
-      html+=`<td title="${h} · ${fmtShort(d)}: ${v} erreur${v!==1?'s':''}">
+      const v=get(h,d),intens=v/max;
+      const a=v===0?.04:.14+intens*.78;
+      // dégradé or → corail selon intensité
+      const rr=v===0?30:Math.round(245-intens*10);
+      const gg=v===0?40:Math.round(166-intens*172);
+      const bb=v===0?60:Math.round(35+intens*90);
+      const bg=`rgba(${rr},${gg},${bb},${a})`;
+      const tc=v===0?'rgba(80,100,140,.2)':intens>.5?'#EEF2FA':'#F5A623';
+      html+=`<td title="${h} · ${fmtShort(d)} : ${v} erreur${v!==1?'s':''}">
         <div class="hm-cell" style="background:${bg};color:${tc}">${v||''}</div></td>`;
     });
     html+='</tr>';
@@ -949,32 +994,30 @@ function buildHeatmap(id,data,days){
   el.innerHTML=html;
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    CALENDRIER MENSUEL
-══════════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════ */
 function buildCalendar(id,bd,days,maxD){
   const el=document.getElementById(id);if(!el)return;
-  const firstDow=new Date(days[0]+'T00:00:00').getDay();
-  const off=firstDow===0?6:firstDow-1;
+  const off=(()=>{const dow=new Date(days[0]+'T00:00:00').getDay();return dow===0?6:dow-1;})();
   const dnames=['L','M','M','J','V','S','D'];
-
-  let html='<div class="cal-hdr">'+dnames.map(d=>`<div class="cal-dn">${d}</div>`).join('')+'</div>';
+  let html='<div class="cal-week-hdr">'+dnames.map(d=>`<div class="cal-week-dn">${d}</div>`).join('')+'</div>';
   html+='<div class="cal-grid">';
   for(let i=0;i<off;i++) html+='<div></div>';
   days.forEach(day=>{
-    const v=bd[day].tot; const intensity=v/maxD;
-    const isToday=day===todayStr(); const isCur=day===curDate;
-    const r2=v===0?19:Math.round(240+intensity*15);
-    const g2=v===0?25:Math.round(160-intensity*112);
-    const b2=v===0?35:Math.round(48-intensity*48);
-    const bg=v===0?'var(--ink3)':`rgba(${r2},${g2},${b2},${.25+intensity*.65})`;
-    const bord=isToday?'2px solid #F0A030':isCur?'1px solid rgba(240,160,48,.4)':'1px solid var(--wire)';
+    const v=bd[day].tot,intens=v/maxD;
+    const isToday=day===todayStr(),isCur=day===curDate;
+    const rr=v===0?19:Math.round(245-intens*10);
+    const gg=v===0?25:Math.round(166-intens*172);
+    const bb=v===0?38:Math.round(35+intens*90);
+    const bg=v===0?'var(--surf2)':`rgba(${rr},${gg},${bb},${.22+intens*.68})`;
+    const bord=isToday?'2px solid #F5A623':isCur?'1px solid rgba(245,166,35,.5)':'1px solid var(--line2)';
     const dn=new Date(day+'T00:00:00').getDate();
     html+=`<div class="cal-day" style="background:${bg};border:${bord}"
       title="${fmtShort(day)}: ${v} erreur${v!==1?'s':''}"
       onclick="curDate='${day}';refreshDateUI();goJour()">
-      <span class="cal-n" style="color:${v>0?'var(--ghost)':'var(--wire2)'}">${dn}</span>
-      ${v>0?`<span class="cal-v" style="color:${intensity>.55?'#EDF1FA':'#F0A030'}">${v}</span>`:''}
+      <span class="cal-dn" style="color:${v>0?'var(--soft)':'var(--muted)'}">${dn}</span>
+      ${v>0?`<span class="cal-dv" style="color:${intens>.55?'#EEF2FA':'#F5A623'}">${v}</span>`:''}
     </div>`;
   });
   html+='</div>';
@@ -983,10 +1026,13 @@ function buildCalendar(id,bd,days,maxD){
 
 function goJour(){
   curTab='jour';
-  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('on',i===0));
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('on',i===0));
   render();
 }
 
+/* ═══════════════════════════════════════════════════
+   AUTH + INIT
+═══════════════════════════════════════════════════ */
 async function initApp(){
   sb=supabase.createClient(SB_URL,SB_KEY);
   try{
@@ -997,13 +1043,9 @@ async function initApp(){
   refreshDateUI();
   render();
 }
-
 function waitForSupabaseAndInit(){
-  if(typeof supabase!=='undefined'&&supabase.createClient){
-    initApp();
-  } else {
-    setTimeout(waitForSupabaseAndInit,50);
-  }
+  if(typeof supabase!=='undefined'&&supabase.createClient){initApp();}
+  else{setTimeout(waitForSupabaseAndInit,50);}
 }
 window.addEventListener('load',waitForSupabaseAndInit);
 </script>
