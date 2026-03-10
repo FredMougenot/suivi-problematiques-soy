@@ -253,13 +253,17 @@ async function fetchRange(a,b){
     .select('slot_index,date_jour,heure_planif,statut_ligne,erreur_q1,erreur_q2,erreur_q3')
     .gte('date_jour',a).lte('date_jour',b)
     .order('date_jour').order('slot_index');
-  if(error){toast('Erreur: '+error.message,'e');return[];}
-  // Normaliser : Supabase peut retourner true/false ou null — null = false
-  return (data||[]).map(r=>({
+  if(error){toast('Erreur chargement: '+error.message,'e');return[];}
+  const rows=data||[];
+  // DEBUG — afficher dans la console ce que Supabase retourne
+  console.log('[EP] fetchRange',a,'→',b,'→',rows.length,'lignes');
+  rows.forEach(r=>console.log('  row',r.date_jour,'slot',r.slot_index,'q1=',r.erreur_q1,'q2=',r.erreur_q2,'q3=',r.erreur_q3,'type q1=',typeof r.erreur_q1));
+  // Normaliser : true/false/"true"/1/0/null
+  return rows.map(r=>({
     ...r,
-    erreur_q1: r.erreur_q1===true,
-    erreur_q2: r.erreur_q2===true,
-    erreur_q3: r.erreur_q3===true,
+    erreur_q1: r.erreur_q1===true || r.erreur_q1==='true' || r.erreur_q1===1,
+    erreur_q2: r.erreur_q2===true || r.erreur_q2==='true' || r.erreur_q2===1,
+    erreur_q3: r.erreur_q3===true || r.erreur_q3==='true' || r.erreur_q3===1,
   }));
 }
 
@@ -691,12 +695,26 @@ async function initApp(){
   try{
     const{data:{session}}=await sb.auth.getSession();
     if(!session){window.location.href='index.html';return;}
+    // Valider le rôle exactement comme planning_camions (nécessaire pour RLS)
+    const email=session.user.email;
+    const{data:adm}=await sb.from('admins').select('email').eq('email',email).maybeSingle();
+    if(!adm){
+      const{data:vwr}=await sb.from('viewers').select('email').eq('email',email).maybeSingle();
+      if(!vwr){window.location.href='index.html';return;}
+    }
   }catch(e){window.location.href='index.html';return;}
   refreshDateUI();
   render();
 }
 
-document.addEventListener('DOMContentLoaded',()=>initApp());
+function waitForSupabaseAndInit(){
+  if(typeof supabase!=='undefined'&&supabase.createClient){
+    try{initApp();}catch(e){console.error('initApp error:',e);}
+  } else {
+    setTimeout(waitForSupabaseAndInit,50);
+  }
+}
+window.addEventListener('load',waitForSupabaseAndInit);
 </script>
 </body>
 </html>
