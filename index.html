@@ -722,9 +722,6 @@ body { font-size: 0.9375rem; }
       <div class="sb-item" onclick="window.location.href='planning_camions.html'">
         <span class="sb-ico">🚛</span> <span id="nav-outil-Delais">Planification camions</span>
       </div>
-      <div class="sb-item" onclick="window.location.href='erreurs_papier.html'">
-        <span class="sb-ico">✎</span> <span>Erreurs papier</span>
-      </div>
       <div class="sb-item" onclick="window.location.href='irritants.html'">
         <span class="sb-ico">💬</span> <span id="nav-outil-Motivation">Gestion des irritants</span>
       </div>
@@ -1221,7 +1218,7 @@ const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-let currentUser = null, isAdmin = false, isViewer = false, allProblems = [], criteresSeuils = {};
+let currentUser = null, isAdmin = false, allProblems = [], criteresSeuils = {};
 let allResponsables = [];
 
 // Mapping pilier → {spanId, defaut} pour noms dynamiques des outils
@@ -1279,14 +1276,9 @@ function showApp(){
   updateUserUI(); populatePiliers();
   dashDate = localToday();
   dashUpdateDateUI();
-  if (isAdmin) enableAdmin(); else if (isViewer) enableViewer(); else enableUser();
+  if (isAdmin) enableAdmin(); else enableUser();
   loadOutilsNoms();
   idxPopulatePilierBtns();
-  // Viewer → rediriger directement vers planning_camions (pas d'accès au reste)
-  if (isViewer) {
-    window.location.href = 'planning_camions.html';
-    return;
-  }
   // Restaurer la dernière page active après refresh
   try{
     const lastPage = localStorage.getItem('soy_active_page');
@@ -1298,13 +1290,8 @@ function showApp(){
   }catch(e){ showPage('dashboard'); }
 }
 async function checkRole(){
-  isAdmin = false; isViewer = false;
-  try {
-    const {data:adm} = await sb.from('admins').select('email').eq('email',currentUser.email).maybeSingle();
-    if (adm) { isAdmin = true; return; }
-    const {data:vwr} = await sb.from('viewers').select('email').eq('email',currentUser.email).maybeSingle();
-    if (vwr) { isViewer = true; }
-  } catch(e) { isAdmin = false; isViewer = false; }
+  try { const {data}=await sb.from('admins').select('email').eq('email',currentUser.email).single(); isAdmin=!!data; }
+  catch { isAdmin=false; }
 }
 function updateUserUI(){
   const meta=currentUser?.user_metadata||{}, email=currentUser?.email||'';
@@ -1320,31 +1307,6 @@ function enableAdmin(){
 function enableUser(){
   document.getElementById('btn-new-top').style.display='';
   document.getElementById('nav-nouvelle').style.display='';
-}
-
-function enableViewer(){
-  // Masquer tous les éléments de navigation sauf Planification camions et Déconnexion
-  const keepIds = ['nav-dashboard']; // dashboard caché mais page d'accueil forcée
-  // Masquer tous les sb-item sauf planning_camions et logout
-  document.querySelectorAll('.sb-item').forEach(el => {
-    el.style.display = 'none';
-  });
-  document.querySelectorAll('.sb-sec').forEach(el => {
-    el.style.display = 'none';
-  });
-  // Afficher uniquement Planning camions et Déconnexion
-  document.querySelectorAll('.sb-item').forEach(el => {
-    const txt = el.textContent || '';
-    if (el.classList.contains('sb-item-logout')) {
-      el.style.display = '';
-    }
-    if (el.getAttribute('onclick') && el.getAttribute('onclick').includes('planning_camions')) {
-      el.style.display = '';
-    }
-  });
-  // Masquer bouton nouvelle saisie topbar
-  const btnNew = document.getElementById('btn-new-top');
-  if (btnNew) btnNew.style.display = 'none';
 }
 function populatePiliers(){
   ['filter-pilier','m-pilier','n-pilier'].forEach(id=>{
@@ -1766,8 +1728,6 @@ function loadProfilPage(){
 }
 
 function showPage(name){
-  // Bloquer l'accès au profil pour les viewers
-  if(name==='profil' && isViewer){ return; }
   if(name==='profil')loadProfilPage();
   // Réinitialiser les filtres à chaque ouverture de la page problématiques
   if(name==='problematiques'){
