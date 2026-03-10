@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Erreurs Papier — SOY</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+:root {
+  --bg-void:#06070B; --bg-deep:#0B0D13; --bg-base:#0F1118;
+  --bg-raised:#15181F; --bg-float:#1A1E2A; --bg-hover:#1F2436;
+  --text-primary:#F0EAE0; --text-secondary:#BEC5D6; --text-muted:#7A82A0;
+  --text-faint:#3A4060;
+  --copper:#C8843A; --copper-light:#E8A43A; --copper-dim:rgba(184,115,51,.12);
+  --emerald:#2DD4A0; --amber:#E8A43A; --ruby:#E05555; --sapphire:#5A8EE0;
+  --r-sm:6px; --r-md:10px; --r-lg:14px; --r-xl:18px;
+  --t-fast:.15s; --ease:cubic-bezier(.4,0,.2,1);
+  --q1:#E8A43A; --q2:#7B9CF0; --q3:#C87FE8;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-primary);min-height:100vh;}
+
+/* ── TOPBAR ── */
+.topbar{
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;gap:12px;
+  padding:0 24px;height:52px;
+  background:rgba(11,13,19,.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--text-faint);
+}
+.tb-back{
+  display:inline-flex;align-items:center;gap:5px;
+  color:var(--text-muted);font-size:.78rem;cursor:pointer;
+  padding:5px 10px;border-radius:var(--r-sm);border:none;
+  background:transparent;transition:all var(--t-fast);
+}
+.tb-back:hover{color:var(--text-primary);background:var(--bg-raised);}
+.tb-brand{
+  font-family:'Playfair Display',serif;font-style:italic;
+  color:#0F1118;font-size:.88rem;font-weight:700;
+  background:var(--copper);padding:3px 9px;border-radius:4px;
+}
+.tb-title{font-size:.92rem;font-weight:600;color:var(--text-primary);}
+.tb-sub{font-size:.7rem;color:var(--text-muted);margin-left:4px;}
+.tb-spacer{flex:1;}
+.btn-params{
+  display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
+  border-radius:10px;background:#1A1E2A;border:1px solid #2C3350;color:#BEC5D6;
+  font-size:.78rem;font-weight:500;cursor:pointer;font-family:'Outfit',sans-serif;
+  transition:all var(--t-fast);
+}
+.btn-params:hover{border-color:var(--copper);color:var(--copper-light);}
+
+/* ── BODY ── */
+.page-body{max-width:1280px;margin:0 auto;padding:28px 24px 60px;}
+
+/* ── PÉRIODE NAV ── */
+.period-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:24px;flex-wrap:wrap;gap:12px;
+}
+.period-tabs{display:flex;gap:4px;background:var(--bg-raised);border-radius:var(--r-md);padding:3px;}
+.ptab{
+  padding:6px 18px;border-radius:var(--r-sm);border:none;background:transparent;
+  color:var(--text-muted);font-size:.8rem;font-weight:500;cursor:pointer;
+  font-family:'Outfit',sans-serif;transition:all var(--t-fast);
+}
+.ptab.active{background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;}
+.nav-row{display:flex;align-items:center;gap:8px;}
+.nav-btn{
+  width:30px;height:30px;border-radius:var(--r-sm);
+  border:1px solid var(--text-faint);color:var(--text-secondary);cursor:pointer;
+  background:transparent;font-size:.9rem;transition:all var(--t-fast);font-family:'Outfit',sans-serif;
+}
+.nav-btn:hover{border-color:var(--copper);color:var(--copper-light);}
+.period-lbl{font-family:'Outfit',sans-serif;font-size:1rem;font-weight:700;color:var(--text-primary);min-width:200px;text-align:center;}
+
+/* ── QUART FILTER ── */
+.quart-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.qf-btn{
+  padding:4px 14px;border-radius:20px;border:1px solid var(--text-faint);
+  background:transparent;color:var(--text-muted);font-size:.7rem;font-weight:600;
+  cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;letter-spacing:.04em;
+}
+.qf-btn.active{background:var(--bg-float);border-color:var(--copper);color:var(--copper-light);}
+.qf-btn.q1.active{border-color:var(--q1);color:var(--q1);background:rgba(232,164,58,.1);}
+.qf-btn.q2.active{border-color:var(--q2);color:var(--q2);background:rgba(90,120,220,.1);}
+.qf-btn.q3.active{border-color:var(--q3);color:var(--q3);background:rgba(180,80,220,.1);}
+
+/* ── KPIs ── */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px;}
+.kpi{
+  background:var(--bg-raised);border:1px solid rgba(255,255,255,.055);
+  border-radius:var(--r-xl);padding:18px 20px;position:relative;overflow:hidden;
+  transition:transform .2s var(--ease),box-shadow .2s var(--ease);
+}
+.kpi::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--accent,var(--copper)),transparent);
+}
+.kpi:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.kpi-eyebrow{font-size:.55rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);margin-bottom:6px;}
+.kpi-val{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;line-height:1;}
+.kpi-val.q1{color:var(--q1);}
+.kpi-val.q2{color:var(--q2);}
+.kpi-val.q3{color:var(--q3);}
+.kpi-val.red{color:var(--ruby);}
+.kpi-val.green{color:var(--emerald);}
+.kpi-sub{font-size:.7rem;color:var(--text-muted);margin-top:6px;line-height:1.5;}
+
+/* ── PANELS ── */
+.panels-row{display:grid;gap:16px;margin-bottom:16px;}
+.panels-2{grid-template-columns:1fr 1fr;}
+.panel-full{grid-column:1/-1;}
+.panel{
+  background:var(--bg-raised);border:1px solid rgba(255,255,255,.055);
+  border-radius:var(--r-xl);padding:20px 22px;
+  transition:border-color .2s;
+}
+.panel:hover{border-color:rgba(200,132,58,.1);}
+.ph-eye{font-size:.57rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);margin-bottom:3px;}
+.ph-title{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;color:var(--text-primary);}
+.ph-sub{font-size:.7rem;color:var(--text-muted);margin-top:2px;}
+.ph{margin-bottom:16px;}
+.chart-box{position:relative;height:240px;}
+.chart-box-lg{position:relative;height:280px;}
+
+/* ── HEATMAP ── */
+.hm-wrap{overflow-x:auto;padding-bottom:6px;}
+.hm-tip{
+  position:fixed;z-index:500;display:none;
+  background:rgba(15,17,24,.96);border:1px solid rgba(200,132,58,.3);
+  border-radius:var(--r-md);padding:10px 14px;pointer-events:none;
+  min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.5);
+}
+.hm-tip-val{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--ruby);}
+.hm-tip-sub{font-size:.65rem;color:var(--text-muted);}
+
+/* ── DÉTAIL LISTE ── */
+.err-list{display:flex;flex-direction:column;gap:6px;}
+.err-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;border-radius:var(--r-md);
+  background:var(--bg-float);border:1px solid var(--text-faint);
+  font-size:.78rem;transition:border-color .15s;
+}
+.err-item:hover{border-color:rgba(200,132,58,.2);}
+.err-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.err-date{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--text-muted);width:80px;flex-shrink:0;}
+.err-slot{flex:1;color:var(--text-secondary);}
+.err-q{font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:10px;}
+.err-q.q1{background:rgba(232,164,58,.15);color:var(--q1);border:1px solid rgba(232,164,58,.3);}
+.err-q.q2{background:rgba(90,120,220,.15);color:var(--q2);border:1px solid rgba(90,120,220,.3);}
+.err-q.q3{background:rgba(180,80,220,.15);color:var(--q3);border:1px solid rgba(180,80,220,.3);}
+
+/* ── SPINNER ── */
+.spinner-wrap{display:flex;align-items:center;justify-content:center;min-height:320px;gap:10px;color:var(--text-muted);}
+.spin{width:22px;height:22px;border:2px solid var(--text-faint);border-top-color:var(--copper);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:40px 16px;color:var(--text-muted);font-size:.82rem;}
+.empty-ico{font-size:2rem;margin-bottom:10px;}
+
+/* ── MODAL PARAMS ── */
+.overlay-param{position:fixed;inset:0;z-index:900;background:rgba(6,7,11,.85);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:24px;}
+.overlay-param.open{display:flex;}
+.modal-param{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-xl);box-shadow:0 32px 80px rgba(0,0,0,.7);width:100%;max-width:440px;position:relative;overflow:hidden;}
+.modal-param::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--copper),transparent);}
+.mp-hd{padding:24px 28px 18px;border-bottom:1px solid var(--text-faint);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.mp-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:600;color:var(--text-primary);}
+.mp-sub{font-size:.72rem;color:var(--text-muted);margin-top:3px;}
+.mp-x{width:28px;height:28px;border-radius:var(--r-sm);background:transparent;border:none;color:var(--text-muted);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--t-fast);}
+.mp-x:hover{background:var(--bg-hover);color:var(--text-primary);}
+.mp-bd{padding:22px 28px;}
+.mp-field{margin-bottom:16px;}
+.mp-lbl{display:block;font-size:.62rem;font-weight:800;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px;}
+.mp-row{display:flex;align-items:center;gap:8px;}
+.mp-inp{flex:1;padding:9px 12px;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);font-size:.86rem;color:var(--text-primary);font-family:'Outfit',sans-serif;outline:none;transition:border-color var(--t-fast);}
+.mp-inp:focus{border-color:var(--copper);}
+.mp-unit{font-size:.78rem;color:var(--text-muted);flex-shrink:0;width:28px;}
+.mp-desc{font-size:.68rem;color:var(--text-muted);margin-top:5px;line-height:1.5;}
+.mp-section-lbl{font-size:.6rem;font-weight:800;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;margin:16px 0 10px;padding-top:14px;border-top:1px solid var(--text-faint);}
+.mp-quart-row{display:grid;grid-template-columns:auto 1fr 1fr;gap:8px;align-items:center;margin-bottom:10px;}
+.mp-quart-lbl{font-size:.72rem;font-weight:600;min-width:70px;}
+.mp-quart-inp{padding:7px 10px;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);font-size:.82rem;color:var(--text-primary);font-family:'Outfit',sans-serif;outline:none;transition:border-color .15s;width:100%;}
+.mp-quart-inp:focus{border-color:var(--copper);}
+.mp-ft{padding:14px 28px 22px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--text-faint);}
+.mp-cancel{padding:8px 18px;border-radius:var(--r-md);background:transparent;border:1px solid var(--text-faint);color:var(--text-secondary);font-size:.82rem;font-weight:500;cursor:pointer;font-family:'Outfit',sans-serif;transition:all var(--t-fast);}
+.mp-cancel:hover{border-color:var(--text-muted);color:var(--text-primary);}
+.mp-save{padding:8px 22px;border-radius:var(--r-md);background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;font-size:.82rem;font-weight:700;border:none;cursor:pointer;font-family:'Outfit',sans-serif;transition:all var(--t-fast);}
+.mp-save:hover{opacity:.88;}
+.mp-save:disabled{opacity:.4;cursor:not-allowed;}
+
+/* ── ANIM ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.anim{animation:fadeUp .35s var(--ease) both;}
+.d1{animation-delay:.04s;}.d2{animation-delay:.09s;}.d3{animation-delay:.14s;}.d4{animation-delay:.19s;}
+
+/* ── TOOLTIP ── */
+#tip{position:fixed;z-index:999;display:none;background:rgba(15,17,24,.96);border:1px solid rgba(200,132,58,.25);border-radius:var(--r-md);padding:6px 12px;font-size:.75rem;color:var(--text-secondary);pointer-events:none;max-width:240px;}
+
+@media(max-width:860px){
+  .kpi-row{grid-template-columns:1fr 1fr;}
+  .panels-2{grid-template-columns:1fr;}
+  .page-body{padding:16px 12px 40px;}
+  .period-bar{flex-direction:column;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <button class="tb-back" onclick="window.location.href='index.html'">← Retour</button>
+  <div class="tb-brand">SOY</div>
+  <div>
+    <span class="tb-title">Erreurs Papier</span>
+    <span class="tb-sub">Planification camions</span>
+  </div>
+  <div class="tb-spacer"></div>
+  <button class="btn-params" onclick="openParams()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    Paramètres
+  </button>
+</div>
+
+<!-- MODAL PARAMS -->
+<div class="overlay-param" id="modal-params" onclick="if(event.target===this)closeParams()">
+  <div class="modal-param">
+    <div class="mp-hd">
+      <div><div class="mp-title">Paramètres</div><div class="mp-sub">Erreurs papier · Quarts de travail</div></div>
+      <button class="mp-x" onclick="closeParams()">✕</button>
+    </div>
+    <div class="mp-bd">
+      <div class="mp-section-lbl">Quarts de travail</div>
+      <div style="font-size:.66rem;color:var(--text-muted);margin-bottom:12px;">Définissez les plages horaires des 3 quarts. Le Quart 3 peut chevaucher minuit.</div>
+      <div class="mp-quart-row">
+        <span class="mp-quart-lbl" style="color:var(--q1);">◐ Quart 1</span>
+        <div><input class="mp-quart-inp" id="p-q1-start" type="time" value="07:00"><div style="font-size:.6rem;color:var(--text-muted);margin-top:2px">Début</div></div>
+        <div><input class="mp-quart-inp" id="p-q1-end" type="time" value="15:00"><div style="font-size:.6rem;color:var(--text-muted);margin-top:2px">Fin</div></div>
+      </div>
+      <div class="mp-quart-row">
+        <span class="mp-quart-lbl" style="color:var(--q2);">◑ Quart 2</span>
+        <div><input class="mp-quart-inp" id="p-q2-start" type="time" value="15:00"><div style="font-size:.6rem;color:var(--text-muted);margin-top:2px">Début</div></div>
+        <div><input class="mp-quart-inp" id="p-q2-end" type="time" value="23:00"><div style="font-size:.6rem;color:var(--text-muted);margin-top:2px">Fin</div></div>
+      </div>
+      <div class="mp-quart-row">
+        <span class="mp-quart-lbl" style="color:var(--q3);">◒ Quart 3</span>
+        <div><input class="mp-quart-inp" id="p-q3-start" type="time" value="23:00"><div style="font-size:.6rem;color:var(--text-muted);margin-top:2px">Début</div></div>
+        <div><input class="mp-quart-inp" id="p-q3-end" type="time" value="07:00"><div style="font-size:.6rem;color:var(--text-muted);margin-top:2px">Fin (lendemain)</div></div>
+      </div>
+    </div>
+    <div class="mp-ft">
+      <button class="mp-cancel" onclick="closeParams()">Annuler</button>
+      <button class="mp-save" id="p-save-btn" onclick="saveParams()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLTIP -->
+<div id="tip"></div>
+<div class="hm-tip" id="hm-tip">
+  <div class="hm-tip-val" id="hm-tip-val">0</div>
+  <div class="hm-tip-sub" id="hm-tip-sub"></div>
+</div>
+
+<!-- BODY -->
+<div class="page-body">
+
+  <!-- PÉRIODE -->
+  <div class="period-bar">
+    <div class="period-tabs">
+      <button class="ptab active" onclick="setPeriod('day',this)">Jour</button>
+      <button class="ptab" onclick="setPeriod('week',this)">Semaine</button>
+      <button class="ptab" onclick="setPeriod('month',this)">Mois</button>
+    </div>
+    <div class="nav-row">
+      <button class="nav-btn" onclick="navPrev()">‹</button>
+      <div class="period-lbl" id="period-lbl">—</div>
+      <button class="nav-btn" onclick="navNext()">›</button>
+      <button class="nav-btn" onclick="navToday()" title="Aujourd'hui" style="width:auto;padding:0 10px;font-size:.72rem;">Auj.</button>
+    </div>
+  </div>
+
+  <!-- CONTENU DYNAMIQUE -->
+  <div id="content">
+    <div class="spinner-wrap"><div class="spin"></div> Chargement…</div>
+  </div>
+
+</div>
+
+<script>
+const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2b3JLbLOKDnHpTUqJc66ET-8Kug';
+const { createClient } = supabase;
+const sb = createClient(SB_URL, SB_KEY);
+
+// ── SLOTS (identiques au planning) ──────────────────────────────
+const SLOTS = [
+  {idx:0,h:'06:00',lbl:'06h00 · A'},{idx:1,h:'06:00',lbl:'06h00 · B'},
+  {idx:2,h:'07:30',lbl:'07h30'},{idx:3,h:'09:00',lbl:'09h00'},
+  {idx:4,h:'11:30',lbl:'11h30'},{idx:5,h:'14:00',lbl:'14h00'},
+  {idx:6,h:'15:30',lbl:'15h30'},{idx:7,h:'17:00',lbl:'17h00'},
+  {idx:8,h:'18:00',lbl:'18h00'},{idx:9,h:'19:00',lbl:'19h00'},
+];
+const HOURS = ['06:00','07:30','09:00','11:30','14:00','15:30','17:00','18:00','19:00'];
+
+// ── ÉTAT ────────────────────────────────────────────────────────
+let period   = 'day';
+let curDate  = todayStr();
+let cachedData = null;
+let chartTrend = null;
+let _epFilterQuart = 0;
+
+// ── QUARTS ──────────────────────────────────────────────────────
+let QUARTS = [
+  { id:1, label:'Quart 1', short:'Q1', start:7*60,  end:15*60, cls:'q1', col:'#E8A43A' },
+  { id:2, label:'Quart 2', short:'Q2', start:15*60, end:23*60, cls:'q2', col:'#7B9CF0' },
+  { id:3, label:'Quart 3', short:'Q3', start:23*60, end:7*60,  cls:'q3', col:'#C87FE8' },
+];
+
+function timeToMin(hhmm) {
+  if(!hhmm) return 0;
+  const [h,m] = hhmm.split(':').map(Number);
+  return h*60 + (m||0);
+}
+function minToHHMM(m) {
+  return String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
+}
+
+// ── UTILS ────────────────────────────────────────────────────────
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function addDays(str, n) {
+  const d = new Date(str+'T00:00:00');
+  d.setDate(d.getDate()+n);
+  return d.toISOString().slice(0,10);
+}
+function startOfWeek(str) {
+  const d = new Date(str+'T00:00:00');
+  const day = d.getDay(); // 0=dim
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate()+diff);
+  return d.toISOString().slice(0,10);
+}
+function startOfMonth(str) { return str.slice(0,7)+'-01'; }
+function endOfMonth(str) {
+  const d = new Date(str.slice(0,7)+'-01T00:00:00');
+  d.setMonth(d.getMonth()+1); d.setDate(0);
+  return d.toISOString().slice(0,10);
+}
+
+// ── PLAGE DE DATES SELON PÉRIODE ─────────────────────────────────
+function getRange() {
+  if(period==='day') return { start:curDate, end:curDate };
+  if(period==='week') {
+    const s = startOfWeek(curDate);
+    return { start:s, end:addDays(s,6) };
+  }
+  const s = startOfMonth(curDate);
+  return { start:s, end:endOfMonth(curDate) };
+}
+
+// ── LABEL DE PÉRIODE ─────────────────────────────────────────────
+function getPeriodLabel() {
+  const { start, end } = getRange();
+  const fmt = (s,opts) => new Date(s+'T00:00:00').toLocaleDateString('fr-CA',opts);
+  if(period==='day') return fmt(start,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  if(period==='week') {
+    const s = fmt(start,{day:'numeric',month:'short'});
+    const e = fmt(end,{day:'numeric',month:'short',year:'numeric'});
+    return `Semaine du ${s} au ${e}`;
+  }
+  return fmt(start,{month:'long',year:'numeric'});
+}
+
+// ── NAVIGATION ───────────────────────────────────────────────────
+function setPeriod(p, btn) {
+  period = p;
+  document.querySelectorAll('.period-tabs .ptab').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  loadAll();
+}
+function navPrev() {
+  if(period==='day')   curDate = addDays(curDate,-1);
+  if(period==='week')  curDate = addDays(startOfWeek(curDate),-7);
+  if(period==='month') {
+    const d = new Date(curDate.slice(0,7)+'-01T00:00:00');
+    d.setMonth(d.getMonth()-1);
+    curDate = d.toISOString().slice(0,10);
+  }
+  loadAll();
+}
+function navNext() {
+  if(period==='day')   curDate = addDays(curDate,1);
+  if(period==='week')  curDate = addDays(startOfWeek(curDate),7);
+  if(period==='month') {
+    const d = new Date(curDate.slice(0,7)+'-01T00:00:00');
+    d.setMonth(d.getMonth()+1);
+    curDate = d.toISOString().slice(0,10);
+  }
+  loadAll();
+}
+function navToday() { curDate = todayStr(); loadAll(); }
+
+// ── FETCH ────────────────────────────────────────────────────────
+async function fetchData(start, end) {
+  try {
+    const { data } = await sb.from('planning_camions')
+      .select('slot_index,date_jour,heure_planif,statut_ligne,erreur_q1,erreur_q2,erreur_q3')
+      .gte('date_jour', start).lte('date_jour', end);
+    return data || [];
+  } catch(e) { return []; }
+}
+
+// ── PARAMÈTRES ───────────────────────────────────────────────────
+function openParams() {
+  document.getElementById('p-q1-start').value = minToHHMM(QUARTS[0].start);
+  document.getElementById('p-q1-end').value   = minToHHMM(QUARTS[0].end);
+  document.getElementById('p-q2-start').value = minToHHMM(QUARTS[1].start);
+  document.getElementById('p-q2-end').value   = minToHHMM(QUARTS[1].end);
+  document.getElementById('p-q3-start').value = minToHHMM(QUARTS[2].start);
+  document.getElementById('p-q3-end').value   = minToHHMM(QUARTS[2].end);
+  document.getElementById('modal-params').classList.add('open');
+}
+function closeParams() { document.getElementById('modal-params').classList.remove('open'); }
+function saveParams() {
+  QUARTS[0].start = timeToMin(document.getElementById('p-q1-start').value||'07:00');
+  QUARTS[0].end   = timeToMin(document.getElementById('p-q1-end').value||'15:00');
+  QUARTS[1].start = timeToMin(document.getElementById('p-q2-start').value||'15:00');
+  QUARTS[1].end   = timeToMin(document.getElementById('p-q2-end').value||'23:00');
+  QUARTS[2].start = timeToMin(document.getElementById('p-q3-start').value||'23:00');
+  QUARTS[2].end   = timeToMin(document.getElementById('p-q3-end').value||'07:00');
+  closeParams();
+  if(cachedData) render(cachedData);
+}
+
+// ── LOAD ─────────────────────────────────────────────────────────
+async function loadAll() {
+  document.getElementById('period-lbl').textContent = getPeriodLabel();
+  document.getElementById('content').innerHTML = '<div class="spinner-wrap"><div class="spin"></div> Chargement…</div>';
+  if(chartTrend) { chartTrend.destroy(); chartTrend=null; }
+  const { start, end } = getRange();
+  cachedData = await fetchData(start, end);
+  render(cachedData);
+}
+
+// ── HELPERS QUARTS ───────────────────────────────────────────────
+function getQuart(hhmm) {
+  const m = timeToMin(hhmm);
+  for(const q of QUARTS) {
+    if(q.end > q.start) {
+      if(m >= q.start && m < q.end) return q;
+    } else {
+      if(m >= q.start || m < q.end) return q;
+    }
+  }
+  return QUARTS[0];
+}
+
+// Récupère les erreurs d'une ligne selon le filtre quart
+function getErreurs(r) {
+  // Retourne la liste des quarts en erreur pour cette ligne
+  const errs = [];
+  if(r.erreur_q1) errs.push(QUARTS[0]);
+  if(r.erreur_q2) errs.push(QUARTS[1]);
+  if(r.erreur_q3) errs.push(QUARTS[2]);
+  return errs;
+}
+function hasErreur(r) {
+  if(_epFilterQuart === 0) return r.erreur_q1 || r.erreur_q2 || r.erreur_q3;
+  return !!r['erreur_q'+_epFilterQuart];
+}
+function countErreurs(r) {
+  if(_epFilterQuart === 0) return (r.erreur_q1?1:0)+(r.erreur_q2?1:0)+(r.erreur_q3?1:0);
+  return r['erreur_q'+_epFilterQuart] ? 1 : 0;
+}
+
+// ── FILTRE QUART ─────────────────────────────────────────────────
+function setFilter(q) {
+  _epFilterQuart = q;
+  document.querySelectorAll('.qf-btn').forEach(btn => {
+    const bq = parseInt(btn.dataset.quart);
+    btn.classList.toggle('active', bq === q);
+  });
+  if(cachedData) render(cachedData);
+}
+
+function buildFilterBar() {
+  return `<div class="quart-filter">
+    <button class="qf-btn ${_epFilterQuart===0?'active':''}" data-quart="0" onclick="setFilter(0)">Tous les quarts</button>
+    ${QUARTS.map(q=>`<button class="qf-btn ${q.cls} ${_epFilterQuart===q.id?'active':''}" data-quart="${q.id}" onclick="setFilter(${q.id})">${q.label} · ${minToHHMM(q.start)}–${minToHHMM(q.end)}</button>`).join('')}
+  </div>`;
+}
+
+// ── RENDER PRINCIPAL ─────────────────────────────────────────────
+function render(data) {
+  if(chartTrend) { chartTrend.destroy(); chartTrend=null; }
+
+  const filtered = data.filter(r => hasErreur(r));
+  const total = filtered.length;
+  const byQ = QUARTS.map(q => data.filter(r=>r['erreur_q'+q.id]).length);
+
+  const c = document.getElementById('content');
+  c.innerHTML = '';
+  c.insertAdjacentHTML('beforeend', buildKPIs(data, total, byQ));
+  c.insertAdjacentHTML('beforeend', buildFilterBar());
+
+  if(total === 0) {
+    c.insertAdjacentHTML('beforeend', `<div class="panel panel-full anim d2" style="grid-column:1/-1">
+      <div class="empty"><div class="empty-ico">✅</div>Aucune erreur papier sur la période sélectionnée</div>
+    </div>`);
+  } else {
+    if(period === 'day') {
+      c.insertAdjacentHTML('beforeend', buildDayDetail(data));
+    } else {
+      c.insertAdjacentHTML('beforeend', buildTrendPanel(data));
+      c.insertAdjacentHTML('beforeend', buildHeatmapPanel(data));
+    }
+    c.insertAdjacentHTML('beforeend', buildRecentList(data));
+  }
+
+  setTimeout(()=>{ drawTrend(data); setupTip(); }, 40);
+}
+
+// ── KPIs ─────────────────────────────────────────────────────────
+function buildKPIs(data, total, byQ) {
+  const { start, end } = getRange();
+  // Nombre de jours dans la plage
+  const days = [];
+  let d = new Date(start+'T00:00:00'), ed = new Date(end+'T00:00:00');
+  while(d<=ed){days.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1);}
+
+  const daysWithErr = new Set(data.filter(r=>hasErreur(r)).map(r=>r.date_jour)).size;
+  const pct = days.length > 0 ? Math.round(daysWithErr/days.length*100) : 0;
+
+  return `<div class="kpi-row anim d1">
+    <div class="kpi" style="--accent:var(--ruby)">
+      <div class="kpi-eyebrow">Total erreurs</div>
+      <div class="kpi-val ${total===0?'green':'red'}">${total}</div>
+      <div class="kpi-sub">${_epFilterQuart===0?'Tous quarts confondus':'Quart '+_epFilterQuart+' uniquement'}<br>${daysWithErr} jour${daysWithErr>1?'s':''} avec erreur${daysWithErr>1?'s':''}</div>
+    </div>
+    <div class="kpi" style="--accent:var(--q1)">
+      <div class="kpi-eyebrow">Quart 1 · 07h–15h</div>
+      <div class="kpi-val q1">${byQ[0]}</div>
+      <div class="kpi-sub">erreur${byQ[0]>1?'s':''} enregistrée${byQ[0]>1?'s':''}</div>
+    </div>
+    <div class="kpi" style="--accent:var(--q2)">
+      <div class="kpi-eyebrow">Quart 2 · 15h–23h</div>
+      <div class="kpi-val q2">${byQ[1]}</div>
+      <div class="kpi-sub">erreur${byQ[1]>1?'s':''} enregistrée${byQ[1]>1?'s':''}</div>
+    </div>
+    <div class="kpi" style="--accent:var(--q3)">
+      <div class="kpi-eyebrow">Quart 3 · 23h–07h</div>
+      <div class="kpi-val q3">${byQ[2]}</div>
+      <div class="kpi-sub">erreur${byQ[2]>1?'s':''} enregistrée${byQ[2]>1?'s':''}</div>
+    </div>
+    <div class="kpi" style="--accent:var(--sapphire)">
+      <div class="kpi-eyebrow">Jours touchés</div>
+      <div class="kpi-val" style="color:var(--sapphire)">${pct}%</div>
+      <div class="kpi-sub">${daysWithErr} / ${days.length} jours avec erreur</div>
+    </div>
+  </div>`;
+}
+
+// ── VUE JOURNALIÈRE : liste détaillée ─────────────────────────────
+function buildDayDetail(data) {
+  const errs = data.filter(r => hasErreur(r));
+  if(!errs.length) return '';
+
+  let html = '';
+  errs.forEach(r => {
+    const slot = SLOTS.find(s=>s.idx===r.slot_index);
+    const lbl  = slot ? slot.lbl : r.heure_planif||'—';
+    getErreurs(r).filter(q => _epFilterQuart===0 || q.id===_epFilterQuart).forEach(q => {
+      html += `<div class="err-item">
+        <div class="err-dot" style="background:${q.col}"></div>
+        <div class="err-date">${r.date_jour}</div>
+        <div class="err-slot">${lbl}</div>
+        <span class="err-q ${q.cls}">${q.label}</span>
+      </div>`;
+    });
+  });
+
+  return `<div class="panels-row anim d2"><div class="panel panel-full">
+    <div class="ph">
+      <div class="ph-eye">Détail journée</div>
+      <div class="ph-title">Erreurs du jour</div>
+      <div class="ph-sub">Chaque ligne cochée par quart</div>
+    </div>
+    <div class="err-list">${html}</div>
+  </div></div>`;
+}
+
+// ── PANEL COURBE ─────────────────────────────────────────────────
+function buildTrendPanel(data) {
+  return `<div class="panels-row anim d2"><div class="panel panel-full">
+    <div class="ph">
+      <div class="ph-eye">Évolution</div>
+      <div class="ph-title">Erreurs papier par jour</div>
+      <div class="ph-sub">Nombre d'erreurs · ventilé par quart de travail</div>
+    </div>
+    <div class="chart-box-lg"><canvas id="chart-trend"></canvas></div>
+  </div></div>`;
+}
+
+// ── PANEL HEATMAP ────────────────────────────────────────────────
+function buildHeatmapPanel(data) {
+  const { start, end } = getRange();
+  const days = [];
+  let d = new Date(start+'T00:00:00'), ed = new Date(end+'T00:00:00');
+  while(d<=ed){days.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1);}
+
+  // Matrice heure × jour
+  const mat = {};
+  HOURS.forEach(h => { mat[h]={}; days.forEach(dt=>{mat[h][dt]=0;}); });
+  data.forEach(r => {
+    if(!hasErreur(r)) return;
+    const h = r.heure_planif;
+    if(mat[h] && r.date_jour in mat[h]) mat[h][r.date_jour] += countErreurs(r);
+  });
+
+  const maxVal = Math.max(1, ...Object.values(mat).flatMap(row=>Object.values(row)));
+
+  // SVG
+  const CW=38, CH=26, LW=58, TH=32, PAD=4;
+  const svgW = LW + days.length*(CW+PAD);
+  const svgH = TH + HOURS.length*(CH+PAD);
+
+  let svg = `<svg width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg" style="display:block">`;
+
+  // En-têtes colonnes
+  days.forEach((dt,di) => {
+    const x = LW + di*(CW+PAD) + CW/2;
+    const lbl = new Date(dt+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'});
+    svg += `<text x="${x}" y="${TH-8}" text-anchor="middle" font-family="DM Mono,monospace" font-size="8" fill="#5A6282">${lbl}</text>`;
+  });
+
+  HOURS.forEach((h,hi) => {
+    const y = TH + hi*(CH+PAD);
+    // Label heure (coloré par quart)
+    const q = getQuart(h);
+    svg += `<text x="${LW-6}" y="${y+CH/2+4}" text-anchor="end" font-family="DM Mono,monospace" font-size="9" fill="${q.col}">${h}</text>`;
+
+    days.forEach((dt,di) => {
+      const n = mat[h][dt]||0;
+      const x = LW + di*(CW+PAD);
+      let fill, stroke, textCol;
+      if(n===0){
+        fill='rgba(255,255,255,.03)'; stroke='rgba(255,255,255,.05)'; textCol='transparent';
+      } else {
+        const t = n/maxVal;
+        fill=`rgba(224,85,85,${0.18+t*0.65})`;
+        stroke=`rgba(224,85,85,${0.4+t*0.5})`;
+        textCol=`rgba(255,255,255,${0.7+t*0.3})`;
+      }
+      const cellId = `hmc-${hi}-${di}`;
+      svg += `<rect class="hm-svg-cell" id="${cellId}" x="${x}" y="${y}" width="${CW}" height="${CH}" rx="5"
+        fill="${fill}" stroke="${stroke}" stroke-width=".8"
+        data-h="${h}" data-dt="${dt}" data-n="${n}" data-q="${q.label}" style="cursor:${n>0?'pointer':'default'}"/>`;
+      if(n>0) svg += `<text x="${x+CW/2}" y="${y+CH/2+4}" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" font-weight="700" fill="${textCol}" pointer-events="none">${n}</text>`;
+    });
+  });
+  svg += '</svg>';
+
+  // Légende
+  let legend = `<div style="display:flex;align-items:center;gap:14px;margin-top:10px;flex-wrap:wrap;">
+    <span style="font-size:.58rem;color:var(--text-muted);letter-spacing:.1em">INTENSITÉ</span>`;
+  [0,.33,.66,1].forEach(t => {
+    const n = Math.round(t*maxVal);
+    const col = t===0?'rgba(255,255,255,.04)':`rgba(224,85,85,${0.18+t*.65})`;
+    legend += `<div style="display:flex;align-items:center;gap:5px;font-size:.62rem;color:var(--text-muted);">
+      <div style="width:12px;height:12px;border-radius:3px;background:${col};border:1px solid rgba(255,255,255,.08)"></div>
+      ${n} err.
+    </div>`;
+  });
+  legend += '</div>';
+
+  return `<div class="panels-row anim d3"><div class="panel panel-full">
+    <div class="ph">
+      <div class="ph-eye">Carte de chaleur</div>
+      <div class="ph-title">Erreurs par créneau & journée</div>
+      <div class="ph-sub">Intensité rouge = nombre d'erreurs · Les heures sont colorées par quart</div>
+    </div>
+    <div class="hm-wrap">${svg}</div>
+    ${legend}
+  </div></div>`;
+}
+
+// ── LISTE RÉCENTE (semaine/mois) ──────────────────────────────────
+function buildRecentList(data) {
+  const errs = [];
+  data.forEach(r => {
+    if(!hasErreur(r)) return;
+    const slot = SLOTS.find(s=>s.idx===r.slot_index);
+    const lbl  = slot ? slot.lbl : r.heure_planif||'—';
+    getErreurs(r).filter(q=>_epFilterQuart===0||q.id===_epFilterQuart).forEach(q=>{
+      errs.push({ date:r.date_jour, lbl, q });
+    });
+  });
+  errs.sort((a,b)=>b.date.localeCompare(a.date)||a.lbl.localeCompare(b.lbl));
+
+  if(!errs.length) return '';
+
+  const MAX=30;
+  let html = errs.slice(0,MAX).map(e=>`<div class="err-item">
+    <div class="err-dot" style="background:${e.q.col}"></div>
+    <div class="err-date">${e.date}</div>
+    <div class="err-slot">${e.lbl}</div>
+    <span class="err-q ${e.q.cls}">${e.q.label}</span>
+  </div>`).join('');
+  if(errs.length>MAX) html += `<div style="text-align:center;padding:10px;font-size:.72rem;color:var(--text-muted)">… et ${errs.length-MAX} autres</div>`;
+
+  return `<div class="panels-row anim d4"><div class="panel panel-full">
+    <div class="ph">
+      <div class="ph-eye">Détail</div>
+      <div class="ph-title">Liste des erreurs</div>
+      <div class="ph-sub">Triées par date décroissante · ${errs.length} erreur${errs.length>1?'s':''} au total</div>
+    </div>
+    <div class="err-list">${html}</div>
+  </div></div>`;
+}
+
+// ── CHART TENDANCE ────────────────────────────────────────────────
+function drawTrend(data) {
+  const el = document.getElementById('chart-trend');
+  if(!el) return;
+  if(chartTrend){ chartTrend.destroy(); chartTrend=null; }
+
+  const { start, end } = getRange();
+  const days=[];
+  let d=new Date(start+'T00:00:00'),ed=new Date(end+'T00:00:00');
+  while(d<=ed){days.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1);}
+  const labels = days.map(s=>new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'}));
+
+  const quartsToShow = _epFilterQuart===0 ? QUARTS : QUARTS.filter(q=>q.id===_epFilterQuart);
+  const datasets = [];
+
+  // Dataset total (seulement si tous quarts)
+  if(_epFilterQuart===0){
+    datasets.push({
+      label:'Total',
+      data: days.map(dt=>data.filter(r=>r.date_jour===dt&&hasErreur(r)).length||null),
+      borderColor:'rgba(224,85,85,.85)',
+      backgroundColor:'rgba(224,85,85,.07)',
+      fill:true,tension:.35,
+      pointBackgroundColor:'rgba(224,85,85,.9)',
+      pointRadius:4,pointHoverRadius:7,borderWidth:2.5,spanGaps:true,
+    });
+  }
+
+  quartsToShow.forEach(q=>{
+    datasets.push({
+      label:q.label,
+      data: days.map(dt=>data.filter(r=>r.date_jour===dt&&r['erreur_q'+q.id]).length||null),
+      borderColor:q.col,
+      backgroundColor:q.col.replace('#','').match(/.{2}/g).reduce((a,v,i)=>a+(i<3?parseInt(v,16):null),[]).filter(Boolean).join(','),
+      fill:false,tension:.35,
+      pointBackgroundColor:q.col,
+      pointRadius:4,pointHoverRadius:7,borderWidth:2,spanGaps:true,
+    });
+  });
+
+  // Fix backgroundColor pour les datasets quarts (simple couleur semi-transp)
+  quartsToShow.forEach((q,i)=>{
+    const ds = datasets[_epFilterQuart===0 ? i+1 : i];
+    if(ds) ds.backgroundColor = 'transparent';
+  });
+
+  chartTrend = new Chart(el, {
+    type:'line',
+    data:{labels,datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{
+          display:true,
+          labels:{color:'#7A82A0',font:{size:10,family:"'Outfit'"},boxWidth:12,padding:14}
+        },
+        tooltip:{
+          backgroundColor:'rgba(15,17,24,.95)',
+          borderColor:'rgba(224,85,85,.3)',borderWidth:1,
+          titleColor:'rgba(190,197,214,.7)',titleFont:{size:11,family:"'DM Mono'"},
+          bodyColor:'#F0EAE0',bodyFont:{size:12,family:"'Outfit'"},
+          padding:10,cornerRadius:8,
+          callbacks:{
+            label:c=>` ${c.dataset.label} : ${c.parsed.y??0} erreur${(c.parsed.y||0)>1?'s':''}`
+          }
+        }
+      },
+      scales:{
+        x:{ticks:{color:'#7A82A0',font:{size:9,family:"'Outfit'"},maxRotation:40},grid:{color:'rgba(255,255,255,.03)'},border:{dash:[4,4],color:'rgba(255,255,255,.05)'}},
+        y:{beginAtZero:true,ticks:{color:'#7A82A0',font:{size:9},stepSize:1,callback:v=>Number.isInteger(v)?v:''},grid:{color:'rgba(255,255,255,.04)'},border:{dash:[4,4],color:'rgba(255,255,255,.05)'}}
+      }
+    }
+  });
+}
+
+// ── TOOLTIP HEATMAP ───────────────────────────────────────────────
+function setupTip() {
+  const tip    = document.getElementById('hm-tip');
+  const valEl  = document.getElementById('hm-tip-val');
+  const subEl  = document.getElementById('hm-tip-sub');
+  if(!tip) return;
+  document.querySelectorAll('.hm-svg-cell[data-n]').forEach(el=>{
+    const n = parseInt(el.dataset.n);
+    if(n<=0) return;
+    el.addEventListener('mouseenter',()=>{
+      const dt = el.dataset.dt;
+      const h  = el.dataset.h;
+      const q  = el.dataset.q;
+      const dObj = new Date(dt+'T00:00:00');
+      const fmtFull = dObj.toLocaleDateString('fr-CA',{weekday:'long',day:'numeric',month:'long'});
+      valEl.textContent = n + ' erreur' + (n>1?'s':'');
+      subEl.innerHTML = `${h} · ${fmtFull}<br>${q}`;
+      el.setAttribute('opacity','.8');
+      tip.style.display='block';
+    });
+    el.addEventListener('mousemove',e=>{
+      tip.style.left=(e.clientX+16)+'px';
+      tip.style.top=(e.clientY-52)+'px';
+    });
+    el.addEventListener('mouseleave',()=>{
+      el.removeAttribute('opacity');
+      tip.style.display='none';
+    });
+  });
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const { data:{ session } } = await sb.auth.getSession();
+    if(!session){ window.location.href='index.html'; return; }
+    await loadAll();
+  } catch(e){ window.location.href='index.html'; }
+}
+window.addEventListener('load', init);
+</script>
+</body>
+</html>

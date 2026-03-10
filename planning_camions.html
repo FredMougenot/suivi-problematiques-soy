@@ -178,7 +178,26 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 .cl-val { font-weight: 700; color: var(--text-primary); }
 .cl-pct { font-size: .72rem; color: var(--text-muted); margin-left: 6px; }
 
-@media (max-width: 1100px) {@media(max-width:900px){</style>
+@media (max-width: 1100px) {@media(max-width:900px){
+/* ── COLONNES QUARTS ERREUR PAPIER ─────────────────────────── */
+.td-quart{text-align:center;padding:4px 6px !important;vertical-align:middle;}
+.th-quart{text-align:center !important;white-space:nowrap;}
+.ep-check-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.ep-cb{
+  width:17px;height:17px;cursor:pointer;
+  accent-color:var(--ruby);
+  border-radius:3px;
+  transition:opacity .15s;
+}
+.ep-cb:disabled{opacity:.25;cursor:default;}
+.ep-cb.q1{ accent-color:#E8A43A; }
+.ep-cb.q2{ accent-color:#7B9CF0; }
+.ep-cb.q3{ accent-color:#C87FE8; }
+tr.has-ep-q1{ background: rgba(232,164,58,.045) !important; }
+tr.has-ep-q2{ background: rgba(90,120,220,.045) !important; }
+tr.has-ep-q3{ background: rgba(180,80,220,.045) !important; }
+
+</style>
 
 
 
@@ -258,6 +277,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
         <th>N° départ</th>
         <th>Chargement</th>
         <th id="th-hreelle">Heure réelle</th>
+        <th class="th-quart" style="color:#E8A43A;" title="Erreur papier Quart 1 · 07h–15h">✎ Q1</th>
+        <th class="th-quart" style="color:#7B9CF0;" title="Erreur papier Quart 2 · 15h–23h">✎ Q2</th>
+        <th class="th-quart" style="color:#C87FE8;" title="Erreur papier Quart 3 · 23h–07h">✎ Q3</th>
         <th></th>
       </tr></thead>
       <tbody id="tbody"></tbody>
@@ -519,6 +541,7 @@ async function load(){
     try{render();}catch(re){console.error('render:',re);}
     // Appliquer les règles de verrouillage initiales
     try{ applyLockRules(); }catch(e){}
+    try{ applyEpHighlight(); }catch(e){}
     document.getElementById('spinner').style.display='none';
     document.getElementById('tbl').style.display='block';
   }
@@ -821,6 +844,15 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
     })()}</td>
 
     <td class="td-hreelle"><input class="ci-t" type="time" value="${esc(r.heure_reelle||'')}" oninput="fchg(${idx},'heure_reelle',this.value)"></td>
+    <td class="td-quart"><input type="checkbox" class="ep-cb q1" data-idx="${idx}" data-quart="1"
+      ${r.erreur_q1?'checked':''} onchange="saveErreurPapier(${idx},1,this.checked)"
+      title="Erreur papier Q1 · 07h–15h"></td>
+    <td class="td-quart"><input type="checkbox" class="ep-cb q2" data-idx="${idx}" data-quart="2"
+      ${r.erreur_q2?'checked':''} onchange="saveErreurPapier(${idx},2,this.checked)"
+      title="Erreur papier Q2 · 15h–23h"></td>
+    <td class="td-quart"><input type="checkbox" class="ep-cb q3" data-idx="${idx}" data-quart="3"
+      ${r.erreur_q3?'checked':''} onchange="saveErreurPapier(${idx},3,this.checked)"
+      title="Erreur papier Q3 · 23h–07h"></td>
     ${isExtra?`<td style="text-align:center"><button onclick="delRow(${idx})" title="Supprimer ce camion" style="background:none;border:none;cursor:pointer;color:var(--text-faint);font-size:1rem;padding:2px 6px;border-radius:var(--r-sm);transition:color var(--t-fast);" onmouseover="this.style.color='var(--ruby)'" onmouseout="this.style.color='var(--text-faint)'">✕</button></td>`:'<td></td>'}
   </tr>`;
 }
@@ -878,6 +910,9 @@ async function saveAll(){
       statut:r.statut||null,
       chargement:r.chargement||null,
       heure_reelle:r.heure_reelle||null,
+      erreur_q1:r.erreur_q1||false,
+      erreur_q2:r.erreur_q2||false,
+      erreur_q3:r.erreur_q3||false,
       updated_at:new Date().toISOString(),
     };
     if(r.id){
@@ -913,6 +948,9 @@ async function saveRow(idx){
     statut:r.statut||null,
     chargement:r.chargement||null,
     heure_reelle:r.heure_reelle||null,
+    erreur_q1:r.erreur_q1||false,
+    erreur_q2:r.erreur_q2||false,
+    erreur_q3:r.erreur_q3||false,
     updated_at:new Date().toISOString(),
   };
   let error;
@@ -982,6 +1020,62 @@ function updTypeSel(sel){
   const st = sel.value==='__VIDE__' ? '' : getParamStyle('type_camion', sel.value);
   sel.setAttribute('style','min-width:105px;'+st);
 }
+
+function applyEpHighlight(){
+  document.querySelectorAll('tr[id^="tr"]').forEach(tr=>{
+    const idx=parseInt(tr.id.replace('tr',''));
+    if(isNaN(idx)) return;
+    const r=rows[idx]||{};
+    [1,2,3].forEach(q=>tr.classList.remove('has-ep-q'+q));
+    if(r.erreur_q1) tr.classList.add('has-ep-q1');
+    else if(r.erreur_q2) tr.classList.add('has-ep-q2');
+    else if(r.erreur_q3) tr.classList.add('has-ep-q3');
+  });
+}
+
+// ── ERREURS PAPIER ─────────────────────────────────────────────────
+async function saveErreurPapier(idx, quart, val) {
+  if(!rows[idx]) rows[idx] = {slot_index: idx};
+  const field = 'erreur_q' + quart;
+  rows[idx][field] = val;
+
+  // Highlight visuel sur le <tr>
+  const tr = document.getElementById('tr' + idx);
+  if(tr) {
+    [1,2,3].forEach(q => tr.classList.remove('has-ep-q'+q));
+    if(rows[idx].erreur_q1) tr.classList.add('has-ep-q1');
+    else if(rows[idx].erreur_q2) tr.classList.add('has-ep-q2');
+    else if(rows[idx].erreur_q3) tr.classList.add('has-ep-q3');
+  }
+
+  const r = rows[idx];
+  if(!r.id) {
+    toast('Sauvegardez d'abord la ligne avant de cocher une erreur', 'error');
+    // Remettre le checkbox à l'état précédent
+    const cb = document.querySelector(`input[data-idx="${idx}"][data-quart="${quart}"]`);
+    if(cb) cb.checked = !val;
+    rows[idx][field] = !val;
+    return;
+  }
+
+  try {
+    const payload = {
+      erreur_q1: rows[idx].erreur_q1 || false,
+      erreur_q2: rows[idx].erreur_q2 || false,
+      erreur_q3: rows[idx].erreur_q3 || false,
+    };
+    const { error } = await sb.from('planning_camions').update(payload).eq('id', r.id);
+    if(error) throw error;
+    toast('✓ Erreur Q' + quart + ' enregistrée', 'success');
+  } catch(e) {
+    toast('Erreur: ' + (e?.message||''), 'error');
+    // Revert
+    const cb = document.querySelector(`input[data-idx="${idx}"][data-quart="${quart}"]`);
+    if(cb) cb.checked = !val;
+    rows[idx][field] = !val;
+  }
+}
+
 // ── RÈGLES DE VERROUILLAGE ─────────────────────────────────────────
 // Applique au chargement les verrouillages INACTIF et BOBTAIL sur toutes les lignes
 function applyLockRules(){
