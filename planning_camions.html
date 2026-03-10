@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Planification Camions — Expédition SOY</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -179,26 +178,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 .cl-val { font-weight: 700; color: var(--text-primary); }
 .cl-pct { font-size: .72rem; color: var(--text-muted); margin-left: 6px; }
 
-@media (max-width: 1100px) {@media(max-width:900px){
-/* ── COLONNES QUARTS ERREUR PAPIER ─────────────────────────── */
-.td-quart{text-align:center;padding:4px 6px !important;vertical-align:middle;}
-.th-quart{text-align:center !important;white-space:nowrap;}
-.ep-check-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;}
-.ep-cb{
-  width:17px;height:17px;cursor:pointer;
-  accent-color:var(--ruby);
-  border-radius:3px;
-  transition:opacity .15s;
-}
-.ep-cb:disabled{opacity:.25;cursor:default;}
-.ep-cb.q1{ accent-color:#E8A43A; }
-.ep-cb.q2{ accent-color:#7B9CF0; }
-.ep-cb.q3{ accent-color:#C87FE8; }
-tr.has-ep-q1{ background: rgba(232,164,58,.045) !important; }
-tr.has-ep-q2{ background: rgba(90,120,220,.045) !important; }
-tr.has-ep-q3{ background: rgba(180,80,220,.045) !important; }
-
-</style>
+@media (max-width: 1100px) {@media(max-width:900px){</style>
 
 
 
@@ -278,9 +258,6 @@ tr.has-ep-q3{ background: rgba(180,80,220,.045) !important; }
         <th>N° départ</th>
         <th>Chargement</th>
         <th id="th-hreelle">Heure réelle</th>
-        <th class="th-quart" style="color:#E8A43A;" title="Erreur papier Quart 1 · 07h–15h">✎ Q1</th>
-        <th class="th-quart" style="color:#7B9CF0;" title="Erreur papier Quart 2 · 15h–23h">✎ Q2</th>
-        <th class="th-quart" style="color:#C87FE8;" title="Erreur papier Quart 3 · 23h–07h">✎ Q3</th>
         <th></th>
       </tr></thead>
       <tbody id="tbody"></tbody>
@@ -326,7 +303,7 @@ tr.has-ep-q3{ background: rgba(180,80,220,.045) !important; }
 
 
 const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2b3JLbLOKDnHpTUqJc66ET-8Kug';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 let sb;
 let _params = {};
 
@@ -392,22 +369,16 @@ let isViewer = false;
 
 async function loadParams(){
   try {
-    // Essai avec toutes les colonnes
-    let {data,error} = await sb.from('planning_params')
+    const {data,error} = await sb.from('planning_params')
       .select('categorie,valeur,text_color,border_color,border_opacity,font_weight,has_background,ordre,delai_nl')
-      .order('ordre');
-    if(error){
-      // Repli : colonnes minimales en cas d'erreur de schéma
-      const r2 = await sb.from('planning_params').select('categorie,valeur,ordre').order('ordre');
-      if(r2.error) throw r2.error;
-      data = r2.data;
-    }
+      .order('ordre').order('created_at');
+    if(error) throw error;
     _params = {};
     (data||[]).forEach(r=>{
       if(!_params[r.categorie]) _params[r.categorie]=[];
       _params[r.categorie].push(r);
     });
-  } catch(e){ console.warn('loadParams:',e?.message); }
+  } catch(e){ console.warn('loadParams:',e.message); }
 }
 
 // Applique le style d'un paramètre sur un <select>, en gérant le background
@@ -464,17 +435,18 @@ async function initApp(){
   try{
     const { data:{ session } } = await sb.auth.getSession();
     if(!session){ window.location.href='index.html'; return; }
+    // Déterminer le rôle
     const email = session.user.email;
     const {data:adm} = await sb.from('admins').select('email').eq('email',email).maybeSingle();
     if(!adm){
       const {data:vwr} = await sb.from('viewers').select('email').eq('email',email).maybeSingle();
       isViewer = !!vwr;
     }
-  } catch(e){ window.location.href='index.html'; return; }
-  refreshDateUI();
-  try{ await loadParams(); } catch(e){ console.warn('loadParams:', e?.message); }
-  await load();
-  if(isViewer) applyReadOnly();
+    refreshDateUI();
+    await loadParams();
+    await load();
+    if(isViewer) applyReadOnly();
+  } catch(e){ window.location.href='index.html'; }
 }
 
 function applyReadOnly(){
@@ -522,9 +494,15 @@ async function viewerLogout(){
   window.location.href = 'index.html';
 }
 
-document.addEventListener('DOMContentLoaded', function(){
-  try{ initApp(); } catch(e){ console.error('initApp error:', e); }
-});
+function waitForSupabaseAndInit(){
+  if(typeof supabase !== 'undefined' && supabase.createClient){
+    try{ initApp(); } catch(e){ console.error('initApp error:', e); }
+  } else {
+    setTimeout(waitForSupabaseAndInit, 50);
+  }
+}
+
+window.addEventListener('load', waitForSupabaseAndInit);
 
 async function load(){
   document.getElementById('spinner').style.display='flex';
@@ -538,13 +516,11 @@ async function load(){
     (data||[]).forEach(r=>{ rows[r.slot_index]=r; });
   } catch(e){ toast('Connexion impossible.','error'); }
   finally{
-    try{ render(); } catch(re){ console.error('render error:', re); }
-    try{ applyLockRules(); } catch(e){}
-    try{ applyEpHighlight(); } catch(e){}
-    const spinnerEl = document.getElementById('spinner');
-    const tblEl = document.getElementById('tbl');
-    if(spinnerEl) spinnerEl.style.display='none';
-    if(tblEl) tblEl.style.display='block';
+    try{render();}catch(re){console.error('render:',re);}
+    // Appliquer les règles de verrouillage initiales
+    try{ applyLockRules(); }catch(e){}
+    document.getElementById('spinner').style.display='none';
+    document.getElementById('tbl').style.display='block';
   }
 }
 
@@ -603,8 +579,6 @@ function render(){
     const _allIdx = [...SLOTS.map(s=>s.idx), ...Object.keys(rows).map(Number).filter(i=>i>=10)];
     _allIdx.forEach(i => {
       if(!rows[i]) rows[i]={slot_index:i};
-      // Ne pas écraser si la ligne existe déjà en DB
-      if(rows[i].id) return;
       if(i === _idxDernierActif){
         rows[i].destination = _BOBTAIL;
       } else {
@@ -628,8 +602,6 @@ function render(){
 
     _allSlotsIdx.forEach(i=>{
       if(!rows[i]) rows[i]={slot_index:i};
-      // Ne pas écraser si la ligne existe déjà en DB (id présent)
-      if(rows[i].id) return;
       const dbSt=(rows[i]||{}).statut_ligne;
       const stEff=dbSt||(_rIsWkEnd&&_wkID.includes(i)?_rVInactifD:_rVActif);
       if(!_isActifOuNL(stEff, _rVActif, _rVInactifD)) return; // ignorer inactifs
@@ -744,7 +716,7 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
   const svgSave='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
 
   return `<tr id="tr${idx}" class="${trCls}" ${trStyle}>
-    <td style="text-align:center;font-weight:700;color:var(--text-muted);font-size:.8rem" title="ID Supabase: ${r.id||'—'}">${lineNum}${r.id?`<br><span style="font-size:.58rem;font-weight:400;color:var(--text-faint);letter-spacing:.03em;font-family:monospace">#${r.id}</span>`:''}</td>
+    <td style="text-align:center;font-weight:700;color:var(--text-muted);font-size:.8rem">${lineNum}</td>
     <td><span class="h-badge ${hcls}">${dot?'<span class="now-dot"></span>':''}${esc(lbl)}</span></td>
 
     <td>${(()=>{
@@ -849,15 +821,6 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
     })()}</td>
 
     <td class="td-hreelle"><input class="ci-t" type="time" value="${esc(r.heure_reelle||'')}" oninput="fchg(${idx},'heure_reelle',this.value)"></td>
-    <td class="td-quart"><input type="checkbox" class="ep-cb q1" data-idx="${idx}" data-quart="1"
-      ${r.erreur_q1?'checked':''} onchange="saveErreurPapier(${idx},1,this.checked)"
-      title="Erreur papier Q1 · 07h–15h"></td>
-    <td class="td-quart"><input type="checkbox" class="ep-cb q2" data-idx="${idx}" data-quart="2"
-      ${r.erreur_q2?'checked':''} onchange="saveErreurPapier(${idx},2,this.checked)"
-      title="Erreur papier Q2 · 15h–23h"></td>
-    <td class="td-quart"><input type="checkbox" class="ep-cb q3" data-idx="${idx}" data-quart="3"
-      ${r.erreur_q3?'checked':''} onchange="saveErreurPapier(${idx},3,this.checked)"
-      title="Erreur papier Q3 · 23h–07h"></td>
     ${isExtra?`<td style="text-align:center"><button onclick="delRow(${idx})" title="Supprimer ce camion" style="background:none;border:none;cursor:pointer;color:var(--text-faint);font-size:1rem;padding:2px 6px;border-radius:var(--r-sm);transition:color var(--t-fast);" onmouseover="this.style.color='var(--ruby)'" onmouseout="this.style.color='var(--text-faint)'">✕</button></td>`:'<td></td>'}
   </tr>`;
 }
@@ -915,9 +878,6 @@ async function saveAll(){
       statut:r.statut||null,
       chargement:r.chargement||null,
       heure_reelle:r.heure_reelle||null,
-      erreur_q1:r.erreur_q1||false,
-      erreur_q2:r.erreur_q2||false,
-      erreur_q3:r.erreur_q3||false,
       updated_at:new Date().toISOString(),
     };
     if(r.id){
@@ -933,7 +893,7 @@ async function saveAll(){
   if(errors>0){toast(errors+' erreur(s) lors de la sauvegarde','error');return;}
   toast('Tableau sauvegardé ✓','success');
   // Recharger les données puis mettre à jour bilans et graphiques
-  await load();
+  await loadData(curDate);
 }
 async function saveRow(idx){
   const btn=document.getElementById('bsv'+idx);
@@ -953,9 +913,6 @@ async function saveRow(idx){
     statut:r.statut||null,
     chargement:r.chargement||null,
     heure_reelle:r.heure_reelle||null,
-    erreur_q1:r.erreur_q1||false,
-    erreur_q2:r.erreur_q2||false,
-    erreur_q3:r.erreur_q3||false,
     updated_at:new Date().toISOString(),
   };
   let error;
@@ -1025,62 +982,6 @@ function updTypeSel(sel){
   const st = sel.value==='__VIDE__' ? '' : getParamStyle('type_camion', sel.value);
   sel.setAttribute('style','min-width:105px;'+st);
 }
-
-function applyEpHighlight(){
-  document.querySelectorAll('tr[id^="tr"]').forEach(tr=>{
-    const idx=parseInt(tr.id.replace('tr',''));
-    if(isNaN(idx)) return;
-    const r=rows[idx]||{};
-    [1,2,3].forEach(q=>tr.classList.remove('has-ep-q'+q));
-    if(r.erreur_q1) tr.classList.add('has-ep-q1');
-    else if(r.erreur_q2) tr.classList.add('has-ep-q2');
-    else if(r.erreur_q3) tr.classList.add('has-ep-q3');
-  });
-}
-
-// ── ERREURS PAPIER ─────────────────────────────────────────────────
-async function saveErreurPapier(idx, quart, val) {
-  if(!rows[idx]) rows[idx] = {slot_index: idx};
-  const field = 'erreur_q' + quart;
-  rows[idx][field] = val;
-
-  // Highlight visuel sur le <tr>
-  const tr = document.getElementById('tr' + idx);
-  if(tr) {
-    [1,2,3].forEach(q => tr.classList.remove('has-ep-q'+q));
-    if(rows[idx].erreur_q1) tr.classList.add('has-ep-q1');
-    else if(rows[idx].erreur_q2) tr.classList.add('has-ep-q2');
-    else if(rows[idx].erreur_q3) tr.classList.add('has-ep-q3');
-  }
-
-  const r = rows[idx];
-  if(!r.id) {
-    toast("Sauvegardez d'abord la ligne avant de cocher une erreur", "error");
-    // Remettre le checkbox à l'état précédent
-    const cb = document.querySelector(`input[data-idx="${idx}"][data-quart="${quart}"]`);
-    if(cb) cb.checked = !val;
-    rows[idx][field] = !val;
-    return;
-  }
-
-  try {
-    const payload = {
-      erreur_q1: rows[idx].erreur_q1 || false,
-      erreur_q2: rows[idx].erreur_q2 || false,
-      erreur_q3: rows[idx].erreur_q3 || false,
-    };
-    const { error } = await sb.from('planning_camions').update(payload).eq('id', r.id);
-    if(error) throw error;
-    toast('✓ Erreur Q' + quart + ' enregistrée', 'success');
-  } catch(e) {
-    toast('Erreur: ' + (e?.message||''), 'error');
-    // Revert
-    const cb = document.querySelector(`input[data-idx="${idx}"][data-quart="${quart}"]`);
-    if(cb) cb.checked = !val;
-    rows[idx][field] = !val;
-  }
-}
-
 // ── RÈGLES DE VERROUILLAGE ─────────────────────────────────────────
 // Applique au chargement les verrouillages INACTIF et BOBTAIL sur toutes les lignes
 function applyLockRules(){
@@ -1511,6 +1412,7 @@ function exportPDF() {
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 
 <div class="overlay" id="modal">
