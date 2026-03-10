@@ -325,7 +325,7 @@ tr.has-ep-q3{ background: rgba(180,80,220,.045) !important; }
 
 
 const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2b3JLbLOKDnHpTUqJc66ET-8Kug';
 let sb;
 let _params = {};
 
@@ -932,7 +932,7 @@ async function saveAll(){
   if(errors>0){toast(errors+' erreur(s) lors de la sauvegarde','error');return;}
   toast('Tableau sauvegardé ✓','success');
   // Recharger les données puis mettre à jour bilans et graphiques
-  await loadData(curDate);
+  await load();
 }
 async function saveRow(idx){
   const btn=document.getElementById('bsv'+idx);
