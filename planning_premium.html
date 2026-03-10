@@ -88,12 +88,11 @@ body{background:var(--ink);color:var(--text);font-family:'Geist',sans-serif;heig
 .qlbl{width:var(--LW);flex-shrink:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;padding-right:12px;background:var(--depth)}
 .qnum{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:300;line-height:1}
 .qsub{font-family:'Geist Mono',monospace;font-size:.44rem;letter-spacing:.12em;text-transform:uppercase;margin-top:2px}
-.qrow.cold .qnum{color:var(--cold)}.qrow.cold .qsub{color:rgba(82,184,216,.35)}
-.qrow.warm .qnum{color:var(--warm)}.qrow.warm .qsub{color:rgba(212,136,82,.35)}
+.qrow .qnum{color:var(--text-2)}.qrow .qsub{color:var(--text-3)}
 .qrow.free .qnum{color:var(--text-3)}.qrow.free .qsub{color:var(--text-4)}
 .qtrack{flex:1;position:relative;overflow:visible;background:var(--surface)}
 .qrow.free .qtrack{background:repeating-linear-gradient(45deg,var(--surface),var(--surface) 8px,rgba(255,255,255,.007) 8px,rgba(255,255,255,.007) 16px)}
-.qrow.cold .qtrack{border-left:2px solid rgba(82,184,216,.18)}.qrow.warm .qtrack{border-left:2px solid rgba(212,136,82,.18)}
+
 .vl{position:absolute;top:0;bottom:0;width:1px;background:var(--edge);pointer-events:none;z-index:1}
 .vl.mj{background:var(--edge-hi)}
 .qz-n{position:absolute;top:0;bottom:0;background:rgba(0,0,8,.45);pointer-events:none;z-index:2}
@@ -316,11 +315,6 @@ body{background:var(--ink);color:var(--text);font-family:'Geist',sans-serif;heig
         <div class="pi"><div class="pi-lbl"><span class="pi-lbl-t">Début ramassages</span><span class="pi-lbl-v gr-val" id="v-rs">06h00</span></div><input type="range" class="pslider sg" id="sl-rs" min="0" max="720" step="30" value="360" oninput="upParams()"></div>
         <div class="pi"><div class="pi-lbl"><span class="pi-lbl-t">Fin ramassages</span><span class="pi-lbl-v gr-val" id="v-re">19h00</span></div><input type="range" class="pslider sg" id="sl-re" min="720" max="1380" step="30" value="1140" oninput="upParams()"></div>
       </div>
-      <div class="ppg">
-        <div class="ppg-t g">◫ Quais</div>
-        <div class="pi-hint" style="margin-bottom:8px">Cliquez pour basculer le type</div>
-        <div class="qt-grid" id="qtg"></div>
-      </div>
     </div>
   </div>
 </div>
@@ -330,7 +324,7 @@ body{background:var(--ink);color:var(--text);font-family:'Geist',sans-serif;heig
   <div class="sb-sep"></div>
   <span id="sb-conf" style="display:none" class="sb-conf"><div class="sd-dot sd-danger" style="display:inline-block;margin-right:4px"></div><span id="sb-ct"></span></span>
   <span id="sb-cas" style="display:none" class="sb-cas"><div class="sd-dot sd-warn" style="display:inline-block;margin-right:4px"></div>cascade active</span>
-  <span class="sb-hint" id="sb-mode">TEMPS RÉEL · TAP LONG → GLISSER → CASCADE</span>
+  <span class="sb-hint" id="sb-mode">TEMPS RÉEL · TAP LONG → GLISSER · DOUBLE-TAP → CHANGER TYPE</span>
 </div>
 <div class="toasts" id="toasts"></div>
 
@@ -342,7 +336,7 @@ const sb=supabase.createClient(SB_URL,SB_KEY);
 
 let P={coldStart:360,coldRate:6,coldActive:true,warmStart:390,warmRate:5,warmActive:true,cap:26,ramStart:360,ramEnd:1140};
 const TL_R=1440,GAP=90,WK_I=[0,1,7,8,9];
-let QUAYS=[{id:0,name:'Quai 1',type:'cold'},{id:1,name:'Quai 2',type:'cold'},{id:2,name:'Quai 3',type:'warm'},{id:3,name:'Quai 4',type:'warm'}];
+let QUAYS=[{id:0,name:'Quai 1'},{id:1,name:'Quai 2'},{id:2,name:'Quai 3'},{id:3,name:'Quai 4'}];
 const BASE=[{idx:0,h:'06:00',lbl:'A',quay:0},{idx:1,h:'06:00',lbl:'B',quay:1},{idx:2,h:'07:30',lbl:'3',quay:2},{idx:3,h:'09:00',lbl:'4',quay:3},{idx:4,h:'11:30',lbl:'5',quay:0},{idx:5,h:'14:00',lbl:'6',quay:1},{idx:6,h:'15:30',lbl:'7',quay:2},{idx:7,h:'17:00',lbl:'8',quay:3},{idx:8,h:'18:00',lbl:'9',quay:0},{idx:9,h:'19:00',lbl:'10',quay:1}];
 let curDate=todayStr(),_params={},_rows={},_slots=[],_sel=null,simMode=false,simMin=360,cascadeMode=false;
 
@@ -356,7 +350,7 @@ function isWk(){const d=new Date(curDate+'T12:00:00').getDay();return d===0||d==
 function isInactif(s,r){const sl=(r?.statut_ligne||'').trim();if(sl===vP('statut_ligne',1))return true;if(!sl&&isWk()&&WK_I.includes(s.idx))return true;return false}
 function isNL(r){return(r?.statut_ligne||'').trim()===vP('statut_ligne',2)}
 function isFait(r){return(r?.statut_arrivee||'').trim()===vP('statut_arrivee',0)}
-function sType(s,r){const tc=(r?.type_camion||'').trim();if(tc===vP('type_camion',0))return'cold';if(tc===vP('type_camion',1))return'warm';const qt=QUAYS[s.quay]?.type||'cold';return qt==='neutral'?'cold':qt}
+function sType(s,r){const tc=(r?.type_camion||'').trim();if(tc===vP('type_camion',1))return'warm';return'cold'}
 function nowMin(){const n=new Date();return n.getHours()*60+n.getMinutes()}
 function curMin(){return simMode?simMin:nowMin()}
 function hasConflict(idx){const s=_slots.find(s=>s.idx===idx),r=_rows[idx];if(!s||isInactif(s,r))return false;const hA=toMin(s.h);return _slots.some(s2=>{if(s2.idx===idx)return false;const r2=_rows[s2.idx];if(isInactif(s2,r2))return false;return Math.abs(hA-toMin(s2.h))>0&&Math.abs(hA-toMin(s2.h))<GAP})}
@@ -368,7 +362,7 @@ async function load(){
   _rows={};if(rD)rD.forEach(r=>{_rows[r.slot_index]=r});
   _slots=JSON.parse(JSON.stringify(BASE));
   _slots.forEach(s=>{if(_rows[s.idx]?.heure_planif)s.h=_rows[s.idx].heure_planif});
-  buildTL();buildQTG();render();updateKPIs();checkConf();updateNeedle();
+  buildTL();render();updateKPIs();checkConf();updateNeedle();
   setInterval(()=>{if(!simMode){render();updateKPIs();}updateNeedle();},30000);
 }
 
@@ -413,7 +407,7 @@ function render(){
 }
 
 function buildRow(q,qi,slots){
-  const row=el('div',`qrow ${slots.length===0?'free':q.type}`);
+  const row=el('div',`qrow ${slots.length===0?'free':''}`); 
   const lbl=el('div','qlbl');lbl.innerHTML=`<div class="qnum">${qi+1}</div><div class="qsub">${q.name}</div>`;row.appendChild(lbl);
   const track=el('div','qtrack');
   for(let h=0;h<=23;h++){const v=el('div','vl'+(h%6===0?' mj':''));v.style.left=pct(h*60)+'%';track.appendChild(v)}
@@ -458,7 +452,14 @@ function buildBlock(s,row,qi){
     </div>
     <div class="t-dest">${dest||'—'}</div>`;
 
-  el2.addEventListener('click',e=>{e.stopPropagation();openPanel(s.idx)});
+  // Tap simple → panneau · Double-tap → bascule type camion
+  let _tapT=null,_tapN=0;
+  el2.addEventListener('click',e=>{
+    e.stopPropagation();
+    _tapN++;
+    if(_tapN===1){_tapT=setTimeout(()=>{_tapN=0;openPanel(s.idx)},260);}
+    else{clearTimeout(_tapT);_tapN=0;toggleTruckType(s.idx);}
+  });
   setupTouch(el2,s.idx,qi);return el2;
 }
 
@@ -495,7 +496,7 @@ function updateFM(){
   });
 }
 
-function toggleSim(){simMode=document.getElementById('tgl-sim').checked;document.getElementById('sim-wrap').classList.toggle('on',simMode);document.getElementById('sb-mode').textContent=simMode?'SIMULATION':'TEMPS RÉEL · TAP LONG → GLISSER → CASCADE';if(!simMode)simMin=nowMin();render();updateNeedle()}
+function toggleSim(){simMode=document.getElementById('tgl-sim').checked;document.getElementById('sim-wrap').classList.toggle('on',simMode);document.getElementById('sb-mode').textContent=simMode?'SIMULATION · DOUBLE-TAP → CHANGER TYPE':'TEMPS RÉEL · TAP LONG → GLISSER · DOUBLE-TAP → CHANGER TYPE';if(!simMode)simMin=nowMin();render();updateNeedle()}
 function onSim(){simMin=+document.getElementById('sim-range').value;document.getElementById('sim-val').textContent=mD(simMin);render();updateNeedle()}
 
 function upParams(){
@@ -510,8 +511,6 @@ function upParams(){
 function fDur(cap,rate){const m=Math.round(cap/rate*60);return Math.floor(m/60)+'h'+String(m%60).padStart(2,'0')}
 
 function toggleParams(){const p=document.getElementById('pp');const o=p.classList.toggle('open');document.getElementById('pbtn').classList.toggle('on',o);if(o)closePanel()}
-function buildQTG(){const g=document.getElementById('qtg');g.innerHTML='';QUAYS.forEach((q,i)=>{const d=el('div',`qt-item ${q.type}`);d.innerHTML=`<div class="qt-n">${i+1}</div><div class="qt-t">${q.type==='cold'?'REEFER':q.type==='warm'?'CHAUFFÉE':'MIXTE'}</div>`;d.onclick=()=>{QUAYS[i].type=['cold','warm','neutral'][(['cold','warm','neutral'].indexOf(q.type)+1)%3];buildQTG();render()};g.appendChild(d)})}
-
 function setupTouch(el2,idx,qi){
   let timer=null,drag=false,startX=0,rect=null;
   el2.addEventListener('touchstart',e=>{startX=e.touches[0].clientX;timer=setTimeout(()=>{drag=true;el2.classList.add('dragging');rect=document.querySelector('.qtrack').getBoundingClientRect();const s=_slots.find(s=>s.idx===idx);showG(s,sType(s,_rows[idx]));navigator.vibrate&&navigator.vibrate(40);hiC(idx,true)},480)},{passive:true});
@@ -553,7 +552,20 @@ function cascade(idx,newH){
 
 function checkConf(){const c=_slots.filter(s=>hasConflict(s.idx));const el2=document.getElementById('sb-conf');if(c.length){el2.style.display='inline-flex';document.getElementById('sb-ct').textContent=c.length+' conflit'+(c.length>1?'s':'')+' · '+c.map(s=>s.h.replace(':','h')).join(', ')}else el2.style.display='none'}
 
-function updateKPIs(){let c=0,w=0,o=0,n=0,tot=0;_slots.forEach(s=>{const r=_rows[s.idx];if(isInactif(s,r))return;tot++;const t=sType(s,r);if(t==='cold')c++;else w++;if(isNL(r))n++;else if(isFait(r))o++;});document.getElementById('k-c').textContent=c;document.getElementById('k-w').textContent=w;document.getElementById('k-o').textContent=o;document.getElementById('k-n').textContent=n;document.getElementById('sb-ok').textContent=o;const d=tot-n;document.getElementById('k-e').textContent=d>0?Math.round(o/d*100)+'%':'—'}
+async function toggleTruckType(idx){
+  if(!_rows[idx])_rows[idx]={};
+  const r=_rows[idx];
+  const cur=sType(_slots.find(s=>s.idx===idx),r);
+  const next=cur==='cold'?vP('type_camion',1):vP('type_camion',0);
+  r.type_camion=next;
+  // Flash visuel sur le bloc
+  const el2=document.getElementById('truck-'+idx);
+  if(el2){el2.style.transition='opacity .08s';el2.style.opacity='0.2';setTimeout(()=>{el2.style.opacity='';el2.style.transition=''},120);}
+  await saveRow(idx);
+  render();updateKPIs();
+  toast(next?`❄ → ◈  Basculé ${next}`:`Type mis à jour`,'ok');
+}
+let c=0,w=0,o=0,n=0,tot=0;_slots.forEach(s=>{const r=_rows[s.idx];if(isInactif(s,r))return;tot++;const t=sType(s,r);if(t==='cold')c++;else w++;if(isNL(r))n++;else if(isFait(r))o++;});document.getElementById('k-c').textContent=c;document.getElementById('k-w').textContent=w;document.getElementById('k-o').textContent=o;document.getElementById('k-n').textContent=n;document.getElementById('sb-ok').textContent=o;const d=tot-n;document.getElementById('k-e').textContent=d>0?Math.round(o/d*100)+'%':'—'}
 
 function openPanel(idx){_sel=idx;document.getElementById('pp').classList.remove('open');document.getElementById('pbtn').classList.remove('on');const s=_slots.find(s=>s.idx===idx),r=_rows[idx]||{},tp=sType(s,r),q=QUAYS[s.quay];document.getElementById('pd').classList.add('open');const pt=document.getElementById('ph-t');pt.textContent=s.h.replace(':','h');pt.style.color=tp==='cold'?'var(--cold)':'var(--warm)';document.getElementById('ph-s').textContent=tp==='cold'?'❄  REEFER':'◈  CHAUFFÉE';document.getElementById('ph-s').style.color=tp==='cold'?'var(--cold)':'var(--warm)';document.getElementById('ph-q').textContent=q.name;document.getElementById('pconf').classList.toggle('show',hasConflict(idx));document.getElementById('p-narr').value=r.num_arr||'';document.getElementById('p-ndep').value=r.num_dep||'';document.getElementById('p-hr').value=r.heure_reelle||'';fillS('p-darr','dest_arrivee',r.dest_arrivee);fillS('p-sarr','statut_arrivee',r.statut_arrivee);fillS('p-desc','description',r.description);fillS('p-tcam','type_camion',r.type_camion);fillS('p-dest','destination',r.destination);fillS('p-charg','chargement',r.chargement);document.querySelectorAll('.truck').forEach(t=>t.classList.remove('selected'));document.getElementById('truck-'+idx)?.classList.add('selected')}
 function closePanel(){document.getElementById('pd').classList.remove('open');document.querySelectorAll('.truck').forEach(t=>t.classList.remove('selected'));_sel=null}
