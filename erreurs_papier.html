@@ -2,200 +2,490 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Erreurs Papier — Expédition SOY</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Erreurs Papier — SOY</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-:root{
-  --bg-void:#06070B;--bg-deep:#0B0D13;--bg-base:#0F1118;
-  --bg-raised:#15181F;--bg-float:#1A1E2A;--bg-hover:#1F2436;
-  --copper:#C8843A;--copper-light:#E0A870;--copper-pale:#EDD4A8;
-  --copper-glow:rgba(200,132,58,.22);--copper-dim:rgba(200,132,58,.10);
-  --text-primary:#F0EAE0;--text-secondary:#BEC5D6;
-  --text-muted:#7A82A0;--text-faint:#2C3350;
-  --q1:#E8A43A;--q1-dim:rgba(232,164,58,.10);--q1-glow:rgba(232,164,58,.22);
-  --q2:#7B9CF0;--q2-dim:rgba(123,156,240,.10);--q2-glow:rgba(123,156,240,.22);
-  --q3:#C87FE8;--q3-dim:rgba(200,127,232,.10);--q3-glow:rgba(200,127,232,.22);
-  --ruby:#E05555;--emerald:#2DD4A0;
-  --r-sm:4px;--r-md:10px;--r-lg:16px;--r-xl:24px;
-  --t-fast:.15s;--ease:cubic-bezier(.4,0,.2,1);
+/* ── TOKENS ─────────────────────────────────────────────────── */
+:root {
+  --ink:    #080A0F;
+  --ink1:   #0D1017;
+  --ink2:   #121620;
+  --ink3:   #181D28;
+  --ink4:   #1E2535;
+  --wire:   #232D42;
+  --wire2:  #2A3650;
+  --dim:    #3D4F6E;
+  --muted:  #5C7099;
+  --ghost:  #8898BB;
+  --pale:   #C8D4EE;
+  --snow:   #EDF1FA;
+
+  --amber:  #F0A030;
+  --amber2: #FFD080;
+  --amber-: rgba(240,160,48,.12);
+  --blue:   #5B8EF0;
+  --blue2:  #A0C0FF;
+  --blue-:  rgba(91,142,240,.12);
+  --violet: #A870E8;
+  --violet2:#D0A8FF;
+  --violet-:rgba(168,112,232,.12);
+  --green:  #30C898;
+  --red:    #E84848;
+
+  --q1c: var(--amber);  --q1d: var(--amber-);  --q1t: var(--amber2);
+  --q2c: var(--blue);   --q2d: var(--blue-);   --q2t: var(--blue2);
+  --q3c: var(--violet); --q3d: var(--violet-); --q3t: var(--violet2);
+
+  --r3: 3px; --r6: 6px; --r10: 10px; --r16: 16px;
+  --ease: cubic-bezier(.4,0,.2,1);
+  --fast: .14s; --mid: .28s;
+
+  --font-ui:   'Syne', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-disp: 'Instrument Serif', serif;
 }
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{font-size:15px;}
-body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-primary);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
-body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.018;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px;}
-.amb{position:fixed;pointer-events:none;border-radius:50%;z-index:0;}
-.amb-1{top:-15%;right:-5%;width:700px;height:700px;background:radial-gradient(circle,rgba(232,164,58,.035),transparent 65%);animation:breathe 9s ease-in-out infinite;}
-.amb-2{bottom:-20%;left:-10%;width:600px;height:600px;background:radial-gradient(circle,rgba(123,156,240,.025),transparent 65%);animation:breathe 11s ease-in-out infinite reverse;}
-.amb-3{top:35%;left:25%;width:500px;height:500px;background:radial-gradient(circle,rgba(200,127,232,.02),transparent 65%);animation:breathe 13s ease-in-out infinite 3s;}
-@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.12);opacity:.7}}
 
-/* TOPBAR */
-.topbar{position:sticky;top:0;z-index:100;height:64px;background:rgba(6,7,11,.94);backdrop-filter:blur(20px);border-bottom:1px solid var(--text-faint);padding:0 28px;display:flex;align-items:center;justify-content:space-between;}
-.tb-left{display:flex;align-items:center;gap:14px;}
-.tb-back{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:var(--r-md);background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-secondary);font-size:.82rem;font-weight:500;cursor:pointer;text-decoration:none;transition:all var(--t-fast);}
-.tb-back:hover{border-color:var(--copper);color:var(--copper-light);background:var(--bg-hover);}
-.tb-monogram{width:34px;height:34px;border:1px solid rgba(200,132,58,.35);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-style:italic;font-size:1rem;color:var(--copper-light);flex-shrink:0;}
-.tb-info .tb-title{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;letter-spacing:.02em;}
-.tb-info .tb-sub{font-size:.62rem;color:var(--text-muted);letter-spacing:.12em;text-transform:uppercase;margin-top:1px;}
+/* ── RESET ──────────────────────────────────────────────────── */
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { font-size:14px; }
+body { font-family:var(--font-ui); background:var(--ink); color:var(--pale);
+       min-height:100vh; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+button { cursor:pointer; border:none; background:none; font-family:inherit; color:inherit; }
+::-webkit-scrollbar { width:3px; height:3px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--wire2); border-radius:3px; }
 
-/* DATE NAV */
-.date-zone{display:flex;align-items:center;justify-content:center;gap:10px;padding:22px 28px 0;position:relative;z-index:1;}
-.date-arr{width:36px;height:36px;border-radius:var(--r-md);background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-secondary);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--t-fast);flex-shrink:0;}
-.date-arr:hover{border-color:var(--copper);color:var(--copper-light);background:var(--bg-hover);}
-.date-pill{display:flex;align-items:center;gap:10px;padding:8px 24px;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);min-width:290px;justify-content:center;}
-.date-txt{font-size:.95rem;font-weight:600;color:var(--text-primary);text-transform:capitalize;}
-.today-chip{font-size:.58rem;font-weight:700;color:var(--copper);background:var(--copper-dim);border:1px solid rgba(200,132,58,.25);padding:2px 8px;border-radius:20px;letter-spacing:.08em;text-transform:uppercase;}
-.btn-today{padding:8px 16px;border-radius:var(--r-md);background:transparent;border:1px solid var(--text-faint);color:var(--text-muted);font-size:.74rem;font-weight:600;cursor:pointer;transition:all var(--t-fast);letter-spacing:.06em;text-transform:uppercase;}
-.btn-today:hover{border-color:var(--copper);color:var(--copper);}
+/* ── GRID BACKGROUND ────────────────────────────────────────── */
+body::before {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    linear-gradient(var(--wire) 1px, transparent 1px),
+    linear-gradient(90deg, var(--wire) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity:.08;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 20%, black, transparent);
+}
+/* Grain */
+body::after {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.022;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:180px;
+}
 
-/* TABS */
-.tabs-zone{display:flex;align-items:center;justify-content:center;gap:5px;padding:18px 28px 0;position:relative;z-index:1;}
-.tab-btn{padding:8px 26px;border-radius:var(--r-md);font-size:.78rem;font-weight:600;cursor:pointer;border:1px solid var(--text-faint);color:var(--text-muted);background:transparent;transition:all var(--t-fast);letter-spacing:.08em;text-transform:uppercase;}
-.tab-btn:hover{border-color:var(--copper);color:var(--copper-light);background:var(--copper-dim);}
-.tab-btn.on{background:var(--copper-dim);border-color:rgba(200,132,58,.45);color:var(--copper-pale);box-shadow:0 0 20px var(--copper-glow);}
+/* ── TOPBAR ─────────────────────────────────────────────────── */
+.topbar {
+  position:sticky; top:0; z-index:200;
+  height:56px; padding:0 20px;
+  background:rgba(8,10,15,.95); backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--wire);
+  display:flex; align-items:center; gap:14px;
+}
+.tb-back {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:6px 12px; border-radius:var(--r6);
+  border:1px solid var(--wire2); color:var(--muted);
+  font-family:var(--font-mono); font-size:.68rem; font-weight:700;
+  text-decoration:none; letter-spacing:.06em;
+  transition:all var(--fast) var(--ease);
+}
+.tb-back:hover { border-color:var(--amber); color:var(--amber); background:var(--amber-); }
+.tb-back svg { flex-shrink:0; }
+.tb-sep { width:1px; height:24px; background:var(--wire2); }
+.tb-icon {
+  width:28px; height:28px; border-radius:var(--r6);
+  background:var(--amber-); border:1px solid rgba(240,160,48,.25);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-disp); font-style:italic; font-size:.88rem; color:var(--amber);
+}
+.tb-name { font-size:.92rem; font-weight:700; color:var(--snow); letter-spacing:.02em; }
+.tb-sub  { font-family:var(--font-mono); font-size:.55rem; color:var(--muted); letter-spacing:.14em; text-transform:uppercase; margin-top:1px; }
+.tb-right { margin-left:auto; display:flex; align-items:center; gap:8px; }
+/* live indicator */
+.tb-live {
+  display:flex; align-items:center; gap:5px;
+  font-family:var(--font-mono); font-size:.58rem; letter-spacing:.1em; color:var(--muted);
+}
+.tb-live-dot {
+  width:6px; height:6px; border-radius:50%; background:var(--green);
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.8)} }
 
-/* CONTENT */
-.content{position:relative;z-index:1;padding:26px 28px 60px;max-width:1440px;margin:0 auto;}
+/* ── DATE ZONE ──────────────────────────────────────────────── */
+.date-zone {
+  position:relative; z-index:1;
+  padding:20px 20px 0;
+  display:flex; align-items:center; gap:8px;
+  flex-wrap:wrap;
+}
+.date-arr {
+  width:32px; height:32px; border-radius:var(--r6);
+  border:1px solid var(--wire2); color:var(--muted);
+  display:flex; align-items:center; justify-content:center;
+  font-size:.9rem; transition:all var(--fast);
+  flex-shrink:0;
+}
+.date-arr:hover { border-color:var(--amber); color:var(--amber); background:var(--amber-); }
+.date-display {
+  display:flex; align-items:center; gap:10px;
+  padding:7px 18px; flex:1; min-width:220px; max-width:400px;
+  background:var(--ink2); border:1px solid var(--wire2); border-radius:var(--r6);
+  position:relative; overflow:hidden;
+}
+.date-display::before {
+  content:''; position:absolute; left:0; top:0; bottom:0; width:2px;
+  background:var(--amber); opacity:.7;
+}
+.date-txt {
+  font-family:var(--font-mono); font-size:.78rem; font-weight:700;
+  color:var(--snow); letter-spacing:.02em; text-transform:uppercase; flex:1;
+}
+.today-chip {
+  font-family:var(--font-mono); font-size:.52rem; font-weight:700;
+  color:var(--amber); background:var(--amber-); border:1px solid rgba(240,160,48,.3);
+  padding:2px 7px; border-radius:20px; letter-spacing:.1em; text-transform:uppercase;
+}
+.btn-today {
+  padding:7px 14px; border-radius:var(--r6);
+  border:1px solid var(--wire2); color:var(--muted);
+  font-family:var(--font-mono); font-size:.62rem; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase;
+  transition:all var(--fast);
+}
+.btn-today:hover { border-color:var(--amber); color:var(--amber); }
 
-/* KPI */
-.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:26px;}
-@media(max-width:1100px){.kpi-row{grid-template-columns:repeat(3,1fr);}}
-@media(max-width:700px){.kpi-row{grid-template-columns:1fr 1fr;}}
-.kpi{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);padding:20px 22px;position:relative;overflow:hidden;transition:border-color var(--t-fast),transform var(--t-fast),box-shadow var(--t-fast);}
-.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--ka,var(--copper));opacity:.7;}
-.kpi:hover{border-color:var(--ka,var(--copper));transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.5);}
-.kpi-lbl{font-size:.6rem;font-weight:700;color:var(--text-muted);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px;}
-.kpi-n{font-family:'DM Mono',monospace;font-size:2.4rem;font-weight:500;color:var(--ka,var(--copper-light));line-height:1;margin-bottom:5px;}
-.kpi-hint{font-size:.68rem;color:var(--text-muted);}
-.kpi-glow{position:absolute;bottom:-24px;right:-24px;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,var(--ka,var(--copper)),transparent 70%);opacity:.07;}
+/* ── TABS ───────────────────────────────────────────────────── */
+.tabs-zone {
+  position:relative; z-index:1;
+  display:flex; align-items:center; gap:2px;
+  padding:14px 20px 0;
+}
+.tab-btn {
+  padding:7px 20px; border-radius:var(--r6);
+  font-family:var(--font-mono); font-size:.62rem; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase;
+  border:1px solid transparent; color:var(--muted);
+  transition:all var(--fast);
+}
+.tab-btn:hover { color:var(--pale); background:var(--ink3); }
+.tab-btn.on {
+  color:var(--amber); border-color:rgba(240,160,48,.3);
+  background:var(--amber-);
+  box-shadow:0 0 12px rgba(240,160,48,.12);
+}
 
-/* PANELS */
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:18px;}
-@media(max-width:1000px){.grid2,.grid3{grid-template-columns:1fr;}}
-.panel{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow:hidden;margin-bottom:18px;}
-.panel-h{padding:18px 22px 16px;border-bottom:1px solid var(--text-faint);display:flex;align-items:center;justify-content:space-between;gap:12px;}
-.panel-ttl{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:600;color:var(--text-primary);}
-.panel-st{font-size:.65rem;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;}
-.panel-b{padding:20px 22px;}
-.panel-b-sm{padding:14px 22px;}
+/* ── CONTENT ────────────────────────────────────────────────── */
+.content { position:relative; z-index:1; padding:20px; max-width:1400px; margin:0 auto 60px; }
 
-/* CHART HEIGHTS */
-.ch-240{height:240px;position:relative;}
-.ch-300{height:300px;position:relative;}
-.ch-160{height:160px;position:relative;}
+/* ── SECTION TITLE ──────────────────────────────────────────── */
+.sec-title {
+  font-family:var(--font-mono); font-size:.55rem; font-weight:700;
+  color:var(--dim); letter-spacing:.2em; text-transform:uppercase;
+  margin-bottom:10px; padding-bottom:6px;
+  border-bottom:1px solid var(--wire);
+  display:flex; align-items:center; gap:8px;
+}
+.sec-title::before { content:'//'; color:var(--amber); opacity:.6; }
 
-/* Q BADGES */
-.qb{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:.66rem;font-weight:600;white-space:nowrap;}
-.qb1{background:var(--q1-dim);color:var(--q1);border:1px solid rgba(232,164,58,.22);}
-.qb2{background:var(--q2-dim);color:var(--q2);border:1px solid rgba(123,156,240,.22);}
-.qb3{background:var(--q3-dim);color:var(--q3);border:1px solid rgba(200,127,232,.22);}
+/* ── QUART GAUGES — vue journée ─────────────────────────────── */
+.quart-row { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+@media(max-width:600px){ .quart-row { grid-template-columns:1fr; } }
 
-/* BARS */
-.bar-r{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
-.bar-r:last-child{margin-bottom:0;}
-.bar-lbl{min-width:64px;}
-.bar-track{flex:1;height:5px;background:var(--bg-float);border-radius:3px;overflow:hidden;}
-.bar-fill{height:100%;border-radius:3px;transition:width .9s var(--ease);}
-.bar-num{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--text-muted);min-width:22px;text-align:right;}
+.quart-gauge {
+  background:var(--ink2); border:1px solid var(--wire);
+  border-radius:var(--r10); padding:18px 20px;
+  position:relative; overflow:hidden;
+  animation:fadeUp .4s var(--ease) both;
+}
+.quart-gauge:nth-child(2){ animation-delay:.06s; }
+.quart-gauge:nth-child(3){ animation-delay:.12s; }
+@keyframes fadeUp{ from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
 
-/* DAY CARDS */
-.day-tri{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px;}
-@media(max-width:600px){.day-tri{grid-template-columns:1fr;}}
-.dc{background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-lg);padding:18px 20px;position:relative;overflow:hidden;transition:all var(--t-fast);}
-.dc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--dca);opacity:.6;}
-.dc:hover{border-color:var(--dca);transform:translateY(-1px);}
-.dc-n{font-family:'DM Mono',monospace;font-size:2.6rem;font-weight:500;color:var(--dca);line-height:1;margin:8px 0 6px;}
-.dc-lbl{font-size:.62rem;font-weight:700;color:var(--text-muted);letter-spacing:.16em;text-transform:uppercase;}
+/* ligne de couleur gauche */
+.quart-gauge::before {
+  content:''; position:absolute; left:0; top:12px; bottom:12px;
+  width:2px; border-radius:2px;
+  background:var(--qc);
+  box-shadow:0 0 8px var(--qc);
+}
+/* fond glow subtil */
+.quart-gauge::after {
+  content:''; position:absolute; right:-30px; top:-30px;
+  width:120px; height:120px; border-radius:50%;
+  background:radial-gradient(circle,var(--qc),transparent 70%);
+  opacity:.06; pointer-events:none;
+}
 
-/* ERR LIST */
-.err-list{display:flex;flex-direction:column;gap:7px;}
-.err-item{display:flex;align-items:center;gap:11px;padding:9px 13px;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);transition:border-color var(--t-fast);}
-.err-item:hover{border-color:var(--text-muted);}
-.err-h{font-family:'DM Mono',monospace;font-size:.75rem;color:var(--text-muted);min-width:44px;}
-.err-none{text-align:center;padding:36px 0;color:var(--text-muted);font-size:.82rem;}
+.qg-head {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:12px;
+}
+.qg-tag {
+  font-family:var(--font-mono); font-size:.6rem; font-weight:700;
+  letter-spacing:.12em; text-transform:uppercase;
+  color:var(--qc); padding:3px 9px;
+  border:1px solid var(--qc); border-radius:20px;
+  background:var(--qd); opacity:.9;
+}
+.qg-eff {
+  font-family:var(--font-mono); font-size:.68rem; font-weight:700;
+  padding:3px 9px; border-radius:20px; border:1px solid;
+}
+.qg-eff.hi  { color:#30C898; border-color:rgba(48,200,152,.3); background:rgba(48,200,152,.08); }
+.qg-eff.mid { color:var(--amber); border-color:rgba(240,160,48,.3); background:var(--amber-); }
+.qg-eff.lo  { color:#F07850; border-color:rgba(240,120,80,.3); background:rgba(240,120,80,.08); }
+.qg-eff.bad { color:var(--red); border-color:rgba(232,72,72,.3); background:rgba(232,72,72,.08); }
+.qg-eff.na  { color:var(--dim); border-color:var(--wire); }
 
-/* HEATMAP */
-.hm-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-.hm-table{border-collapse:separate;border-spacing:3px;width:100%;}
-.hm-th{font-size:.55rem;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;padding:3px 4px;text-align:center;white-space:nowrap;}
-.hm-th-row{font-size:.6rem;font-weight:600;color:var(--text-muted);text-align:right;padding-right:10px;white-space:nowrap;font-family:'DM Mono',monospace;}
-.hm-td{width:34px;height:30px;border-radius:4px;cursor:default;}
-.hm-cell{width:100%;height:100%;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:.58rem;font-weight:500;transition:transform .1s;}
-.hm-cell:hover{transform:scale(1.18);}
+.qg-count {
+  font-family:var(--font-mono); font-size:3.2rem; font-weight:700;
+  color:var(--qc); line-height:1; margin-bottom:6px;
+  text-shadow:0 0 20px var(--qc);
+  transition:all .6s var(--ease);
+}
+.qg-label {
+  font-size:.68rem; font-weight:600; color:var(--ghost);
+  letter-spacing:.04em;
+}
+.qg-sub { font-family:var(--font-mono); font-size:.58rem; color:var(--muted); margin-top:3px; }
 
-/* CAL */
-.cal-hdr{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:5px;}
-.cal-dname{font-size:.55rem;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-align:center;text-transform:uppercase;}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
-.cal-day{aspect-ratio:1;border-radius:5px;border:1px solid var(--text-faint);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform .1s;}
-.cal-day:hover{transform:scale(1.1);z-index:2;position:relative;}
-.cal-dn{font-size:.55rem;color:var(--text-muted);line-height:1;}
-.cal-dv{font-family:'DM Mono',monospace;font-size:.65rem;font-weight:600;line-height:1.2;}
+/* arc de progression */
+.qg-arc {
+  position:absolute; bottom:12px; right:14px;
+  width:52px; height:52px;
+}
+.qg-arc circle {
+  fill:none; stroke-width:3; stroke-linecap:round;
+  cx:26; cy:26; r:22;
+  transform:rotate(-90deg); transform-origin:50% 50%;
+  transition:stroke-dashoffset .9s var(--ease);
+}
+.arc-bg { stroke:var(--wire2); }
+.arc-fg { stroke:var(--qc); filter:drop-shadow(0 0 3px var(--qc)); }
+.qg-arc-pct {
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-mono); font-size:.5rem; font-weight:700; color:var(--qc);
+}
 
-/* DIVIDER */
-.div{height:1px;background:var(--text-faint);margin:16px 0;}
+/* ── KPI GRID (semaine/mois) ────────────────────────────────── */
+.kpi-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:20px; }
+@media(max-width:1100px){ .kpi-grid{grid-template-columns:repeat(3,1fr);} }
+@media(max-width:600px){ .kpi-grid{grid-template-columns:1fr 1fr;} }
 
-/* SPINNER */
-.spin-wrap{display:flex;align-items:center;justify-content:center;padding:70px;gap:12px;color:var(--text-muted);font-size:.88rem;}
-.spin{width:20px;height:20px;border:2px solid var(--text-faint);border-top-color:var(--copper);border-radius:50%;animation:sp .75s linear infinite;}
-@keyframes sp{to{transform:rotate(360deg)}}
+.kpi {
+  background:var(--ink2); border:1px solid var(--wire);
+  border-radius:var(--r10); padding:16px 18px;
+  position:relative; overflow:hidden;
+  animation:fadeUp .35s var(--ease) both;
+  transition:border-color var(--fast);
+}
+.kpi:hover { border-color:var(--wire2); }
+.kpi::after {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent,var(--ka,var(--amber)),transparent);
+  opacity:.5;
+}
+.kpi-label {
+  font-family:var(--font-mono); font-size:.52rem; font-weight:700;
+  color:var(--muted); letter-spacing:.16em; text-transform:uppercase;
+  margin-bottom:8px;
+}
+.kpi-val {
+  font-family:var(--font-mono); font-size:2rem; font-weight:700;
+  color:var(--ka,var(--amber)); line-height:1;
+  text-shadow:0 0 16px var(--ka,var(--amber));
+  margin-bottom:4px;
+}
+.kpi-eff {
+  font-family:var(--font-mono); font-size:.6rem; font-weight:700;
+  display:inline-block; padding:2px 7px; border-radius:12px;
+  border:1px solid; margin-top:3px;
+}
+.kpi-hint { font-family:var(--font-mono); font-size:.55rem; color:var(--muted); margin-top:4px; }
 
-/* TOAST */
-#toasts{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px;}
-.toast{padding:10px 18px;border-radius:var(--r-md);font-size:.82rem;font-weight:500;border:1px solid var(--text-faint);background:var(--bg-float);color:var(--text-primary);animation:tin .2s var(--ease);}
-.toast.s{background:rgba(45,212,160,.07);color:var(--emerald);border-color:rgba(45,212,160,.25);}
-.toast.e{background:rgba(224,85,85,.07);color:var(--ruby);border-color:rgba(224,85,85,.25);}
-@keyframes tin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+/* ── PANELS ─────────────────────────────────────────────────── */
+.panel {
+  background:var(--ink2); border:1px solid var(--wire);
+  border-radius:var(--r10); overflow:hidden;
+  margin-bottom:14px;
+  animation:fadeUp .4s var(--ease) both;
+}
+.panel-h {
+  padding:14px 18px 12px;
+  border-bottom:1px solid var(--wire);
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px;
+}
+.panel-title {
+  font-size:.82rem; font-weight:700; color:var(--snow);
+  display:flex; align-items:center; gap:8px;
+}
+.panel-title::before {
+  content:''; width:6px; height:6px; border-radius:50%;
+  background:var(--amber); box-shadow:0 0 6px var(--amber);
+  flex-shrink:0;
+}
+.panel-meta {
+  font-family:var(--font-mono); font-size:.55rem;
+  color:var(--muted); letter-spacing:.08em; text-transform:uppercase;
+}
+.panel-b { padding:18px; }
+.panel-b-sm { padding:12px 18px; }
 
-::-webkit-scrollbar{width:4px;height:4px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:var(--text-faint);border-radius:4px;}
+/* ── GRIDS ───────────────────────────────────────────────────── */
+.g2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+@media(max-width:900px){ .g2{grid-template-columns:1fr;} }
+
+/* ── CHART HEIGHTS ──────────────────────────────────────────── */
+.ch-160 { height:160px; position:relative; }
+.ch-240 { height:240px; position:relative; }
+.ch-280 { height:280px; position:relative; }
+.ch-320 { height:320px; position:relative; }
+
+/* ── ERR LIST ────────────────────────────────────────────────── */
+.err-list { display:flex; flex-direction:column; gap:6px; }
+.err-item {
+  display:flex; align-items:center; gap:10px;
+  padding:8px 12px;
+  background:var(--ink3); border:1px solid var(--wire);
+  border-radius:var(--r6);
+  border-left:2px solid var(--ec, var(--amber));
+  transition:background var(--fast);
+}
+.err-item:hover { background:var(--ink4); }
+.err-h { font-family:var(--font-mono); font-size:.7rem; color:var(--ghost); min-width:42px; }
+.err-tag {
+  font-family:var(--font-mono); font-size:.6rem; font-weight:700;
+  padding:2px 8px; border-radius:12px; border:1px solid;
+  letter-spacing:.08em; text-transform:uppercase;
+}
+.err-tag.q1 { color:var(--amber); border-color:rgba(240,160,48,.3); background:var(--amber-); }
+.err-tag.q2 { color:var(--blue);  border-color:rgba(91,142,240,.3);  background:var(--blue-); }
+.err-tag.q3 { color:var(--violet);border-color:rgba(168,112,232,.3); background:var(--violet-); }
+.err-none {
+  text-align:center; padding:32px; color:var(--muted);
+  font-family:var(--font-mono); font-size:.68rem; letter-spacing:.08em;
+}
+.err-none::before { content:'[ '; } .err-none::after { content:' ]'; }
+
+/* ── BAR ROWS ────────────────────────────────────────────────── */
+.bar-r { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.bar-r:last-child { margin-bottom:0; }
+.bar-lbl { min-width:56px; }
+.bar-track { flex:1; height:4px; background:var(--ink3); border-radius:2px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:2px; transition:width 1s var(--ease); }
+.bar-num { font-family:var(--font-mono); font-size:.62rem; color:var(--ghost); min-width:20px; text-align:right; }
+
+/* ── HEATMAP ─────────────────────────────────────────────────── */
+.hm-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.hm-table { border-collapse:separate; border-spacing:3px; }
+.hm-th {
+  font-family:var(--font-mono); font-size:.5rem; font-weight:700;
+  color:var(--dim); letter-spacing:.08em; text-transform:uppercase;
+  padding:2px 4px; text-align:center; white-space:nowrap;
+}
+.hm-th-row {
+  font-family:var(--font-mono); font-size:.58rem; color:var(--muted);
+  text-align:right; padding-right:10px; white-space:nowrap;
+}
+.hm-cell {
+  width:32px; height:28px; border-radius:3px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-mono); font-size:.55rem; font-weight:700;
+  cursor:default; transition:transform var(--fast),filter var(--fast);
+}
+.hm-cell:hover { transform:scale(1.2); filter:brightness(1.3); z-index:2; position:relative; }
+
+/* ── CALENDAR ────────────────────────────────────────────────── */
+.cal-hdr { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; margin-bottom:4px; }
+.cal-dn { font-family:var(--font-mono); font-size:.5rem; color:var(--dim); text-align:center; letter-spacing:.06em; text-transform:uppercase; }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+.cal-day {
+  aspect-ratio:1; border-radius:4px;
+  border:1px solid var(--wire);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  cursor:pointer; transition:transform var(--fast), border-color var(--fast);
+}
+.cal-day:hover { transform:scale(1.12); z-index:2; position:relative; }
+.cal-n { font-family:var(--font-mono); font-size:.5rem; line-height:1; color:var(--muted); }
+.cal-v { font-family:var(--font-mono); font-size:.62rem; font-weight:700; line-height:1.2; }
+
+/* ── SPINNER ─────────────────────────────────────────────────── */
+.spin-wrap {
+  display:flex; align-items:center; justify-content:center;
+  padding:80px; gap:10px;
+  font-family:var(--font-mono); font-size:.7rem; color:var(--muted); letter-spacing:.1em;
+}
+.spin {
+  width:18px; height:18px; border-radius:50%;
+  border:2px solid var(--wire2); border-top-color:var(--amber);
+  animation:sp .7s linear infinite;
+}
+@keyframes sp { to{transform:rotate(360deg)} }
+
+/* ── TOASTS ─────────────────────────────────────────────────── */
+#toasts { position:fixed; bottom:20px; right:20px; z-index:999; display:flex; flex-direction:column; gap:6px; }
+.toast {
+  padding:9px 16px; border-radius:var(--r6);
+  font-family:var(--font-mono); font-size:.66rem; font-weight:700; letter-spacing:.06em;
+  border:1px solid var(--wire); background:var(--ink3); color:var(--pale);
+  animation:tin .18s var(--ease);
+}
+.toast.s { color:var(--green); border-color:rgba(48,200,152,.25); background:rgba(48,200,152,.06); }
+.toast.e { color:var(--red); border-color:rgba(232,72,72,.25); background:rgba(232,72,72,.06); }
+@keyframes tin { from{opacity:0;transform:translateX(8px)} to{opacity:1;transform:translateX(0)} }
+
+/* ── DIVIDER ─────────────────────────────────────────────────── */
+.div { height:1px; background:var(--wire); margin:14px 0; }
 </style>
 </head>
 <body>
-<div class="amb amb-1"></div>
-<div class="amb amb-2"></div>
-<div class="amb amb-3"></div>
 <div id="toasts"></div>
 
+<!-- TOPBAR -->
 <header class="topbar">
-  <div class="tb-left">
-    <a href="index.html" class="tb-back">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-      Retour
-    </a>
-    <div class="tb-monogram">S</div>
-    <div class="tb-info">
-      <div class="tb-title">Erreurs Papier</div>
-      <div class="tb-sub">Statistiques · Quarts de travail</div>
-    </div>
+  <a href="index.html" class="tb-back">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    RETOUR
+  </a>
+  <div class="tb-sep"></div>
+  <div class="tb-icon">S</div>
+  <div>
+    <div class="tb-name">Erreurs Papier</div>
+    <div class="tb-sub">Statistiques · Quarts de travail</div>
+  </div>
+  <div class="tb-right">
+    <div class="tb-live"><div class="tb-live-dot"></div>EN LIGNE</div>
   </div>
 </header>
 
+<!-- DATE NAV -->
 <div class="date-zone">
   <button class="date-arr" onclick="changeDay(-1)">&#8592;</button>
-  <div class="date-pill">
+  <div class="date-display">
     <span class="date-txt" id="date-lbl">—</span>
-    <span class="today-chip" id="today-chip" style="display:none">Aujourd'hui</span>
+    <span class="today-chip" id="today-chip" style="display:none">AUJOURD'HUI</span>
   </div>
   <button class="date-arr" onclick="changeDay(1)">&#8594;</button>
-  <button class="btn-today" onclick="goToday()">Aujourd'hui</button>
+  <button class="btn-today" onclick="goToday()">AUJOURD'HUI</button>
 </div>
 
+<!-- TABS -->
 <div class="tabs-zone">
-  <button class="tab-btn on" onclick="switchTab('jour',this)">Journée</button>
-  <button class="tab-btn" onclick="switchTab('semaine',this)">Semaine</button>
-  <button class="tab-btn" onclick="switchTab('mois',this)">Mois</button>
+  <button class="tab-btn on" onclick="switchTab('jour',this)">JOURNÉE</button>
+  <button class="tab-btn" onclick="switchTab('semaine',this)">SEMAINE</button>
+  <button class="tab-btn" onclick="switchTab('mois',this)">MOIS</button>
 </div>
 
+<!-- MAIN CONTENT -->
 <div class="content" id="content">
-  <div class="spin-wrap"><div class="spin"></div> Chargement…</div>
+  <div class="spin-wrap"><div class="spin"></div>CHARGEMENT...</div>
 </div>
 
 <script>
@@ -204,39 +494,42 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 let sb, curTab='jour', curDate=todayStr();
 let ch1=null, ch2=null;
 
-// Ligne considérée active si statut_ligne != 'INACTIF' (ou null = ACTIF par défaut)
-function isActif(r){ return !r.statut_ligne || r.statut_ligne.toUpperCase()!=='INACTIF'; }
-function tauxEff(erreurs, total){
-  if(!total) return null;
-  return Math.round((1 - erreurs/total)*100);
+function isActif(r){ return !r.statut_ligne||r.statut_ligne.toUpperCase()!=='INACTIF'; }
+function tauxEff(e,t){ if(!t)return null; return Math.round((1-e/t)*100); }
+
+/* badge efficacité inline */
+function effBadge(pct, size='sm'){
+  if(pct===null) return `<span class="qg-eff na">—</span>`;
+  const cls=pct>=90?'hi':pct>=70?'mid':pct>=50?'lo':'bad';
+  return `<span class="qg-eff ${cls}">${pct}%</span>`;
 }
-function tauxBadge(pct){
-  if(pct===null) return '<span style="font-size:.68rem;color:var(--text-faint)">—</span>';
-  const col = pct>=90?'var(--emerald)':pct>=70?'var(--q1)':pct>=50?'var(--copper)':'var(--ruby)';
-  return `<span style="font-family:'DM Mono',monospace;font-size:.72rem;font-weight:600;color:${col};background:rgba(0,0,0,.2);padding:2px 7px;border-radius:12px;border:1px solid ${col}33">${pct}%</span>`;
-}
+function effClass(pct){ return pct===null?'na':pct>=90?'hi':pct>=70?'mid':pct>=50?'lo':'bad'; }
 
 const Q=[
-  {id:1,s:'Q1',l:'Quart 1',c:'#E8A43A',dim:'rgba(232,164,58,.10)',glow:'rgba(232,164,58,.22)'},
-  {id:2,s:'Q2',l:'Quart 2',c:'#7B9CF0',dim:'rgba(123,156,240,.10)',glow:'rgba(123,156,240,.22)'},
-  {id:3,s:'Q3',l:'Quart 3',c:'#C87FE8',dim:'rgba(200,127,232,.10)',glow:'rgba(200,127,232,.22)'},
+  {id:1,s:'Q1',l:'Quart 1',c:'#F0A030',d:'rgba(240,160,48,.12)',t:'#FFD080',cssVar:'--q1c'},
+  {id:2,s:'Q2',l:'Quart 2',c:'#5B8EF0',d:'rgba(91,142,240,.12)',t:'#A0C0FF',cssVar:'--q2c'},
+  {id:3,s:'Q3',l:'Quart 3',c:'#A870E8',d:'rgba(168,112,232,.12)',t:'#D0A8FF',cssVar:'--q3c'},
 ];
 const SLOTS_H=['06:00','06:00','07:30','09:00','11:30','14:00','15:30','17:00','18:00','19:00'];
 const UNI_SLOTS=[...new Set(SLOTS_H)].sort();
+
+/* Chart.js defaults */
+Chart.defaults.font.family='Space Mono';
+Chart.defaults.color='#5C7099';
 
 function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function addDays(s,n){const d=new Date(s+'T00:00:00');d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function fmtLong(s){return new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});}
 function fmtShort(s){return new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{day:'2-digit',month:'short'});}
 function fmtWD(s){return new Date(s+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'});}
-function weekRange(s){const d=new Date(s+'T00:00:00');const dow=d.getDay();const diff=dow===0?-6:1-dow;const m=new Date(d);m.setDate(d.getDate()+diff);const su=new Date(m);su.setDate(m.getDate()+6);return [m,su].map(x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0'));}
+function weekRange(s){const d=new Date(s+'T00:00:00');const dow=d.getDay();const diff=dow===0?-6:1-dow;const m=new Date(d);m.setDate(d.getDate()+diff);const su=new Date(m);su.setDate(m.getDate()+6);return[m,su].map(x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0'));}
 function monthRange(s){const[y,m]=s.split('-').map(Number);return[`${y}-${String(m).padStart(2,'0')}-01`,`${y}-${String(m).padStart(2,'0')}-${String(new Date(y,m,0).getDate()).padStart(2,'0')}`];}
 function daysInRange(a,b){const r=[];let d=a;while(d<=b){r.push(d);d=addDays(d,1);}return r;}
 
-function toast(msg,t=''){const el=document.createElement('div');el.className='toast'+(t?' '+t:'');el.textContent=msg;document.getElementById('toasts').appendChild(el);setTimeout(()=>el.remove(),3500);}
+function toast(msg,t=''){const el=document.createElement('div');el.className='toast'+(t?' '+t:'');el.textContent=msg;document.getElementById('toasts').appendChild(el);setTimeout(()=>el.remove(),3200);}
 
 function refreshDateUI(){
-  document.getElementById('date-lbl').textContent=fmtLong(curDate);
+  document.getElementById('date-lbl').textContent=fmtLong(curDate).toUpperCase();
   document.getElementById('today-chip').style.display=curDate===todayStr()?'inline-flex':'none';
 }
 function changeDay(d){curDate=addDays(curDate,d);refreshDateUI();render();}
@@ -249,153 +542,159 @@ function switchTab(t,btn){
 }
 
 async function fetchRange(a,b){
-  // Même pattern exact que planning_camions qui fonctionne : select('*')
-  // Pour un seul jour on utilise .eq, pour une plage on fetch jour par jour
   const days=daysInRange(a,b);
   let allRows=[];
   for(const day of days){
-    const{data,error}=await sb.from('planning_camions')
-      .select('*')
-      .eq('date_jour',day)
-      .order('slot_index');
+    const{data,error}=await sb.from('planning_camions').select('*').eq('date_jour',day).order('slot_index');
     if(error){toast('Erreur: '+error.message,'e');continue;}
     allRows=[...allRows,...(data||[])];
   }
-  return allRows.map(r=>({
-    ...r,
-    erreur_q1: r.erreur_q1===true,
-    erreur_q2: r.erreur_q2===true,
-    erreur_q3: r.erreur_q3===true,
-  }));
+  return allRows.map(r=>({...r,erreur_q1:r.erreur_q1===true,erreur_q2:r.erreur_q2===true,erreur_q3:r.erreur_q3===true}));
 }
 
-function killCharts(){[ch1,ch2].forEach(c=>{if(c){c.destroy();}});ch1=null;ch2=null;}
+function killCharts(){[ch1,ch2].forEach(c=>{if(c)c.destroy();});ch1=null;ch2=null;}
 
 async function render(){
-  document.getElementById('content').innerHTML='<div class="spin-wrap"><div class="spin"></div> Chargement…</div>';
+  document.getElementById('content').innerHTML='<div class="spin-wrap"><div class="spin"></div>CHARGEMENT...</div>';
   killCharts();
-  let a=curDate,b=curDate,data=[];
+  let a=curDate,b=curDate;
   if(curTab==='semaine')[a,b]=weekRange(curDate);
   else if(curTab==='mois')[a,b]=monthRange(curDate);
-  data=await fetchRange(a,b);
-  if(curTab==='jour') renderJour(data);
-  else if(curTab==='semaine') renderSemaine(data,a,b);
+  const data=await fetchRange(a,b);
+  if(curTab==='jour')renderJour(data);
+  else if(curTab==='semaine')renderSemaine(data,a,b);
   else renderMois(data,a,b);
 }
 
-/* ═══════════════════════════════════════
+/* ══════════════════════════════════════════════════════════════
+   ARC SVG helper
+══════════════════════════════════════════════════════════════ */
+function arcHTML(pct,color){
+  const C=2*Math.PI*22; // circonférence r=22
+  const offset=pct===null?C:C-(pct/100)*C;
+  return `<svg class="qg-arc" viewBox="0 0 52 52">
+    <circle class="arc-bg" cx="26" cy="26" r="22" stroke-dasharray="${C}" stroke-dashoffset="0"/>
+    <circle class="arc-fg" cx="26" cy="26" r="22" stroke="${color}"
+      stroke-dasharray="${C}" stroke-dashoffset="${offset}"
+      style="transition:stroke-dashoffset .9s cubic-bezier(.4,0,.2,1)"/>
+  </svg>
+  <div class="qg-arc-pct">${pct===null?'—':pct+'%'}</div>`;
+}
+
+/* ══════════════════════════════════════════════════════════════
    JOURNÉE
-═══════════════════════════════════════ */
+══════════════════════════════════════════════════════════════ */
 function renderJour(data){
   const rows=data.filter(r=>r.date_jour===curDate);
   const tq=[0,0,0];
   rows.forEach(r=>{if(r.erreur_q1)tq[0]++;if(r.erreur_q2)tq[1]++;if(r.erreur_q3)tq[2]++;});
   const tot=tq[0]+tq[1]+tq[2];
-
-  // Panneau debug temporaire — affiche les vraies valeurs DB
-  const _dbg=rows.map(r=>`sl${r.slot_index}: q1=${r.erreur_q1} q2=${r.erreur_q2} q3=${r.erreur_q3} statut=${r.statut_ligne||'null'}`).join(' | ');
+  const actifs=rows.filter(r=>isActif(r)).length;
+  const pcts=tq.map(e=>tauxEff(e,actifs));
 
   document.getElementById('content').innerHTML=`
-    <div style="background:#0F1118;border:1px solid #C8843A;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-family:'DM Mono',monospace;font-size:.68rem;color:#7A82A0;line-height:1.7">
-      <span style="color:#E8A43A;font-weight:700">${rows.length} lignes DB · ${curDate} ·</span> ${_dbg||'<span style=color:#E05555>AUCUNE LIGNE REÇUE</span>'}
-    </div>
-    <div class="day-tri">
-      ${Q.map((q,i)=>{
-        const actifs=rows.filter(r=>isActif(r)).length;
-        const pct=tauxEff(tq[i],actifs);
-        return `<div class="dc" style="--dca:${q.c}">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-            <span class="qb qb${q.id}">✎ ${q.s}</span>
-            ${tauxBadge(pct)}
+
+    <div class="sec-title">APERÇU DU QUART · ${fmtLong(curDate).toUpperCase()}</div>
+
+    <!-- GAUGES QUARTS -->
+    <div class="quart-row">
+      ${Q.map((q,i)=>`
+        <div class="quart-gauge" style="--qc:${q.c};--qd:${q.d}">
+          <div class="qg-head">
+            <span class="qg-tag">${q.s} · ${q.l}</span>
+            <span class="qg-eff ${effClass(pcts[i])}">${pcts[i]===null?'—':pcts[i]+'%'}</span>
           </div>
-          <div class="dc-n">${tq[i]}</div>
-          <div class="dc-lbl">${q.l} · ${actifs} ligne${actifs>1?'s':''} active${actifs>1?'s':''}</div>
-        </div>`;
-      }).join('')}
+          <div class="qg-count" id="cnt-${q.id}">${tq[i]}</div>
+          <div class="qg-label">${tq[i]===0?'Aucune erreur':'Erreur${tq[i]>1?"s":""} détectée${tq[i]>1?"s":""}'}</div>
+          <div class="qg-sub">${actifs} ligne${actifs!==1?'s':''} active${actifs!==1?'s':''}</div>
+          ${arcHTML(pcts[i],q.c)}
+        </div>
+      `).join('')}
     </div>
 
-    <div class="grid2">
+    <div class="g2">
+      <!-- LISTE DÉTAIL -->
       <div class="panel">
         <div class="panel-h">
-          <div>
-            <div class="panel-ttl">Erreurs de la journée</div>
-            <div class="panel-st">${fmtLong(curDate)}</div>
-          </div>
-          <span style="font-family:'DM Mono',monospace;font-size:1.5rem;color:${tot>0?'var(--copper-light)':'var(--text-faint)'}">${tot}</span>
+          <span class="panel-title">Journal des erreurs</span>
+          <span class="panel-meta">${tot} TOTAL</span>
         </div>
         <div class="panel-b-sm" id="jour-list"></div>
       </div>
 
+      <!-- DOUGHNUT -->
       <div class="panel">
         <div class="panel-h">
-          <div class="panel-ttl">Répartition par quart</div>
-          <div class="panel-st">${fmtShort(curDate)}</div>
+          <span class="panel-title">Répartition par quart</span>
+          <span class="panel-meta">${fmtShort(curDate).toUpperCase()}</span>
         </div>
         <div class="panel-b">
-          <div class="ch-240"><canvas id="c-jour-doughnut"></canvas></div>
-          <div style="margin-top:18px">
-            ${Q.map((q,i)=>`<div class="bar-r">
-              <div class="bar-lbl"><span class="qb qb${q.id}">✎ ${q.s}</span></div>
+          <div class="ch-240"><canvas id="c-doughnut"></canvas></div>
+          <div class="div"></div>
+          ${Q.map((q,i)=>`
+            <div class="bar-r">
+              <div class="bar-lbl"><span class="err-tag q${q.id}">${q.s}</span></div>
               <div class="bar-track"><div class="bar-fill" style="width:${tot?Math.round(tq[i]/tot*100):0}%;background:${q.c}"></div></div>
               <div class="bar-num">${tq[i]}</div>
-            </div>`).join('')}
-          </div>
+            </div>
+          `).join('')}
         </div>
       </div>
     </div>
 
+    <!-- BAR CRÉNEAUX -->
     <div class="panel">
       <div class="panel-h">
-        <div class="panel-ttl">Erreurs par créneau horaire</div>
-        <div class="panel-st">distribution sur la journée</div>
+        <span class="panel-title">Distribution par créneau horaire</span>
+        <span class="panel-meta">TOUS QUARTS</span>
       </div>
-      <div class="panel-b"><div class="ch-160"><canvas id="c-jour-bar"></canvas></div></div>
+      <div class="panel-b"><div class="ch-160"><canvas id="c-slots"></canvas></div></div>
     </div>
   `;
 
-  // Liste
+  /* liste */
   const errs=[];
   rows.forEach(r=>{Q.forEach(q=>{if(r['erreur_q'+q.id])errs.push({h:r.heure_planif||SLOTS_H[r.slot_index]||'?',q});});});
   errs.sort((a,b)=>a.h<b.h?-1:1);
   const listEl=document.getElementById('jour-list');
   if(!errs.length){
-    listEl.innerHTML='<div class="err-none">✓ Aucune erreur papier pour cette journée</div>';
+    listEl.innerHTML='<div class="err-none">AUCUNE ERREUR DÉTECTÉE</div>';
   } else {
     listEl.innerHTML='<div class="err-list">'+errs.map(e=>`
-      <div class="err-item">
+      <div class="err-item" style="--ec:${e.q.c}">
         <span class="err-h">${e.h}</span>
-        <span class="qb qb${e.q.id}">✎ ${e.q.s}</span>
-        <span style="font-size:.73rem;color:var(--text-muted)">${e.q.l}</span>
+        <span class="err-tag q${e.q.id}">${e.q.s}</span>
+        <span style="font-size:.68rem;color:var(--ghost);font-family:var(--font-mono)">${e.q.l.toUpperCase()}</span>
       </div>`).join('')+'</div>';
   }
 
-  // Doughnut
-  const dCtx=document.getElementById('c-jour-doughnut').getContext('2d');
+  /* doughnut */
+  const dCtx=document.getElementById('c-doughnut').getContext('2d');
   ch1=new Chart(dCtx,{type:'doughnut',data:{
     labels:Q.map(q=>q.l),
-    datasets:[{data:tq,backgroundColor:Q.map(q=>q.dim),borderColor:Q.map(q=>q.c),borderWidth:2,hoverBackgroundColor:Q.map(q=>q.glow)}]
-  },options:{responsive:true,maintainAspectRatio:true,cutout:'70%',plugins:{
-    legend:{display:true,position:'bottom',labels:{color:'#7A82A0',font:{family:'Outfit',size:11},padding:16,usePointStyle:true,pointStyleWidth:8}},
-    tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+ctx.raw+' erreur'+(ctx.raw>1?'s':'')}}
+    datasets:[{data:tq,backgroundColor:Q.map(q=>q.d),borderColor:Q.map(q=>q.c),borderWidth:2,hoverBackgroundColor:Q.map(q=>q.d.replace('.12',',.22'))}]
+  },options:{responsive:true,maintainAspectRatio:true,cutout:'72%',plugins:{
+    legend:{display:true,position:'bottom',labels:{font:{size:10},padding:14,usePointStyle:true,pointStyleWidth:7}},
+    tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+ctx.raw+(ctx.raw>1?' erreurs':' erreur')}}
   }}});
 
-  // Bar créneaux
+  /* bar slots */
   const getSlotQ=(h,qi)=>rows.filter(r=>(r.heure_planif||SLOTS_H[r.slot_index]||'?')===h&&r['erreur_q'+qi]).length;
-  const bCtx=document.getElementById('c-jour-bar').getContext('2d');
+  const bCtx=document.getElementById('c-slots').getContext('2d');
   ch2=new Chart(bCtx,{type:'bar',data:{
     labels:UNI_SLOTS,
-    datasets:Q.map(q=>({label:q.l,data:UNI_SLOTS.map(h=>getSlotQ(h,q.id)),backgroundColor:q.dim,borderColor:q.c,borderWidth:1.5,borderRadius:4}))
+    datasets:Q.map(q=>({label:q.l,data:UNI_SLOTS.map(h=>getSlotQ(h,q.id)),backgroundColor:q.d,borderColor:q.c,borderWidth:1.5,borderRadius:3}))
   },options:{responsive:true,maintainAspectRatio:false,
     scales:{
-      x:{stacked:true,grid:{color:'rgba(44,51,80,.4)'},ticks:{color:'#7A82A0',font:{family:'DM Mono',size:10}}},
-      y:{stacked:true,grid:{color:'rgba(44,51,80,.4)'},ticks:{color:'#7A82A0',stepSize:1,font:{family:'DM Mono',size:10}},beginAtZero:true}
-    },plugins:{legend:{labels:{color:'#7A82A0',font:{family:'Outfit',size:11},usePointStyle:true,pointStyleWidth:8}}}
+      x:{stacked:true,grid:{color:'rgba(35,45,66,.5)'},ticks:{font:{size:9}}},
+      y:{stacked:true,grid:{color:'rgba(35,45,66,.5)'},ticks:{stepSize:1,font:{size:9}},beginAtZero:true}
+    },plugins:{legend:{display:false}}
   }});
 }
 
-/* ═══════════════════════════════════════
+/* ══════════════════════════════════════════════════════════════
    SEMAINE
-═══════════════════════════════════════ */
+══════════════════════════════════════════════════════════════ */
 function renderSemaine(data,a,b){
   const days=daysInRange(a,b);
   const bd={};
@@ -410,54 +709,51 @@ function renderSemaine(data,a,b){
   const tq=[0,0,0];days.forEach(d=>{tq[0]+=bd[d].q1;tq[1]+=bd[d].q2;tq[2]+=bd[d].q3;});
   const tot=tq[0]+tq[1]+tq[2];
   const touch=days.filter(d=>bd[d].tot>0).length;
+  const totalActifs=data.filter(r=>isActif(r)).length;
+  const pcts=tq.map(e=>tauxEff(e,totalActifs));
 
   document.getElementById('content').innerHTML=`
-    <div class="kpi-row">
-      <div class="kpi" style="--ka:var(--copper-light)">
-        <div class="kpi-lbl">Total semaine</div>
-        <div class="kpi-n">${tot}</div>
-        <div class="kpi-hint">erreurs papier</div>
-        <div class="kpi-glow"></div>
+    <div class="sec-title">VUE HEBDOMADAIRE · ${fmtShort(a).toUpperCase()} — ${fmtShort(b).toUpperCase()}</div>
+
+    <div class="kpi-grid">
+      <div class="kpi" style="--ka:var(--amber)" >
+        <div class="kpi-label">TOTAL SEMAINE</div>
+        <div class="kpi-val">${tot}</div>
+        <div class="kpi-hint">${totalActifs} LIGNES ACTIVES</div>
       </div>
-      ${Q.map((q,i)=>{
-        const totalActifs=data.filter(r=>isActif(r)).length;
-        const pct=tauxEff(tq[i],totalActifs);
-        return `<div class="kpi" style="--ka:${q.c}">
-          <div class="kpi-lbl">${q.l}</div>
-          <div style="display:flex;align-items:baseline;gap:10px;margin:2px 0 4px">
-            <div class="kpi-n">${tq[i]}</div>
-            ${tauxBadge(pct)}
-          </div>
-          <div class="kpi-hint">${totalActifs} lignes actives</div>
-          <div class="kpi-glow"></div>
-        </div>`;
-      }).join('')}
-      <div class="kpi" style="--ka:var(--ruby)">
-        <div class="kpi-lbl">Jours touchés</div>
-        <div class="kpi-n">${touch}<span style="font-size:1.1rem;color:var(--text-faint)">/${days.length}</span></div>
-        <div class="kpi-hint">${days.length?Math.round(touch/days.length*100):0}% des jours</div>
-        <div class="kpi-glow"></div>
+      ${Q.map((q,i)=>`
+        <div class="kpi" style="--ka:${q.c}">
+          <div class="kpi-label">${q.l.toUpperCase()}</div>
+          <div class="kpi-val">${tq[i]}</div>
+          <span class="kpi-eff ${effClass(pcts[i])}" style="color:${pcts[i]===null?'var(--muted)':pcts[i]>=90?'#30C898':pcts[i]>=70?'#F0A030':pcts[i]>=50?'#F07850':'#E84848'};border-color:currentColor;background:currentColor11">${pcts[i]===null?'—':pcts[i]+'% EFF.'}</span>
+          <div class="kpi-hint">${totalActifs} ACTIVES</div>
+        </div>
+      `).join('')}
+      <div class="kpi" style="--ka:#E84848">
+        <div class="kpi-label">JOURS TOUCHÉS</div>
+        <div class="kpi-val">${touch}<span style="font-size:1rem;color:var(--muted)">/${days.length}</span></div>
+        <div class="kpi-hint">${Math.round(touch/days.length*100)}% DES JOURS</div>
       </div>
     </div>
 
-    <div class="grid2">
+    <div class="g2">
       <div class="panel">
         <div class="panel-h">
-          <div class="panel-ttl">Évolution hebdomadaire</div>
-          <div class="panel-st">erreurs par jour</div>
+          <span class="panel-title">Évolution hebdomadaire</span>
+          <span class="panel-meta">PAR JOUR</span>
         </div>
-        <div class="panel-b"><div class="ch-300"><canvas id="c-sem-line"></canvas></div></div>
+        <div class="panel-b"><div class="ch-280"><canvas id="c-sem-line"></canvas></div></div>
       </div>
       <div class="panel">
         <div class="panel-h">
-          <div class="panel-ttl">Répartition des quarts</div>
-          <div class="panel-st">contribution relative</div>
+          <span class="panel-title">Contribution par quart</span>
+          <span class="panel-meta">EMPILÉ</span>
         </div>
         <div class="panel-b">
           <div class="ch-240"><canvas id="c-sem-stack"></canvas></div>
           <div class="div"></div>
           ${Q.map((q,i)=>`<div class="bar-r">
-            <div class="bar-lbl"><span class="qb qb${q.id}">✎ ${q.s}</span></div>
+            <div class="bar-lbl"><span class="err-tag q${q.id}">${q.s}</span></div>
             <div class="bar-track"><div class="bar-fill" style="width:${tot?Math.round(tq[i]/tot*100):0}%;background:${q.c}"></div></div>
             <div class="bar-num">${tq[i]}</div>
           </div>`).join('')}
@@ -467,46 +763,44 @@ function renderSemaine(data,a,b){
 
     <div class="panel">
       <div class="panel-h">
-        <div class="panel-ttl">Carte thermique</div>
-        <div class="panel-st">créneau × jour · intensité des erreurs</div>
+        <span class="panel-title">Carte thermique — Créneau × Jour</span>
+        <span class="panel-meta">INTENSITÉ</span>
       </div>
       <div class="panel-b"><div class="hm-wrap" id="hm-sem"></div></div>
     </div>
   `;
 
-  // Courbe
   const lCtx=document.getElementById('c-sem-line').getContext('2d');
   ch1=new Chart(lCtx,{type:'line',data:{
-    labels:days.map(d=>fmtWD(d)),
+    labels:days.map(d=>fmtWD(d).toUpperCase()),
     datasets:[
-      {label:'Total',data:days.map(d=>bd[d].tot),borderColor:'#C8843A',backgroundColor:'rgba(200,132,58,.07)',fill:true,tension:.4,pointRadius:5,pointBackgroundColor:'#C8843A',borderWidth:2.5},
-      ...Q.map(q=>({label:q.l,data:days.map(d=>bd[d]['q'+q.id]),borderColor:q.c,backgroundColor:'transparent',fill:false,tension:.4,pointRadius:4,pointBackgroundColor:q.c,borderWidth:1.5,borderDash:[5,3]}))
+      {label:'Total',data:days.map(d=>bd[d].tot),borderColor:'#F0A030',backgroundColor:'rgba(240,160,48,.06)',fill:true,tension:.4,pointRadius:5,pointBackgroundColor:'#F0A030',borderWidth:2.5},
+      ...Q.map(q=>({label:q.l,data:days.map(d=>bd[d]['q'+q.id]),borderColor:q.c,backgroundColor:'transparent',fill:false,tension:.4,pointRadius:4,pointBackgroundColor:q.c,borderWidth:1.5,borderDash:[4,3]}))
     ]
   },options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
     scales:{
-      x:{grid:{color:'rgba(44,51,80,.4)'},ticks:{color:'#7A82A0',font:{family:'DM Mono',size:10}}},
-      y:{grid:{color:'rgba(44,51,80,.4)'},ticks:{color:'#7A82A0',stepSize:1,font:{family:'DM Mono',size:10}},beginAtZero:true,min:0}
-    },plugins:{legend:{labels:{color:'#7A82A0',font:{family:'Outfit',size:11},usePointStyle:true,pointStyleWidth:8}}}
+      x:{grid:{color:'rgba(35,45,66,.5)'},ticks:{font:{size:9}}},
+      y:{grid:{color:'rgba(35,45,66,.5)'},ticks:{stepSize:1,font:{size:9}},beginAtZero:true,min:0}
+    },plugins:{legend:{labels:{font:{size:10},usePointStyle:true,pointStyleWidth:7}}}
   }});
 
-  // Stacked bar
   const sCtx=document.getElementById('c-sem-stack').getContext('2d');
   ch2=new Chart(sCtx,{type:'bar',data:{
-    labels:days.map(d=>fmtWD(d)),
-    datasets:Q.map(q=>({label:q.l,data:days.map(d=>bd[d]['q'+q.id]),backgroundColor:q.dim,borderColor:q.c,borderWidth:1.5,borderRadius:3}))
+    labels:days.map(d=>fmtWD(d).toUpperCase()),
+    datasets:Q.map(q=>({label:q.l,data:days.map(d=>bd[d]['q'+q.id]),backgroundColor:q.d,borderColor:q.c,borderWidth:1.5,borderRadius:3}))
   },options:{responsive:true,maintainAspectRatio:false,
     scales:{
-      x:{stacked:true,grid:{color:'rgba(44,51,80,.4)'},ticks:{color:'#7A82A0',font:{family:'DM Mono',size:10}}},
-      y:{stacked:true,grid:{color:'rgba(44,51,80,.4)'},ticks:{color:'#7A82A0',stepSize:1,font:{family:'DM Mono',size:10}},beginAtZero:true}
+      x:{stacked:true,grid:{color:'rgba(35,45,66,.5)'},ticks:{font:{size:9}}},
+      y:{stacked:true,grid:{color:'rgba(35,45,66,.5)'},ticks:{stepSize:1,font:{size:9}},beginAtZero:true}
     },plugins:{legend:{display:false}}
   }});
 
   buildHeatmap('hm-sem',data,days);
 }
 
-/* ═══════════════════════════════════════
+/* ══════════════════════════════════════════════════════════════
    MOIS
-═══════════════════════════════════════ */
+══════════════════════════════════════════════════════════════ */
 function renderMois(data,a,b){
   const days=daysInRange(a,b);
   const bd={};
@@ -522,71 +816,68 @@ function renderMois(data,a,b){
   const tot=tq[0]+tq[1]+tq[2];
   const touch=days.filter(d=>bd[d].tot>0).length;
   const maxD=Math.max(1,...days.map(d=>bd[d].tot));
-  const moisNom=new Date(a+'T00:00:00').toLocaleDateString('fr-CA',{month:'long',year:'numeric'});
+  const totalActifs=data.filter(r=>isActif(r)).length;
+  const pcts=tq.map(e=>tauxEff(e,totalActifs));
+  const moisNom=new Date(a+'T00:00:00').toLocaleDateString('fr-CA',{month:'long',year:'numeric'}).toUpperCase();
   const pireQ=Q[tq.indexOf(Math.max(...tq))];
 
   document.getElementById('content').innerHTML=`
-    <div class="kpi-row">
-      <div class="kpi" style="--ka:var(--copper-light)">
-        <div class="kpi-lbl">${moisNom}</div>
-        <div class="kpi-n">${tot}</div>
-        <div class="kpi-hint">erreurs papier</div>
-        <div class="kpi-glow"></div>
+    <div class="sec-title">VUE MENSUELLE · ${moisNom}</div>
+
+    <div class="kpi-grid">
+      <div class="kpi" style="--ka:var(--amber)">
+        <div class="kpi-label">${moisNom}</div>
+        <div class="kpi-val">${tot}</div>
+        <div class="kpi-hint">${totalActifs} LIGNES ACTIVES</div>
       </div>
-      ${Q.map((q,i)=>{
-        const totalActifs=data.filter(r=>isActif(r)).length;
-        const pct=tauxEff(tq[i],totalActifs);
-        return `<div class="kpi" style="--ka:${q.c}">
-          <div class="kpi-lbl">${q.l}</div>
-          <div style="display:flex;align-items:baseline;gap:10px;margin:2px 0 4px">
-            <div class="kpi-n">${tq[i]}</div>
-            ${tauxBadge(pct)}
-          </div>
-          <div class="kpi-hint">${totalActifs} lignes actives</div>
-          <div class="kpi-glow"></div>
-        </div>`;
-      }).join('')}
-      <div class="kpi" style="--ka:var(--ruby)">
-        <div class="kpi-lbl">Jours touchés</div>
-        <div class="kpi-n">${touch}<span style="font-size:1.1rem;color:var(--text-faint)">/${days.length}</span></div>
+      ${Q.map((q,i)=>`
+        <div class="kpi" style="--ka:${q.c}">
+          <div class="kpi-label">${q.l.toUpperCase()}</div>
+          <div class="kpi-val">${tq[i]}</div>
+          <span class="kpi-eff ${effClass(pcts[i])}" style="color:${pcts[i]===null?'var(--muted)':pcts[i]>=90?'#30C898':pcts[i]>=70?'#F0A030':pcts[i]>=50?'#F07850':'#E84848'};border-color:currentColor">${pcts[i]===null?'—':pcts[i]+'% EFF.'}</span>
+          <div class="kpi-hint">${totalActifs} ACTIVES</div>
+        </div>
+      `).join('')}
+      <div class="kpi" style="--ka:#E84848">
+        <div class="kpi-label">JOURS TOUCHÉS</div>
+        <div class="kpi-val">${touch}<span style="font-size:1rem;color:var(--muted)">/${days.length}</span></div>
         <div class="kpi-hint">${Math.round(touch/days.length*100)}%</div>
-        <div class="kpi-glow"></div>
       </div>
     </div>
 
     <div class="panel">
       <div class="panel-h">
-        <div class="panel-ttl">Évolution mensuelle</div>
-        <div class="panel-st">erreurs par jour · ${moisNom}</div>
+        <span class="panel-title">Évolution mensuelle</span>
+        <span class="panel-meta">${moisNom}</span>
       </div>
-      <div class="panel-b"><div class="ch-300"><canvas id="c-mois-line"></canvas></div></div>
+      <div class="panel-b"><div class="ch-320"><canvas id="c-mois-line"></canvas></div></div>
     </div>
 
-    <div class="grid2">
+    <div class="g2">
       <div class="panel">
         <div class="panel-h">
-          <div class="panel-ttl">Répartition des quarts</div>
-          <div class="panel-st">${moisNom}</div>
+          <span class="panel-title">Répartition des quarts</span>
+          <span class="panel-meta">${moisNom}</span>
         </div>
         <div class="panel-b">
-          <div class="ch-240"><canvas id="c-mois-doughnut"></canvas></div>
+          <div class="ch-240"><canvas id="c-mois-d"></canvas></div>
           <div class="div"></div>
           ${Q.map((q,i)=>`<div class="bar-r">
-            <div class="bar-lbl"><span class="qb qb${q.id}">✎ ${q.s}</span></div>
+            <div class="bar-lbl"><span class="err-tag q${q.id}">${q.s}</span></div>
             <div class="bar-track"><div class="bar-fill" style="width:${tot?Math.round(tq[i]/tot*100):0}%;background:${q.c}"></div></div>
             <div class="bar-num">${tq[i]}</div>
           </div>`).join('')}
           <div class="div"></div>
-          <div style="display:flex;align-items:center;gap:9px">
-            <span class="qb qb${pireQ.id}">✎ ${pireQ.s}</span>
-            <span style="font-size:.75rem;color:var(--text-secondary)">Quart le plus problématique</span>
+          <div style="display:flex;align-items:center;gap:8px;padding:4px 0">
+            <span class="err-tag q${pireQ.id}">${pireQ.s}</span>
+            <span style="font-family:var(--font-mono);font-size:.6rem;color:var(--ghost)">QUART LE PLUS PROBLÉMATIQUE CE MOIS</span>
           </div>
         </div>
       </div>
       <div class="panel">
         <div class="panel-h">
-          <div class="panel-ttl">Calendrier thermique</div>
-          <div class="panel-st">intensité · ${moisNom}</div>
+          <span class="panel-title">Calendrier thermique</span>
+          <span class="panel-meta">INTENSITÉ PAR JOUR</span>
         </div>
         <div class="panel-b" id="cal-mois"></div>
       </div>
@@ -594,64 +885,62 @@ function renderMois(data,a,b){
 
     <div class="panel">
       <div class="panel-h">
-        <div class="panel-ttl">Carte thermique · Créneau × Jour</div>
-        <div class="panel-st">toutes les erreurs du mois</div>
+        <span class="panel-title">Carte thermique — Créneau × Jour</span>
+        <span class="panel-meta">TOUTES ERREURS</span>
       </div>
       <div class="panel-b"><div class="hm-wrap" id="hm-mois"></div></div>
     </div>
   `;
 
-  // Courbe mensuelle
   const lCtx=document.getElementById('c-mois-line').getContext('2d');
   ch1=new Chart(lCtx,{type:'line',data:{
     labels:days.map(d=>String(new Date(d+'T00:00:00').getDate())),
     datasets:[
-      {label:'Total',data:days.map(d=>bd[d].tot),borderColor:'#C8843A',backgroundColor:'rgba(200,132,58,.06)',fill:true,tension:.35,pointRadius:3,pointBackgroundColor:'#C8843A',borderWidth:2.5,spanGaps:true},
+      {label:'Total',data:days.map(d=>bd[d].tot),borderColor:'#F0A030',backgroundColor:'rgba(240,160,48,.05)',fill:true,tension:.35,pointRadius:3,pointBackgroundColor:'#F0A030',borderWidth:2.5,spanGaps:true},
       ...Q.map(q=>({label:q.l,data:days.map(d=>bd[d]['q'+q.id]),borderColor:q.c,backgroundColor:'transparent',fill:false,tension:.35,pointRadius:2,borderWidth:1.5,borderDash:[4,3],spanGaps:true}))
     ]
   },options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
     scales:{
-      x:{grid:{color:'rgba(44,51,80,.4)'},ticks:{color:'#7A82A0',maxTicksLimit:16,font:{family:'DM Mono',size:10}}},
-      y:{grid:{color:'rgba(44,51,80,.4)'},ticks:{color:'#7A82A0',stepSize:1,font:{family:'DM Mono',size:10}},beginAtZero:true,min:0}
-    },plugins:{legend:{labels:{color:'#7A82A0',font:{family:'Outfit',size:11},usePointStyle:true,pointStyleWidth:8}}}
+      x:{grid:{color:'rgba(35,45,66,.5)'},ticks:{maxTicksLimit:16,font:{size:9}}},
+      y:{grid:{color:'rgba(35,45,66,.5)'},ticks:{stepSize:1,font:{size:9}},beginAtZero:true,min:0}
+    },plugins:{legend:{labels:{font:{size:10},usePointStyle:true,pointStyleWidth:7}}}
   }});
 
-  // Doughnut mois
-  const dCtx=document.getElementById('c-mois-doughnut').getContext('2d');
+  const dCtx=document.getElementById('c-mois-d').getContext('2d');
   ch2=new Chart(dCtx,{type:'doughnut',data:{
     labels:Q.map(q=>q.l),
-    datasets:[{data:tq,backgroundColor:Q.map(q=>q.dim),borderColor:Q.map(q=>q.c),borderWidth:2,hoverBackgroundColor:Q.map(q=>q.glow)}]
-  },options:{responsive:true,maintainAspectRatio:true,cutout:'70%',plugins:{
-    legend:{display:true,position:'bottom',labels:{color:'#7A82A0',font:{family:'Outfit',size:11},padding:14,usePointStyle:true,pointStyleWidth:8}}
+    datasets:[{data:tq,backgroundColor:Q.map(q=>q.d),borderColor:Q.map(q=>q.c),borderWidth:2}]
+  },options:{responsive:true,maintainAspectRatio:true,cutout:'72%',plugins:{
+    legend:{display:true,position:'bottom',labels:{font:{size:10},padding:14,usePointStyle:true,pointStyleWidth:7}}
   }}});
 
   buildCalendar('cal-mois',bd,days,maxD);
   buildHeatmap('hm-mois',data,days);
 }
 
-/* ═══════════════════════════════════════
+/* ══════════════════════════════════════════════════════════════
    HEATMAP créneau × jour
-═══════════════════════════════════════ */
+══════════════════════════════════════════════════════════════ */
 function buildHeatmap(id,data,days){
   const el=document.getElementById(id);if(!el)return;
   const get=(h,d)=>data.filter(r=>r.date_jour===d&&(r.heure_planif||SLOTS_H[r.slot_index]||'?')===h)
     .reduce((s,r)=>s+(r.erreur_q1?1:0)+(r.erreur_q2?1:0)+(r.erreur_q3?1:0),0);
   const max=Math.max(1,...UNI_SLOTS.flatMap(h=>days.map(d=>get(h,d))));
 
-  let html='<table class="hm-table"><thead><tr><th class="hm-th-row">Créneau</th>';
-  days.forEach(d=>{html+=`<th class="hm-th">${fmtWD(d)}</th>`;});
+  let html='<table class="hm-table"><thead><tr><th class="hm-th-row" style="padding-right:10px">CRÉNEAUX</th>';
+  days.forEach(d=>{html+=`<th class="hm-th">${fmtWD(d).toUpperCase()}</th>`;});
   html+='</tr></thead><tbody>';
   UNI_SLOTS.forEach(h=>{
     html+=`<tr><th class="hm-th-row">${h}</th>`;
     days.forEach(d=>{
-      const v=get(h,d);const intensity=v/max;
-      const alpha=v===0?.04:.18+intensity*.72;
-      const rv=v===0?44:Math.round(200+intensity*24);
-      const gv=v===0?51:Math.round(132-intensity*77);
-      const bv=v===0?80:Math.round(58-intensity*55);
-      const bg=`rgba(${rv},${gv},${bv},${alpha})`;
-      const tc=v===0?'rgba(120,130,160,.25)':intensity>.45?'#F0EAE0':'#E8A43A';
-      html+=`<td class="hm-td" title="${h} · ${fmtShort(d)}: ${v} erreur${v>1?'s':''}">
+      const v=get(h,d); const intensity=v/max;
+      const alpha=v===0?.04:.15+intensity*.75;
+      const r2=v===0?35:Math.round(240+intensity*15);
+      const g2=v===0?45:Math.round(160-intensity*112);
+      const b2=v===0?65:Math.round(48-intensity*48);
+      const bg=`rgba(${r2},${g2},${b2},${alpha})`;
+      const tc=v===0?'rgba(90,110,150,.2)':intensity>.5?'#EDF1FA':'#F0A030';
+      html+=`<td title="${h} · ${fmtShort(d)}: ${v} erreur${v!==1?'s':''}">
         <div class="hm-cell" style="background:${bg};color:${tc}">${v||''}</div></td>`;
     });
     html+='</tr>';
@@ -660,32 +949,32 @@ function buildHeatmap(id,data,days){
   el.innerHTML=html;
 }
 
-/* ═══════════════════════════════════════
-   CALENDRIER HEATMAP mensuel
-═══════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   CALENDRIER MENSUEL
+══════════════════════════════════════════════════════════════ */
 function buildCalendar(id,bd,days,maxD){
   const el=document.getElementById(id);if(!el)return;
   const firstDow=new Date(days[0]+'T00:00:00').getDay();
   const off=firstDow===0?6:firstDow-1;
-  const dnames=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+  const dnames=['L','M','M','J','V','S','D'];
 
-  let html='<div class="cal-hdr">'+dnames.map(d=>`<div class="cal-dname">${d}</div>`).join('')+'</div>';
+  let html='<div class="cal-hdr">'+dnames.map(d=>`<div class="cal-dn">${d}</div>`).join('')+'</div>';
   html+='<div class="cal-grid">';
   for(let i=0;i<off;i++) html+='<div></div>';
   days.forEach(day=>{
-    const v=bd[day].tot;const intensity=v/maxD;
-    const isToday=day===todayStr();const isCur=day===curDate;
-    const rv=v===0?21:Math.round(200+intensity*24);
-    const gv=v===0?26:Math.round(132-intensity*77);
-    const bv=v===0?47:Math.round(58-intensity*55);
-    const bg=v===0?'var(--bg-float)':`rgba(${rv},${gv},${bv},${.3+intensity*.6})`;
-    const bord=isToday?'2px solid var(--copper)':isCur?'1px solid var(--copper-light)':'1px solid var(--text-faint)';
+    const v=bd[day].tot; const intensity=v/maxD;
+    const isToday=day===todayStr(); const isCur=day===curDate;
+    const r2=v===0?19:Math.round(240+intensity*15);
+    const g2=v===0?25:Math.round(160-intensity*112);
+    const b2=v===0?35:Math.round(48-intensity*48);
+    const bg=v===0?'var(--ink3)':`rgba(${r2},${g2},${b2},${.25+intensity*.65})`;
+    const bord=isToday?'2px solid #F0A030':isCur?'1px solid rgba(240,160,48,.4)':'1px solid var(--wire)';
     const dn=new Date(day+'T00:00:00').getDate();
     html+=`<div class="cal-day" style="background:${bg};border:${bord}"
-      title="${fmtShort(day)}: ${v} erreur${v>1?'s':''}"
+      title="${fmtShort(day)}: ${v} erreur${v!==1?'s':''}"
       onclick="curDate='${day}';refreshDateUI();goJour()">
-      <span class="cal-dn" style="color:${v>0?'var(--text-secondary)':'var(--text-faint)'}">${dn}</span>
-      ${v>0?`<span class="cal-dv" style="color:${intensity>.5?'#F0EAE0':'#E8A43A'}">${v}</span>`:''}
+      <span class="cal-n" style="color:${v>0?'var(--ghost)':'var(--wire2)'}">${dn}</span>
+      ${v>0?`<span class="cal-v" style="color:${intensity>.55?'#EDF1FA':'#F0A030'}">${v}</span>`:''}
     </div>`;
   });
   html+='</div>';
@@ -703,10 +992,8 @@ async function initApp(){
   try{
     const{data:{session}}=await sb.auth.getSession();
     if(!session){window.location.href='index.html';return;}
-    // Requête admins identique à planning_camions — établit le contexte RLS
-    const email=session.user.email;
-    await sb.from('admins').select('email').eq('email',email).maybeSingle();
-  }catch(e){ /* session invalide mais on continue */ }
+    await sb.from('admins').select('email').eq('email',session.user.email).maybeSingle();
+  }catch(e){}
   refreshDateUI();
   render();
 }
