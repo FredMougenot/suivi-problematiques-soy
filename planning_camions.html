@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Planification Camions — Expédition SOY</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -528,15 +529,9 @@ async function viewerLogout(){
   window.location.href = 'index.html';
 }
 
-function waitForSupabaseAndInit(){
-  if(typeof supabase !== 'undefined' && supabase.createClient){
-    try{ initApp(); } catch(e){ console.error('initApp error:', e); }
-  } else {
-    setTimeout(waitForSupabaseAndInit, 50);
-  }
-}
-
-window.addEventListener('load', waitForSupabaseAndInit);
+document.addEventListener('DOMContentLoaded', function(){
+  try{ initApp(); } catch(e){ console.error('initApp error:', e); }
+});
 
 async function load(){
   document.getElementById('spinner').style.display='flex';
@@ -1523,7 +1518,6 @@ function exportPDF() {
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 
 <div class="overlay" id="modal">
