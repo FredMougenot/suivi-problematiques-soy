@@ -392,16 +392,22 @@ let isViewer = false;
 
 async function loadParams(){
   try {
-    const {data,error} = await sb.from('planning_params')
+    // Essai avec toutes les colonnes
+    let {data,error} = await sb.from('planning_params')
       .select('categorie,valeur,text_color,border_color,border_opacity,font_weight,has_background,ordre,delai_nl')
-      .order('ordre').order('created_at');
-    if(error) throw error;
+      .order('ordre');
+    if(error){
+      // Repli : colonnes minimales en cas d'erreur de schéma
+      const r2 = await sb.from('planning_params').select('categorie,valeur,ordre').order('ordre');
+      if(r2.error) throw r2.error;
+      data = r2.data;
+    }
     _params = {};
     (data||[]).forEach(r=>{
       if(!_params[r.categorie]) _params[r.categorie]=[];
       _params[r.categorie].push(r);
     });
-  } catch(e){ console.warn('loadParams:',e.message); }
+  } catch(e){ console.warn('loadParams:',e?.message); }
 }
 
 // Applique le style d'un paramètre sur un <select>, en gérant le background
@@ -597,6 +603,8 @@ function render(){
     const _allIdx = [...SLOTS.map(s=>s.idx), ...Object.keys(rows).map(Number).filter(i=>i>=10)];
     _allIdx.forEach(i => {
       if(!rows[i]) rows[i]={slot_index:i};
+      // Ne pas écraser si la ligne existe déjà en DB
+      if(rows[i].id) return;
       if(i === _idxDernierActif){
         rows[i].destination = _BOBTAIL;
       } else {
@@ -620,6 +628,8 @@ function render(){
 
     _allSlotsIdx.forEach(i=>{
       if(!rows[i]) rows[i]={slot_index:i};
+      // Ne pas écraser si la ligne existe déjà en DB (id présent)
+      if(rows[i].id) return;
       const dbSt=(rows[i]||{}).statut_ligne;
       const stEff=dbSt||(_rIsWkEnd&&_wkID.includes(i)?_rVInactifD:_rVActif);
       if(!_isActifOuNL(stEff, _rVActif, _rVInactifD)) return; // ignorer inactifs
