@@ -517,6 +517,8 @@ async function load(){
   } catch(e){ toast('Connexion impossible.','error'); }
   finally{
     try{render();}catch(re){console.error('render:',re);}
+    // Appliquer les règles de verrouillage initiales
+    try{ applyLockRules(); }catch(e){}
     document.getElementById('spinner').style.display='none';
     document.getElementById('tbl').style.display='block';
   }
@@ -980,13 +982,102 @@ function updTypeSel(sel){
   const st = sel.value==='__VIDE__' ? '' : getParamStyle('type_camion', sel.value);
   sel.setAttribute('style','min-width:105px;'+st);
 }
+// ── RÈGLES DE VERROUILLAGE ─────────────────────────────────────────
+// Applique au chargement les verrouillages INACTIF et BOBTAIL sur toutes les lignes
+function applyLockRules(){
+  const _slP   = _params['statut_ligne']||[];
+  const _vInactif = _slP[1]?.valeur||'INACTIF';
+  const _dstP  = _params['destination']||[];
+  const _vBobt = _dstP[5]?.valeur||'';
+
+  document.querySelectorAll('tr[id^="tr"]').forEach(tr=>{
+    const idx = parseInt(tr.id.replace('tr',''));
+    if(isNaN(idx)) return;
+    const r = rows[idx]||{};
+
+    // ── Règle 1 : INACTIF → tout vider et bloquer ──────────────────
+    const slSel = tr.querySelector('select.cs[onchange*="statut_ligne"]');
+    const slVal = slSel ? slSel.value : (r.statut_ligne||'');
+    if(slVal === _vInactif){
+      tr.querySelectorAll('input.ci, input.ci-t').forEach(inp=>{
+        inp.dataset.savedVal = inp.value;
+        inp.value = '';
+        inp.disabled = true;
+        inp.style.opacity = '.3';
+      });
+      tr.querySelectorAll('select.cs:not([onchange*="statut_ligne"])').forEach(s=>{
+        s.dataset.savedVal = s.value;
+        s.value = '';
+        s.disabled = true;
+        s.style.opacity = '.3';
+      });
+      return; // pas besoin de vérifier BOBTAIL si INACTIF
+    }
+
+    // ── Règle 2 : destination = BOBTAIL → vider et bloquer num_depart + chargement ──
+    const destVal = r.destination||'';
+    if(_vBobt && destVal === _vBobt){
+      const numDep   = tr.querySelector('input.ci[placeholder*="part"]');
+      const chargSel = tr.querySelector('select.cs[data-cat="chargement"]');
+      if(numDep){
+        numDep.dataset.savedVal = numDep.value;
+        numDep.value = '';
+        numDep.disabled = true;
+        numDep.style.opacity = '.3';
+      }
+      if(chargSel){
+        chargSel.dataset.savedVal = chargSel.value;
+        chargSel.value = '';
+        chargSel.disabled = true;
+        chargSel.style.opacity = '.3';
+      }
+    }
+  });
+}
+
 function updDestSel(sel){
   const st = getParamStyle('destination', sel.value);
   sel.setAttribute('style','min-width:170px;'+st);
+  // Règle param #6 (AUCUN REPARTIR BOBTAIL) : vider et bloquer num_depart + chargement
+  const _dstP  = _params['destination']||[];
+  const _vBobt = _dstP[5]?.valeur||'';          // paramètre #6 (index 5)
+  const isBobt = _vBobt && sel.value === _vBobt;
+  const tr = sel.closest('tr');
+  if(!tr) return;
+  const numDep  = tr.querySelector('input.ci[placeholder*="part"]');
+  const chargSel = tr.querySelector('select.cs[data-cat="chargement"]');
+  if(isBobt){
+    if(numDep){ numDep.dataset.savedVal=numDep.value; numDep.value=''; numDep.disabled=true; numDep.style.opacity='.3'; }
+    if(chargSel){ chargSel.dataset.savedVal=chargSel.value; chargSel.value=''; chargSel.disabled=true; chargSel.style.opacity='.3'; }
+    // Mettre à jour les données en mémoire
+    const idx = parseInt(tr.id.replace('tr',''));
+    if(!isNaN(idx)){
+      if(!rows[idx]) rows[idx]={slot_index:idx};
+      rows[idx].num_depart='';
+      rows[idx].chargement='';
+    }
+  } else {
+    if(numDep){ numDep.value=numDep.dataset.savedVal||''; numDep.disabled=false; numDep.style.opacity=''; }
+    if(chargSel){ chargSel.value=chargSel.dataset.savedVal||''; chargSel.disabled=false; chargSel.style.opacity=''; }
+  }
 }
 function updStatutLigne(sel){
   const st = getParamStyle('statut_ligne', sel.value);
   sel.setAttribute('style', st);
+  const _slP = _params['statut_ligne']||[];
+  const _vInactif = _slP[1]?.valeur||'INACTIF';
+  const isInactif = sel.value === _vInactif;
+  const tr = sel.closest('tr');
+  if(!tr) return;
+  const inputs  = tr.querySelectorAll('input.ci, input.ci-t');
+  const selects = tr.querySelectorAll('select.cs:not([onchange*="statut_ligne"])');
+  if(isInactif){
+    inputs.forEach(inp=>{ inp.dataset.savedVal=inp.value; inp.value=''; inp.disabled=true; inp.style.opacity='.3'; });
+    selects.forEach(s=>{ s.dataset.savedVal=s.value; s.value=''; s.disabled=true; s.style.opacity='.3'; });
+  } else {
+    inputs.forEach(inp=>{ inp.value=inp.dataset.savedVal||''; inp.disabled=false; inp.style.opacity=''; });
+    selects.forEach(s=>{ s.value=s.dataset.savedVal||''; s.disabled=false; s.style.opacity=''; });
+  }
 }
 function updDesc(sel){
   const st = getParamStyle('description', sel.value);
