@@ -454,21 +454,23 @@ function hxRgb(hex){
 
 async function initApp(){
   sb = supabase.createClient(SB_URL, SB_KEY);
+  // ── Auth : seule cette partie redirige en cas d'échec ──
   try{
     const { data:{ session } } = await sb.auth.getSession();
     if(!session){ window.location.href='index.html'; return; }
-    // Déterminer le rôle
     const email = session.user.email;
     const {data:adm} = await sb.from('admins').select('email').eq('email',email).maybeSingle();
     if(!adm){
       const {data:vwr} = await sb.from('viewers').select('email').eq('email',email).maybeSingle();
       isViewer = !!vwr;
     }
-    refreshDateUI();
-    await loadParams();
-    await load();
-    if(isViewer) applyReadOnly();
-  } catch(e){ window.location.href='index.html'; }
+  } catch(e){ window.location.href='index.html'; return; }
+
+  // ── Chargement données : on affiche le tableau même en cas d'erreur ──
+  refreshDateUI();
+  try{ await loadParams(); } catch(e){ console.warn('loadParams:', e?.message); }
+  await load(); // load() a son propre try/catch/finally — le spinner est toujours levé
+  if(isViewer) applyReadOnly();
 }
 
 function applyReadOnly(){
@@ -538,12 +540,14 @@ async function load(){
     (data||[]).forEach(r=>{ rows[r.slot_index]=r; });
   } catch(e){ toast('Connexion impossible.','error'); }
   finally{
-    try{render();}catch(re){console.error('render:',re);}
-    // Appliquer les règles de verrouillage initiales
-    try{ applyLockRules(); }catch(e){}
-    try{ applyEpHighlight(); }catch(e){}
-    document.getElementById('spinner').style.display='none';
-    document.getElementById('tbl').style.display='block';
+    try{ render(); } catch(re){ console.error('render error:', re); }
+    try{ applyLockRules(); } catch(e){}
+    try{ applyEpHighlight(); } catch(e){}
+    // Toujours afficher le tableau, même vide
+    const spinnerEl = document.getElementById('spinner');
+    const tblEl = document.getElementById('tbl');
+    if(spinnerEl) spinnerEl.style.display='none';
+    if(tblEl) tblEl.style.display='block';
   }
 }
 
