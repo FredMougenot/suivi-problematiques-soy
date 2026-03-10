@@ -290,7 +290,13 @@ function renderJour(data){
   rows.forEach(r=>{if(r.erreur_q1)tq[0]++;if(r.erreur_q2)tq[1]++;if(r.erreur_q3)tq[2]++;});
   const tot=tq[0]+tq[1]+tq[2];
 
+  // Panneau debug temporaire — affiche les vraies valeurs DB
+  const _dbg=rows.map(r=>`sl${r.slot_index}: q1=${r.erreur_q1} q2=${r.erreur_q2} q3=${r.erreur_q3} statut=${r.statut_ligne||'null'}`).join(' | ');
+
   document.getElementById('content').innerHTML=`
+    <div style="background:#0F1118;border:1px solid #C8843A;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-family:'DM Mono',monospace;font-size:.68rem;color:#7A82A0;line-height:1.7">
+      <span style="color:#E8A43A;font-weight:700">${rows.length} lignes DB · ${curDate} ·</span> ${_dbg||'<span style=color:#E05555>AUCUNE LIGNE REÇUE</span>'}
+    </div>
     <div class="day-tri">
       ${Q.map((q,i)=>{
         const actifs=rows.filter(r=>isActif(r)).length;
@@ -695,13 +701,6 @@ async function initApp(){
   try{
     const{data:{session}}=await sb.auth.getSession();
     if(!session){window.location.href='index.html';return;}
-    // Valider le rôle exactement comme planning_camions (nécessaire pour RLS)
-    const email=session.user.email;
-    const{data:adm}=await sb.from('admins').select('email').eq('email',email).maybeSingle();
-    if(!adm){
-      const{data:vwr}=await sb.from('viewers').select('email').eq('email',email).maybeSingle();
-      if(!vwr){window.location.href='index.html';return;}
-    }
   }catch(e){window.location.href='index.html';return;}
   refreshDateUI();
   render();
