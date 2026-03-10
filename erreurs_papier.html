@@ -204,6 +204,18 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 let sb, curTab='jour', curDate=todayStr();
 let ch1=null, ch2=null;
 
+// Ligne considérée active si statut_ligne != 'INACTIF' (ou null = ACTIF par défaut)
+function isActif(r){ return !r.statut_ligne || r.statut_ligne.toUpperCase()!=='INACTIF'; }
+function tauxEff(erreurs, total){
+  if(!total) return null;
+  return Math.round((1 - erreurs/total)*100);
+}
+function tauxBadge(pct){
+  if(pct===null) return '<span style="font-size:.68rem;color:var(--text-faint)">—</span>';
+  const col = pct>=90?'var(--emerald)':pct>=70?'var(--q1)':pct>=50?'var(--copper)':'var(--ruby)';
+  return `<span style="font-family:'DM Mono',monospace;font-size:.72rem;font-weight:600;color:${col};background:rgba(0,0,0,.2);padding:2px 7px;border-radius:12px;border:1px solid ${col}33">${pct}%</span>`;
+}
+
 const Q=[
   {id:1,s:'Q1',l:'Quart 1',c:'#E8A43A',dim:'rgba(232,164,58,.10)',glow:'rgba(232,164,58,.22)'},
   {id:2,s:'Q2',l:'Quart 2',c:'#7B9CF0',dim:'rgba(123,156,240,.10)',glow:'rgba(123,156,240,.22)'},
@@ -238,11 +250,17 @@ function switchTab(t,btn){
 
 async function fetchRange(a,b){
   const{data,error}=await sb.from('planning_camions')
-    .select('slot_index,date_jour,heure_planif,erreur_q1,erreur_q2,erreur_q3')
+    .select('slot_index,date_jour,heure_planif,statut_ligne,erreur_q1,erreur_q2,erreur_q3')
     .gte('date_jour',a).lte('date_jour',b)
     .order('date_jour').order('slot_index');
   if(error){toast('Erreur: '+error.message,'e');return[];}
-  return data||[];
+  // Normaliser : Supabase peut retourner true/false ou null — null = false
+  return (data||[]).map(r=>({
+    ...r,
+    erreur_q1: r.erreur_q1===true,
+    erreur_q2: r.erreur_q2===true,
+    erreur_q3: r.erreur_q3===true,
+  }));
 }
 
 function killCharts(){[ch1,ch2].forEach(c=>{if(c){c.destroy();}});ch1=null;ch2=null;}
@@ -270,11 +288,18 @@ function renderJour(data){
 
   document.getElementById('content').innerHTML=`
     <div class="day-tri">
-      ${Q.map((q,i)=>`<div class="dc" style="--dca:${q.c}">
-        <span class="qb qb${q.id}">✎ ${q.s}</span>
-        <div class="dc-n">${tq[i]}</div>
-        <div class="dc-lbl">${q.l}</div>
-      </div>`).join('')}
+      ${Q.map((q,i)=>{
+        const actifs=rows.filter(r=>isActif(r)).length;
+        const pct=tauxEff(tq[i],actifs);
+        return `<div class="dc" style="--dca:${q.c}">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <span class="qb qb${q.id}">✎ ${q.s}</span>
+            ${tauxBadge(pct)}
+          </div>
+          <div class="dc-n">${tq[i]}</div>
+          <div class="dc-lbl">${q.l} · ${actifs} ligne${actifs>1?'s':''} active${actifs>1?'s':''}</div>
+        </div>`;
+      }).join('')}
     </div>
 
     <div class="grid2">
@@ -382,12 +407,19 @@ function renderSemaine(data,a,b){
         <div class="kpi-hint">erreurs papier</div>
         <div class="kpi-glow"></div>
       </div>
-      ${Q.map((q,i)=>`<div class="kpi" style="--ka:${q.c}">
-        <div class="kpi-lbl">${q.l}</div>
-        <div class="kpi-n">${tq[i]}</div>
-        <div class="kpi-hint">${tot?Math.round(tq[i]/tot*100):0}% du total</div>
-        <div class="kpi-glow"></div>
-      </div>`).join('')}
+      ${Q.map((q,i)=>{
+        const totalActifs=data.filter(r=>isActif(r)).length;
+        const pct=tauxEff(tq[i],totalActifs);
+        return `<div class="kpi" style="--ka:${q.c}">
+          <div class="kpi-lbl">${q.l}</div>
+          <div style="display:flex;align-items:baseline;gap:10px;margin:2px 0 4px">
+            <div class="kpi-n">${tq[i]}</div>
+            ${tauxBadge(pct)}
+          </div>
+          <div class="kpi-hint">${totalActifs} lignes actives</div>
+          <div class="kpi-glow"></div>
+        </div>`;
+      }).join('')}
       <div class="kpi" style="--ka:var(--ruby)">
         <div class="kpi-lbl">Jours touchés</div>
         <div class="kpi-n">${touch}<span style="font-size:1.1rem;color:var(--text-faint)">/${days.length}</span></div>
@@ -489,12 +521,19 @@ function renderMois(data,a,b){
         <div class="kpi-hint">erreurs papier</div>
         <div class="kpi-glow"></div>
       </div>
-      ${Q.map((q,i)=>`<div class="kpi" style="--ka:${q.c}">
-        <div class="kpi-lbl">${q.l}</div>
-        <div class="kpi-n">${tq[i]}</div>
-        <div class="kpi-hint">${tot?Math.round(tq[i]/tot*100):0}% du total</div>
-        <div class="kpi-glow"></div>
-      </div>`).join('')}
+      ${Q.map((q,i)=>{
+        const totalActifs=data.filter(r=>isActif(r)).length;
+        const pct=tauxEff(tq[i],totalActifs);
+        return `<div class="kpi" style="--ka:${q.c}">
+          <div class="kpi-lbl">${q.l}</div>
+          <div style="display:flex;align-items:baseline;gap:10px;margin:2px 0 4px">
+            <div class="kpi-n">${tq[i]}</div>
+            ${tauxBadge(pct)}
+          </div>
+          <div class="kpi-hint">${totalActifs} lignes actives</div>
+          <div class="kpi-glow"></div>
+        </div>`;
+      }).join('')}
       <div class="kpi" style="--ka:var(--ruby)">
         <div class="kpi-lbl">Jours touchés</div>
         <div class="kpi-n">${touch}<span style="font-size:1.1rem;color:var(--text-faint)">/${days.length}</span></div>
