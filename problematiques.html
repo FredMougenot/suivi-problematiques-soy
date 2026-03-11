@@ -582,12 +582,179 @@ body { font-size: 0.9375rem; }
 .today-chip{font-size:.65rem;font-weight:700;color:var(--copper-light);background:var(--copper-dim);border:1px solid rgba(200,132,58,.25);padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle;}
 
 /* ── GRAPHIQUES ─────────────────────────────────────────────────── */
-.chart-panel{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);padding:20px 24px;margin-bottom:20px;}
-.chart-panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap;}
-.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-.chart-box{background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:14px;}
-.chart-box-title{font-size:.62rem;font-weight:800;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
-.chart-param-input{background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-md);padding:6px 10px;font-size:.82rem;font-family:'Outfit',sans-serif;width:100px;outline:none;}
+/* ── GRAPHIQUES MODERNES ────────────────────────────────────────── */
+.chart-panel{
+  background: linear-gradient(135deg, #0B0D13 0%, #0F1118 50%, #15181F 100%);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 32px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    0 8px 32px rgba(0,0,0,.6),
+    inset 0 1px 0 rgba(200,132,58,.1);
+}
+
+.chart-panel::before{
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  padding: 2px;
+  background: linear-gradient(135deg, 
+    rgba(200,132,58,.4) 0%, 
+    rgba(45,212,160,.3) 25%,
+    rgba(74,158,232,.3) 50%,
+    rgba(224,85,85,.3) 75%,
+    rgba(200,132,58,.4) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: borderRotate 8s linear infinite;
+}
+
+@keyframes borderRotate{
+  0%, 100%{ background-position: 0% 50%; }
+  50%{ background-position: 100% 50%; }
+}
+
+.chart-panel::after{
+  content: '';
+  position: absolute;
+  inset: -100%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(200,132,58,.08) 60deg,
+    transparent 120deg
+  );
+  animation: rotate 6s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes rotate{
+  from{ transform: rotate(0deg); }
+  to{ transform: rotate(360deg); }
+}
+
+.chart-panel-header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  gap: 20px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+.chart-panel-header > div:first-child{
+  background: linear-gradient(135deg, rgba(200,132,58,.12), rgba(200,132,58,.06));
+  border: 1px solid rgba(200,132,58,.25);
+  border-radius: 12px;
+  padding: 12px 18px;
+  box-shadow: 0 4px 16px rgba(200,132,58,.15);
+}
+
+.chart-grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.chart-box{
+  background: linear-gradient(135deg, rgba(26,30,42,.8), rgba(21,24,31,.8));
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 16px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  transition: all .4s cubic-bezier(.4,0,.2,1);
+}
+
+.chart-box::before{
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    rgba(200,132,58,.6) 0%,
+    rgba(45,212,160,.6) 50%,
+    rgba(74,158,232,.6) 100%);
+  opacity: 0;
+  transition: opacity .4s;
+}
+
+.chart-box:hover{
+  border-color: rgba(200,132,58,.4);
+  box-shadow: 
+    0 8px 32px rgba(0,0,0,.5),
+    0 0 40px rgba(200,132,58,.15),
+    inset 0 1px 0 rgba(255,255,255,.05);
+  transform: translateY(-4px);
+}
+
+.chart-box:hover::before{
+  opacity: 1;
+}
+
+.chart-box-title{
+  font-size: .7rem;
+  font-weight: 800;
+  color: var(--copper);
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-shadow: 0 0 10px rgba(200,132,58,.3);
+}
+
+.chart-box-title::before{
+  content: '';
+  width: 4px;
+  height: 12px;
+  background: linear-gradient(180deg, var(--copper), var(--copper-light));
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(200,132,58,.5);
+}
+
+.chart-param-input{
+  background: rgba(15,17,24,.8);
+  border: 1px solid rgba(200,132,58,.3);
+  color: var(--text-primary);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: .82rem;
+  font-family: 'Outfit', sans-serif;
+  width: 110px;
+  outline: none;
+  transition: all .3s;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.3);
+}
+
+.chart-param-input:focus{
+  border-color: var(--copper);
+  box-shadow: 
+    inset 0 1px 3px rgba(0,0,0,.3),
+    0 0 0 3px rgba(200,132,58,.15),
+    0 0 16px rgba(200,132,58,.2);
+}
+
+.chart-param-input::placeholder{
+  color: var(--text-muted);
+  opacity: .6;
+}
+
 @media(max-width:600px){.chart-grid{grid-template-columns:1fr;}}
 
 /* ── PILIER BTNS ────────────────────────────────────────────────── */
@@ -641,33 +808,57 @@ body { font-size: 0.9375rem; }
     <div class="chart-panel" id="chart-panel" style="display:none;">
       <div class="chart-panel-header">
         <div>
-          <div style="font-size:.6rem;font-weight:800;color:var(--copper);letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px;">Problématiques par pilier</div>
-          <div style="font-size:1rem;font-weight:700;color:var(--text-primary);" id="chart-panel-title">—</div>
+          <div style="font-size:.65rem;font-weight:800;color:var(--copper);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M3 3v18h18"/>
+              <path d="M18 17V9"/>
+              <path d="M13 17V5"/>
+              <path d="M8 17v-3"/>
+            </svg>
+            Analyse par pilier
+          </div>
+          <div style="font-size:1.2rem;font-weight:800;color:var(--text-primary);text-shadow:0 0 20px rgba(200,132,58,.3);" id="chart-panel-title">—</div>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
           <!-- Ligne minimum (verte) -->
-          <div style="display:flex;align-items:center;gap:6px;">
-            <span style="width:10px;height:2px;background:#2DD4A0;display:inline-block;border-radius:2px;"></span>
-            <input type="number" class="chart-param-input" id="chart-min"       placeholder="Valeur min" oninput="saveChartParams()" style="width:110px;">
-            <input type="text"   class="chart-param-input" id="chart-label-min" placeholder="Libellé min" oninput="saveChartParams()" style="width:110px;">
+          <div style="display:flex;align-items:center;gap:8px;background:rgba(45,212,160,.08);border:1px solid rgba(45,212,160,.25);border-radius:10px;padding:8px 12px;">
+            <div style="width:3px;height:16px;background:linear-gradient(180deg,#2DD4A0,#39E5B0);border-radius:2px;box-shadow:0 0 8px rgba(45,212,160,.4);"></div>
+            <input type="number" class="chart-param-input" id="chart-min" placeholder="Valeur min" oninput="saveChartParams()" style="width:90px;">
+            <input type="text" class="chart-param-input" id="chart-label-min" placeholder="Libellé" oninput="saveChartParams()" style="width:100px;">
           </div>
           <!-- Ligne maximum (rouge) -->
-          <div style="display:flex;align-items:center;gap:6px;">
-            <span style="width:10px;height:2px;background:#E05555;display:inline-block;border-radius:2px;"></span>
-            <input type="number" class="chart-param-input" id="chart-max"       placeholder="Valeur max" oninput="saveChartParams()" style="width:110px;">
-            <input type="text"   class="chart-param-input" id="chart-label-max" placeholder="Libellé max" oninput="saveChartParams()" style="width:110px;">
+          <div style="display:flex;align-items:center;gap:8px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.25);border-radius:10px;padding:8px 12px;">
+            <div style="width:3px;height:16px;background:linear-gradient(180deg,#E05555,#F07070);border-radius:2px;box-shadow:0 0 8px rgba(224,85,85,.4);"></div>
+            <input type="number" class="chart-param-input" id="chart-max" placeholder="Valeur max" oninput="saveChartParams()" style="width:90px;">
+            <input type="text" class="chart-param-input" id="chart-label-max" placeholder="Libellé" oninput="saveChartParams()" style="width:100px;">
           </div>
           <input type="hidden" id="chart-params-pilier">
-          <button onclick="closePilierCharts()" style="width:28px;height:28px;border-radius:var(--r-sm);background:transparent;border:1px solid var(--text-faint);color:var(--text-muted);cursor:pointer;font-size:.85rem;">✕</button>
+          <button onclick="closePilierCharts()" style="width:36px;height:36px;border-radius:10px;background:rgba(224,85,85,.12);border:1px solid rgba(224,85,85,.3);color:#E05555;cursor:pointer;font-size:1rem;transition:all .3s;font-weight:700;" onmouseover="this.style.background='rgba(224,85,85,.2)';this.style.borderColor='rgba(224,85,85,.5)';" onmouseout="this.style.background='rgba(224,85,85,.12)';this.style.borderColor='rgba(224,85,85,.3)';">✕</button>
         </div>
       </div>
       <div class="chart-grid">
         <div class="chart-box">
-          <div class="chart-box-title">Semaine en cours</div>
+          <div class="chart-box-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <rect x="3" y="3" width="7" height="7"/>
+              <rect x="14" y="3" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/>
+            </svg>
+            Semaine en cours
+          </div>
           <canvas id="cm-chart-week"></canvas>
         </div>
         <div class="chart-box">
-          <div class="chart-box-title">Mois en cours</div>
+          <div class="chart-box-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            Mois en cours
+          </div>
           <canvas id="cm-chart-month"></canvas>
         </div>
       </div>
@@ -1081,23 +1272,188 @@ function renderCmCharts(probs, params){
   const lblMin = (params&&params.labelMin) ? params.labelMin : 'Minimum';
   const lblMax = (params&&params.labelMax) ? params.labelMax : 'Maximum';
   const hasLines = vMin!==null || vMax!==null;
-  const BLUE='rgba(99,179,237,.85)', BLUE_BG='rgba(99,179,237,.12)';
-  const GREEN='#2DD4A0', RED='#E05555';
 
   function buildDS(data){
-    const ds=[{label:'Problématiques',data,fill:true,backgroundColor:BLUE_BG,borderColor:BLUE,borderWidth:2,pointRadius:3,pointBackgroundColor:BLUE,tension:0.3}];
-    if(vMin!==null) ds.push({label:lblMin,data:data.map(()=>vMin),borderColor:GREEN,borderWidth:2,borderDash:[6,3],pointRadius:0,fill:false,tension:0});
-    if(vMax!==null) ds.push({label:lblMax,data:data.map(()=>vMax),borderColor:RED,  borderWidth:2,borderDash:[6,3],pointRadius:0,fill:false,tension:0});
+    const ctx = document.createElement('canvas').getContext('2d');
+    
+    // Gradient pour la ligne principale
+    const gradientStroke = ctx.createLinearGradient(0, 0, 500, 0);
+    gradientStroke.addColorStop(0, 'rgba(200,132,58,1)');
+    gradientStroke.addColorStop(0.33, 'rgba(45,212,160,1)');
+    gradientStroke.addColorStop(0.66, 'rgba(74,158,232,1)');
+    gradientStroke.addColorStop(1, 'rgba(224,85,85,1)');
+    
+    // Gradient pour le remplissage
+    const gradientFill = ctx.createLinearGradient(0, 0, 0, 200);
+    gradientFill.addColorStop(0, 'rgba(200,132,58,0.4)');
+    gradientFill.addColorStop(0.5, 'rgba(45,212,160,0.2)');
+    gradientFill.addColorStop(1, 'rgba(74,158,232,0.05)');
+    
+    const ds=[{
+      label: 'Problématiques actives',
+      data: data,
+      fill: true,
+      backgroundColor: gradientFill,
+      borderColor: gradientStroke,
+      borderWidth: 3,
+      pointRadius: 5,
+      pointHoverRadius: 8,
+      pointBackgroundColor: 'rgba(200,132,58,1)',
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+      pointHoverBackgroundColor: '#fff',
+      pointHoverBorderColor: 'rgba(200,132,58,1)',
+      pointHoverBorderWidth: 3,
+      tension: 0.4,
+      shadowOffsetX: 0,
+      shadowOffsetY: 4,
+      shadowBlur: 12,
+      shadowColor: 'rgba(200,132,58,0.3)'
+    }];
+    
+    if(vMin!==null) ds.push({
+      label: lblMin,
+      data: data.map(()=>vMin),
+      borderColor: 'rgba(45,212,160,0.8)',
+      backgroundColor: 'rgba(45,212,160,0.1)',
+      borderWidth: 2,
+      borderDash: [8,4],
+      pointRadius: 0,
+      fill: false,
+      tension: 0
+    });
+    
+    if(vMax!==null) ds.push({
+      label: lblMax,
+      data: data.map(()=>vMax),
+      borderColor: 'rgba(224,85,85,0.8)',
+      backgroundColor: 'rgba(224,85,85,0.1)',
+      borderWidth: 2,
+      borderDash: [8,4],
+      pointRadius: 0,
+      fill: false,
+      tension: 0
+    });
+    
     return ds;
   }
 
   const opts={
-    responsive:false,
-    animation:{duration:300},
-    plugins:{legend:{display:hasLines,labels:{color:'#BEC5D6',font:{size:10},boxWidth:18}},tooltip:{mode:'index',intersect:false}},
-    scales:{
-      x:{ticks:{color:'#BEC5D6',font:{size:9},maxRotation:0},grid:{color:'rgba(255,255,255,.04)'}},
-      y:{ticks:{color:'#BEC5D6',font:{size:9},stepSize:1,precision:0},grid:{color:'rgba(255,255,255,.06)'},beginAtZero:true}
+    responsive: false,
+    maintainAspectRatio: false,
+    animation: {
+      duration: 1200,
+      easing: 'easeInOutQuart',
+      onProgress: function(animation) {
+        const ctx = this.ctx;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 4;
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = 'rgba(200,132,58,0.2)';
+      }
+    },
+    interaction: {
+      mode: 'index',
+      intersect: false
+    },
+    plugins: {
+      legend: {
+        display: hasLines,
+        position: 'top',
+        align: 'end',
+        labels: {
+          color: '#F0EAE0',
+          font: {
+            size: 11,
+            weight: '600',
+            family: "'Outfit', sans-serif"
+          },
+          boxWidth: 20,
+          boxHeight: 2,
+          padding: 12,
+          usePointStyle: false
+        }
+      },
+      tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(15,17,24,0.95)',
+        titleColor: '#C8843A',
+        bodyColor: '#F0EAE0',
+        borderColor: 'rgba(200,132,58,0.5)',
+        borderWidth: 1,
+        padding: 12,
+        displayColors: true,
+        boxWidth: 8,
+        boxHeight: 8,
+        boxPadding: 6,
+        titleFont: {
+          size: 12,
+          weight: '700',
+          family: "'Outfit', sans-serif"
+        },
+        bodyFont: {
+          size: 11,
+          weight: '500',
+          family: "'Outfit', sans-serif"
+        },
+        callbacks: {
+          title: function(items) {
+            return items[0].label;
+          },
+          label: function(context) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            label += context.parsed.y;
+            if (context.datasetIndex === 0) {
+              label += ' problématique' + (context.parsed.y > 1 ? 's' : '');
+            }
+            return label;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: '#BEC5D6',
+          font: {
+            size: 10,
+            weight: '600',
+            family: "'Outfit', sans-serif"
+          },
+          maxRotation: 0,
+          padding: 8
+        },
+        grid: {
+          color: 'rgba(255,255,255,0.05)',
+          lineWidth: 1,
+          drawBorder: false
+        }
+      },
+      y: {
+        ticks: {
+          color: '#BEC5D6',
+          font: {
+            size: 10,
+            weight: '600',
+            family: "'Outfit', sans-serif"
+          },
+          stepSize: 1,
+          precision: 0,
+          padding: 8,
+          callback: function(value) {
+            return Number.isInteger(value) ? value : '';
+          }
+        },
+        grid: {
+          color: 'rgba(255,255,255,0.08)',
+          lineWidth: 1,
+          drawBorder: false
+        },
+        beginAtZero: true
+      }
     }
   };
 
@@ -1106,9 +1462,9 @@ function renderCmCharts(probs, params){
     if(!el) return existing;
     if(existing){ existing.destroy(); }
     const box = el.closest('.chart-box') || el.parentElement;
-    const w   = box ? Math.floor(box.getBoundingClientRect().width - 28) : 300;
+    const w   = box ? Math.floor(box.getBoundingClientRect().width - 48) : 300;
     el.width  = w > 80 ? w : 300;
-    el.height = 150;
+    el.height = 180;
     return new Chart(el, {type:'line', data:{labels, datasets:buildDS(values)}, options:opts});
   }
   cmChartWeek  = drawChart('cm-chart-week',  weekLabels,  weekData,  cmChartWeek);
