@@ -88,6 +88,35 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 /* ── SLIDER DE VÉRIFICATION ─────────────────────────────────────── */
 .verif-slider-container {
   padding: 4px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.verif-indicator {
+  display: flex;
+  gap: 12px;
+  height: 16px;
+  align-items: center;
+}
+
+.verif-indicator-label {
+  font-size: .65rem;
+  font-weight: 700;
+  color: #4A5568;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  transition: all .2s;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.verif-indicator-label.active {
+  color: #F5F7FA;
+  background: rgba(184,115,51,.3);
+  box-shadow: 0 0 8px rgba(184,115,51,.4);
+  text-shadow: 0 0 4px rgba(255,255,255,.5);
 }
 
 .verif-slider {
@@ -111,74 +140,12 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
   box-shadow: inset 0 1px 4px rgba(0,0,0,.5), 0 0 8px rgba(184,115,51,.3);
 }
 
-/* Séparateurs entre les zones */
-.verif-slider::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-  background: repeating-linear-gradient(
-    to right,
-    transparent,
-    transparent calc(14.28% - 1px),
-    rgba(255,138,0,.4) calc(14.28% - 1px),
-    rgba(255,138,0,.4) calc(14.28% + 1px),
-    transparent calc(14.28% + 1px),
-    transparent calc(28.56% - 1px),
-    rgba(255,138,0,.4) calc(28.56% - 1px),
-    rgba(255,138,0,.4) calc(28.56% + 1px),
-    transparent calc(28.56% + 1px),
-    transparent calc(42.84% - 1px),
-    rgba(255,138,0,.4) calc(42.84% - 1px),
-    rgba(255,138,0,.4) calc(42.84% + 1px),
-    transparent calc(42.84% + 1px),
-    transparent calc(57.12% - 1px),
-    rgba(255,138,0,.4) calc(57.12% - 1px),
-    rgba(255,138,0,.4) calc(57.12% + 1px),
-    transparent calc(57.12% + 1px),
-    transparent calc(71.40% - 1px),
-    rgba(255,138,0,.4) calc(71.40% - 1px),
-    rgba(255,138,0,.4) calc(71.40% + 1px),
-    transparent calc(71.40% + 1px),
-    transparent calc(85.68% - 1px),
-    rgba(255,138,0,.4) calc(85.68% - 1px),
-    rgba(255,138,0,.4) calc(85.68% + 1px)
-  );
-}
-
 .verif-track {
-  position: absolute;
-  width: calc(100% - 6px);
-  height: calc(100% - 6px);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 6px;
-  pointer-events: none;
+  display: none;
 }
 
 .verif-label {
-  font-size: .5rem;
-  font-weight: 800;
-  color: #4A5568;
-  text-transform: uppercase;
-  letter-spacing: .03em;
-  z-index: 1;
-  transition: all .25s;
-  white-space: nowrap;
-  pointer-events: none;
-  text-shadow: 0 1px 1px rgba(0,0,0,.5);
-}
-
-.verif-label.active {
-  color: #F5F7FA;
-  font-size: .55rem;
-  text-shadow: 0 1px 4px rgba(0,0,0,.8);
-  transform: scale(1.1);
+  display: none;
 }
 
 .verif-thumb {
@@ -276,44 +243,6 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
     inset 0 -1px 2px rgba(0,0,0,.2),
     inset 0 1px 2px rgba(255,255,255,.3);
 }
-
-/* Indicateurs de zones sous l'en-tête */
-.verif-zones {
-  display: flex;
-  width: 160px;
-  height: 12px;
-  margin: 2px auto 0;
-  border-radius: 6px;
-  overflow: hidden;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,.3);
-}
-
-.verif-zone {
-  flex: 1;
-  background: #1A1D26;
-  border-right: 1px solid rgba(255,138,0,.5);
-  position: relative;
-  font-size: .5rem;
-  font-weight: 700;
-  color: rgba(255,138,0,.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-transform: uppercase;
-  letter-spacing: .02em;
-}
-
-.verif-zone:last-child {
-  border-right: none;
-}
-
-.verif-zone:nth-child(1) { color: #6B7280; }
-.verif-zone:nth-child(2) { color: rgba(16,185,129,.6); }
-.verif-zone:nth-child(3) { color: rgba(239,68,68,.6); }
-.verif-zone:nth-child(4) { color: rgba(16,185,129,.6); }
-.verif-zone:nth-child(5) { color: rgba(239,68,68,.6); }
-.verif-zone:nth-child(6) { color: rgba(16,185,129,.6); }
-.verif-zone:nth-child(7) { color: rgba(239,68,68,.6); }
 
 /* Heure */
 .h-badge{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--copper-light);display:inline-flex;align-items:center;gap:7px;white-space:nowrap;}
@@ -493,18 +422,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
         <th>N° départ</th>
         <th>Chargement</th>
         <th id="th-hreelle">Heure réelle</th>
-        <th class="th-ep" style="text-align:center;min-width:180px;" title="État de vérification des quarts">
-          <div>✎ Vérification</div>
-          <div class="verif-zones">
-            <div class="verif-zone">—</div>
-            <div class="verif-zone">✓</div>
-            <div class="verif-zone">✗</div>
-            <div class="verif-zone">✓</div>
-            <div class="verif-zone">✗</div>
-            <div class="verif-zone">✓</div>
-            <div class="verif-zone">✗</div>
-          </div>
-        </th>
+        <th class="th-ep" style="text-align:center;min-width:180px;" title="État de vérification des quarts">✎ Vérification</th>
         <th></th>
       </tr></thead>
       <tbody id="tbody"></tbody>
@@ -1072,16 +990,12 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
 
     <td class="td-hreelle"><input class="ci-t" type="time" value="${esc(r.heure_reelle||'')}" oninput="fchg(${idx},'heure_reelle',this.value)"></td>
     <td class="td-ep verif-slider-container">
+      <div class="verif-indicator">
+        <span class="verif-indicator-label ${r.etat_verification==='q1_ok'||r.etat_verification==='q1_err'?'active':''}">Q1</span>
+        <span class="verif-indicator-label ${r.etat_verification==='q2_ok'||r.etat_verification==='q2_err'?'active':''}">Q2</span>
+        <span class="verif-indicator-label ${r.etat_verification==='q3_ok'||r.etat_verification==='q3_err'?'active':''}">Q3</span>
+      </div>
       <div class="verif-slider" data-idx="${idx}" onmousedown="startDragVerif(event, ${idx})" ontouchstart="startDragVerif(event, ${idx})">
-        <div class="verif-track">
-          <span class="verif-label ${(!r.etat_verification||r.etat_verification==='none')?'active':''}" data-state="none">—</span>
-          <span class="verif-label ${r.etat_verification==='q1_ok'?'active':''}" data-state="q1_ok">Q1✓</span>
-          <span class="verif-label ${r.etat_verification==='q1_err'?'active':''}" data-state="q1_err">Q1✗</span>
-          <span class="verif-label ${r.etat_verification==='q2_ok'?'active':''}" data-state="q2_ok">Q2✓</span>
-          <span class="verif-label ${r.etat_verification==='q2_err'?'active':''}" data-state="q2_err">Q2✗</span>
-          <span class="verif-label ${r.etat_verification==='q3_ok'?'active':''}" data-state="q3_ok">Q3✓</span>
-          <span class="verif-label ${r.etat_verification==='q3_err'?'active':''}" data-state="q3_err">Q3✗</span>
-        </div>
         <div class="verif-thumb" data-state="${r.etat_verification||'none'}" data-icon="${getVerifIcon(r.etat_verification)}"></div>
       </div>
     </td>
@@ -1153,15 +1067,19 @@ function updateVerifStateFromPosition(clientX) {
   
   // Mettre à jour visuellement le slider immédiatement
   const thumb = slider.querySelector('.verif-thumb');
-  const labels = slider.querySelectorAll('.verif-label');
+  const container = slider.parentElement;
+  const indicators = container.querySelectorAll('.verif-indicator-label');
   
   if (thumb) {
     thumb.setAttribute('data-state', newState);
     thumb.setAttribute('data-icon', getVerifIcon(newState));
   }
   
-  labels.forEach(label => {
-    label.classList.toggle('active', label.getAttribute('data-state') === newState);
+  // Mettre à jour les indicateurs Q1, Q2, Q3
+  indicators.forEach((indicator, i) => {
+    const quartNum = i + 1;
+    const isActive = newState.startsWith(`q${quartNum}_`);
+    indicator.classList.toggle('active', isActive);
   });
   
   // Stocker temporairement le nouvel état
