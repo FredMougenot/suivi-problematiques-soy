@@ -85,6 +85,116 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 .ep-cb-q2{accent-color:#7B9CF0;}
 .ep-cb-q3{accent-color:#C87FE8;}
 
+/* ── SLIDER DE VÉRIFICATION ─────────────────────────────────────── */
+.verif-slider-container {
+  padding: 4px 8px;
+}
+
+.verif-slider {
+  position: relative;
+  width: 240px;
+  height: 40px;
+  background: var(--bg-float);
+  border-radius: 22px;
+  border: 2px solid var(--text-faint);
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  cursor: pointer;
+  transition: all .2s;
+  user-select: none;
+}
+
+.verif-slider:hover {
+  border-color: var(--copper);
+  box-shadow: 0 0 12px rgba(184,115,51,.2);
+}
+
+.verif-track {
+  position: absolute;
+  width: calc(100% - 8px);
+  height: calc(100% - 8px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 12px;
+  pointer-events: none;
+}
+
+.verif-label {
+  font-size: .65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  z-index: 1;
+  transition: color .2s;
+  white-space: nowrap;
+}
+
+.verif-label.active {
+  color: #0F1118;
+  font-weight: 800;
+}
+
+.verif-thumb {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--copper), var(--copper-light));
+  border-radius: 50%;
+  transition: all .3s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 3px 10px rgba(0,0,0,.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .75rem;
+  color: #0F1118;
+  font-weight: 900;
+  z-index: 2;
+}
+
+.verif-thumb::before {
+  content: attr(data-icon);
+  font-size: 1rem;
+}
+
+/* États du slider */
+.verif-thumb[data-state="none"] {
+  left: 4px;
+  background: linear-gradient(135deg, #4A5568, #5A6678);
+}
+
+.verif-thumb[data-state="q1_ok"] {
+  left: calc(16.66% - 16px);
+  background: linear-gradient(135deg, #10B981, #34D399);
+}
+
+.verif-thumb[data-state="q1_err"] {
+  left: calc(33.33% - 16px);
+  background: linear-gradient(135deg, #EF4444, #F87171);
+}
+
+.verif-thumb[data-state="q2_ok"] {
+  left: calc(50% - 16px);
+  background: linear-gradient(135deg, #10B981, #34D399);
+}
+
+.verif-thumb[data-state="q2_err"] {
+  left: calc(66.66% - 16px);
+  background: linear-gradient(135deg, #EF4444, #F87171);
+}
+
+.verif-thumb[data-state="q3_ok"] {
+  left: calc(83.33% - 16px);
+  background: linear-gradient(135deg, #10B981, #34D399);
+}
+
+.verif-thumb[data-state="q3_err"] {
+  left: calc(100% - 36px);
+  background: linear-gradient(135deg, #EF4444, #F87171);
+}
+
 /* Heure */
 .h-badge{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--copper-light);display:inline-flex;align-items:center;gap:7px;white-space:nowrap;}
 .h-badge.past{color:var(--text-muted);}
@@ -263,9 +373,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
         <th>N° départ</th>
         <th>Chargement</th>
         <th id="th-hreelle">Heure réelle</th>
-        <th class="th-ep" style="color:#E8A43A;" title="Erreur papier Quart 1">✎ Q1</th>
-        <th class="th-ep" style="color:#7B9CF0;" title="Erreur papier Quart 2">✎ Q2</th>
-        <th class="th-ep" style="color:#C87FE8;" title="Erreur papier Quart 3">✎ Q3</th>
+        <th class="th-ep" style="text-align:center;min-width:260px;" title="État de vérification des quarts">✎ Vérification</th>
         <th></th>
       </tr></thead>
       <tbody id="tbody"></tbody>
@@ -483,6 +591,9 @@ function applyReadOnly(){
   const thHr = document.getElementById('th-hreelle');
   if(thHr) thHr.style.display = 'none';
   document.querySelectorAll('#tbody .td-hreelle').forEach(td => td.style.display = 'none');
+  // Masquer colonne Vérification en mode lecture seule
+  document.querySelectorAll('.th-ep').forEach(th => th.style.display = 'none');
+  document.querySelectorAll('#tbody .td-ep').forEach(td => td.style.display = 'none');
   // Afficher le bouton déconnexion topbar
   const btnLogout = document.getElementById('btn-viewer-logout');
   if(btnLogout) btnLogout.style.display = 'inline-flex';
@@ -829,28 +940,77 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
     })()}</td>
 
     <td class="td-hreelle"><input class="ci-t" type="time" value="${esc(r.heure_reelle||'')}" oninput="fchg(${idx},'heure_reelle',this.value)"></td>
-    <td class="td-ep"><input type="checkbox" class="ep-cb"       ${r.erreur_q1?'checked':''} onchange="saveErreurPapier(${idx},1,this.checked)" title="Erreur Q1"></td>
-    <td class="td-ep"><input type="checkbox" class="ep-cb ep-cb-q2" ${r.erreur_q2?'checked':''} onchange="saveErreurPapier(${idx},2,this.checked)" title="Erreur Q2"></td>
-    <td class="td-ep"><input type="checkbox" class="ep-cb ep-cb-q3" ${r.erreur_q3?'checked':''} onchange="saveErreurPapier(${idx},3,this.checked)" title="Erreur Q3"></td>
+    <td class="td-ep verif-slider-container">
+      <div class="verif-slider" onclick="cycleVerifState(${idx}, event)">
+        <div class="verif-track">
+          <span class="verif-label ${(!r.etat_verification||r.etat_verification==='none')?'active':''}" data-state="none">—</span>
+          <span class="verif-label ${r.etat_verification==='q1_ok'?'active':''}" data-state="q1_ok">Q1✓</span>
+          <span class="verif-label ${r.etat_verification==='q1_err'?'active':''}" data-state="q1_err">Q1✗</span>
+          <span class="verif-label ${r.etat_verification==='q2_ok'?'active':''}" data-state="q2_ok">Q2✓</span>
+          <span class="verif-label ${r.etat_verification==='q2_err'?'active':''}" data-state="q2_err">Q2✗</span>
+          <span class="verif-label ${r.etat_verification==='q3_ok'?'active':''}" data-state="q3_ok">Q3✓</span>
+          <span class="verif-label ${r.etat_verification==='q3_err'?'active':''}" data-state="q3_err">Q3✗</span>
+        </div>
+        <div class="verif-thumb" data-state="${r.etat_verification||'none'}" data-icon="${getVerifIcon(r.etat_verification)}"></div>
+      </div>
+    </td>
     ${isExtra?`<td style="text-align:center"><button onclick="delRow(${idx})" title="Supprimer ce camion" style="background:none;border:none;cursor:pointer;color:var(--text-faint);font-size:1rem;padding:2px 6px;border-radius:var(--r-sm);transition:color var(--t-fast);" onmouseover="this.style.color='var(--ruby)'" onmouseout="this.style.color='var(--text-faint)'">✕</button></td>`:'<td></td>'}
   </tr>`;
 }
-// ── ERREURS PAPIER ────────────────────────────────────────────────
-async function saveErreurPapier(idx, quart, val){
-  if(!rows[idx]||!rows[idx].id){
-    // Ligne pas encore en DB : cocher déclenche d'abord saveRow
+// ── VÉRIFICATION (SLIDER) ─────────────────────────────────────────
+function getVerifIcon(state){
+  const icons = {
+    'none': '—',
+    'q1_ok': '✓',
+    'q1_err': '✗',
+    'q2_ok': '✓',
+    'q2_err': '✗',
+    'q3_ok': '✓',
+    'q3_err': '✗'
+  };
+  return icons[state] || '—';
+}
+
+const VERIF_STATES = ['none', 'q1_ok', 'q1_err', 'q2_ok', 'q2_err', 'q3_ok', 'q3_err'];
+
+async function cycleVerifState(idx, event){
+  event.stopPropagation();
+  const r = rows[idx];
+  const currentState = r.etat_verification || 'none';
+  const currentIndex = VERIF_STATES.indexOf(currentState);
+  const nextIndex = (currentIndex + 1) % VERIF_STATES.length;
+  const nextState = VERIF_STATES[nextIndex];
+  
+  if(!r || !r.id){
     if(!rows[idx]) rows[idx]={slot_index:idx};
-    rows[idx]['erreur_q'+quart]=val;
+    rows[idx].etat_verification = nextState;
     await saveRow(idx);
+    render();
     return;
   }
-  rows[idx]['erreur_q'+quart]=val;
-  const field='erreur_q'+quart;
-  const {error}=await sb.from('planning_camions')
-    .update({[field]:val, updated_at:new Date().toISOString()})
-    .eq('id',rows[idx].id);
-  if(error){ toast('Erreur sauvegarde: '+error.message,'error'); return; }
-  toast((val?'✎ Erreur Q'+quart+' enregistrée':'Erreur Q'+quart+' retirée'),'success');
+  
+  rows[idx].etat_verification = nextState;
+  const {error} = await sb.from('planning_camions')
+    .update({etat_verification: nextState, updated_at: new Date().toISOString()})
+    .eq('id', r.id);
+  
+  if(error){
+    toast('Erreur sauvegarde: '+error.message, 'error');
+    return;
+  }
+  
+  const stateLabels = {
+    'none': 'Non vérifié',
+    'q1_ok': 'Q1 Conforme',
+    'q1_err': 'Q1 Non-conforme',
+    'q2_ok': 'Q2 Conforme',
+    'q2_err': 'Q2 Non-conforme',
+    'q3_ok': 'Q3 Conforme',
+    'q3_err': 'Q3 Non-conforme'
+  };
+  
+  toast('✎ ' + stateLabels[nextState], 'success');
+  render();
 }
 
 // ── CHAMPS ─────────────────────────────────────────────────────────
@@ -907,9 +1067,7 @@ async function saveAll(){
       statut:r.statut||null,
       chargement:r.chargement||null,
       heure_reelle:r.heure_reelle||null,
-      erreur_q1:r.erreur_q1||false,
-      erreur_q2:r.erreur_q2||false,
-      erreur_q3:r.erreur_q3||false,
+      etat_verification:r.etat_verification||null,
       updated_at:new Date().toISOString(),
     };
     if(r.id){
@@ -945,9 +1103,7 @@ async function saveRow(idx){
     statut:r.statut||null,
     chargement:r.chargement||null,
     heure_reelle:r.heure_reelle||null,
-    erreur_q1:r.erreur_q1||false,
-    erreur_q2:r.erreur_q2||false,
-    erreur_q3:r.erreur_q3||false,
+    etat_verification:r.etat_verification||null,
     updated_at:new Date().toISOString(),
   };
   let error;

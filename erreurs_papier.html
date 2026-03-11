@@ -987,8 +987,12 @@ function calculateStats(rows) {
   const total = comptables.length;
   
   const stats = QUARTS.map(q => {
-    const field = `erreur_q${q.id}`;
-    const errors = comptables.filter(r => r[field] === true).length;
+    // Compter les erreurs pour ce quart depuis etat_verification
+    const errors = comptables.filter(r => {
+      const state = r.etat_verification || '';
+      return state === `q${q.id}_err`;
+    }).length;
+    
     const efficiency = total > 0 ? Math.round(((total - errors) / total) * 100) : null;
     
     return {
@@ -1084,9 +1088,11 @@ function renderErrorList(rows) {
   rows.forEach(row => {
     if (!isComptable(row)) return;
     
+    const state = row.etat_verification || '';
+    
+    // Déterminer quel quart et si c'est une erreur
     QUARTS.forEach(q => {
-      const field = `erreur_q${q.id}`;
-      if (row[field] === true) {
+      if (state === `q${q.id}_err`) {
         errors.push({
           time: row.heure_planif || '—',
           quart: q,
@@ -1485,12 +1491,7 @@ async function loadData() {
         continue;
       }
       
-      const dayRows = (data || []).map(r => ({
-        ...r,
-        erreur_q1: r.erreur_q1 === true,
-        erreur_q2: r.erreur_q2 === true,
-        erreur_q3: r.erreur_q3 === true
-      }));
+      const dayRows = (data || []).map(r => r);
       
       allRows = allRows.concat(dayRows);
     }
