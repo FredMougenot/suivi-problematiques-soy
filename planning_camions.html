@@ -130,6 +130,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
   z-index: 1;
   transition: color .2s;
   white-space: nowrap;
+  pointer-events: none;
 }
 
 .verif-label.active {
@@ -152,6 +153,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
   color: #0F1118;
   font-weight: 900;
   z-index: 2;
+  pointer-events: none;
 }
 
 .verif-thumb::before {
@@ -941,7 +943,7 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
 
     <td class="td-hreelle"><input class="ci-t" type="time" value="${esc(r.heure_reelle||'')}" oninput="fchg(${idx},'heure_reelle',this.value)"></td>
     <td class="td-ep verif-slider-container">
-      <div class="verif-slider" onclick="cycleVerifState(${idx}, event)">
+      <div class="verif-slider" data-idx="${idx}" onmousedown="startDragVerif(event, ${idx})" ontouchstart="startDragVerif(event, ${idx})">
         <div class="verif-track">
           <span class="verif-label ${(!r.etat_verification||r.etat_verification==='none')?'active':''}" data-state="none">—</span>
           <span class="verif-label ${r.etat_verification==='q1_ok'?'active':''}" data-state="q1_ok">Q1✓</span>
@@ -973,29 +975,106 @@ function getVerifIcon(state){
 
 const VERIF_STATES = ['none', 'q1_ok', 'q1_err', 'q2_ok', 'q2_err', 'q3_ok', 'q3_err'];
 
-async function cycleVerifState(idx, event){
+let dragVerifData = null;
+
+function startDragVerif(event, idx) {
+  event.preventDefault();
   event.stopPropagation();
-  const r = rows[idx];
-  const currentState = r.etat_verification || 'none';
-  const currentIndex = VERIF_STATES.indexOf(currentState);
-  const nextIndex = (currentIndex + 1) % VERIF_STATES.length;
-  const nextState = VERIF_STATES[nextIndex];
   
-  if(!r || !r.id){
-    if(!rows[idx]) rows[idx]={slot_index:idx};
-    rows[idx].etat_verification = nextState;
+  const slider = event.currentTarget;
+  const rect = slider.getBoundingClientRect();
+  const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+  
+  dragVerifData = {
+    idx: idx,
+    slider: slider,
+    rect: rect,
+    startX: clientX,
+    initialState: rows[idx]?.etat_verification || 'none'
+  };
+  
+  // Calculer immédiatement le nouvel état basé sur la position du clic
+  updateVerifStateFromPosition(clientX);
+  
+  document.addEventListener('mousemove', onDragVerifMove);
+  document.addEventListener('mouseup', onDragVerifEnd);
+  document.addEventListener('touchmove', onDragVerifMove);
+  document.addEventListener('touchend', onDragVerifEnd);
+}
+
+function onDragVerifMove(event) {
+  if (!dragVerifData) return;
+  event.preventDefault();
+  
+  const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+  updateVerifStateFromPosition(clientX);
+}
+
+function updateVerifStateFromPosition(clientX) {
+  if (!dragVerifData) return;
+  
+  const { slider, rect, idx } = dragVerifData;
+  
+  // Calculer la position relative (0 à 1)
+  const relativeX = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+  
+  // Convertir en index d'état (0 à 6)
+  const stateIndex = Math.round(relativeX * 6);
+  const newState = VERIF_STATES[stateIndex];
+  
+  // Mettre à jour visuellement le slider immédiatement
+  const thumb = slider.querySelector('.verif-thumb');
+  const labels = slider.querySelectorAll('.verif-label');
+  
+  if (thumb) {
+    thumb.setAttribute('data-state', newState);
+    thumb.setAttribute('data-icon', getVerifIcon(newState));
+  }
+  
+  labels.forEach(label => {
+    label.classList.toggle('active', label.getAttribute('data-state') === newState);
+  });
+  
+  // Stocker temporairement le nouvel état
+  dragVerifData.currentState = newState;
+}
+
+async function onDragVerifEnd(event) {
+  if (!dragVerifData) return;
+  event.preventDefault();
+  
+  const { idx, currentState, initialState } = dragVerifData;
+  
+  document.removeEventListener('mousemove', onDragVerifMove);
+  document.removeEventListener('mouseup', onDragVerifEnd);
+  document.removeEventListener('touchmove', onDragVerifMove);
+  document.removeEventListener('touchend', onDragVerifEnd);
+  
+  // Si l'état a changé, sauvegarder
+  if (currentState && currentState !== initialState) {
+    await saveVerifState(idx, currentState);
+  }
+  
+  dragVerifData = null;
+}
+
+async function saveVerifState(idx, newState) {
+  const r = rows[idx];
+  
+  if (!r || !r.id) {
+    if (!rows[idx]) rows[idx] = { slot_index: idx };
+    rows[idx].etat_verification = newState;
     await saveRow(idx);
-    render();
     return;
   }
   
-  rows[idx].etat_verification = nextState;
-  const {error} = await sb.from('planning_camions')
-    .update({etat_verification: nextState, updated_at: new Date().toISOString()})
+  rows[idx].etat_verification = newState;
+  const { error } = await sb.from('planning_camions')
+    .update({ etat_verification: newState, updated_at: new Date().toISOString() })
     .eq('id', r.id);
   
-  if(error){
-    toast('Erreur sauvegarde: '+error.message, 'error');
+  if (error) {
+    toast('Erreur sauvegarde: ' + error.message, 'error');
     return;
   }
   
@@ -1009,8 +1088,7 @@ async function cycleVerifState(idx, event){
     'q3_err': 'Q3 Non-conforme'
   };
   
-  toast('✎ ' + stateLabels[nextState], 'success');
-  render();
+  toast('✎ ' + stateLabels[newState], 'success');
 }
 
 // ── CHAMPS ─────────────────────────────────────────────────────────
