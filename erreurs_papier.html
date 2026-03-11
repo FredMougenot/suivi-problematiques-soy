@@ -977,8 +977,12 @@ function isComptable(row) {
   if (!dest) return false;
   if (dest.toUpperCase().includes('BOBTAIL')) return false;
   
+  // Les slots normaux utilisent num_depart
+  // Les camions extra utilisent num_camion
+  // On accepte la ligne si au moins un des deux est rempli
   const numDepart = (row.num_depart || '').trim();
-  if (!numDepart) return false;
+  const numCamion = (row.num_camion || '').trim();
+  if (!numDepart && !numCamion) return false;
   
   return true;
 }
@@ -1091,7 +1095,7 @@ function renderErrorList(rows) {
         errors.push({
           time: row.heure_planif || '—',
           quart: q,
-          truck: row.num_depart || row.numero_camion || '—',
+          truck: row.num_depart || row.num_camion || '—',
           dest: row.destination || '—',
           date: row.date_jour
         });
