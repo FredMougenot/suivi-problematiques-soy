@@ -214,6 +214,45 @@ body::before {
   position: relative;
 }
 
+.view-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  padding: 6px;
+  background: var(--elevated);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.view-tab {
+  padding: 10px 24px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: .875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+
+.view-tab:hover {
+  color: var(--text-secondary);
+}
+
+.view-tab.active {
+  background: var(--panel);
+  color: var(--text-primary);
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+
 .date-nav {
   display: flex;
   align-items: center;
@@ -590,6 +629,65 @@ body::before {
   height: 240px;
 }
 
+.heatmap-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.heatmap-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 6px;
+  font-size: .75rem;
+}
+
+.heatmap-table th {
+  padding: 8px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  font-size: .625rem;
+}
+
+.heatmap-cell {
+  min-width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cell-bg);
+  border-radius: var(--radius-sm);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  color: var(--cell-color);
+  cursor: default;
+  transition: all .2s;
+  border: 2px solid var(--cell-border);
+  position: relative;
+  overflow: hidden;
+}
+
+.heatmap-cell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent, rgba(255,255,255,.05));
+  opacity: 0;
+  transition: opacity .2s;
+}
+
+.heatmap-cell:hover::before {
+  opacity: 1;
+}
+
+.heatmap-cell:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 16px rgba(0,0,0,.5);
+  z-index: 10;
+}
+
 .loading {
   display: flex;
   flex-direction: column;
@@ -688,6 +786,12 @@ body::before {
   .grid-3 {
     grid-template-columns: 1fr;
   }
+  
+  .heatmap-cell {
+    min-width: 48px;
+    height: 48px;
+    font-size: .75rem;
+  }
 }
 </style>
 </head>
@@ -715,14 +819,20 @@ body::before {
 </header>
 
 <section class="date-section">
+  <div class="view-tabs">
+    <button class="view-tab active" onclick="switchView('jour', this)">Journée</button>
+    <button class="view-tab" onclick="switchView('semaine', this)">Semaine</button>
+    <button class="view-tab" onclick="switchView('mois', this)">Mois</button>
+  </div>
+
   <div class="date-nav">
-    <button class="date-arr" onclick="changeDay(-1)">←</button>
+    <button class="date-arr" onclick="changeDate(-1)">←</button>
     <div class="date-display">
       <div class="date-label" id="date-lbl">—</div>
       <div class="date-meta" id="date-meta">Chargement...</div>
       <div class="today-badge" id="today-badge" style="display:none">Aujourd'hui</div>
     </div>
-    <button class="date-arr" onclick="changeDay(1)">→</button>
+    <button class="date-arr" onclick="changeDate(1)">→</button>
   </div>
 
   <div class="quarts-grid" id="quarts-grid">
@@ -748,6 +858,7 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 
 let sb;
 let curDate = todayStr();
+let curView = 'jour';
 let charts = [];
 
 const QUARTS = [
@@ -773,19 +884,80 @@ function formatDateShort(dateStr) {
   return `${days[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`;
 }
 
-function isToday() {
-  return curDate === todayStr();
+function getWeekRange(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  
+  const monday = new Date(d);
+  monday.setDate(d.getDate() + diff);
+  
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  
+  return {
+    start: monday.toISOString().slice(0, 10),
+    end: sunday.toISOString().slice(0, 10)
+  };
 }
 
-function changeDay(delta) {
-  const d = new Date(curDate + 'T00:00:00');
-  d.setDate(d.getDate() + delta);
-  curDate = d.toISOString().slice(0, 10);
+function getMonthRange(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const year = d.getFullYear();
+  const month = d.getMonth();
+  
+  const start = new Date(year, month, 1);
+  const end = new Date(year, month + 1, 0);
+  
+  return {
+    start: start.toISOString().slice(0, 10),
+    end: end.toISOString().slice(0, 10)
+  };
+}
+
+function getDaysInRange(startStr, endStr) {
+  const days = [];
+  const start = new Date(startStr + 'T00:00:00');
+  const end = new Date(endStr + 'T00:00:00');
+  
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    days.push(d.toISOString().slice(0, 10));
+  }
+  
+  return days;
+}
+
+function isToday(dateStr) {
+  return dateStr === todayStr();
+}
+
+function changeDate(delta) {
+  if (curView === 'jour') {
+    const d = new Date(curDate + 'T00:00:00');
+    d.setDate(d.getDate() + delta);
+    curDate = d.toISOString().slice(0, 10);
+  } else if (curView === 'semaine') {
+    const d = new Date(curDate + 'T00:00:00');
+    d.setDate(d.getDate() + (delta * 7));
+    curDate = d.toISOString().slice(0, 10);
+  } else if (curView === 'mois') {
+    const d = new Date(curDate + 'T00:00:00');
+    d.setMonth(d.getMonth() + delta);
+    curDate = d.toISOString().slice(0, 10);
+  }
+  
   refreshUI();
 }
 
 function goToday() {
   curDate = todayStr();
+  refreshUI();
+}
+
+function switchView(view, btn) {
+  curView = view;
+  document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
   refreshUI();
 }
 
@@ -805,7 +977,7 @@ function isComptable(row) {
   if (!dest) return false;
   if (dest.toUpperCase().includes('BOBTAIL')) return false;
   
-  const numDepart = (row.numero_depart || '').trim();
+  const numDepart = (row.num_depart || '').trim();
   if (!numDepart) return false;
   
   return true;
@@ -919,14 +1091,18 @@ function renderErrorList(rows) {
         errors.push({
           time: row.heure_planif || '—',
           quart: q,
-          truck: row.numero_depart || row.numero_camion || '—',
-          dest: row.destination || '—'
+          truck: row.num_depart || row.numero_camion || '—',
+          dest: row.destination || '—',
+          date: row.date_jour
         });
       }
     });
   });
   
-  errors.sort((a, b) => a.time.localeCompare(b.time));
+  errors.sort((a, b) => {
+    if (a.date !== b.date) return a.date.localeCompare(b.date);
+    return a.time.localeCompare(b.time);
+  });
   
   if (errors.length === 0) {
     return `
@@ -947,6 +1123,7 @@ function renderErrorList(rows) {
     <div class="error-list">
       ${errors.map(e => `
         <div class="error-item" style="--item-color: ${e.quart.color}; --item-bg: ${e.quart.bg}">
+          ${curView !== 'jour' ? `<div style="font-size: .75rem; font-weight: 600; color: var(--text-muted); min-width: 80px;">${formatDateShort(e.date)}</div>` : ''}
           <div class="error-time">${e.time}</div>
           <div class="error-quart">${e.quart.short}</div>
           <div class="error-truck">
@@ -957,6 +1134,52 @@ function renderErrorList(rows) {
       `).join('')}
     </div>
   `;
+}
+
+function renderHeatmap(dataByDay) {
+  const days = Object.keys(dataByDay).sort();
+  if (days.length === 0) return '';
+  
+  const maxErrors = Math.max(1, ...days.map(d => dataByDay[d].total));
+  
+  let html = '<div class="heatmap-scroll"><table class="heatmap-table">';
+  html += '<thead><tr><th></th>';
+  
+  days.forEach(day => {
+    html += `<th>${formatDateShort(day)}</th>`;
+  });
+  
+  html += '</tr></thead><tbody>';
+  
+  QUARTS.forEach(q => {
+    html += `<tr><th style="text-align: right; padding-right: 16px; color: ${q.color}">${q.short}</th>`;
+    
+    days.forEach(day => {
+      const dayData = dataByDay[day];
+      const qData = dayData[`q${q.id}`] || 0;
+      const intensity = qData / maxErrors;
+      
+      let bgColor, textColor, borderColor;
+      
+      if (qData === 0) {
+        bgColor = 'var(--elevated)';
+        textColor = 'var(--text-faint)';
+        borderColor = 'var(--border)';
+      } else {
+        const alpha = 0.1 + (intensity * 0.6);
+        bgColor = q.color.replace(')', `,${alpha})`).replace('rgb', 'rgba');
+        textColor = intensity > 0.5 ? '#FFF' : q.color;
+        borderColor = q.color;
+      }
+      
+      html += `<td><div class="heatmap-cell" style="--cell-bg: ${bgColor}; --cell-color: ${textColor}; --cell-border: ${borderColor}" title="${formatDateShort(day)} · ${q.label}: ${qData} erreur${qData !== 1 ? 's' : ''}">${qData || ''}</div></td>`;
+    });
+    
+    html += '</tr>';
+  });
+  
+  html += '</tbody></table></div>';
+  return html;
 }
 
 function renderCharts(rows, stats) {
@@ -1055,7 +1278,7 @@ function renderCharts(rows, stats) {
   }
 }
 
-function renderMainContent(rows, statsData) {
+function renderMainContent(rows, statsData, dataByDay) {
   const { stats } = statsData;
   const errorListHtml = renderErrorList(rows);
   
@@ -1063,6 +1286,32 @@ function renderMainContent(rows, statsData) {
   const avgEfficiency = stats.reduce((sum, s) => sum + (s.efficiency || 0), 0) / 3;
   
   const content = document.getElementById('main-content');
+  
+  let heatmapHtml = '';
+  if (curView !== 'jour' && dataByDay) {
+    heatmapHtml = `
+      <div class="panel">
+        <div class="panel-header" style="--panel-accent: #B026FF; --panel-glow: rgba(176,38,255,.3)">
+          <div class="panel-title">
+            <div class="panel-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
+            Carte Thermique
+          </div>
+          <div class="panel-meta">Erreurs par ${curView === 'semaine' ? 'Jour' : 'Jour du Mois'}</div>
+        </div>
+        <div class="panel-body">
+          ${renderHeatmap(dataByDay)}
+        </div>
+      </div>
+    `;
+  }
+  
   content.innerHTML = `
     <div class="grid-3">
       <div class="panel">
@@ -1133,6 +1382,8 @@ function renderMainContent(rows, statsData) {
         </div>
       </div>
     </div>
+    
+    ${heatmapHtml}
     
     <div class="grid-2">
       <div class="panel">
@@ -1205,24 +1456,64 @@ function renderMainContent(rows, statsData) {
 
 async function loadData() {
   try {
-    const { data, error } = await sb
-      .from('planning_camions')
-      .select('*')
-      .eq('date_jour', curDate)
-      .order('slot_index');
+    let startDate, endDate;
     
-    if (error) throw error;
+    if (curView === 'jour') {
+      startDate = endDate = curDate;
+    } else if (curView === 'semaine') {
+      const range = getWeekRange(curDate);
+      startDate = range.start;
+      endDate = range.end;
+    } else {
+      const range = getMonthRange(curDate);
+      startDate = range.start;
+      endDate = range.end;
+    }
     
-    const rows = (data || []).map(r => ({
-      ...r,
-      erreur_q1: r.erreur_q1 === true,
-      erreur_q2: r.erreur_q2 === true,
-      erreur_q3: r.erreur_q3 === true
-    }));
+    const days = getDaysInRange(startDate, endDate);
+    let allRows = [];
     
-    const statsData = calculateStats(rows);
+    for (const day of days) {
+      const { data, error } = await sb
+        .from('planning_camions')
+        .select('*')
+        .eq('date_jour', day)
+        .order('slot_index');
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading day:', day, error);
+        continue;
+      }
+      
+      const dayRows = (data || []).map(r => ({
+        ...r,
+        erreur_q1: r.erreur_q1 === true,
+        erreur_q2: r.erreur_q2 === true,
+        erreur_q3: r.erreur_q3 === true
+      }));
+      
+      allRows = allRows.concat(dayRows);
+    }
+    
+    const statsData = calculateStats(allRows);
     renderQuartCards(statsData.stats);
-    renderMainContent(rows, statsData);
+    
+    let dataByDay = null;
+    if (curView !== 'jour') {
+      dataByDay = {};
+      days.forEach(day => {
+        const dayRows = allRows.filter(r => r.date_jour === day);
+        const dayStats = calculateStats(dayRows);
+        dataByDay[day] = {
+          total: dayStats.stats.reduce((sum, s) => sum + s.errors, 0),
+          q1: dayStats.stats[0].errors,
+          q2: dayStats.stats[1].errors,
+          q3: dayStats.stats[2].errors
+        };
+      });
+    }
+    
+    renderMainContent(allRows, statsData, dataByDay);
     
   } catch (e) {
     console.error('Error loading data:', e);
@@ -1237,9 +1528,23 @@ async function loadData() {
 }
 
 function refreshUI() {
-  document.getElementById('date-lbl').textContent = formatDate(curDate);
-  document.getElementById('date-meta').textContent = formatDateShort(curDate);
-  document.getElementById('today-badge').style.display = isToday() ? 'block' : 'none';
+  if (curView === 'jour') {
+    document.getElementById('date-lbl').textContent = formatDate(curDate);
+    document.getElementById('date-meta').textContent = formatDateShort(curDate);
+  } else if (curView === 'semaine') {
+    const range = getWeekRange(curDate);
+    const start = new Date(range.start + 'T00:00:00');
+    const end = new Date(range.end + 'T00:00:00');
+    document.getElementById('date-lbl').textContent = `Semaine du ${start.getDate()} au ${end.getDate()} ${start.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`;
+    document.getElementById('date-meta').textContent = `${formatDateShort(range.start)} - ${formatDateShort(range.end)}`;
+  } else {
+    const d = new Date(curDate + 'T00:00:00');
+    document.getElementById('date-lbl').textContent = d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    const range = getMonthRange(curDate);
+    document.getElementById('date-meta').textContent = `${formatDateShort(range.start)} - ${formatDateShort(range.end)}`;
+  }
+  
+  document.getElementById('today-badge').style.display = isToday(curDate) ? 'block' : 'none';
   
   loadData();
 }
