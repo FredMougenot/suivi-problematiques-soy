@@ -977,13 +977,8 @@ function isComptable(row) {
   if (!dest) return false;
   if (dest.toUpperCase().includes('BOBTAIL')) return false;
   
-  // Les slots normaux utilisent num_depart
-  // Les camions extra utilisent num_camion
-  // On accepte la ligne si au moins un des deux est rempli
-  const numDepart = (row.num_depart || '').trim();
-  const numCamion = (row.num_camion || '').trim();
-  if (!numDepart && !numCamion) return false;
-  
+  // Une ligne est comptable si elle a une destination et n'est pas INACTIF
+  // Peu importe si num_depart est rempli ou non
   return true;
 }
 
