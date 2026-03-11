@@ -984,11 +984,18 @@ function isComptable(row) {
 
 function calculateStats(rows) {
   const comptables = rows.filter(r => isComptable(r));
-  const total = comptables.length;
   
   const stats = QUARTS.map(q => {
-    // Compter les erreurs pour ce quart depuis etat_verification
-    const errors = comptables.filter(r => {
+    // Pour ce quart, compter SEULEMENT les camions qu'il a vérifiés (OK ou erreur)
+    const camionsVerifies = comptables.filter(r => {
+      const state = r.etat_verification || '';
+      return state === `q${q.id}_ok` || state === `q${q.id}_err`;
+    });
+    
+    const total = camionsVerifies.length;
+    
+    // Compter les erreurs pour ce quart
+    const errors = camionsVerifies.filter(r => {
       const state = r.etat_verification || '';
       return state === `q${q.id}_err`;
     }).length;
@@ -1003,7 +1010,13 @@ function calculateStats(rows) {
     };
   });
   
-  return { stats, total };
+  // Le total global est la somme de tous les camions vérifiés (sans double comptage)
+  const totalGlobal = comptables.filter(r => {
+    const state = r.etat_verification || '';
+    return state && state !== 'none';
+  }).length;
+  
+  return { stats, total: totalGlobal };
 }
 
 function getEfficiencyColor(efficiency) {
@@ -1284,11 +1297,11 @@ function renderCharts(rows, stats) {
 }
 
 function renderMainContent(rows, statsData, dataByDay) {
-  const { stats } = statsData;
+  const { stats, total: totalGlobal } = statsData;
   const errorListHtml = renderErrorList(rows);
   
   const totalErrors = stats.reduce((sum, s) => sum + s.errors, 0);
-  const totalCamions = stats[0].total; // Le total est le même pour tous les quarts
+  const totalCamions = stats.reduce((sum, s) => sum + s.total, 0); // Somme des camions vérifiés par tous les quarts
   const avgEfficiency = totalCamions > 0 ? Math.round(((totalCamions - totalErrors) / totalCamions) * 100) : null;
   
   const content = document.getElementById('main-content');
