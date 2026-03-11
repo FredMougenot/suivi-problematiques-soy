@@ -87,114 +87,155 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 
 /* ── SLIDER DE VÉRIFICATION ─────────────────────────────────────── */
 .verif-slider-container {
-  padding: 4px 8px;
+  padding: 8px 12px;
 }
 
 .verif-slider {
   position: relative;
-  width: 240px;
-  height: 40px;
-  background: var(--bg-float);
-  border-radius: 22px;
-  border: 2px solid var(--text-faint);
+  width: 320px;
+  height: 56px;
+  background: linear-gradient(to bottom, #1A1D26, #14161C);
+  border-radius: 28px;
+  border: 3px solid #2A2D3A;
   display: flex;
   align-items: center;
-  padding: 4px;
+  padding: 6px;
   cursor: pointer;
   transition: all .2s;
   user-select: none;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,.5), 0 2px 12px rgba(0,0,0,.3);
 }
 
 .verif-slider:hover {
   border-color: var(--copper);
-  box-shadow: 0 0 12px rgba(184,115,51,.2);
+  box-shadow: inset 0 2px 8px rgba(0,0,0,.5), 0 0 16px rgba(184,115,51,.3);
 }
 
 .verif-track {
   position: absolute;
-  width: calc(100% - 8px);
-  height: calc(100% - 8px);
+  width: calc(100% - 12px);
+  height: calc(100% - 12px);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 12px;
+  padding: 0 20px;
   pointer-events: none;
 }
 
 .verif-label {
-  font-size: .65rem;
-  font-weight: 700;
-  color: var(--text-muted);
+  font-size: .8rem;
+  font-weight: 800;
+  color: #4A5568;
   text-transform: uppercase;
-  letter-spacing: .04em;
+  letter-spacing: .06em;
   z-index: 1;
-  transition: color .2s;
+  transition: all .25s;
   white-space: nowrap;
   pointer-events: none;
+  text-shadow: 0 1px 2px rgba(0,0,0,.5);
 }
 
 .verif-label.active {
-  color: #0F1118;
-  font-weight: 800;
+  color: #F5F7FA;
+  font-size: .85rem;
+  text-shadow: 0 2px 8px rgba(0,0,0,.8);
+  transform: scale(1.1);
 }
 
 .verif-thumb {
   position: absolute;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   background: linear-gradient(135deg, var(--copper), var(--copper-light));
   border-radius: 50%;
   transition: all .3s cubic-bezier(.4,0,.2,1);
-  box-shadow: 0 3px 10px rgba(0,0,0,.4);
+  box-shadow: 
+    0 4px 12px rgba(0,0,0,.5),
+    0 0 0 4px rgba(0,0,0,.2),
+    inset 0 -2px 4px rgba(0,0,0,.2),
+    inset 0 2px 4px rgba(255,255,255,.2);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: .75rem;
+  font-size: 1.1rem;
   color: #0F1118;
   font-weight: 900;
   z-index: 2;
   pointer-events: none;
+  border: 3px solid rgba(255,255,255,.15);
 }
 
 .verif-thumb::before {
   content: attr(data-icon);
-  font-size: 1rem;
+  font-size: 1.4rem;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.3));
 }
 
-/* États du slider */
+/* États du slider - Repositionnés pour meilleure visibilité */
 .verif-thumb[data-state="none"] {
-  left: 4px;
-  background: linear-gradient(135deg, #4A5568, #5A6678);
+  left: 6px;
+  background: linear-gradient(135deg, #5A6678, #4A5568);
+  border-color: rgba(255,255,255,.1);
 }
 
 .verif-thumb[data-state="q1_ok"] {
-  left: calc(16.66% - 16px);
+  left: calc(16.66% - 10px);
   background: linear-gradient(135deg, #10B981, #34D399);
+  box-shadow: 
+    0 4px 12px rgba(16,185,129,.4),
+    0 0 0 4px rgba(16,185,129,.15),
+    inset 0 -2px 4px rgba(0,0,0,.2),
+    inset 0 2px 4px rgba(255,255,255,.3);
 }
 
 .verif-thumb[data-state="q1_err"] {
-  left: calc(33.33% - 16px);
+  left: calc(33.33% - 10px);
   background: linear-gradient(135deg, #EF4444, #F87171);
+  box-shadow: 
+    0 4px 12px rgba(239,68,68,.4),
+    0 0 0 4px rgba(239,68,68,.15),
+    inset 0 -2px 4px rgba(0,0,0,.2),
+    inset 0 2px 4px rgba(255,255,255,.3);
 }
 
 .verif-thumb[data-state="q2_ok"] {
-  left: calc(50% - 16px);
+  left: calc(50% - 22px);
   background: linear-gradient(135deg, #10B981, #34D399);
+  box-shadow: 
+    0 4px 12px rgba(16,185,129,.4),
+    0 0 0 4px rgba(16,185,129,.15),
+    inset 0 -2px 4px rgba(0,0,0,.2),
+    inset 0 2px 4px rgba(255,255,255,.3);
 }
 
 .verif-thumb[data-state="q2_err"] {
-  left: calc(66.66% - 16px);
+  left: calc(66.66% - 32px);
   background: linear-gradient(135deg, #EF4444, #F87171);
+  box-shadow: 
+    0 4px 12px rgba(239,68,68,.4),
+    0 0 0 4px rgba(239,68,68,.15),
+    inset 0 -2px 4px rgba(0,0,0,.2),
+    inset 0 2px 4px rgba(255,255,255,.3);
 }
 
 .verif-thumb[data-state="q3_ok"] {
-  left: calc(83.33% - 16px);
+  left: calc(83.33% - 42px);
   background: linear-gradient(135deg, #10B981, #34D399);
+  box-shadow: 
+    0 4px 12px rgba(16,185,129,.4),
+    0 0 0 4px rgba(16,185,129,.15),
+    inset 0 -2px 4px rgba(0,0,0,.2),
+    inset 0 2px 4px rgba(255,255,255,.3);
 }
 
 .verif-thumb[data-state="q3_err"] {
-  left: calc(100% - 36px);
+  left: calc(100% - 50px);
   background: linear-gradient(135deg, #EF4444, #F87171);
+  box-shadow: 
+    0 4px 12px rgba(239,68,68,.4),
+    0 0 0 4px rgba(239,68,68,.15),
+    inset 0 -2px 4px rgba(0,0,0,.2),
+    inset 0 2px 4px rgba(255,255,255,.3);
 }
 
 /* Heure */
@@ -375,7 +416,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
         <th>N° départ</th>
         <th>Chargement</th>
         <th id="th-hreelle">Heure réelle</th>
-        <th class="th-ep" style="text-align:center;min-width:260px;" title="État de vérification des quarts">✎ Vérification</th>
+        <th class="th-ep" style="text-align:center;min-width:360px;" title="État de vérification des quarts">✎ Vérification</th>
         <th></th>
       </tr></thead>
       <tbody id="tbody"></tbody>
