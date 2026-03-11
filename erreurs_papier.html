@@ -1282,7 +1282,8 @@ function renderMainContent(rows, statsData, dataByDay) {
   const errorListHtml = renderErrorList(rows);
   
   const totalErrors = stats.reduce((sum, s) => sum + s.errors, 0);
-  const avgEfficiency = stats.reduce((sum, s) => sum + (s.efficiency || 0), 0) / 3;
+  const totalCamions = stats[0].total; // Le total est le même pour tous les quarts
+  const avgEfficiency = totalCamions > 0 ? Math.round(((totalCamions - totalErrors) / totalCamions) * 100) : null;
   
   const content = document.getElementById('main-content');
   
@@ -1373,10 +1374,10 @@ function renderMainContent(rows, statsData, dataByDay) {
         </div>
         <div class="panel-body">
           <div style="font-size: 3rem; font-weight: 800; color: ${getEfficiencyColor(avgEfficiency)}; font-family: 'Space Grotesk', sans-serif;">
-            ${Math.round(avgEfficiency)}%
+            ${avgEfficiency !== null ? Math.round(avgEfficiency) + '%' : '—'}
           </div>
           <div style="font-size: .875rem; color: var(--text-muted); margin-top: 8px;">
-            ${avgEfficiency >= 95 ? 'Performance excellence' : avgEfficiency >= 85 ? 'Performance très bonne' : avgEfficiency >= 70 ? 'Performance bonne' : avgEfficiency >= 50 ? 'Performance moyenne' : 'Performance critique'}
+            ${avgEfficiency !== null ? (avgEfficiency >= 95 ? 'Performance excellence' : avgEfficiency >= 85 ? 'Performance très bonne' : avgEfficiency >= 70 ? 'Performance bonne' : avgEfficiency >= 50 ? 'Performance moyenne' : 'Performance critique') : 'Non calculable'}
           </div>
         </div>
       </div>
