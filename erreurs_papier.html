@@ -971,11 +971,10 @@ function toast(msg, type = 'success') {
 
 function isComptable(row) {
   const statut = (row.statut_ligne || '').toUpperCase();
-  if (statut === 'INACTIF') return true;
+  if (statut === 'INACTIF') return false;
   
-  const dest = (row.destination || '').trim();
-  if (!dest) return true;
-  if (dest.toUpperCase().includes('BOBTAIL')) return true;
+  
+  if (dest.toUpperCase().includes('BOBTAIL')) return false;
   
   // Une ligne est comptable si elle a une destination et n'est pas INACTIF
   // Peu importe si num_depart est rempli ou non
