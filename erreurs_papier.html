@@ -973,6 +973,7 @@ function isComptable(row) {
   const statut = (row.statut_ligne || '').toUpperCase();
   if (statut === 'INACTIF') return false;
   
+  const dest = (row.destination || '').trim();
   
   if (dest.toUpperCase().includes('BOBTAIL')) return false;
   
