@@ -699,9 +699,9 @@ body { font-size: 0.9375rem; }
     <div class="tbl-wrap" style="touch-action:pan-x">
       <table class="dtbl" style="min-width:900px">
         <thead><tr>
-          <th>ID</th><th>Intitulé / Description</th><th>Pilier</th><th>Responsable</th>
-          <th>Priorité</th><th>Statut</th><th>Soumis le</th><th>Date prévue</th><th>Date résolue</th>
-          <th>Cause</th><th>Action</th><th>Résultat</th>
+          <th>ID</th><th>Pilier</th><th>Priorité</th><th>Statut</th>
+          <th>Soumis le</th><th>Intitulé / Description</th><th>Cause</th><th>Action</th><th>Résultat</th>
+          <th>Responsable</th><th>Date prévue</th><th>Date résolue</th>
           <th class="admin-only" style="display:none">Actions</th>
         </tr></thead>
         <tbody id="prob-tbody"></tbody>
@@ -915,7 +915,21 @@ function renderTable(data){
     const cause = p.cause ? `<div style="font-size:.8rem;color:var(--text-secondary);max-width:200px;white-space:normal">${esc(p.cause.substring(0,80))}${p.cause.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
     const action = p.action ? `<div style="font-size:.8rem;color:var(--text-secondary);max-width:200px;white-space:normal">${esc(p.action.substring(0,80))}${p.action.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
     const resultat = p.resultat ? `<div style="font-size:.8rem;color:var(--text-secondary);max-width:200px;white-space:normal">${esc(p.resultat.substring(0,80))}${p.resultat.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
-    return `<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,65))}${(p.description||'').length>65?'...':''}</small></div></td><td><span class="badge bd">${esc(p.pilier||'')}</span></td><td style="font-size:.82rem;color:var(--text-secondary)">${esc(p.responsable||'')}</td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td><td>${datePrevue}</td><td>${dateResolue}</td><td>${cause}</td><td>${action}</td><td>${resultat}</td>${isAdmin?`<td><button class="ab ab-e" data-id="${p.id}" data-action="edit">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" data-id="${p.id}" data-action="cloturer">Cloturer</button>`:''}</td>`:'<td></td>'}</tr>`;
+    return `<tr>
+      <td><span class="c-id">#${fmtId(p.id)}</span></td>
+      <td><span class="badge bd">${esc(p.pilier||'')}</span></td>
+      <td>${bPrio(p.priorite)}</td>
+      <td>${bStat(p.statut)}</td>
+      <td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td>
+      <td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,65))}${(p.description||'').length>65?'...':''}</small></div></td>
+      <td>${cause}</td>
+      <td>${action}</td>
+      <td>${resultat}</td>
+      <td style="font-size:.82rem;color:var(--text-secondary)">${esc(p.responsable||'')}</td>
+      <td>${datePrevue}</td>
+      <td>${dateResolue}</td>
+      ${isAdmin?`<td><button class="ab ab-e" data-id="${p.id}" data-action="edit">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" data-id="${p.id}" data-action="cloturer">Cloturer</button>`:''}</td>`:'<td></td>'}
+    </tr>`;
   }).join('');
 }
 
