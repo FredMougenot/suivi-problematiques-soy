@@ -701,6 +701,7 @@ body { font-size: 0.9375rem; }
         <thead><tr>
           <th>ID</th><th>Intitulé / Description</th><th>Pilier</th><th>Responsable</th>
           <th>Priorité</th><th>Statut</th><th>Soumis le</th><th>Date prévue</th><th>Date résolue</th>
+          <th>Cause</th><th>Action</th><th>Résultat</th>
           <th class="admin-only" style="display:none">Actions</th>
         </tr></thead>
         <tbody id="prob-tbody"></tbody>
@@ -755,6 +756,21 @@ body { font-size: 0.9375rem; }
           <textarea id="edit-description" class="fg-inp" rows="4"
             style="resize:vertical;min-height:80px;font-family:inherit;font-size:.86rem;line-height:1.5"
             placeholder="Description détaillée…"></textarea>
+        </div>
+        <div class="fg full"><label class="fg-lbl">Cause</label>
+          <textarea id="edit-cause" class="fg-inp" rows="3"
+            style="resize:vertical;min-height:60px;font-family:inherit;font-size:.86rem;line-height:1.5"
+            placeholder="Cause racine identifiée…"></textarea>
+        </div>
+        <div class="fg full"><label class="fg-lbl">Action</label>
+          <textarea id="edit-action" class="fg-inp" rows="3"
+            style="resize:vertical;min-height:60px;font-family:inherit;font-size:.86rem;line-height:1.5"
+            placeholder="Actions correctives mises en place…"></textarea>
+        </div>
+        <div class="fg full"><label class="fg-lbl">Résultat</label>
+          <textarea id="edit-resultat" class="fg-inp" rows="3"
+            style="resize:vertical;min-height:60px;font-family:inherit;font-size:.86rem;line-height:1.5"
+            placeholder="Résultats obtenus…"></textarea>
         </div>
       </div>
     </div>
@@ -893,10 +909,13 @@ function filterTable() {
 
 function renderTable(data){
   const probs=data||allProblems;
-  document.getElementById('prob-tbody').innerHTML=probs.length===0?'<tr><td colspan="10"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique trouvee.</div></div></td></tr>':probs.map(p=>{
+  document.getElementById('prob-tbody').innerHTML=probs.length===0?'<tr><td colspan="13"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique trouvee.</div></div></td></tr>':probs.map(p=>{
     const datePrevue = p.date_prevue ? `<span style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.date_prevue)}</span>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
     const dateResolue = p.date_resolue ? `<span style="font-size:.78rem;color:var(--emerald)">${fmtDate(p.date_resolue)}</span>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
-    return `<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,65))}${(p.description||'').length>65?'...':''}</small></div></td><td><span class="badge bd">${esc(p.pilier||'')}</span></td><td style="font-size:.82rem;color:var(--text-secondary)">${esc(p.responsable||'')}</td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td><td>${datePrevue}</td><td>${dateResolue}</td>${isAdmin?`<td><button class="ab ab-e" data-id="${p.id}" data-action="edit">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" data-id="${p.id}" data-action="cloturer">Cloturer</button>`:''}</td>`:'<td></td>'}</tr>`;
+    const cause = p.cause ? `<div style="font-size:.8rem;color:var(--text-secondary);max-width:200px;white-space:normal">${esc(p.cause.substring(0,80))}${p.cause.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+    const action = p.action ? `<div style="font-size:.8rem;color:var(--text-secondary);max-width:200px;white-space:normal">${esc(p.action.substring(0,80))}${p.action.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+    const resultat = p.resultat ? `<div style="font-size:.8rem;color:var(--text-secondary);max-width:200px;white-space:normal">${esc(p.resultat.substring(0,80))}${p.resultat.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+    return `<tr><td><span class="c-id">#${fmtId(p.id)}</span></td><td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,65))}${(p.description||'').length>65?'...':''}</small></div></td><td><span class="badge bd">${esc(p.pilier||'')}</span></td><td style="font-size:.82rem;color:var(--text-secondary)">${esc(p.responsable||'')}</td><td>${bPrio(p.priorite)}</td><td>${bStat(p.statut)}</td><td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td><td>${datePrevue}</td><td>${dateResolue}</td><td>${cause}</td><td>${action}</td><td>${resultat}</td>${isAdmin?`<td><button class="ab ab-e" data-id="${p.id}" data-action="edit">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" data-id="${p.id}" data-action="cloturer">Cloturer</button>`:''}</td>`:'<td></td>'}</tr>`;
   }).join('');
 }
 
@@ -912,6 +931,9 @@ function openNewProb(){
   document.getElementById('edit-date-prevue').value='';
   document.getElementById('edit-date-resolue').value='';
   document.getElementById('edit-description').value='';
+  document.getElementById('edit-cause').value='';
+  document.getElementById('edit-action').value='';
+  document.getElementById('edit-resultat').value='';
   document.getElementById('modal-edit').classList.add('open');
 }
 
@@ -927,6 +949,9 @@ function openEdit(id){
   document.getElementById('edit-date-prevue').value=ep.date_prevue||'';
   document.getElementById('edit-date-resolue').value=ep.date_resolue||'';
   document.getElementById('edit-description').value=ep.description||'';
+  document.getElementById('edit-cause').value=ep.cause||'';
+  document.getElementById('edit-action').value=ep.action||'';
+  document.getElementById('edit-resultat').value=ep.resultat||'';
   document.getElementById('modal-edit').classList.add('open');
 }
 
@@ -941,6 +966,9 @@ async function saveEdit(){
       priorite:    document.getElementById('edit-priorite').value,
       responsable: document.getElementById('edit-responsable').value.trim()||null,
       description: document.getElementById('edit-description').value.trim()||null,
+      cause:       document.getElementById('edit-cause').value.trim()||null,
+      action:      document.getElementById('edit-action').value.trim()||null,
+      resultat:    document.getElementById('edit-resultat').value.trim()||null,
       date_prevue: document.getElementById('edit-date-prevue').value||null,
       soumis_par:  (currentUser?.user_metadata?.prenom||'')+(currentUser?.user_metadata?.nom?' '+currentUser.user_metadata.nom:''),
       created_at:  new Date().toISOString(),
@@ -966,6 +994,9 @@ async function saveEdit(){
     priorite:    document.getElementById('edit-priorite').value,
     responsable: document.getElementById('edit-responsable').value.trim()||null,
     description: document.getElementById('edit-description').value.trim()||null,
+    cause:       document.getElementById('edit-cause').value.trim()||null,
+    action:      document.getElementById('edit-action').value.trim()||null,
+    resultat:    document.getElementById('edit-resultat').value.trim()||null,
     date_prevue: document.getElementById('edit-date-prevue').value||null,
     date_resolue:dateResolue||null,
     updated_at:  new Date().toISOString(),
