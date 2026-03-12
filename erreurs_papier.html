@@ -293,7 +293,7 @@ body::before {
   background: var(--panel);
   border: 2px solid var(--border-bright);
   border-radius: var(--radius-lg);
-  padding: 16px 40px;
+  padding: 12px 32px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -331,14 +331,10 @@ body::before {
 }
 
 .today-badge {
-  position: absolute;
-  top: -12px;
-  right: 50%;
-  transform: translateX(50%);
-  padding: 4px 12px;
+  padding: 3px 10px;
   background: var(--q1-bg);
   border: 1px solid var(--q1-color);
-  border-radius: 20px;
+  border-radius: 16px;
   font-size: .625rem;
   font-weight: 700;
   color: var(--q1-color);
@@ -818,7 +814,7 @@ body::before {
   </div>
 </header>
 
-<section class="date-section">
+<section class="date-section" style="padding-bottom: 16px;">
   <div class="view-tabs">
     <button class="view-tab active" onclick="switchView('jour', this)">Journée</button>
     <button class="view-tab" onclick="switchView('semaine', this)">Semaine</button>
@@ -828,18 +824,13 @@ body::before {
   <div class="date-nav">
     <button class="date-arr" onclick="changeDate(-1)">←</button>
     <div class="date-display">
-      <div class="date-label" id="date-lbl">—</div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="date-label" id="date-lbl">—</div>
+        <div class="today-badge" id="today-badge" style="display:none">Aujourd'hui</div>
+      </div>
       <div class="date-meta" id="date-meta">Chargement...</div>
-      <div class="today-badge" id="today-badge" style="display:none">Aujourd'hui</div>
     </div>
     <button class="date-arr" onclick="changeDate(1)">→</button>
-  </div>
-
-  <div class="quarts-grid" id="quarts-grid">
-    <div class="loading">
-      <div class="spinner"></div>
-      <div class="loading-text">Chargement des données...</div>
-    </div>
   </div>
 </section>
 
