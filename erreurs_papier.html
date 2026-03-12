@@ -332,7 +332,7 @@ body::before {
 
 .today-badge {
   position: absolute;
-  top: 8px;
+  top: -8px;
   right: 12px;
   padding: 4px 12px;
   background: var(--q1-bg);
@@ -1035,8 +1035,8 @@ function getEfficiencyGlow(efficiency) {
   return 'rgba(239,68,68,.3)';
 }
 
-function renderQuartCards(stats) {
-  const grid = document.getElementById('quarts-grid');
+function renderQuartCards(statsData) {
+  const stats = statsData.stats || statsData;
   
   const html = stats.map(s => {
     const effColor = getEfficiencyColor(s.efficiency);
@@ -1090,7 +1090,7 @@ function renderQuartCards(stats) {
     `;
   }).join('');
   
-  grid.innerHTML = html;
+  return html;
 }
 
 function renderErrorList(rows) {
@@ -1245,53 +1245,6 @@ function renderCharts(rows, stats) {
       }
     }));
   }
-  
-  const barCtx = document.getElementById('chart-bar');
-  if (barCtx) {
-    charts.push(new Chart(barCtx, {
-      type: 'bar',
-      data: {
-        labels: stats.map(s => s.label),
-        datasets: [{
-          label: 'Efficacité (%)',
-          data: stats.map(s => s.efficiency || 0),
-          backgroundColor: stats.map(s => s.bg),
-          borderColor: stats.map(s => s.color),
-          borderWidth: 2,
-          borderRadius: 8,
-          borderSkipped: false,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: {
-            beginAtZero: true,
-            max: 100,
-            grid: { color: '#252934' },
-            ticks: { 
-              color: '#6B7280',
-              font: { size: 11 },
-              callback: (val) => val + '%'
-            }
-          },
-          x: {
-            grid: { display: false },
-            ticks: { color: '#6B7280', font: { size: 11, weight: 600 } }
-          }
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => ` Efficacité: ${ctx.raw}%`
-            }
-          }
-        }
-      }
-    }));
-  }
 }
 
 function renderMainContent(rows, statsData, dataByDay) {
@@ -1330,11 +1283,12 @@ function renderMainContent(rows, statsData, dataByDay) {
   }
   
   content.innerHTML = `
+    <!-- WIDGETS TOTAUX EN HAUT -->
     <div class="grid-3">
       <div class="panel">
-        <div class="panel-header">
+        <div class="panel-header" style="--panel-accent: #DC8C7C; --panel-glow: rgba(220,140,124,.2)">
           <div class="panel-title">
-            <div class="panel-icon" style="background: #EF4444; box-shadow: 0 0 16px rgba(239,68,68,.3)">
+            <div class="panel-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
                 <circle cx="12" cy="12" r="10"/>
                 <line x1="12" y1="8" x2="12" y2="12"/>
@@ -1355,9 +1309,9 @@ function renderMainContent(rows, statsData, dataByDay) {
       </div>
       
       <div class="panel">
-        <div class="panel-header">
+        <div class="panel-header" style="--panel-accent: #87CEEB; --panel-glow: rgba(135,206,235,.2)">
           <div class="panel-title">
-            <div class="panel-icon" style="background: #3B82F6; box-shadow: 0 0 16px rgba(59,130,246,.3)">
+            <div class="panel-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                 <line x1="16" y1="2" x2="16" y2="6"/>
@@ -1379,9 +1333,9 @@ function renderMainContent(rows, statsData, dataByDay) {
       </div>
       
       <div class="panel">
-        <div class="panel-header">
+        <div class="panel-header" style="--panel-accent: #D4AF37; --panel-glow: rgba(212,175,55,.2)">
           <div class="panel-title">
-            <div class="panel-icon" style="background: ${getEfficiencyColor(avgEfficiency)}; box-shadow: 0 0 16px ${getEfficiencyGlow(avgEfficiency)}">
+            <div class="panel-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
               </svg>
@@ -1400,11 +1354,17 @@ function renderMainContent(rows, statsData, dataByDay) {
       </div>
     </div>
     
-    ${heatmapHtml}
+    <!-- CARTES PAR QUART -->
+    <div class="quarts-grid">
+      ${renderQuartCards(statsData)}
+    </div>
     
+    <!-- CARTE THERMIQUE + DISTRIBUTION (côte à côte) -->
     <div class="grid-2">
+      ${heatmapHtml}
+      
       <div class="panel">
-        <div class="panel-header" style="--panel-accent: #DC8C7C; --panel-glow: rgba(220,140,124,.2)">
+        <div class="panel-header" style="--panel-accent: #DDA0DD; --panel-glow: rgba(221,160,221,.2)">
           <div class="panel-title">
             <div class="panel-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
@@ -1423,29 +1383,9 @@ function renderMainContent(rows, statsData, dataByDay) {
           </div>
         </div>
       </div>
-      
-      <div class="panel">
-        <div class="panel-header" style="--panel-accent: #87CEEB; --panel-glow: rgba(135,206,235,.2)">
-          <div class="panel-title">
-            <div class="panel-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
-                <line x1="12" y1="20" x2="12" y2="10"/>
-                <line x1="18" y1="20" x2="18" y2="4"/>
-                <line x1="6" y1="20" x2="6" y2="16"/>
-              </svg>
-            </div>
-            Taux d'Efficacité
-          </div>
-          <div class="panel-meta">Performance</div>
-        </div>
-        <div class="panel-body">
-          <div class="chart-container">
-            <canvas id="chart-bar"></canvas>
-          </div>
-        </div>
-      </div>
     </div>
     
+    <!-- JOURNAL DES ERREURS -->
     <div class="panel">
       <div class="panel-header" style="--panel-accent: #D4AF37; --panel-glow: rgba(212,175,55,.2)">
         <div class="panel-title">
@@ -1460,7 +1400,7 @@ function renderMainContent(rows, statsData, dataByDay) {
           </div>
           Journal des Erreurs
         </div>
-        <div class="panel-meta">${totalErrors} erreur${totalErrors !== 1 ? 's' : ''} · ${stats[0].total} camion${stats[0].total !== 1 ? 's' : ''}</div>
+        <div class="panel-meta">${totalErrors} erreur${totalErrors !== 1 ? 's' : ''} · ${totalCamions} camion${totalCamions !== 1 ? 's' : ''}</div>
       </div>
       <div class="panel-body">
         ${errorListHtml}
