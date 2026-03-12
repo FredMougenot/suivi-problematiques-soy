@@ -16,20 +16,25 @@
   --elevated: #14161C;
   --surface: #1A1D26;
   --panel: #1F2330;
-  --electric-cyan: #00F0FF;
-  --neon-pink: #FF0080;
-  --laser-purple: #B026FF;
-  --toxic-green: #39FF14;
-  --solar-orange: #FF6B00;
-  --q1-color: #FFD700;
-  --q1-glow: rgba(255,215,0,.3);
-  --q1-bg: rgba(255,215,0,.08);
-  --q2-color: #00F0FF;
-  --q2-glow: rgba(0,240,255,.3);
-  --q2-bg: rgba(0,240,255,.08);
-  --q3-color: #FF0080;
-  --q3-glow: rgba(255,0,128,.3);
-  --q3-bg: rgba(255,0,128,.08);
+  
+  /* Couleurs Luxury Premium - subtiles et élégantes */
+  --gold: #D4AF37;
+  --gold-light: #E8C870;
+  --gold-dark: #B8973A;
+  --platinum: #E5E4E2;
+  --champagne: #F7E7CE;
+  
+  /* Quarts - tons élégants */
+  --q1-color: #D4AF37;
+  --q1-glow: rgba(212,175,55,.2);
+  --q1-bg: rgba(212,175,55,.06);
+  --q2-color: #87CEEB;
+  --q2-glow: rgba(135,206,235,.2);
+  --q2-bg: rgba(135,206,235,.06);
+  --q3-color: #DDA0DD;
+  --q3-glow: rgba(221,160,221,.2);
+  --q3-bg: rgba(221,160,221,.06);
+  
   --text-primary: #F5F7FA;
   --text-secondary: #A0A8B8;
   --text-muted: #6B7280;
@@ -42,7 +47,7 @@
   --shadow-sm: 0 2px 8px rgba(0,0,0,.3);
   --shadow-md: 0 4px 16px rgba(0,0,0,.4);
   --shadow-lg: 0 8px 32px rgba(0,0,0,.5);
-  --glow-sm: 0 0 20px;
+  --glow-sm: 0 0 12px;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
@@ -56,7 +61,7 @@
 }
 
 html {
-  font-size: 16px;
+  font-size: 12.8px; /* 80% de 16px = 12.8px */
   scroll-behavior: smooth;
 }
 
@@ -143,7 +148,7 @@ body::before {
 .tb-icon {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, var(--neon-pink), var(--laser-purple));
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold-light));
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -151,8 +156,8 @@ body::before {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.5rem;
   font-weight: 700;
-  color: white;
-  box-shadow: 0 4px 16px rgba(255,0,128,.3);
+  color: #0A0B0D;
+  box-shadow: 0 4px 16px rgba(212,175,55,.2);
   position: relative;
 }
 
@@ -278,10 +283,10 @@ body::before {
 }
 
 .date-arr:hover {
-  border-color: var(--electric-cyan);
-  color: var(--electric-cyan);
-  transform: scale(1.05);
-  box-shadow: 0 0 24px rgba(0,240,255,.2);
+  border-color: var(--gold);
+  color: var(--gold);
+  transform: scale(1.02);
+  box-shadow: 0 0 12px rgba(212,175,55,.15);
 }
 
 .date-display {
@@ -305,7 +310,8 @@ body::before {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent 0%, var(--electric-cyan) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
+  opacity: .6;
 }
 
 .date-label {
@@ -362,9 +368,9 @@ body::before {
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
+  height: 3px;
   background: var(--quart-color);
-  box-shadow: 0 0 16px var(--quart-glow);
+  box-shadow: 0 0 8px var(--quart-glow);
 }
 
 .quart-card:hover {
@@ -402,13 +408,9 @@ body::before {
   background: var(--quart-color);
   border-radius: 50%;
   box-shadow: 0 0 8px var(--quart-glow);
-  animation: pulse 2s ease-in-out infinite;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: .6; transform: scale(.9); }
-}
+/* Animation pulse supprimée pour style luxury */
 
 .quart-efficiency {
   display: flex;
@@ -432,20 +434,16 @@ body::before {
   );
   border-radius: 50%;
   z-index: -1;
-  animation: rotate 3s linear infinite;
 }
 
-@keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
+/* Animation rotate supprimée pour style luxury */
 
 .eff-value {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.5rem;
   font-weight: 800;
   color: var(--eff-color);
-  text-shadow: 0 0 20px var(--eff-glow);
+  text-shadow: 0 0 10px var(--eff-glow);
 }
 
 .quart-stats {
@@ -527,12 +525,12 @@ body::before {
 .panel-icon {
   width: 32px;
   height: 32px;
-  background: var(--panel-accent, var(--electric-cyan));
+  background: var(--panel-accent, var(--gold));
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 16px var(--panel-glow, rgba(0,240,255,.3));
+  box-shadow: 0 0 12px var(--panel-glow, rgba(212,175,55,.2));
 }
 
 .panel-meta {
@@ -862,9 +860,9 @@ let curView = 'jour';
 let charts = [];
 
 const QUARTS = [
-  { id: 1, label: 'Quart 1', short: 'Q1', color: '#FFD700', glow: 'rgba(255,215,0,.3)', bg: 'rgba(255,215,0,.08)' },
-  { id: 2, label: 'Quart 2', short: 'Q2', color: '#00F0FF', glow: 'rgba(0,240,255,.3)', bg: 'rgba(0,240,255,.08)' },
-  { id: 3, label: 'Quart 3', short: 'Q3', color: '#FF0080', glow: 'rgba(255,0,128,.3)', bg: 'rgba(255,0,128,.08)' }
+  { id: 1, label: 'Quart 1', short: 'Q1', color: '#D4AF37', glow: 'rgba(212,175,55,.2)', bg: 'rgba(212,175,55,.06)' },
+  { id: 2, label: 'Quart 2', short: 'Q2', color: '#87CEEB', glow: 'rgba(135,206,235,.2)', bg: 'rgba(135,206,235,.06)' },
+  { id: 3, label: 'Quart 3', short: 'Q3', color: '#DDA0DD', glow: 'rgba(221,160,221,.2)', bg: 'rgba(221,160,221,.06)' }
 ];
 
 function todayStr() {
@@ -1310,7 +1308,7 @@ function renderMainContent(rows, statsData, dataByDay) {
   if (curView !== 'jour' && dataByDay) {
     heatmapHtml = `
       <div class="panel">
-        <div class="panel-header" style="--panel-accent: #B026FF; --panel-glow: rgba(176,38,255,.3)">
+        <div class="panel-header" style="--panel-accent: #DDA0DD; --panel-glow: rgba(221,160,221,.2)">
           <div class="panel-title">
             <div class="panel-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
@@ -1372,10 +1370,10 @@ function renderMainContent(rows, statsData, dataByDay) {
         </div>
         <div class="panel-body">
           <div style="font-size: 3rem; font-weight: 800; color: var(--text-primary); font-family: 'Space Grotesk', sans-serif;">
-            ${stats[0].total}
+            ${totalCamions}
           </div>
           <div style="font-size: .875rem; color: var(--text-muted); margin-top: 8px;">
-            ${stats[0].total === 0 ? 'Aucun camion' : stats[0].total === 1 ? '1 camion comptabilisé' : stats[0].total + ' camions comptabilisés'}
+            ${totalCamions === 0 ? 'Aucun camion' : totalCamions === 1 ? '1 camion comptabilisé' : totalCamions + ' camions comptabilisés'}
           </div>
         </div>
       </div>
@@ -1406,7 +1404,7 @@ function renderMainContent(rows, statsData, dataByDay) {
     
     <div class="grid-2">
       <div class="panel">
-        <div class="panel-header" style="--panel-accent: #FF0080; --panel-glow: rgba(255,0,128,.3)">
+        <div class="panel-header" style="--panel-accent: #DC8C7C; --panel-glow: rgba(220,140,124,.2)">
           <div class="panel-title">
             <div class="panel-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
@@ -1427,7 +1425,7 @@ function renderMainContent(rows, statsData, dataByDay) {
       </div>
       
       <div class="panel">
-        <div class="panel-header" style="--panel-accent: #00F0FF; --panel-glow: rgba(0,240,255,.3)">
+        <div class="panel-header" style="--panel-accent: #87CEEB; --panel-glow: rgba(135,206,235,.2)">
           <div class="panel-title">
             <div class="panel-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
@@ -1449,7 +1447,7 @@ function renderMainContent(rows, statsData, dataByDay) {
     </div>
     
     <div class="panel">
-      <div class="panel-header" style="--panel-accent: #FFD700; --panel-glow: rgba(255,215,0,.3)">
+      <div class="panel-header" style="--panel-accent: #D4AF37; --panel-glow: rgba(212,175,55,.2)">
         <div class="panel-title">
           <div class="panel-icon">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
