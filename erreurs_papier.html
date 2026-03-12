@@ -332,8 +332,9 @@ body::before {
 
 .today-badge {
   position: absolute;
-  top: -8px;
-  right: 12px;
+  top: -12px;
+  right: 50%;
+  transform: translateX(50%);
   padding: 4px 12px;
   background: var(--q1-bg);
   border: 1px solid var(--q1-color);
@@ -343,6 +344,7 @@ body::before {
   color: var(--q1-color);
   text-transform: uppercase;
   letter-spacing: .08em;
+  white-space: nowrap;
 }
 
 .quarts-grid {
@@ -1359,11 +1361,9 @@ function renderMainContent(rows, statsData, dataByDay) {
       ${renderQuartCards(statsData)}
     </div>
     
-    <!-- CARTE THERMIQUE + DISTRIBUTION (côte à côte) -->
-    <div class="grid-2">
-      ${heatmapHtml}
-      
-      <div class="panel">
+    <!-- WIDGET CIRCULAIRE CENTRÉ -->
+    <div style="display: flex; justify-content: center; margin-bottom: 24px;">
+      <div class="panel" style="max-width: 400px; width: 100%;">
         <div class="panel-header" style="--panel-accent: #DDA0DD; --panel-glow: rgba(221,160,221,.2)">
           <div class="panel-title">
             <div class="panel-icon">
@@ -1384,6 +1384,9 @@ function renderMainContent(rows, statsData, dataByDay) {
         </div>
       </div>
     </div>
+    
+    <!-- CARTE THERMIQUE PLEINE LARGEUR -->
+    ${heatmapHtml}
     
     <!-- JOURNAL DES ERREURS -->
     <div class="panel">
@@ -1448,7 +1451,6 @@ async function loadData() {
     }
     
     const statsData = calculateStats(allRows);
-    renderQuartCards(statsData.stats);
     
     let dataByDay = null;
     if (curView !== 'jour') {
