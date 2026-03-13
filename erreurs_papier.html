@@ -1533,165 +1533,99 @@ function waitForSupabase() {
 
 async function exportPDF() {
   try {
-    toast('Génération du PDF en cours...', 'info');
+    toast('Génération du PDF...', 'info');
+    await new Promise(r => setTimeout(r, 300));
     
-    // Attendre un peu pour que le toast s'affiche
-    await new Promise(r => setTimeout(r, 500));
+    const container = document.createElement('div');
+    container.style.cssText = 'position: absolute; left: 0; top: 0; width: 800px; background: white; padding: 40px; font-family: Inter, sans-serif; color: #0A0B0D;';
+    document.body.appendChild(container);
     
-    // Créer un conteneur pour le PDF avec fond blanc
-    const pdfContainer = document.createElement('div');
-    pdfContainer.id = 'pdf-export-container';
-    pdfContainer.style.cssText = `
-      position: fixed;
-      left: 0;
-      top: 0;
-      width: 210mm;
-      background: white;
-      padding: 20mm;
-      font-family: Inter, sans-serif;
-      color: #0A0B0D;
-      z-index: 10000;
-    `;
-    document.body.appendChild(pdfContainer);
-    
-    // En-tête
-    pdfContainer.innerHTML = `
-      <div style="margin-bottom: 30px; border-bottom: 3px solid #D4AF37; padding-bottom: 15px;">
-        <h1 style="font-size: 32px; font-weight: 800; color: #0A0B0D; margin: 0; font-family: 'Space Grotesk', sans-serif;">
-          Analyse Erreurs Papier
-        </h1>
-        <p style="font-size: 16px; color: #6B7280; margin: 8px 0 0 0;">
-          ${document.getElementById('date-lbl').textContent}
-        </p>
+    // Titre
+    container.innerHTML = `
+      <div style="margin-bottom: 25px; border-bottom: 3px solid #D4AF37; padding-bottom: 12px;">
+        <h1 style="font-size: 28px; font-weight: 800; color: #0A0B0D; margin: 0 0 6px 0;">Analyse Erreurs Papier</h1>
+        <p style="font-size: 14px; color: #6B7280; margin: 0;">${document.getElementById('date-lbl').textContent}</p>
       </div>
     `;
     
-    // Récupérer les données des widgets totaux
-    const widgets = document.querySelectorAll('.grid-3 .panel');
-    const statsSection = document.createElement('div');
-    statsSection.style.cssText = 'display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 25px;';
+    // Stats
+    const statsDiv = document.createElement('div');
+    statsDiv.style.cssText = 'display: flex; gap: 12px; margin-bottom: 20px;';
+    const panels = document.querySelectorAll('.grid-3 > .panel');
+    const colors = ['#DC8C7C', '#87CEEB', '#D4AF37'];
     
-    widgets.forEach((widget, idx) => {
-      const title = widget.querySelector('.panel-title').textContent.trim();
-      const value = widget.querySelector('.panel-body > div:first-child').textContent.trim();
-      const sub = widget.querySelector('.panel-body > div:nth-child(2)').textContent.trim();
-      
-      const colors = ['#DC8C7C', '#87CEEB', '#D4AF37'];
-      const statCard = document.createElement('div');
-      statCard.style.cssText = `
-        border: 2px solid ${colors[idx]};
-        border-radius: 10px;
-        padding: 15px;
-        background: #F9FAFB;
-      `;
-      statCard.innerHTML = `
-        <div style="font-size: 12px; color: #6B7280; margin-bottom: 5px; font-weight: 600;">${title}</div>
-        <div style="font-size: 28px; font-weight: 800; color: #0A0B0D; margin-bottom: 3px;">${value}</div>
-        <div style="font-size: 10px; color: #9CA3AF;">${sub}</div>
-      `;
-      statsSection.appendChild(statCard);
+    panels.forEach((p, i) => {
+      const t = p.querySelector('.panel-title').textContent.trim();
+      const v = p.querySelector('.panel-body > div:first-child').textContent.trim();
+      const card = document.createElement('div');
+      card.style.cssText = `flex:1; border:2px solid ${colors[i]}; border-radius:8px; padding:12px; background:#F9FAFB;`;
+      card.innerHTML = `<div style="font-size:10px;color:#6B7280;margin-bottom:4px;font-weight:600;">${t}</div><div style="font-size:22px;font-weight:800;color:#0A0B0D;">${v}</div>`;
+      statsDiv.appendChild(card);
     });
-    pdfContainer.appendChild(statsSection);
+    container.appendChild(statsDiv);
     
-    // Section par quart
-    const quartsTitle = document.createElement('h2');
-    quartsTitle.style.cssText = 'font-size: 20px; font-weight: 700; color: #0A0B0D; margin: 20px 0 12px 0; font-family: "Space Grotesk", sans-serif;';
-    quartsTitle.textContent = 'Détails par Quart de Travail';
-    pdfContainer.appendChild(quartsTitle);
+    // Quarts
+    const qTitle = document.createElement('h2');
+    qTitle.style.cssText = 'font-size:16px;font-weight:700;color:#0A0B0D;margin:16px 0 10px 0;';
+    qTitle.textContent = 'Détails par Quart';
+    container.appendChild(qTitle);
     
-    const quartsGrid = document.createElement('div');
-    quartsGrid.style.cssText = 'display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 25px;';
+    const qDiv = document.createElement('div');
+    qDiv.style.cssText = 'display:flex;gap:12px;margin-bottom:20px;';
     
-    document.querySelectorAll('.quart-card').forEach((card) => {
-      const quartClone = card.cloneNode(true);
-      quartClone.style.cssText = 'border: 2px solid #E5E7EB; border-radius: 10px; padding: 15px; background: white; page-break-inside: avoid;';
+    document.querySelectorAll('.quart-card').forEach(c => {
+      const label = c.querySelector('.quart-tag').textContent.trim();
+      const eff = c.querySelector('.eff-value').textContent.trim();
+      const vals = c.querySelectorAll('.stat-value');
       
-      // Nettoyer les styles pour fond blanc
-      quartClone.querySelectorAll('*').forEach(el => {
-        if (el.style.color && el.style.color.includes('var(')) {
-          el.style.color = '#0A0B0D';
-        }
-        if (el.style.background && el.style.background.includes('var(')) {
-          el.style.background = 'white';
-        }
-      });
-      
-      quartsGrid.appendChild(quartClone);
+      const qc = document.createElement('div');
+      qc.style.cssText = 'flex:1;border:2px solid #E5E7EB;border-radius:8px;padding:10px;background:white;';
+      qc.innerHTML = `
+        <div style="font-size:12px;font-weight:700;color:#0A0B0D;margin-bottom:6px;">${label}</div>
+        <div style="font-size:18px;font-weight:800;color:#D4AF37;margin-bottom:8px;">${eff}</div>
+        <div style="font-size:9px;color:#6B7280;margin-bottom:2px;">Erreurs: <b style="color:#0A0B0D;">${vals[0].textContent}</b></div>
+        <div style="font-size:9px;color:#6B7280;margin-bottom:2px;">Camions: <b style="color:#0A0B0D;">${vals[1].textContent}</b></div>
+        <div style="font-size:9px;color:#6B7280;">Taux: <b style="color:#0A0B0D;">${vals[2].textContent}</b></div>
+      `;
+      qDiv.appendChild(qc);
     });
-    pdfContainer.appendChild(quartsGrid);
+    container.appendChild(qDiv);
     
-    // Graphique circulaire
-    const chartCanvas = document.getElementById('chart-doughnut');
-    if (chartCanvas) {
-      const chartTitle = document.createElement('h2');
-      chartTitle.style.cssText = 'font-size: 20px; font-weight: 700; color: #0A0B0D; margin: 20px 0 12px 0; font-family: "Space Grotesk", sans-serif;';
-      chartTitle.textContent = 'Distribution des Erreurs par Quart';
-      pdfContainer.appendChild(chartTitle);
+    // Chart
+    const canvas = document.getElementById('chart-doughnut');
+    if (canvas) {
+      const cTitle = document.createElement('h2');
+      cTitle.style.cssText = 'font-size:16px;font-weight:700;color:#0A0B0D;margin:16px 0 10px 0;';
+      cTitle.textContent = 'Distribution des Erreurs';
+      container.appendChild(cTitle);
       
-      const chartContainer = document.createElement('div');
-      chartContainer.style.cssText = 'display: flex; justify-content: center; margin-bottom: 25px; page-break-inside: avoid;';
-      
-      const chartImg = document.createElement('img');
-      chartImg.src = chartCanvas.toDataURL('image/png', 1.0);
-      chartImg.style.cssText = 'width: 300px; height: 300px;';
-      chartContainer.appendChild(chartImg);
-      pdfContainer.appendChild(chartContainer);
+      const cDiv = document.createElement('div');
+      cDiv.style.cssText = 'text-align:center;margin-bottom:16px;';
+      const img = document.createElement('img');
+      img.src = canvas.toDataURL('image/png', 1.0);
+      img.style.cssText = 'width:280px;height:auto;';
+      cDiv.appendChild(img);
+      container.appendChild(cDiv);
     }
     
-    // Attendre que les images soient chargées
-    await new Promise(resolve => {
-      const images = pdfContainer.querySelectorAll('img');
-      if (images.length === 0) {
-        resolve();
-        return;
-      }
-      
-      let loaded = 0;
-      images.forEach(img => {
-        if (img.complete) {
-          loaded++;
-          if (loaded === images.length) resolve();
-        } else {
-          img.onload = () => {
-            loaded++;
-            if (loaded === images.length) resolve();
-          };
-        }
-      });
-    });
+    await new Promise(r => setTimeout(r, 400));
     
-    // Générer le PDF
-    const opt = {
-      margin: 0,
-      filename: `analyse-erreurs-papier-${new Date().toISOString().slice(0,10)}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { 
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: false
-      },
-      jsPDF: { 
-        unit: 'mm',
-        format: 'a4',
-        orientation: 'portrait'
-      }
-    };
+    await html2pdf().set({
+      margin: 10,
+      filename: `erreurs-${new Date().toISOString().slice(0,10)}.pdf`,
+      image: { type: 'jpeg', quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }).from(container).save();
     
-    await html2pdf().set(opt).from(pdfContainer).save();
+    document.body.removeChild(container);
+    toast('PDF exporté', 'success');
     
-    // Nettoyer
-    document.body.removeChild(pdfContainer);
-    
-    toast('PDF exporté avec succès', 'success');
-    
-  } catch (error) {
-    console.error('Erreur export PDF:', error);
-    toast('Erreur lors de l\'export PDF', 'error');
-    
-    // Nettoyer en cas d'erreur
-    const container = document.getElementById('pdf-export-container');
-    if (container) document.body.removeChild(container);
+  } catch (err) {
+    console.error('PDF error:', err);
+    toast('Erreur PDF', 'error');
+    const c = document.querySelector('[style*="position: absolute"]');
+    if (c) document.body.removeChild(c);
   }
 }
 
