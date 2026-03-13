@@ -1657,9 +1657,15 @@ async function exportPDF() {
       pdf.text(`Taux: ${q.taux}`, x + 3, y + 25);
     });
     
-    y += 38;
+    y += 35;
     
-    // Graphique circulaire avec fond blanc - TAILLE AUGMENTÉE
+    // Vérifier si on doit passer à la page 2
+    if (y > 200) {
+      pdf.addPage();
+      y = 20;
+    }
+    
+    // Graphique circulaire - DOUBLÉ À 160mm
     const originalCanvas = document.getElementById('chart-doughnut');
     if (originalCanvas) {
       pdf.setFontSize(14);
@@ -1669,7 +1675,6 @@ async function exportPDF() {
       
       y += 5;
       
-      // Créer un canvas temporaire avec fond blanc
       const tempCanvas = document.createElement('canvas');
       const sourceWidth = originalCanvas.width;
       const sourceHeight = originalCanvas.height;
@@ -1678,18 +1683,14 @@ async function exportPDF() {
       tempCanvas.height = sourceHeight;
       const tempCtx = tempCanvas.getContext('2d');
       
-      // Remplir le fond en blanc
       tempCtx.fillStyle = '#FFFFFF';
       tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-      
-      // Copier le graphique par-dessus
       tempCtx.drawImage(originalCanvas, 0, 0);
       
-      // Convertir en JPEG compressé
       const imgData = tempCanvas.toDataURL('image/jpeg', 0.7);
       
-      // Calculer les dimensions - AUGMENTÉ À 80mm
-      const maxSize = 80;
+      // DOUBLÉ: 160mm au lieu de 80mm
+      const maxSize = 160;
       const ratio = sourceWidth / sourceHeight;
       let imgWidth, imgHeight;
       
@@ -1703,11 +1704,115 @@ async function exportPDF() {
       
       const imgX = (pageWidth - imgWidth) / 2;
       
+      // Vérifier si ça rentre sur la page
+      if (y + imgHeight > pageHeight - 20) {
+        pdf.addPage();
+        y = 20;
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(10, 11, 13);
+        pdf.text('Distribution des Erreurs', 20, y);
+        y += 5;
+      }
+      
       pdf.addImage(imgData, 'JPEG', imgX, y, imgWidth, imgHeight);
       y += imgHeight + 10;
     }
     
-    // === PAGE 2 - Journal des Erreurs ===
+    // Carte thermique (si mode semaine ou mois)
+    if (curView !== 'jour') {
+      // Vérifier si on doit passer à la page suivante
+      if (y > pageHeight - 80) {
+        pdf.addPage();
+        y = 20;
+      }
+      
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(10, 11, 13);
+      pdf.text('Carte Thermique', 20, y);
+      
+      y += 8;
+      
+      // Extraire les données de la heatmap depuis le DOM
+      const heatmapCells = document.querySelectorAll('.heatmap-cell');
+      const heatmapHeaders = document.querySelectorAll('.heatmap-table thead th');
+      
+      if (heatmapCells.length > 0 && heatmapHeaders.length > 0) {
+        // Extraire les jours depuis les en-têtes
+        const days = [];
+        heatmapHeaders.forEach((h, idx) => {
+          if (idx > 0) { // Skip premier th vide
+            days.push(h.textContent.trim());
+          }
+        });
+        
+        const nbDays = days.length;
+        const cellWidth = Math.min(20, (pageWidth - 50) / nbDays);
+        const cellHeight = 10;
+        
+        // En-têtes des jours
+        pdf.setFontSize(7);
+        pdf.setTextColor(107, 114, 128);
+        days.forEach((day, idx) => {
+          const x = 40 + (idx * cellWidth);
+          pdf.text(day, x + 1, y + 3);
+        });
+        
+        y += 5;
+        
+        // Lignes Q1, Q2, Q3
+        const quartsColors = [
+          [212, 175, 55],  // Q1 gold
+          [135, 206, 235], // Q2 blue
+          [221, 160, 221]  // Q3 purple
+        ];
+        
+        const heatmapRows = document.querySelectorAll('.heatmap-table tbody tr');
+        heatmapRows.forEach((row, qIdx) => {
+          // Label du quart
+          pdf.setFontSize(8);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(...quartsColors[qIdx]);
+          pdf.text(`Q${qIdx + 1}`, 25, y + 7);
+          
+          // Cellules
+          const cells = row.querySelectorAll('.heatmap-cell');
+          cells.forEach((cell, dayIdx) => {
+            const x = 40 + (dayIdx * cellWidth);
+            const value = cell.textContent.trim();
+            const numValue = parseInt(value) || 0;
+            
+            // Bordure
+            pdf.setDrawColor(200, 200, 200);
+            pdf.setLineWidth(0.2);
+            pdf.rect(x, y, cellWidth, cellHeight);
+            
+            // Remplissage si erreurs
+            if (numValue > 0) {
+              const alpha = Math.min(0.7, 0.2 + (numValue * 0.15));
+              const color = quartsColors[qIdx];
+              pdf.setFillColor(color[0], color[1], color[2]);
+              pdf.setGState(new pdf.GState({opacity: alpha}));
+              pdf.rect(x, y, cellWidth, cellHeight, 'F');
+              pdf.setGState(new pdf.GState({opacity: 1}));
+              
+              // Valeur
+              pdf.setFontSize(7);
+              pdf.setFont('helvetica', 'bold');
+              pdf.setTextColor(color[0], color[1], color[2]);
+              pdf.text(value, x + cellWidth/2, y + 6, {align: 'center'});
+            }
+          });
+          
+          y += cellHeight;
+        });
+        
+        y += 10;
+      }
+    }
+    
+    // === PAGE SUIVANTE - Journal des Erreurs ===
     pdf.addPage();
     y = 20;
     
@@ -1718,7 +1823,6 @@ async function exportPDF() {
     
     y += 10;
     
-    // Récupérer les erreurs - UTILISER LES BONNES CLASSES
     const errorItems = document.querySelectorAll('.error-item');
     
     if (errorItems.length === 0) {
@@ -1733,7 +1837,6 @@ async function exportPDF() {
           y = 20;
         }
         
-        // Utiliser les bonnes classes qui existent vraiment dans le HTML
         const timeEl = item.querySelector('.error-time');
         const truckEl = item.querySelector('.error-truck');
         const quartEl = item.querySelector('.error-quart');
@@ -1742,13 +1845,11 @@ async function exportPDF() {
           const time = timeEl.textContent.trim();
           const quartText = quartEl.textContent.trim();
           
-          // Le truck contient deux divs - prendre tout le texte
           const truckFullText = truckEl.textContent.trim();
           const truckLines = truckFullText.split('\n').map(l => l.trim()).filter(l => l);
           const truck = truckLines[0] || '';
           const dest = truckLines[1] || '';
           
-          // Ligne d'erreur
           pdf.setDrawColor(229, 231, 235);
           pdf.setLineWidth(0.3);
           pdf.rect(20, y, pageWidth - 40, 12);
@@ -1774,7 +1875,6 @@ async function exportPDF() {
       });
     }
     
-    // Sauvegarder
     pdf.save(`analyse-erreurs-${new Date().toISOString().slice(0,10)}.pdf`);
     
     toast('PDF exporté avec succès', 'success');
