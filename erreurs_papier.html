@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
   --void: #0A0B0D;
@@ -1535,122 +1535,142 @@ async function exportPDF() {
   try {
     toast('Génération du PDF...', 'info');
     
-    // Créer conteneur visible temporairement
-    const container = document.createElement('div');
-    container.id = 'pdf-temp';
-    container.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 800px;
-      background: white;
-      padding: 40px;
-      z-index: 99999;
-      font-family: Inter, sans-serif;
-      color: #0A0B0D;
-    `;
-    document.body.appendChild(container);
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    let y = 20;
     
-    // Construire le contenu
-    let html = `
-      <div style="margin-bottom: 25px; border-bottom: 3px solid #D4AF37; padding-bottom: 12px;">
-        <h1 style="font-size: 28px; font-weight: 800; color: #0A0B0D; margin: 0 0 6px 0; font-family: 'Space Grotesk', sans-serif;">Analyse Erreurs Papier</h1>
-        <p style="font-size: 14px; color: #6B7280; margin: 0;">${document.getElementById('date-lbl').textContent}</p>
-      </div>
-      
-      <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-    `;
+    // Titre
+    pdf.setFillColor(212, 175, 55);
+    pdf.rect(0, 0, pageWidth, 3, 'F');
+    
+    pdf.setFontSize(24);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(10, 11, 13);
+    pdf.text('Analyse Erreurs Papier', 20, y);
+    
+    y += 8;
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(107, 114, 128);
+    pdf.text(document.getElementById('date-lbl').textContent, 20, y);
+    
+    y += 3;
+    pdf.setDrawColor(212, 175, 55);
+    pdf.setLineWidth(0.5);
+    pdf.line(20, y, pageWidth - 20, y);
+    
+    y += 10;
     
     // Stats globales
     const panels = document.querySelectorAll('.grid-3 > .panel');
-    const colors = ['#DC8C7C', '#87CEEB', '#D4AF37'];
+    const colors = [[220, 140, 124], [135, 206, 235], [212, 175, 55]];
+    const statsData = [];
+    
     panels.forEach((p, i) => {
       const title = p.querySelector('.panel-title').textContent.trim();
       const value = p.querySelector('.panel-body > div:first-child').textContent.trim();
-      html += `
-        <div style="flex: 1; border: 2px solid ${colors[i]}; border-radius: 8px; padding: 12px; background: #F9FAFB;">
-          <div style="font-size: 10px; color: #6B7280; margin-bottom: 4px; font-weight: 600;">${title}</div>
-          <div style="font-size: 22px; font-weight: 800; color: #0A0B0D;">${value}</div>
-        </div>
-      `;
+      statsData.push({ title, value, color: colors[i] });
     });
     
-    html += `</div><h2 style="font-size: 16px; font-weight: 700; color: #0A0B0D; margin: 16px 0 10px 0; font-family: 'Space Grotesk', sans-serif;">Détails par Quart</h2><div style="display: flex; gap: 12px; margin-bottom: 20px;">`;
+    const boxWidth = (pageWidth - 50) / 3;
+    statsData.forEach((stat, i) => {
+      const x = 20 + (i * (boxWidth + 5));
+      
+      pdf.setDrawColor(...stat.color);
+      pdf.setLineWidth(0.5);
+      pdf.rect(x, y, boxWidth, 20);
+      
+      pdf.setFontSize(8);
+      pdf.setTextColor(107, 114, 128);
+      pdf.text(stat.title, x + 3, y + 5);
+      
+      pdf.setFontSize(18);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(10, 11, 13);
+      pdf.text(stat.value, x + 3, y + 14);
+    });
+    
+    y += 30;
+    
+    // Titre Quarts
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(10, 11, 13);
+    pdf.text('Détails par Quart de Travail', 20, y);
+    
+    y += 8;
     
     // Quarts
-    document.querySelectorAll('.quart-card').forEach(card => {
+    const quartCards = document.querySelectorAll('.quart-card');
+    const quartsData = [];
+    
+    quartCards.forEach(card => {
       const label = card.querySelector('.quart-tag').textContent.trim();
       const eff = card.querySelector('.eff-value').textContent.trim();
       const vals = card.querySelectorAll('.stat-value');
       
-      html += `
-        <div style="flex: 1; border: 2px solid #E5E7EB; border-radius: 8px; padding: 10px; background: white;">
-          <div style="font-size: 12px; font-weight: 700; color: #0A0B0D; margin-bottom: 6px;">${label}</div>
-          <div style="font-size: 18px; font-weight: 800; color: #D4AF37; margin-bottom: 8px;">${eff}</div>
-          <div style="font-size: 9px; color: #6B7280; margin-bottom: 2px;">Erreurs: <strong style="color: #0A0B0D;">${vals[0].textContent}</strong></div>
-          <div style="font-size: 9px; color: #6B7280; margin-bottom: 2px;">Camions: <strong style="color: #0A0B0D;">${vals[1].textContent}</strong></div>
-          <div style="font-size: 9px; color: #6B7280;">Taux: <strong style="color: #0A0B0D;">${vals[2].textContent}</strong></div>
-        </div>
-      `;
+      quartsData.push({
+        label,
+        eff,
+        erreurs: vals[0].textContent,
+        camions: vals[1].textContent,
+        taux: vals[2].textContent
+      });
     });
     
-    html += '</div>';
+    quartsData.forEach((q, i) => {
+      const x = 20 + (i * (boxWidth + 5));
+      
+      pdf.setDrawColor(229, 231, 235);
+      pdf.setLineWidth(0.5);
+      pdf.rect(x, y, boxWidth, 28);
+      
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(10, 11, 13);
+      pdf.text(q.label, x + 3, y + 5);
+      
+      pdf.setFontSize(14);
+      pdf.setTextColor(212, 175, 55);
+      pdf.text(q.eff, x + 3, y + 12);
+      
+      pdf.setFontSize(7);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(107, 114, 128);
+      pdf.text(`Erreurs: ${q.erreurs}`, x + 3, y + 17);
+      pdf.text(`Camions: ${q.camions}`, x + 3, y + 21);
+      pdf.text(`Taux: ${q.taux}`, x + 3, y + 25);
+    });
+    
+    y += 38;
     
     // Graphique
     const canvas = document.getElementById('chart-doughnut');
-    if (canvas) {
+    if (canvas && y < 250) {
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(10, 11, 13);
+      pdf.text('Distribution des Erreurs', 20, y);
+      
+      y += 8;
+      
       const imgData = canvas.toDataURL('image/png', 1.0);
-      html += `
-        <h2 style="font-size: 16px; font-weight: 700; color: #0A0B0D; margin: 16px 0 10px 0; font-family: 'Space Grotesk', sans-serif;">Distribution des Erreurs</h2>
-        <div style="text-align: center; margin-bottom: 16px;">
-          <img src="${imgData}" style="width: 280px; height: auto;" />
-        </div>
-      `;
+      const imgWidth = 80;
+      const imgHeight = 80;
+      const imgX = (pageWidth - imgWidth) / 2;
+      
+      pdf.addImage(imgData, 'PNG', imgX, y, imgWidth, imgHeight);
     }
     
-    container.innerHTML = html;
+    // Sauvegarder
+    pdf.save(`analyse-erreurs-${new Date().toISOString().slice(0,10)}.pdf`);
     
-    // Attendre le rendu
-    await new Promise(r => setTimeout(r, 500));
-    
-    // Générer le PDF
-    const opt = {
-      margin: [10, 10, 10, 10],
-      filename: `analyse-erreurs-${new Date().toISOString().slice(0,10)}.pdf`,
-      image: { type: 'jpeg', quality: 1 },
-      html2canvas: { 
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: true,
-        windowWidth: 800
-      },
-      jsPDF: { 
-        unit: 'mm',
-        format: 'a4',
-        orientation: 'portrait'
-      },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-    };
-    
-    await html2pdf().set(opt).from(container).save();
-    
-    // Nettoyer
-    setTimeout(() => {
-      if (container.parentNode) {
-        document.body.removeChild(container);
-      }
-    }, 100);
-    
-    toast('PDF exporté', 'success');
+    toast('PDF exporté avec succès', 'success');
     
   } catch (err) {
     console.error('Erreur PDF:', err);
-    toast('Erreur: ' + err.message, 'error');
-    
-    const c = document.getElementById('pdf-temp');
-    if (c) document.body.removeChild(c);
+    toast('Erreur export: ' + err.message, 'error');
   }
 }
 
