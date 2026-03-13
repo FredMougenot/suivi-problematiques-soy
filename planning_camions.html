@@ -252,6 +252,19 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 .now-dot{width:7px;height:7px;border-radius:50%;background:var(--emerald);flex-shrink:0;animation:blink 1.4s ease-in-out infinite;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
+/* ── LIGNE ATTENDUE (prochain camion sans heure réelle) ─────────── */
+@keyframes row-pulse {
+  0%,100% { box-shadow: inset 0 0 0 1px rgba(45,212,160,0); background-color: rgba(45,212,160,0); }
+  50%     { box-shadow: inset 0 0 0 1px rgba(45,212,160,0.18); background-color: rgba(45,212,160,0.045); }
+}
+.row-awaited td {
+  animation: row-pulse 3s ease-in-out infinite;
+}
+.row-awaited:hover td {
+  animation: none;
+  background: rgba(200,132,58,.025);
+}
+
 /* Inputs */
 .cs{background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-sm);padding:6px 8px;font-size:.8rem;font-family:'Outfit',sans-serif;cursor:pointer;outline:none;transition:border-color var(--t-fast);min-width:100px;}
 .cs:focus{border-color:var(--copper);}
@@ -858,6 +871,23 @@ function render(){
   // Tri par heure, puis par idx pour départager les égalités
   all.sort((a,b)=> a.h<b.h?-1 : a.h>b.h?1 : a.idx-b.idx);
 
+  // ── Ligne attendue : 1ère ligne active sans heure_reelle ─────────
+  // Uniquement pour le jour courant
+  const _awaitedVInactif = (_params['statut_ligne']||[])[1]?.valeur||'INACTIF';
+  const _awaitedVActif   = (_params['statut_ligne']||[])[0]?.valeur||'ACTIF';
+  window._renderIdxAwaited = null;
+  if(isToday()){
+    for(const entry of all){
+      const r2 = rows[entry.idx]||{};
+      const st2 = r2.statut_ligne || (_awaitedVActif);
+      const isActif2 = _isActifOuNL(st2, _awaitedVActif, _awaitedVInactif);
+      if(isActif2 && !r2.heure_reelle){
+        window._renderIdxAwaited = entry.idx;
+        break;
+      }
+    }
+  }
+
   let html='';
   all.forEach((entry, pos) => {
     html+=buildRow(entry.idx, entry.h, entry.lbl, entry.extra, pos+1);
@@ -883,7 +913,7 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
   // Statut ligne : style inline sur le <tr> si Annulé
   const slStyle = ann ? getParamStyle('statut_ligne', sl) : '';
   // row-annule garde la barure (non paramétrable) + on surcharge la couleur si définie
-  const trCls=(ann?'row-annule':'')+(isExtra?' row-extra':'');
+  const trCls=(ann?'row-annule':'')+(isExtra?' row-extra':'')+(idx===window._renderIdxAwaited?' row-awaited':'');
   const trStyle = slStyle ? `style="${slStyle}"` : '';
 
   const svgSave='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
