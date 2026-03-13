@@ -1659,7 +1659,7 @@ async function exportPDF() {
     
     y += 38;
     
-    // Graphique circulaire avec fond blanc et ratio correct
+    // Graphique circulaire avec fond blanc - TAILLE AUGMENTÉE
     const originalCanvas = document.getElementById('chart-doughnut');
     if (originalCanvas) {
       pdf.setFontSize(14);
@@ -1688,17 +1688,15 @@ async function exportPDF() {
       // Convertir en JPEG compressé
       const imgData = tempCanvas.toDataURL('image/jpeg', 0.7);
       
-      // Calculer les dimensions en conservant le ratio
-      const maxSize = 60; // taille max en mm
+      // Calculer les dimensions - AUGMENTÉ À 80mm
+      const maxSize = 80;
       const ratio = sourceWidth / sourceHeight;
       let imgWidth, imgHeight;
       
       if (ratio > 1) {
-        // Plus large que haut
         imgWidth = maxSize;
         imgHeight = maxSize / ratio;
       } else {
-        // Plus haut que large ou carré
         imgHeight = maxSize;
         imgWidth = maxSize * ratio;
       }
@@ -1720,7 +1718,7 @@ async function exportPDF() {
     
     y += 10;
     
-    // Récupérer les erreurs
+    // Récupérer les erreurs - UTILISER LES BONNES CLASSES
     const errorItems = document.querySelectorAll('.error-item');
     
     if (errorItems.length === 0) {
@@ -1735,16 +1733,20 @@ async function exportPDF() {
           y = 20;
         }
         
+        // Utiliser les bonnes classes qui existent vraiment dans le HTML
         const timeEl = item.querySelector('.error-time');
         const truckEl = item.querySelector('.error-truck');
-        const destEl = item.querySelector('.error-dest');
-        const quartEl = item.querySelector('.error-badge');
+        const quartEl = item.querySelector('.error-quart');
         
-        if (timeEl && truckEl && destEl && quartEl) {
+        if (timeEl && truckEl && quartEl) {
           const time = timeEl.textContent.trim();
-          const truck = truckEl.textContent.trim();
-          const dest = destEl.textContent.trim();
-          const quart = quartEl.textContent.trim();
+          const quartText = quartEl.textContent.trim();
+          
+          // Le truck contient deux divs - prendre tout le texte
+          const truckFullText = truckEl.textContent.trim();
+          const truckLines = truckFullText.split('\n').map(l => l.trim()).filter(l => l);
+          const truck = truckLines[0] || '';
+          const dest = truckLines[1] || '';
           
           // Ligne d'erreur
           pdf.setDrawColor(229, 231, 235);
@@ -1757,7 +1759,7 @@ async function exportPDF() {
           pdf.text(time, 25, y + 5);
           
           pdf.setFont('helvetica', 'normal');
-          pdf.text(`${truck}`, 50, y + 5);
+          pdf.text(truck, 50, y + 5);
           
           pdf.setFontSize(8);
           pdf.setTextColor(107, 114, 128);
@@ -1765,7 +1767,7 @@ async function exportPDF() {
           
           pdf.setFontSize(7);
           pdf.setTextColor(212, 175, 55);
-          pdf.text(quart, pageWidth - 35, y + 5);
+          pdf.text(quartText, pageWidth - 35, y + 5);
           
           y += 14;
         }
