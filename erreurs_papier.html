@@ -1557,7 +1557,10 @@ async function exportPDF() {
     pdf.setFontSize(12);
     pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(107, 114, 128);
-    pdf.text(document.getElementById('date-lbl').textContent, 20, y);
+    const dateLbl = document.getElementById('date-lbl');
+    if (dateLbl) {
+      pdf.text(dateLbl.textContent, 20, y);
+    }
     
     y += 3;
     pdf.setDrawColor(212, 175, 55);
@@ -1572,9 +1575,14 @@ async function exportPDF() {
     const statsData = [];
     
     panels.forEach((p, i) => {
-      const title = p.querySelector('.panel-title').textContent.trim();
-      const value = p.querySelector('.panel-body > div:first-child').textContent.trim();
-      statsData.push({ title, value, color: colors[i] });
+      const titleEl = p.querySelector('.panel-title');
+      const valueEl = p.querySelector('.panel-body > div:first-child');
+      
+      if (titleEl && valueEl) {
+        const title = titleEl.textContent.trim();
+        const value = valueEl.textContent.trim();
+        statsData.push({ title, value, color: colors[i] });
+      }
     });
     
     const boxWidth = (pageWidth - 50) / 3;
@@ -1610,17 +1618,19 @@ async function exportPDF() {
     const quartsData = [];
     
     quartCards.forEach(card => {
-      const label = card.querySelector('.quart-tag').textContent.trim();
-      const eff = card.querySelector('.eff-value').textContent.trim();
+      const labelEl = card.querySelector('.quart-tag');
+      const effEl = card.querySelector('.eff-value');
       const vals = card.querySelectorAll('.stat-value');
       
-      quartsData.push({
-        label,
-        eff,
-        erreurs: vals[0].textContent,
-        camions: vals[1].textContent,
-        taux: vals[2].textContent
-      });
+      if (labelEl && effEl && vals.length >= 3) {
+        quartsData.push({
+          label: labelEl.textContent.trim(),
+          eff: effEl.textContent.trim(),
+          erreurs: vals[0].textContent,
+          camions: vals[1].textContent,
+          taux: vals[2].textContent
+        });
+      }
     });
     
     quartsData.forEach((q, i) => {
@@ -1649,7 +1659,7 @@ async function exportPDF() {
     
     y += 38;
     
-    // Graphique circulaire avec fond blanc
+    // Graphique circulaire avec fond blanc et ratio correct
     const originalCanvas = document.getElementById('chart-doughnut');
     if (originalCanvas) {
       pdf.setFontSize(14);
@@ -1661,8 +1671,11 @@ async function exportPDF() {
       
       // Créer un canvas temporaire avec fond blanc
       const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = originalCanvas.width;
-      tempCanvas.height = originalCanvas.height;
+      const sourceWidth = originalCanvas.width;
+      const sourceHeight = originalCanvas.height;
+      
+      tempCanvas.width = sourceWidth;
+      tempCanvas.height = sourceHeight;
       const tempCtx = tempCanvas.getContext('2d');
       
       // Remplir le fond en blanc
@@ -1674,11 +1687,26 @@ async function exportPDF() {
       
       // Convertir en JPEG compressé
       const imgData = tempCanvas.toDataURL('image/jpeg', 0.7);
-      const imgSize = 50;
-      const imgX = (pageWidth - imgSize) / 2;
       
-      pdf.addImage(imgData, 'JPEG', imgX, y, imgSize, imgSize);
-      y += imgSize + 10;
+      // Calculer les dimensions en conservant le ratio
+      const maxSize = 60; // taille max en mm
+      const ratio = sourceWidth / sourceHeight;
+      let imgWidth, imgHeight;
+      
+      if (ratio > 1) {
+        // Plus large que haut
+        imgWidth = maxSize;
+        imgHeight = maxSize / ratio;
+      } else {
+        // Plus haut que large ou carré
+        imgHeight = maxSize;
+        imgWidth = maxSize * ratio;
+      }
+      
+      const imgX = (pageWidth - imgWidth) / 2;
+      
+      pdf.addImage(imgData, 'JPEG', imgX, y, imgWidth, imgHeight);
+      y += imgHeight + 10;
     }
     
     // === PAGE 2 - Journal des Erreurs ===
@@ -1707,33 +1735,40 @@ async function exportPDF() {
           y = 20;
         }
         
-        const time = item.querySelector('.error-time').textContent.trim();
-        const truck = item.querySelector('.error-truck').textContent.trim();
-        const dest = item.querySelector('.error-dest').textContent.trim();
-        const quart = item.querySelector('.error-badge').textContent.trim();
+        const timeEl = item.querySelector('.error-time');
+        const truckEl = item.querySelector('.error-truck');
+        const destEl = item.querySelector('.error-dest');
+        const quartEl = item.querySelector('.error-badge');
         
-        // Ligne d'erreur
-        pdf.setDrawColor(229, 231, 235);
-        pdf.setLineWidth(0.3);
-        pdf.rect(20, y, pageWidth - 40, 12);
-        
-        pdf.setFontSize(9);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(10, 11, 13);
-        pdf.text(time, 25, y + 5);
-        
-        pdf.setFont('helvetica', 'normal');
-        pdf.text(`${truck}`, 50, y + 5);
-        
-        pdf.setFontSize(8);
-        pdf.setTextColor(107, 114, 128);
-        pdf.text(dest.substring(0, 40), 25, y + 9);
-        
-        pdf.setFontSize(7);
-        pdf.setTextColor(212, 175, 55);
-        pdf.text(quart, pageWidth - 35, y + 5);
-        
-        y += 14;
+        if (timeEl && truckEl && destEl && quartEl) {
+          const time = timeEl.textContent.trim();
+          const truck = truckEl.textContent.trim();
+          const dest = destEl.textContent.trim();
+          const quart = quartEl.textContent.trim();
+          
+          // Ligne d'erreur
+          pdf.setDrawColor(229, 231, 235);
+          pdf.setLineWidth(0.3);
+          pdf.rect(20, y, pageWidth - 40, 12);
+          
+          pdf.setFontSize(9);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(10, 11, 13);
+          pdf.text(time, 25, y + 5);
+          
+          pdf.setFont('helvetica', 'normal');
+          pdf.text(`${truck}`, 50, y + 5);
+          
+          pdf.setFontSize(8);
+          pdf.setTextColor(107, 114, 128);
+          pdf.text(dest.substring(0, 40), 25, y + 9);
+          
+          pdf.setFontSize(7);
+          pdf.setTextColor(212, 175, 55);
+          pdf.text(quart, pageWidth - 35, y + 5);
+          
+          y += 14;
+        }
       });
     }
     
