@@ -424,6 +424,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
         <th id="th-hreelle">Heure réelle</th>
         <th class="th-ep" style="text-align:center;min-width:180px;" title="État de vérification des quarts">✎ Vérification</th>
         <th></th>
+        <th id="th-supabase-id" style="text-align:center;white-space:nowrap;min-width:110px;" title="Identifiant unique Supabase">ID Supabase</th>
       </tr></thead>
       <tbody id="tbody"></tbody>
     </table>
@@ -643,6 +644,10 @@ function applyReadOnly(){
   // Masquer colonne Vérification en mode lecture seule
   document.querySelectorAll('.th-ep').forEach(th => th.style.display = 'none');
   document.querySelectorAll('#tbody .td-ep').forEach(td => td.style.display = 'none');
+  // Masquer colonne ID Supabase en mode lecture seule
+  const thSbId = document.getElementById('th-supabase-id');
+  if(thSbId) thSbId.style.display = 'none';
+  document.querySelectorAll('#tbody .td-supabase-id').forEach(td => td.style.display = 'none');
   // Afficher le bouton déconnexion topbar
   const btnLogout = document.getElementById('btn-viewer-logout');
   if(btnLogout) btnLogout.style.display = 'inline-flex';
@@ -1000,6 +1005,9 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
       </div>
     </td>
     ${isExtra?`<td style="text-align:center"><button onclick="delRow(${idx})" title="Supprimer ce camion" style="background:none;border:none;cursor:pointer;color:var(--text-faint);font-size:1rem;padding:2px 6px;border-radius:var(--r-sm);transition:color var(--t-fast);" onmouseover="this.style.color='var(--ruby)'" onmouseout="this.style.color='var(--text-faint)'">✕</button></td>`:'<td></td>'}
+    <td class="td-supabase-id" style="text-align:center;font-size:.72rem;font-family:monospace;color:var(--text-muted);letter-spacing:.02em;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(r.id||'')}">
+      ${r.id ? `<span style="display:inline-block;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:4px;padding:2px 6px;cursor:default;user-select:all;" title="${esc(r.id)}">${esc(r.id)}</span>` : '<span style="color:var(--text-faint);font-style:italic;">—</span>'}
+    </td>
   </tr>`;
 }
 // ── VÉRIFICATION (SLIDER) ─────────────────────────────────────────
