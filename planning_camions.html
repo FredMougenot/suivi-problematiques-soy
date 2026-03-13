@@ -254,8 +254,8 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 
 /* ── LIGNE ATTENDUE (prochain camion sans heure réelle) ─────────── */
 @keyframes row-pulse {
-  0%,100% { box-shadow: inset 0 0 0 1px rgba(45,212,160,0); background-color: rgba(45,212,160,0); }
-  50%     { box-shadow: inset 0 0 0 1px rgba(45,212,160,0.35); background-color: rgba(45,212,160,0.09); }
+  0%,100% { background-color: rgba(45,212,160,0); }
+  50%     { background-color: rgba(45,212,160,0.09); }
 }
 .row-awaited td {
   animation: row-pulse 3s ease-in-out infinite;
@@ -1211,10 +1211,45 @@ function fchg(idx, field, val){
       if(_saV1) rows[idx].statut=_saV1;
     }
     saveRow(idx);
+    // Recalculer et déplacer la classe row-awaited immédiatement
+    refreshAwaitedRow();
     return;
   }
   updateStats();
 };
+
+// ── AWAITED ROW REFRESH ────────────────────────────────────────────
+function refreshAwaitedRow(){
+  if(!isToday()) return;
+  const _vActif   = (_params['statut_ligne']||[])[0]?.valeur||'ACTIF';
+  const _vInactif = (_params['statut_ligne']||[])[1]?.valeur||'INACTIF';
+
+  // Reconstruire la liste triée (même logique que render)
+  const extras = Object.keys(rows).map(Number).filter(i=>i>=10).sort((a,b)=>a-b);
+  const all = [];
+  SLOTS.forEach(s => all.push({idx:s.idx, h:s.h}));
+  extras.forEach(i => { const r=rows[i]; all.push({idx:i, h:r.heure_planif||'00:00'}); });
+  all.sort((a,b)=> a.h<b.h?-1 : a.h>b.h?1 : a.idx-b.idx);
+
+  // Trouver le nouvel index attendu
+  let newAwaited = null;
+  for(const entry of all){
+    const r2 = rows[entry.idx]||{};
+    const st2 = r2.statut_ligne || _vActif;
+    if(_isActifOuNL(st2, _vActif, _vInactif) && !r2.heure_reelle){
+      newAwaited = entry.idx;
+      break;
+    }
+  }
+
+  // Retirer la classe sur toutes les lignes puis l'appliquer à la bonne
+  document.querySelectorAll('#tbody tr.row-awaited').forEach(tr => tr.classList.remove('row-awaited'));
+  if(newAwaited !== null){
+    const tr = document.getElementById('tr'+newAwaited);
+    if(tr) tr.classList.add('row-awaited');
+  }
+  window._renderIdxAwaited = newAwaited;
+}
 
 // ── SAVE ───────────────────────────────────────────────────────────
 async function saveAll(){
