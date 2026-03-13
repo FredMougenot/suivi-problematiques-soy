@@ -411,7 +411,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
       <thead><tr>
         <th style="text-align:center">#</th>
         <th>Heure planifiée</th>
-        <th>Statut ligne</th>
+        <th>Statut</th>
         <th>Type camion</th>
         <th>N° arrivée</th>
         
@@ -424,7 +424,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
         <th id="th-hreelle">Heure réelle</th>
         <th class="th-ep" style="text-align:center;min-width:180px;" title="État de vérification des quarts">✎ Vérification</th>
         <th></th>
-        <th id="th-supabase-id" style="text-align:center;white-space:nowrap;min-width:110px;" title="Identifiant unique Supabase">ID Supabase</th>
+        <th id="th-supabase-id" style="text-align:center;white-space:nowrap;min-width:110px;" title="Identifiant unique Supabase">ID</th>
       </tr></thead>
       <tbody id="tbody"></tbody>
     </table>
@@ -994,16 +994,25 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
     })()}</td>
 
     <td class="td-hreelle"><input class="ci-t" type="time" value="${esc(r.heure_reelle||'')}" oninput="fchg(${idx},'heure_reelle',this.value)"></td>
-    <td class="td-ep verif-slider-container">
+    <td class="td-ep verif-slider-container">${(()=>{
+      const _vInactifSl = (_params['statut_ligne']||[])[1]?.valeur||'INACTIF';
+      const _bobtailDst = (_params['destination']||[])[5]?.valeur||'';
+      const _curDst     = r.destination||'';
+      const _slLocked   = sl === _vInactifSl || (_bobtailDst && _curDst === _bobtailDst);
+      const _lockedStyle = _slLocked ? 'pointer-events:none;opacity:0.35;cursor:not-allowed;' : '';
+      const _lockedTitle = _slLocked ? 'Slider verrouillé (statut inactif ou départ bobtail)' : '';
+      return `
       <div class="verif-indicator">
         <span class="verif-indicator-label ${r.etat_verification==='q1_ok'||r.etat_verification==='q1_err'?'active':''}">Q1</span>
         <span class="verif-indicator-label ${r.etat_verification==='q2_ok'||r.etat_verification==='q2_err'?'active':''}">Q2</span>
         <span class="verif-indicator-label ${r.etat_verification==='q3_ok'||r.etat_verification==='q3_err'?'active':''}">Q3</span>
       </div>
-      <div class="verif-slider" data-idx="${idx}" onmousedown="startDragVerif(event, ${idx})" ontouchstart="startDragVerif(event, ${idx})">
+      <div class="verif-slider" data-idx="${idx}" data-locked="${_slLocked}"
+        style="${_lockedStyle}" title="${_lockedTitle}"
+        ${_slLocked ? '' : `onmousedown="startDragVerif(event, ${idx})" ontouchstart="startDragVerif(event, ${idx})"`}>
         <div class="verif-thumb" data-state="${r.etat_verification||'none'}" data-icon="${getVerifIcon(r.etat_verification)}"></div>
-      </div>
-    </td>
+      </div>`;
+    })()}</td>
     ${isExtra?`<td style="text-align:center"><button onclick="delRow(${idx})" title="Supprimer ce camion" style="background:none;border:none;cursor:pointer;color:var(--text-faint);font-size:1rem;padding:2px 6px;border-radius:var(--r-sm);transition:color var(--t-fast);" onmouseover="this.style.color='var(--ruby)'" onmouseout="this.style.color='var(--text-faint)'">✕</button></td>`:'<td></td>'}
     <td class="td-supabase-id" style="text-align:center;font-size:.72rem;font-family:monospace;color:var(--text-muted);letter-spacing:.02em;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(r.id||'')}">
       ${r.id ? `<span style="display:inline-block;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:4px;padding:2px 6px;cursor:default;user-select:all;" title="${esc(r.id)}">${esc(r.id)}</span>` : '<span style="color:var(--text-faint);font-style:italic;">—</span>'}
@@ -1033,6 +1042,7 @@ function startDragVerif(event, idx) {
   event.stopPropagation();
   
   const slider = event.currentTarget;
+  if(slider.dataset.locked === 'true') return; // slider verrouillé
   const rect = slider.getBoundingClientRect();
   const clientX = event.touches ? event.touches[0].clientX : event.clientX;
   
