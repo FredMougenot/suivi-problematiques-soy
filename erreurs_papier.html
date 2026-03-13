@@ -1538,12 +1538,16 @@ async function exportPDF() {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
     let y = 20;
     
-    // Titre
+    // === PAGE 1 ===
+    
+    // Bande dorée
     pdf.setFillColor(212, 175, 55);
     pdf.rect(0, 0, pageWidth, 3, 'F');
     
+    // Titre
     pdf.setFontSize(24);
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(10, 11, 13);
@@ -1645,22 +1649,97 @@ async function exportPDF() {
     
     y += 38;
     
-    // Graphique
+    // Graphique circulaire (compressé)
     const canvas = document.getElementById('chart-doughnut');
-    if (canvas && y < 250) {
+    if (canvas) {
       pdf.setFontSize(14);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(10, 11, 13);
       pdf.text('Distribution des Erreurs', 20, y);
       
-      y += 8;
+      y += 5;
       
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      const imgWidth = 80;
-      const imgHeight = 80;
-      const imgX = (pageWidth - imgWidth) / 2;
+      // Compresser l'image
+      const imgData = canvas.toDataURL('image/jpeg', 0.7);
+      const imgSize = 50;
+      const imgX = (pageWidth - imgSize) / 2;
       
-      pdf.addImage(imgData, 'PNG', imgX, y, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', imgX, y, imgSize, imgSize);
+      y += imgSize + 10;
+    }
+    
+    // Carte thermique si disponible
+    if (curView !== 'jour') {
+      const heatmapPanel = document.querySelector('.panel .panel-body');
+      if (heatmapPanel && y < pageHeight - 60) {
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(10, 11, 13);
+        pdf.text('Carte Thermique', 20, y);
+        
+        y += 8;
+        
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(107, 114, 128);
+        pdf.text('(Voir interface web pour détails)', 20, y);
+      }
+    }
+    
+    // === PAGE 2 - Journal des Erreurs ===
+    pdf.addPage();
+    y = 20;
+    
+    pdf.setFontSize(18);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(10, 11, 13);
+    pdf.text('Journal des Erreurs', 20, y);
+    
+    y += 10;
+    
+    // Récupérer les erreurs
+    const errorItems = document.querySelectorAll('.error-item');
+    
+    if (errorItems.length === 0) {
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(107, 114, 128);
+      pdf.text('Aucune erreur détectée', 20, y);
+    } else {
+      errorItems.forEach((item, idx) => {
+        if (y > pageHeight - 20) {
+          pdf.addPage();
+          y = 20;
+        }
+        
+        const time = item.querySelector('.error-time').textContent.trim();
+        const truck = item.querySelector('.error-truck').textContent.trim();
+        const dest = item.querySelector('.error-dest').textContent.trim();
+        const quart = item.querySelector('.error-badge').textContent.trim();
+        
+        // Ligne d'erreur
+        pdf.setDrawColor(229, 231, 235);
+        pdf.setLineWidth(0.3);
+        pdf.rect(20, y, pageWidth - 40, 12);
+        
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(10, 11, 13);
+        pdf.text(time, 25, y + 5);
+        
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(`${truck}`, 50, y + 5);
+        
+        pdf.setFontSize(8);
+        pdf.setTextColor(107, 114, 128);
+        pdf.text(dest.substring(0, 40), 25, y + 9);
+        
+        pdf.setFontSize(7);
+        pdf.setTextColor(212, 175, 55);
+        pdf.text(quart, pageWidth - 35, y + 5);
+        
+        y += 14;
+      });
     }
     
     // Sauvegarder
