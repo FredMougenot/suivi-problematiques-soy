@@ -1649,9 +1649,9 @@ async function exportPDF() {
     
     y += 38;
     
-    // Graphique circulaire (compressé)
-    const canvas = document.getElementById('chart-doughnut');
-    if (canvas) {
+    // Graphique circulaire avec fond blanc
+    const originalCanvas = document.getElementById('chart-doughnut');
+    if (originalCanvas) {
       pdf.setFontSize(14);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(10, 11, 13);
@@ -1659,31 +1659,26 @@ async function exportPDF() {
       
       y += 5;
       
-      // Compresser l'image
-      const imgData = canvas.toDataURL('image/jpeg', 0.7);
+      // Créer un canvas temporaire avec fond blanc
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = originalCanvas.width;
+      tempCanvas.height = originalCanvas.height;
+      const tempCtx = tempCanvas.getContext('2d');
+      
+      // Remplir le fond en blanc
+      tempCtx.fillStyle = '#FFFFFF';
+      tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+      
+      // Copier le graphique par-dessus
+      tempCtx.drawImage(originalCanvas, 0, 0);
+      
+      // Convertir en JPEG compressé
+      const imgData = tempCanvas.toDataURL('image/jpeg', 0.7);
       const imgSize = 50;
       const imgX = (pageWidth - imgSize) / 2;
       
       pdf.addImage(imgData, 'JPEG', imgX, y, imgSize, imgSize);
       y += imgSize + 10;
-    }
-    
-    // Carte thermique si disponible
-    if (curView !== 'jour') {
-      const heatmapPanel = document.querySelector('.panel .panel-body');
-      if (heatmapPanel && y < pageHeight - 60) {
-        pdf.setFontSize(14);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(10, 11, 13);
-        pdf.text('Carte Thermique', 20, y);
-        
-        y += 8;
-        
-        pdf.setFontSize(8);
-        pdf.setFont('helvetica', 'normal');
-        pdf.setTextColor(107, 114, 128);
-        pdf.text('(Voir interface web pour détails)', 20, y);
-      }
     }
     
     // === PAGE 2 - Journal des Erreurs ===
@@ -1706,7 +1701,7 @@ async function exportPDF() {
       pdf.setTextColor(107, 114, 128);
       pdf.text('Aucune erreur détectée', 20, y);
     } else {
-      errorItems.forEach((item, idx) => {
+      errorItems.forEach((item) => {
         if (y > pageHeight - 20) {
           pdf.addPage();
           y = 20;
