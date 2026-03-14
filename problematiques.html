@@ -894,25 +894,26 @@ body { font-size: 0.9375rem; }
 
     <!-- Tableau -->
     <div class="tbl-wrap" style="touch-action:pan-x">
-      <table class="dtbl" style="min-width:1228px;table-layout:fixed;width:100%">
+      <table class="dtbl" style="min-width:1469px;table-layout:fixed;width:100%">
         <colgroup>
-          <col style="width:52px">    <!-- ID -->
-          <col style="width:120px">   <!-- Pilier — "Environnement" -->
-          <col style="width:90px">    <!-- Priorité — "Critique" -->
-          <col style="width:96px">    <!-- Statut — "À traiter" -->
-          <col style="width:90px">    <!-- Soumis le -->
-          <col style="width:140px">   <!-- Intitulé / Description -->
-          <col style="width:120px">   <!-- Cause -->
-          <col style="width:120px">   <!-- Action -->
-          <col style="width:120px">   <!-- Résultat -->
-          <col style="width:110px">   <!-- Responsable — "Dany Rochette" -->
-          <col style="width:90px">    <!-- Date prévue -->
-          <col style="width:90px">    <!-- Date résolue -->
-          <col style="width:90px">    <!-- Actions (admin) -->
+          <col style="width:52px">    <!-- ID : 36px -->
+          <col style="width:120px">   <!-- Pilier : 77px + badge "Environnement" -->
+          <col style="width:120px">   <!-- Priorité : badge "Critique" ~107px -->
+          <col style="width:115px">   <!-- Statut : badge "À traiter" ~112px -->
+          <col style="width:102px">   <!-- Soumis le : 97px -->
+          <col style="width:140px">   <!-- Intitulé : 97px -->
+          <col style="width:110px">   <!-- Cause : 67px -->
+          <col style="width:110px">   <!-- Action : 77px -->
+          <col style="width:110px">   <!-- Résultat : 97px -->
+          <col style="width:130px">   <!-- Responsable : 127px -->
+          <col style="width:130px">   <!-- Date prévue : 127px -->
+          <col style="width:140px">   <!-- Date résolue : 137px -->
+          <col style="width:90px">    <!-- Actions admin : 87px -->
         </colgroup>
+        <!-- Total : 52+120+100+96+102+140+110+110+110+130+130+140+90 = 1430px -->
         <thead><tr>
           <th>ID</th><th>Pilier</th><th>Priorité</th><th>Statut</th>
-          <th>Soumis le</th><th>Intitulé / Description</th><th>Cause</th><th>Action</th><th>Résultat</th>
+          <th>Soumis le</th><th>Intitulé</th><th>Cause</th><th>Action</th><th>Résultat</th>
           <th>Responsable</th><th>Date prévue</th><th>Date résolue</th>
           <th class="admin-only" style="display:none">Actions</th>
         </tr></thead>
