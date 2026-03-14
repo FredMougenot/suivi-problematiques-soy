@@ -1848,43 +1848,53 @@ async function exportPDF() {
         if (timeEl && truckEl && quartEl) {
           const time = timeEl.textContent.trim();
           const quartText = quartEl.textContent.trim();
-          
-          const truckFullText = truckEl.textContent.trim();
-          const truckLines = truckFullText.split('\n').map(l => l.trim()).filter(l => l);
-          const truck = truckLines[0] || '';
-          const dest = truckLines[1] || '';
-          
-          // Récupérer l'ID depuis l'attribut data ou le span monospace
-          const idSpan = item.querySelector('.error-truck span[title="ID Supabase"]');
-          const rowId = idSpan ? idSpan.textContent.trim() : '';
-          
+
+          // Lire chaque élément précisément pour éviter les doublons
+          const truckSpan = truckEl.querySelector('span[style*="font-weight:600"]');
+          const idSpan    = truckEl.querySelector('span[title="ID Supabase"]');
+          const destDiv   = truckEl.querySelector('div[style*="font-size:.75rem"]');
+
+          const truck  = truckSpan ? truckSpan.textContent.trim() : '';
+          const rowId  = idSpan    ? idSpan.textContent.trim()    : '';
+          const dest   = destDiv   ? destDiv.textContent.trim()   : '';
+
           pdf.setDrawColor(229, 231, 235);
           pdf.setLineWidth(0.3);
           pdf.rect(20, y, pageWidth - 40, 12);
-          
+
+          // Heure
           pdf.setFontSize(9);
           pdf.setFont('helvetica', 'bold');
           pdf.setTextColor(10, 11, 13);
           pdf.text(time, 25, y + 5);
-          
+
+          // Numéro camion
           pdf.setFont('helvetica', 'normal');
           pdf.text(truck, 50, y + 5);
-          
+
+          // ID — même ligne que le camion, juste après
           if (rowId) {
-            pdf.setFontSize(7);
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(10, 11, 13);
+            const truckWidth = pdf.getTextWidth(truck);
+            pdf.text(rowId, 50 + truckWidth + 6, y + 5);
+          }
+
+          // Destination — ligne du bas
+          if (dest) {
+            pdf.setFontSize(8);
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(107, 114, 128);
-            pdf.text(`ID: ${rowId}`, 50, y + 9);
+            pdf.text(dest.substring(0, 50), 50, y + 9);
           }
-          
-          pdf.setFontSize(8);
-          pdf.setTextColor(107, 114, 128);
-          pdf.text(dest.substring(0, 40), rowId ? 80 : 25, y + 9);
-          
+
+          // Quart — à droite
           pdf.setFontSize(7);
+          pdf.setFont('helvetica', 'bold');
           pdf.setTextColor(212, 175, 55);
           pdf.text(quartText, pageWidth - 35, y + 5);
-          
+
           y += 14;
         }
       });
