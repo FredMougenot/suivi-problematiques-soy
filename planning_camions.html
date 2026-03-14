@@ -968,11 +968,17 @@ function render(){
   const _awaitedVActif   = (_params['statut_ligne']||[])[0]?.valeur||'ACTIF';
   window._renderIdxAwaited = null;
   if(isToday()){
+    const _awWkInactif = [0,1,7,8,9];
     for(const entry of all){
       const r2 = rows[entry.idx]||{};
-      const st2 = r2.statut_ligne || (_awaitedVActif);
-      const isActif2 = _isActifOuNL(st2, _awaitedVActif, _awaitedVInactif);
-      if(isActif2 && !r2.heure_reelle){
+      // Reproduire exactement la logique de buildRow pour le statut effectif
+      const stEffAw = r2.statut_ligne || (
+        (_rIsWkEnd && _awWkInactif.includes(entry.idx))
+          ? _awaitedVInactif
+          : _awaitedVActif
+      );
+      // Clignoter UNIQUEMENT si statut = paramètre #1 (ACTIF strict)
+      if(stEffAw === _awaitedVActif && !r2.heure_reelle){
         window._renderIdxAwaited = entry.idx;
         break;
       }
@@ -1317,6 +1323,8 @@ function refreshAwaitedRow(){
   if(!isToday()) return;
   const _vActif   = (_params['statut_ligne']||[])[0]?.valeur||'ACTIF';
   const _vInactif = (_params['statut_ligne']||[])[1]?.valeur||'INACTIF';
+  const _isWkEnd  = (()=>{ const d=new Date(curDate+'T00:00:00').getDay(); return d===0||d===6; })();
+  const _wkInactif = [0,1,7,8,9];
 
   // Reconstruire la liste triée (même logique que render)
   const extras = Object.keys(rows).map(Number).filter(i=>i>=10).sort((a,b)=>a-b);
@@ -1325,12 +1333,14 @@ function refreshAwaitedRow(){
   extras.forEach(i => { const r=rows[i]; all.push({idx:i, h:r.heure_planif||'00:00'}); });
   all.sort((a,b)=> a.h<b.h?-1 : a.h>b.h?1 : a.idx-b.idx);
 
-  // Trouver le nouvel index attendu
+  // Trouver le nouvel index attendu — strictement paramètre #1 (ACTIF)
   let newAwaited = null;
   for(const entry of all){
     const r2 = rows[entry.idx]||{};
-    const st2 = r2.statut_ligne || _vActif;
-    if(_isActifOuNL(st2, _vActif, _vInactif) && !r2.heure_reelle){
+    const stEff = r2.statut_ligne || (
+      (_isWkEnd && _wkInactif.includes(entry.idx)) ? _vInactif : _vActif
+    );
+    if(stEff === _vActif && !r2.heure_reelle){
       newAwaited = entry.idx;
       break;
     }
