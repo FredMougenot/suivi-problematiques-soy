@@ -894,7 +894,22 @@ body { font-size: 0.9375rem; }
 
     <!-- Tableau -->
     <div class="tbl-wrap" style="touch-action:pan-x">
-      <table class="dtbl" style="min-width:900px">
+      <table class="dtbl" style="min-width:900px;table-layout:fixed;width:100%">
+        <colgroup>
+          <col style="width:52px">   <!-- ID -->
+          <col style="width:82px">   <!-- Pilier -->
+          <col style="width:78px">   <!-- Priorité -->
+          <col style="width:82px">   <!-- Statut -->
+          <col style="width:82px">   <!-- Soumis le -->
+          <col>                      <!-- Intitulé / Description — flex -->
+          <col>                      <!-- Cause — flex -->
+          <col>                      <!-- Action — flex -->
+          <col>                      <!-- Résultat — flex -->
+          <col style="width:96px">   <!-- Responsable -->
+          <col style="width:82px">   <!-- Date prévue -->
+          <col style="width:82px">   <!-- Date résolue -->
+          <col style="width:90px">   <!-- Actions (admin) -->
+        </colgroup>
         <thead><tr>
           <th>ID</th><th>Pilier</th><th>Priorité</th><th>Statut</th>
           <th>Soumis le</th><th>Intitulé / Description</th><th>Cause</th><th>Action</th><th>Résultat</th>
@@ -1110,9 +1125,9 @@ function renderTable(data){
   document.getElementById('prob-tbody').innerHTML=probs.length===0?'<tr><td colspan="13"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique trouvee.</div></div></td></tr>':probs.map(p=>{
     const datePrevue = p.date_prevue ? `<span style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.date_prevue)}</span>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
     const dateResolue = p.date_resolue ? `<span style="font-size:.78rem;color:var(--emerald)">${fmtDate(p.date_resolue)}</span>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
-    const cause = p.cause ? `<div style="font-size:.8rem;color:var(--text-secondary);max-width:200px;white-space:normal">${esc(p.cause.substring(0,80))}${p.cause.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
-    const action = p.action ? `<div style="font-size:.8rem;color:var(--text-secondary);max-width:200px;white-space:normal">${esc(p.action.substring(0,80))}${p.action.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
-    const resultat = p.resultat ? `<div style="font-size:.8rem;color:var(--text-secondary);max-width:200px;white-space:normal">${esc(p.resultat.substring(0,80))}${p.resultat.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+    const cause = p.cause ? `<div style="font-size:.8rem;color:var(--text-secondary);white-space:normal">${esc(p.cause.substring(0,80))}${p.cause.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+    const action = p.action ? `<div style="font-size:.8rem;color:var(--text-secondary);white-space:normal">${esc(p.action.substring(0,80))}${p.action.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+    const resultat = p.resultat ? `<div style="font-size:.8rem;color:var(--text-secondary);white-space:normal">${esc(p.resultat.substring(0,80))}${p.resultat.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
     return `<tr>
       <td><span class="c-id">#${fmtId(p.id)}</span></td>
       <td><span class="badge bd">${esc(p.pilier||'')}</span></td>
@@ -1729,18 +1744,26 @@ async function exportPDF() {
       pdf.setTextColor(...C.grey);
       pdf.text('Aucune problématique à afficher.', M, y + 8);
     } else {
-      // Colonnes : ID | Pilier | Priorité | Statut | Soumis le | Intitulé | Cause | Action | Responsable | Date prévue
+      // ── Calcul des largeurs PDF ──
+      // Colonnes fixes serrées : ID(10) + Pilier(18) + Priorité(16) + Statut(17) + Soumis(18) + Responsable(22) + 3×dates(18) = 137
+      // Reste distribué en 4 parts égales pour Intitulé, Cause, Action, Résultat
+      const fixedW  = 10 + 18 + 16 + 17 + 18 + 22 + 18 + 18 + 18; // = 155
+      const dateW   = 18;
+      const textW   = Math.floor((W - 2*M - fixedW) / 4);
+
       const cols = [
-        { key: 0, label: 'ID',          w: 12 },
-        { key: 1, label: 'Pilier',       w: 22 },
-        { key: 2, label: 'Priorité',     w: 20 },
-        { key: 3, label: 'Statut',       w: 22 },
-        { key: 4, label: 'Soumis le',    w: 22 },
-        { key: 5, label: 'Intitulé',     w: 55 },
-        { key: 6, label: 'Cause',        w: 30 },
-        { key: 7, label: 'Action',       w: 30 },
-        { key: 9, label: 'Responsable',  w: 28 },
-        { key: 10, label: 'Date prévue', w: 22 },
+        { key: 0,  label: 'ID',          w: 10  },
+        { key: 1,  label: 'Pilier',       w: 18  },
+        { key: 2,  label: 'Priorité',     w: 16  },
+        { key: 3,  label: 'Statut',       w: 17  },
+        { key: 4,  label: 'Soumis le',    w: 18  },
+        { key: 5,  label: 'Intitulé',     w: textW },
+        { key: 6,  label: 'Cause',        w: textW },
+        { key: 7,  label: 'Action',       w: textW },
+        { key: 8,  label: 'Résultat',     w: textW },
+        { key: 9,  label: 'Responsable',  w: 22  },
+        { key: 10, label: 'Date prévue',  w: dateW },
+        { key: 11, label: 'Date résolue', w: dateW },
       ];
 
       const rowH   = 9;
