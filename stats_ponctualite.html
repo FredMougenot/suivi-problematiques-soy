@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
   --bg-void:#06070B; --bg-deep:#0B0D13; --bg-base:#0F1118;
@@ -300,6 +301,12 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
   <button class="btn-params" onclick="openParams()">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     Paramètres
+  </button>
+  <button class="btn-params" onclick="exportPDF()" style="border-color:rgba(45,212,160,.3);color:var(--emerald);"
+    onmouseover="this.style.borderColor='var(--emerald)';this.style.color='var(--emerald)'"
+    onmouseout="this.style.borderColor='rgba(45,212,160,.3)';this.style.color='var(--emerald)'">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    Exporter PDF
   </button>
 </header>
 
@@ -1394,6 +1401,212 @@ async function init() {
     await loadAll();
   } catch(e) { window.location.href = 'index.html'; }
 }
+// ── EXPORT PDF ────────────────────────────────────────────────────
+async function exportPDF() {
+  if (!cachedData) return;
+  try {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const W = pdf.internal.pageSize.getWidth();
+    const H = pdf.internal.pageSize.getHeight();
+    const M = 14; // marge
+    let y = M;
+
+    const C = {
+      black:  [10, 11, 13],
+      grey:   [107, 114, 128],
+      light:  [180, 185, 200],
+      faint:  [44, 51, 80],
+      copper: [200, 132, 58],
+      emerald:[45, 212, 160],
+      amber:  [232, 164, 58],
+      ruby:   [224, 85, 85],
+      sapphire:[74, 158, 232],
+    };
+
+    // ── En-tête ──
+    pdf.setFillColor(...C.copper);
+    pdf.rect(0, 0, W, 1.5, 'F');
+    pdf.setFontSize(18);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(...C.black);
+    pdf.text('Radar de Ponctualité — SOY', M, y + 8);
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(...C.grey);
+    pdf.text(document.getElementById('period-lbl').textContent, M, y + 14);
+    pdf.setFontSize(7);
+    pdf.text('Exporté le ' + new Date().toLocaleDateString('fr-CA', {day:'2-digit',month:'long',year:'numeric'}), W - M, y + 8, { align:'right' });
+    y += 22;
+    pdf.setDrawColor(...C.faint);
+    pdf.setLineWidth(0.3);
+    pdf.line(M, y, W - M, y);
+    y += 6;
+
+    // ── KPIs ──
+    const { start } = getRange();
+    const A = analyze(cachedData, start);
+
+    const kpis = [
+      { label: 'Ponctualité',   val: A.taux !== null ? A.taux + '%' : '—',  sub: `${A.onTime} à l'heure · ${A.late} en retard` },
+      { label: 'Retard moyen', val: A.avgRet + ' min',                       sub: `Max ${A.maxRet} min · Seuil critique ${SEUIL2} min` },
+      { label: 'Couverture',   val: `${A.arrived} / ${A.total}`,             sub: `${A.attente} en attente · ${A.inactif} inactif(s)` },
+      { label: 'Non livrés',   val: String(A.nonLivre),                      sub: `${A.total > 0 ? Math.round(A.nonLivre/A.total*100) : 0}% des actifs planifiés` },
+    ];
+
+    const kW = (W - 2*M - 9) / 4;
+    kpis.forEach((k, i) => {
+      const x = M + i * (kW + 3);
+      pdf.setDrawColor(...C.faint);
+      pdf.setLineWidth(0.3);
+      pdf.setFillColor(21, 24, 31);
+      pdf.roundedRect(x, y, kW, 22, 2, 2, 'FD');
+      pdf.setFontSize(6);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(...C.copper);
+      pdf.text(k.label.toUpperCase(), x + 3, y + 5);
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(...C.black);
+      pdf.text(k.val, x + 3, y + 13);
+      pdf.setFontSize(6);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(...C.grey);
+      pdf.text(k.sub, x + 3, y + 19, { maxWidth: kW - 4 });
+    });
+    y += 28;
+
+    // ── Vue journée : timeline ──
+    if (period === 'day') {
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(...C.black);
+      pdf.text('Timeline des arrivées', M, y);
+      y += 6;
+
+      const bySlot = {};
+      cachedData.forEach(r => { bySlot[r.slot_index] = r; });
+      const extras = Object.keys(bySlot).map(Number).filter(i=>i>=10).sort((a,b)=>a-b);
+      const allSlots = [
+        ...SLOTS.map(s=>({...s,extra:false})),
+        ...extras.map(i=>({idx:i,h:bySlot[i]?.heure_planif||'—',lbl:'Extra',extra:true}))
+      ];
+
+      allSlots.forEach(s => {
+        const r = bySlot[s.idx];
+        if (!r) return;
+        if (y > H - 18) { pdf.addPage(); y = M; }
+
+        const st  = statutCamion(r, start);
+        const h   = r.heure_planif || s.h;
+        const dest = r.destination || '';
+
+        let stCol, stLbl;
+        if      (st === 'arrive_ok')     { stCol = C.emerald;  stLbl = '✓ À l\'heure'; }
+        else if (st === 'arrive_retard') { const d = diff(h, r.heure_reelle); stCol = d > SEUIL2 ? C.ruby : C.amber; stLbl = '+' + d + ' min'; }
+        else if (st === 'nonlivre')      { stCol = C.ruby;     stLbl = 'Non livré'; }
+        else if (st === 'attente')       { stCol = C.sapphire; stLbl = 'En attente'; }
+        else                             { stCol = C.faint;    stLbl = 'Inactif'; }
+
+        // Bande indicateur couleur
+        pdf.setFillColor(...stCol);
+        pdf.rect(M, y, 2, 8, 'F');
+
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(...C.copper);
+        pdf.text(h, M + 4, y + 5.5);
+
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(...C.black);
+        pdf.text(s.lbl + (dest ? ' · ' + dest : ''), M + 20, y + 5.5);
+
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(...stCol);
+        pdf.text(stLbl, W - M, y + 5.5, { align: 'right' });
+
+        pdf.setDrawColor(...C.faint);
+        pdf.setLineWidth(0.1);
+        pdf.line(M, y + 9, W - M, y + 9);
+        y += 10;
+      });
+
+    } else {
+      // ── Heatmap SVG → canvas → image ──
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(...C.black);
+      pdf.text('Carte thermique de ponctualité', M, y);
+      y += 4;
+
+      const hmWrap = document.querySelector('.hm-wrap svg');
+      if (hmWrap) {
+        const svgData = new XMLSerializer().serializeToString(hmWrap);
+        const canvas  = document.createElement('canvas');
+        const ratio   = 3;
+        canvas.width  = hmWrap.getBoundingClientRect().width  * ratio;
+        canvas.height = hmWrap.getBoundingClientRect().height * ratio;
+        const ctx2    = canvas.getContext('2d');
+        ctx2.fillStyle = '#FFFFFF';
+        ctx2.fillRect(0, 0, canvas.width, canvas.height);
+        const img = new Image();
+        await new Promise(res => {
+          img.onload = res;
+          img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+        });
+        ctx2.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const imgW = W - 2*M;
+        const imgH = imgW * (canvas.height / canvas.width);
+        if (y + imgH > H - M) { pdf.addPage(); y = M; }
+        pdf.addImage(canvas.toDataURL('image/jpeg', 0.85), 'JPEG', M, y, imgW, imgH);
+        y += imgH + 8;
+      }
+
+      // ── Graphique tendance ──
+      if (y > H - 60) { pdf.addPage(); y = M; }
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(...C.black);
+      pdf.text('Tendance de ponctualité', M, y);
+      y += 4;
+      const trendCanvas = document.getElementById('chart-trend');
+      if (trendCanvas) {
+        const tmp = document.createElement('canvas');
+        tmp.width  = trendCanvas.width;
+        tmp.height = trendCanvas.height;
+        const tc2 = tmp.getContext('2d');
+        tc2.fillStyle = '#FFFFFF';
+        tc2.fillRect(0, 0, tmp.width, tmp.height);
+        tc2.drawImage(trendCanvas, 0, 0);
+        const tW = W - 2*M;
+        const tH = tW * (tmp.height / tmp.width);
+        if (y + tH > H - M) { pdf.addPage(); y = M; }
+        pdf.addImage(tmp.toDataURL('image/jpeg', 0.85), 'JPEG', M, y, tW, tH);
+        y += tH + 8;
+      }
+    }
+
+    // ── Pied de page ──
+    const pages = pdf.internal.getNumberOfPages();
+    for (let i = 1; i <= pages; i++) {
+      pdf.setPage(i);
+      pdf.setDrawColor(...C.faint);
+      pdf.setLineWidth(0.2);
+      pdf.line(M, H - 8, W - M, H - 8);
+      pdf.setFontSize(6.5);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(...C.grey);
+      pdf.text('SOY — Radar de Ponctualité', M, H - 4);
+      pdf.text(`Page ${i} / ${pages}`, W - M, H - 4, { align: 'right' });
+    }
+
+    pdf.save('ponctualite_' + start + '.pdf');
+  } catch(err) {
+    console.error('Export PDF:', err);
+    alert('Erreur export PDF : ' + (err?.message || err));
+  }
+}
+
 window.addEventListener('load', init);
 </script>
 </body>
