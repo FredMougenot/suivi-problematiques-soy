@@ -1295,6 +1295,13 @@ function showApp(){
 async function checkRole(){
   try { const {data}=await sb.from('admins').select('email').eq('email',currentUser.email).single(); isAdmin=!!data; }
   catch { isAdmin=false; }
+  // Si pas admin, vérifier si c'est un viewer → rediriger vers planning_camions uniquement
+  if (!isAdmin) {
+    try {
+      const {data:vwr} = await sb.from('viewers').select('email').eq('email', currentUser.email).maybeSingle();
+      if (vwr) { window.location.href = 'planning_camions.html'; return; }
+    } catch(e) { /* table viewers inaccessible → on continue normalement */ }
+  }
 }
 function updateUserUI(){
   const meta=currentUser?.user_metadata||{}, email=currentUser?.email||'';
