@@ -958,8 +958,11 @@ function buildHeatmap(data) {
     const dayW = dObj.toLocaleDateString('fr-CA',{weekday:'short'}).toUpperCase().slice(0,2);
     const dow = dObj.getDay();
     const isWknd = dow===0||dow===6;
-    svg += `<text x="${x}" y="${y+14}" text-anchor="middle" font-size="8" font-weight="800" letter-spacing="1.2" fill="${isWknd?'rgba(200,132,58,.55)':'rgba(190,197,214,.3)'}">${dayW}</text>`;
-    svg += `<text x="${x}" y="${y+30}" text-anchor="middle" font-size="12" font-weight="700" fill="${isWknd?'var(--copper-light)':'rgba(240,234,224,.65)'}">${dayN}</text>`;
+    // Couleurs concrètes (pas de var CSS pour compatibilité canvas export)
+    const abbrevColor = isWknd ? 'rgba(200,132,58,.65)'  : 'rgba(190,197,214,.35)';
+    const numColor    = isWknd ? 'rgba(224,168,112,.95)' : 'rgba(240,234,224,.7)';
+    svg += `<text x="${x}" y="${y+14}" text-anchor="middle" font-size="8" font-weight="800" letter-spacing="1.2" fill="${abbrevColor}">${dayW}</text>`;
+    svg += `<text x="${x}" y="${y+30}" text-anchor="middle" font-size="12" font-weight="700" fill="${numColor}">${dayN}</text>`;
   });
 
   // En-têtes lignes (heures) + cellules
@@ -1000,6 +1003,16 @@ function buildHeatmap(data) {
         fill="${fillC}" stroke="${strokeC}" stroke-width="${swC}"
         class="hm-svg-cell" style="cursor:${cursor};transition:filter .15s;"
         ${dataAttr} />`;
+
+      // Hachures légères pour les cellules vides de weekend
+      if (!hasData && !hasNL) {
+        const dow2 = new Date(dt+'T00:00:00').getDay();
+        if (dow2===0||dow2===6) {
+          svg += `<rect x="${cx}" y="${cy}" width="${CELL}" height="${CELL}" rx="6"
+            fill="rgba(255,255,255,.045)" stroke="rgba(255,255,255,.07)" stroke-width="0.4"
+            pointer-events="none"/>`;
+        }
+      }
 
       if (hasNL) {
         // Shine violet
