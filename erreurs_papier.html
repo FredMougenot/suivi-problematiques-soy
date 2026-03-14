@@ -1480,6 +1480,7 @@ async function loadData() {
     }
     
     renderMainContent(allRows, statsData, dataByDay);
+    window._lastDataByDay = dataByDay; // exposé pour l'export PDF
     
   } catch (e) {
     console.error('Error loading data:', e);
@@ -1729,103 +1730,94 @@ async function exportPDF() {
     
     // Carte thermique (si mode semaine ou mois)
     if (curView !== 'jour') {
-      // Vérifier si on doit passer à la page suivante
-      if (y > pageHeight - 80) {
-        pdf.addPage();
-        y = 20;
-      }
-      
+      if (y > pageHeight - 80) { pdf.addPage(); y = 20; }
+
       pdf.setFontSize(14);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(10, 11, 13);
-      pdf.text('Carte Thermique', 20, y);
-      
+      pdf.text('Carte Thermique', 10, y);
       y += 8;
-      
-      // Extraire les données de la heatmap depuis le DOM
+
+      // Reconstruire les données directement (pas depuis le DOM)
       const heatmapCells = document.querySelectorAll('.heatmap-cell');
-      const heatmapHeaders = document.querySelectorAll('.heatmap-table thead th');
-      
-      if (heatmapCells.length > 0 && heatmapHeaders.length > 0) {
-        // Extraire les jours depuis les en-têtes (DOM th)
-        const days = [];
-        heatmapHeaders.forEach((h, idx) => {
-          if (idx > 0) days.push(h.textContent.trim());
-        });
+      const heatmapRows  = document.querySelectorAll('.heatmap-table tbody tr');
 
-        const nbDays   = days.length;
-        const xStart   = 22;          // marge gauche réduite
-        const qLblW    = 8;           // largeur label Q1/Q2/Q3
-        const available = pageWidth - xStart - qLblW - 10;
-        const cellWidth  = Math.min(14, available / nbDays);
-        const cellHeight = 10;
-        const headerH    = 10; // hauteur en-tête 2 lignes
+      if (heatmapCells.length > 0 && heatmapRows.length > 0) {
+        // Récupérer les jours triés depuis dataByDay (variable globale du scope)
+        const dayKeys = Object.keys(window._lastDataByDay || {}).sort();
 
-        // En-têtes des jours sur 2 lignes
-        days.forEach((day, idx) => {
-          const parts = day.split(' '); // ex: ["Lun", "3/3"]
-          const dayName = parts[0] || day;
-          const dayNum  = parts[1] || '';
-          const x = xStart + qLblW + (idx * cellWidth);
-          pdf.setFontSize(6);
-          pdf.setFont('helvetica', 'normal');
-          pdf.setTextColor(107, 114, 128);
-          pdf.text(dayName, x + cellWidth/2, y + 3, { align: 'center' });
-          pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(60, 60, 60);
-          pdf.text(dayNum,  x + cellWidth/2, y + 7, { align: 'center' });
-        });
+        if (dayKeys.length > 0) {
+          const nbDays     = dayKeys.length;
+          const xStart     = 10;   // marge gauche serrée
+          const qLblW      = 7;    // largeur label Qx
+          const rightMargin = 8;
+          const totalW     = pageWidth - xStart - qLblW - rightMargin;
+          const cellSize   = Math.floor(totalW / nbDays); // carré : width = height
+          const headerH    = 10;
 
-        y += headerH;
-        
-        // Lignes Q1, Q2, Q3
-        const quartsColors = [
-          [212, 175, 55],  // Q1 gold
-          [135, 206, 235], // Q2 blue
-          [221, 160, 221]  // Q3 purple
-        ];
-        
-        const heatmapRows = document.querySelectorAll('.heatmap-table tbody tr');
-        heatmapRows.forEach((row, qIdx) => {
-          // Label du quart — collé juste avant les cellules
-          pdf.setFontSize(7);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(...quartsColors[qIdx]);
-          pdf.text(`Q${qIdx + 1}`, xStart, y + 7);
-          
-          // Cellules
-          const cells = row.querySelectorAll('.heatmap-cell');
-          cells.forEach((cell, dayIdx) => {
-            const x = xStart + qLblW + (dayIdx * cellWidth);
-            const value = cell.textContent.trim();
-            const numValue = parseInt(value) || 0;
-            
-            // Bordure
-            pdf.setDrawColor(200, 200, 200);
-            pdf.setLineWidth(0.2);
-            pdf.rect(x, y, cellWidth, cellHeight);
-            
-            // Remplissage si erreurs
-            if (numValue > 0) {
-              const alpha = Math.min(0.7, 0.2 + (numValue * 0.15));
-              const color = quartsColors[qIdx];
-              pdf.setFillColor(color[0], color[1], color[2]);
-              pdf.setGState(new pdf.GState({opacity: alpha}));
-              pdf.rect(x, y, cellWidth, cellHeight, 'F');
-              pdf.setGState(new pdf.GState({opacity: 1}));
-              
-              // Valeur
-              pdf.setFontSize(7);
-              pdf.setFont('helvetica', 'bold');
-              pdf.setTextColor(color[0], color[1], color[2]);
-              pdf.text(value, x + cellWidth/2, y + 6, {align: 'center'});
-            }
+          const quartsColors = [
+            [212, 175, 55],
+            [135, 206, 235],
+            [221, 160, 221]
+          ];
+
+          const dayNames = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+
+          // En-têtes sur 2 lignes
+          dayKeys.forEach((day, idx) => {
+            const d       = new Date(day + 'T00:00:00');
+            const name    = dayNames[d.getDay()];
+            const numStr  = `${d.getDate()}/${d.getMonth()+1}`;
+            const x       = xStart + qLblW + idx * cellSize;
+            pdf.setFontSize(5.5);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(120, 120, 120);
+            pdf.text(name,   x + cellSize/2, y + 3.5, { align: 'center' });
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(40, 40, 40);
+            pdf.text(numStr, x + cellSize/2, y + 7.5, { align: 'center' });
           });
-          
-          y += cellHeight;
-        });
-        
-        y += 10;
+
+          y += headerH;
+
+          // Lignes Q1 Q2 Q3
+          heatmapRows.forEach((row, qIdx) => {
+            // Label Qx
+            pdf.setFontSize(7);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(...quartsColors[qIdx]);
+            pdf.text(`Q${qIdx+1}`, xStart, y + cellSize*0.65);
+
+            // Cellules carrées
+            const cells = row.querySelectorAll('.heatmap-cell');
+            cells.forEach((cell, dayIdx) => {
+              const x       = xStart + qLblW + dayIdx * cellSize;
+              const value   = cell.textContent.trim();
+              const numVal  = parseInt(value) || 0;
+
+              pdf.setDrawColor(200, 200, 200);
+              pdf.setLineWidth(0.2);
+              pdf.rect(x, y, cellSize, cellSize);
+
+              if (numVal > 0) {
+                const alpha = Math.min(0.7, 0.2 + numVal * 0.15);
+                const c = quartsColors[qIdx];
+                pdf.setFillColor(c[0], c[1], c[2]);
+                pdf.setGState(new pdf.GState({ opacity: alpha }));
+                pdf.rect(x, y, cellSize, cellSize, 'F');
+                pdf.setGState(new pdf.GState({ opacity: 1 }));
+                pdf.setFontSize(6.5);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setTextColor(c[0], c[1], c[2]);
+                pdf.text(value, x + cellSize/2, y + cellSize*0.65, { align: 'center' });
+              }
+            });
+
+            y += cellSize;
+          });
+
+          y += 10;
+        }
       }
     }
     
