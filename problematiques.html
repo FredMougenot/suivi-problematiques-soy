@@ -894,10 +894,10 @@ body { font-size: 0.9375rem; }
 
     <!-- Tableau -->
     <div class="tbl-wrap" style="touch-action:pan-x">
-      <table class="dtbl" style="min-width:1469px;table-layout:fixed;width:100%">
+      <table class="dtbl" style="min-width:1349px;table-layout:fixed;width:100%">
         <colgroup>
-          <col style="width:52px">    <!-- ID : 36px -->
-          <col style="width:120px">   <!-- Pilier : 77px + badge "Environnement" -->
+          <col style="width:52px">    <!-- ID -->
+          <col style="display:none;width:0">  <!-- Pilier — masqué -->
           <col style="width:120px">   <!-- Priorité : badge "Critique" ~107px -->
           <col style="width:115px">   <!-- Statut : badge "À traiter" ~112px -->
           <col style="width:102px">   <!-- Soumis le : 97px -->
@@ -910,9 +910,9 @@ body { font-size: 0.9375rem; }
           <col style="width:140px">   <!-- Date résolue : 137px -->
           <col style="width:90px">    <!-- Actions admin : 87px -->
         </colgroup>
-        <!-- Total : 52+120+100+96+102+140+110+110+110+130+130+140+90 = 1430px -->
+        <!-- Total sans Pilier : 52+120+115+102+140+110+110+110+130+130+140+90 = 1349px -->
         <thead><tr>
-          <th>ID</th><th>Pilier</th><th>Priorité</th><th>Statut</th>
+          <th>ID</th><th style="display:none">Pilier</th><th>Priorité</th><th>Statut</th>
           <th>Soumis le</th><th>Intitulé</th><th>Cause</th><th>Action</th><th>Résultat</th>
           <th>Responsable</th><th>Date prévue</th><th>Date résolue</th>
           <th class="admin-only" style="display:none">Actions</th>
@@ -1131,7 +1131,7 @@ function renderTable(data){
     const resultat = p.resultat ? `<div style="font-size:.8rem;color:var(--text-secondary);white-space:normal">${esc(p.resultat.substring(0,80))}${p.resultat.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
     return `<tr>
       <td><span class="c-id">#${fmtId(p.id)}</span></td>
-      <td><span class="badge bd">${esc(p.pilier||'')}</span></td>
+      <td style="display:none"><span class="badge bd">${esc(p.pilier||'')}</span></td>
       <td>${bPrio(p.priorite)}</td>
       <td>${bStat(p.statut)}</td>
       <td style="font-size:.78rem;color:var(--text-secondary);white-space:nowrap">${fmtDate(p.created_at)}</td>
@@ -1745,26 +1745,23 @@ async function exportPDF() {
       pdf.setTextColor(...C.grey);
       pdf.text('Aucune problématique à afficher.', M, y + 8);
     } else {
-      // ── Calcul des largeurs PDF ──
-      // Colonnes fixes serrées : ID(10) + Pilier(18) + Priorité(16) + Statut(17) + Soumis(18) + Responsable(22) + 3×dates(18) = 137
-      // Reste distribué en 4 parts égales pour Intitulé, Cause, Action, Résultat
-      const fixedW  = 10 + 18 + 16 + 17 + 18 + 22 + 18 + 18 + 18; // = 155
-      const dateW   = 18;
-      const textW   = Math.floor((W - 2*M - fixedW) / 4);
+      // ── Calcul des largeurs PDF (sans colonne Pilier) ──
+      // Fixes : ID(10) + Priorité(20) + Statut(22) + Soumis(20) + Responsable(24) + Date prévue(22) + Date résolue(22) = 140mm
+      const fixedW = 10 + 20 + 22 + 20 + 24 + 22 + 22; // = 140mm
+      const textW  = Math.floor((W - 2*M - fixedW) / 4); // 4 colonnes texte égales
 
       const cols = [
-        { key: 0,  label: 'ID',          w: 10  },
-        { key: 1,  label: 'Pilier',       w: 18  },
-        { key: 2,  label: 'Priorité',     w: 16  },
-        { key: 3,  label: 'Statut',       w: 17  },
-        { key: 4,  label: 'Soumis le',    w: 18  },
-        { key: 5,  label: 'Intitulé',     w: textW },
-        { key: 6,  label: 'Cause',        w: textW },
-        { key: 7,  label: 'Action',       w: textW },
-        { key: 8,  label: 'Résultat',     w: textW },
-        { key: 9,  label: 'Responsable',  w: 22  },
-        { key: 10, label: 'Date prévue',  w: dateW },
-        { key: 11, label: 'Date résolue', w: dateW },
+        { key: 0,  label: 'ID',           w: 10      },
+        { key: 2,  label: 'Priorité',      w: 20      },
+        { key: 3,  label: 'Statut',        w: 22      },
+        { key: 4,  label: 'Soumis le',     w: 20      },
+        { key: 5,  label: 'Intitulé',      w: textW   },
+        { key: 6,  label: 'Cause',         w: textW   },
+        { key: 7,  label: 'Action',        w: textW   },
+        { key: 8,  label: 'Résultat',      w: textW   },
+        { key: 9,  label: 'Responsable',   w: 24      },
+        { key: 10, label: 'Date prévue',   w: 22      },
+        { key: 11, label: 'Date résolue',  w: 22      },
       ];
 
       const rowH   = 9;
