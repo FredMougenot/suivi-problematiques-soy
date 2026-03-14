@@ -1745,31 +1745,31 @@ async function exportPDF() {
       pdf.setTextColor(...C.grey);
       pdf.text('Aucune problématique à afficher.', M, y + 8);
     } else {
-      // ── Calcul des largeurs PDF (sans colonne Pilier) ──
-      // À font-size:7 helvetica, 1 char ≈ 2.5mm. Padding cellule : 2mm/côté = 4mm total.
-      // ID "#0116"=5c → 16.5mm → 14mm (tronqué court acceptable)
-      // Priorité "Moyenne"=7c → 21.5mm → 22mm
-      // Statut "À traiter"=9c → 26.5mm → 27mm
-      // Soumis "13 mars 20..."=tronqué → 18mm suffit
-      // Responsable "Dany Rochette"=13c → 36.5mm → 32mm
-      // Date prévue/résolue "03 mars 2026"=12c → 34mm → 28mm chacune
-      // Fixes total : 14+22+27+18+32+28+28 = 169mm
-      // Reste pour 4 colonnes texte : (W - 2*M - 169) / 4
-      const fixedW = 14 + 22 + 27 + 18 + 32 + 28 + 28; // = 169mm
-      const textW  = Math.floor((W - 2*M - fixedW) / 4);
+      // ── Calcul des largeurs PDF ──
+      // Font-size:7 helvetica normal ≈ 1.5mm/char, bold ≈ 1.85mm/char. Padding: 2mm/côté.
+      // ID "#0116"       : 5 × 1.85 + 4 = 13mm
+      // Priorité "Moyenne": 7 × 1.5  + 4 = 15mm
+      // Statut "À traiter": 9 × 1.5  + 4 = 18mm
+      // Soumis "13 mars 2026": 12×1.5 + 4 = 22mm
+      // Responsable "Dany Rochette": 13×1.5+4 = 24mm
+      // Date prévue/résolue "03 mars 2026": 12×1.5+4 = 22mm chacune
+      // Fixes total : 13+15+18+22+24+22+22 = 136mm
+      // Reste pour 4 colonnes texte : (277 - 136) / 4 = 35mm chacune
+      const fixedW = 13 + 15 + 18 + 22 + 24 + 22 + 22; // = 136mm
+      const textW  = Math.floor((W - 2*M - fixedW) / 4); // ≈ 35mm
 
       const cols = [
-        { key: 0,  label: 'ID',           w: 14      },
-        { key: 2,  label: 'Priorité',      w: 22      },
-        { key: 3,  label: 'Statut',        w: 27      },
-        { key: 4,  label: 'Soumis le',     w: 18      },
-        { key: 5,  label: 'Intitulé',      w: textW   },
-        { key: 6,  label: 'Cause',         w: textW   },
-        { key: 7,  label: 'Action',        w: textW   },
-        { key: 8,  label: 'Résultat',      w: textW   },
-        { key: 9,  label: 'Responsable',   w: 32      },
-        { key: 10, label: 'Date prévue',   w: 28      },
-        { key: 11, label: 'Date résolue',  w: 28      },
+        { key: 0,  label: 'ID',           w: 13     },
+        { key: 2,  label: 'Priorité',      w: 15     },
+        { key: 3,  label: 'Statut',        w: 18     },
+        { key: 4,  label: 'Soumis le',     w: 22     },
+        { key: 5,  label: 'Intitulé',      w: textW  },
+        { key: 6,  label: 'Cause',         w: textW  },
+        { key: 7,  label: 'Action',        w: textW  },
+        { key: 8,  label: 'Résultat',      w: textW  },
+        { key: 9,  label: 'Responsable',   w: 24     },
+        { key: 10, label: 'Date prévue',   w: 22     },
+        { key: 11, label: 'Date résolue',  w: 22     },
       ];
 
       const rowH   = 9;
