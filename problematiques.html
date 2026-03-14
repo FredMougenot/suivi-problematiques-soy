@@ -1788,54 +1788,102 @@ async function exportPDF() {
       });
       y += headerH;
 
+      const TEXT_KEYS = new Set([5, 6, 7, 8]); // Intitulé, Cause, Action, Résultat
+      const lineH = 4;   // hauteur d'une ligne de texte (mm)
+      const padV  = 2.5; // padding vertical haut/bas (mm)
+
+      // Helper : découper le texte en lignes qui rentrent dans la largeur de colonne
+      function splitLines(txt, colW) {
+        if (!txt) return ['—'];
+        pdf.setFontSize(7);
+        pdf.setFont('helvetica', 'normal');
+        const maxW = colW - 4; // 2mm padding de chaque côté
+        const words = txt.split(' ');
+        const lines = [];
+        let cur = '';
+        for (const w of words) {
+          const test = cur ? cur + ' ' + w : w;
+          if (pdf.getTextWidth(test) <= maxW) {
+            cur = test;
+          } else {
+            if (cur) lines.push(cur);
+            // Si le mot seul est trop long, tronquer
+            let word = w;
+            while (pdf.getTextWidth(word) > maxW) word = word.slice(0, -1);
+            cur = word;
+          }
+        }
+        if (cur) lines.push(cur);
+        return lines.length ? lines : ['—'];
+      }
+
+      // Helper : répéter l'en-tête sur nouvelle page
+      function printHeader() {
+        let hx = M;
+        pdf.setFillColor(245, 245, 248);
+        pdf.rect(M, y, W - 2*M, headerH, 'F');
+        pdf.setFontSize(6.5);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(...C.copper);
+        cols.forEach(col => { pdf.text(col.label.toUpperCase(), hx + 2, y + 5.5); hx += col.w; });
+        y += headerH;
+      }
+
       // Lignes
       rows.forEach((tr, i) => {
-        if (y > H - 16) {
-          pdf.addPage();
-          y = M;
-          // Répéter l'en-tête
-          x = M;
-          pdf.setFillColor(245, 245, 248);
-          pdf.rect(M, y, W - 2*M, headerH, 'F');
-          pdf.setFontSize(6.5);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(...C.copper);
-          cols.forEach(col => { pdf.text(col.label.toUpperCase(), x + 2, y + 5.5); x += col.w; });
-          y += headerH;
-        }
-
         const tds = tr.querySelectorAll('td');
         if (!tds.length) return;
+
+        // Pré-calculer les lignes wrappées pour les colonnes texte
+        const wrappedLines = {}; // key -> string[]
+        let maxLines = 1;
+        cols.forEach(col => {
+          if (!TEXT_KEYS.has(col.key)) return;
+          const td = tds[col.key];
+          const raw = td ? td.textContent.trim().replace(/\s+/g, ' ') : '';
+          const lines = splitLines(raw || '—', col.w);
+          wrappedLines[col.key] = lines;
+          if (lines.length > maxLines) maxLines = lines.length;
+        });
+
+        const dynRowH = maxLines * lineH + padV * 2;
+
+        // Nouvelle page si nécessaire
+        if (y + dynRowH > H - 12) {
+          pdf.addPage();
+          y = M;
+          printHeader();
+        }
 
         // Fond alterné
         if (i % 2 === 0) {
           pdf.setFillColor(252, 252, 253);
-          pdf.rect(M, y, W - 2*M, rowH, 'F');
+          pdf.rect(M, y, W - 2*M, dynRowH, 'F');
         }
 
+        // Séparateur bas
         pdf.setDrawColor(220, 222, 228);
         pdf.setLineWidth(0.15);
-        pdf.line(M, y + rowH, W - M, y + rowH);
+        pdf.line(M, y + dynRowH, W - M, y + dynRowH);
 
+        // Dessiner chaque cellule
         x = M;
-        pdf.setFontSize(7);
-        pdf.setFont('helvetica', 'normal');
-
         cols.forEach(col => {
           const td = tds[col.key];
-          if (!td) { x += col.w; return; }
-          const txt = td.textContent.trim().replace(/\s+/g, ' ');
+          const raw = td ? td.textContent.trim().replace(/\s+/g, ' ') : '';
 
-          // Coloriser le statut
+          pdf.setFontSize(7);
+          pdf.setFont('helvetica', 'normal');
+
+          // Couleur selon colonne
           if (col.key === 3) {
-            const t = txt.toLowerCase();
+            const t = raw.toLowerCase();
             if (t.includes('traiter'))      pdf.setTextColor(...C.ruby);
             else if (t.includes('cours'))   pdf.setTextColor(...C.amber);
             else if (t.includes('résolu'))  pdf.setTextColor(...C.emerald);
-            else if (t.includes('clôturé')) pdf.setTextColor(...C.grey);
             else                            pdf.setTextColor(...C.grey);
           } else if (col.key === 2) {
-            const t = txt.toLowerCase();
+            const t = raw.toLowerCase();
             if (t.includes('critique'))     pdf.setTextColor(...C.ruby);
             else if (t.includes('haute'))   pdf.setTextColor(...C.amber);
             else if (t.includes('moyenne')) pdf.setTextColor(...C.sapphire);
@@ -1845,17 +1893,29 @@ async function exportPDF() {
             pdf.setFont('helvetica', 'bold');
           } else {
             pdf.setTextColor(40, 42, 55);
-            pdf.setFont('helvetica', 'normal');
           }
 
-          // Tronquer si trop long
-          const maxChars = Math.floor(col.w / 1.8);
-          const display  = txt.length > maxChars ? txt.slice(0, maxChars - 1) + '…' : txt;
-          pdf.text(display, x + 2, y + 6);
+          if (TEXT_KEYS.has(col.key)) {
+            // Texte multi-lignes
+            const lines = wrappedLines[col.key] || ['—'];
+            lines.forEach((line, li) => {
+              pdf.text(line, x + 2, y + padV + 3.5 + li * lineH);
+            });
+          } else {
+            // Texte simple sur une ligne, tronqué si nécessaire
+            const maxW = col.w - 4;
+            let display = raw || '—';
+            while (display.length > 1 && pdf.getTextWidth(display) > maxW) {
+              display = display.slice(0, -1);
+            }
+            if (display !== (raw || '—')) display += '…';
+            pdf.text(display, x + 2, y + dynRowH / 2 + 2);
+          }
+
           x += col.w;
         });
 
-        y += rowH;
+        y += dynRowH;
       });
     }
 
