@@ -199,9 +199,9 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 /* TABLE */
 .tbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;touch-action:pan-x;box-shadow:var(--shadow-sm);}
 .dtbl{width:100%;border-collapse:collapse;min-width:900px;}
-.dtbl thead th{padding:11px 8px;text-align:left;font-size:.63rem;font-weight:800;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;background:var(--bg-float);border-bottom:1px solid var(--text-faint);white-space:nowrap;overflow:hidden;}
+.dtbl thead th{padding:11px 8px;text-align:left;font-size:.63rem;font-weight:800;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;background:var(--bg-float);border-bottom:1px solid var(--text-faint);white-space:nowrap;}
 .dtbl thead th:first-child{padding-left:14px;}
-.dtbl tbody td{padding:12px 8px;font-size:.83rem;color:var(--text-secondary);border-bottom:1px solid rgba(255,255,255,.025);vertical-align:middle;transition:background var(--t-fast);overflow:hidden;}
+.dtbl tbody td{padding:12px 8px;font-size:.83rem;color:var(--text-secondary);border-bottom:1px solid rgba(255,255,255,.025);vertical-align:middle;transition:background var(--t-fast);}
 .dtbl tbody td:first-child{padding-left:14px;}
 .dtbl tbody tr:last-child td{border-bottom:none;}
 .dtbl tbody tr:hover td{background:rgba(184,115,51,.04);color:var(--text-primary);}
@@ -898,8 +898,8 @@ body { font-size: 0.9375rem; }
         <colgroup>
           <col style="width:52px">    <!-- ID -->
           <col style="width:120px">   <!-- Pilier — "Environnement" -->
-          <col style="width:82px">    <!-- Priorité -->
-          <col style="width:88px">    <!-- Statut -->
+          <col style="width:90px">    <!-- Priorité — "Critique" -->
+          <col style="width:96px">    <!-- Statut — "À traiter" -->
           <col style="width:90px">    <!-- Soumis le — nowrap -->
           <col style="width:160px">   <!-- Intitulé / Description -->
           <col style="width:160px">   <!-- Cause -->
