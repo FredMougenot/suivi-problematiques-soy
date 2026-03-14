@@ -44,7 +44,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
 .btn-params{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
   border-radius:10px;background:#1A1E2A;border:1px solid #2C3350;color:#BEC5D6;
   font-size:.78rem;font-weight:600;cursor:pointer;border-style:solid;
-  font-family:'Outfit',sans-serif;transition:all var(--t-fast);margin-left:auto;}
+  font-family:'Outfit',sans-serif;transition:all var(--t-fast);}
 .btn-params:hover{border-color:var(--copper);color:var(--copper-light);}
 
 /* ── CONTROLS ── */
@@ -298,16 +298,18 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-
       <div class="tb-sub">Analyse des arrivées camions <span id="refresh-badge" style="display:none;font-size:.6rem;color:var(--emerald);margin-left:4px;opacity:.7">● live</span></div>
     </div>
   </div>
-  <button class="btn-params" onclick="openParams()">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    Paramètres
-  </button>
-  <button class="btn-params" onclick="exportPDF()" style="border-color:rgba(45,212,160,.3);color:var(--emerald);"
-    onmouseover="this.style.borderColor='var(--emerald)';this.style.color='var(--emerald)'"
-    onmouseout="this.style.borderColor='rgba(45,212,160,.3)';this.style.color='var(--emerald)'">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-    Exporter PDF
-  </button>
+  <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+    <button class="btn-params" onclick="exportPDF()" style="border-color:rgba(45,212,160,.3);color:var(--emerald);"
+      onmouseover="this.style.borderColor='var(--emerald)';this.style.color='var(--emerald)'"
+      onmouseout="this.style.borderColor='rgba(45,212,160,.3)';this.style.color='var(--emerald)'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Exporter PDF
+    </button>
+    <button class="btn-params" onclick="openParams()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Paramètres
+    </button>
+  </div>
 </header>
 
 <!-- CONTROLS -->
@@ -1457,9 +1459,9 @@ async function exportPDF() {
     const kW = (W - 2*M - 9) / 4;
     kpis.forEach((k, i) => {
       const x = M + i * (kW + 3);
-      pdf.setDrawColor(...C.faint);
+      pdf.setDrawColor(220, 220, 225);
       pdf.setLineWidth(0.3);
-      pdf.setFillColor(21, 24, 31);
+      pdf.setFillColor(255, 255, 255);
       pdf.roundedRect(x, y, kW, 22, 2, 2, 'FD');
       pdf.setFontSize(6);
       pdf.setFont('helvetica', 'bold');
@@ -1467,11 +1469,11 @@ async function exportPDF() {
       pdf.text(k.label.toUpperCase(), x + 3, y + 5);
       pdf.setFontSize(14);
       pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(...C.black);
+      pdf.setTextColor(30, 30, 30);
       pdf.text(k.val, x + 3, y + 13);
       pdf.setFontSize(6);
       pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(...C.grey);
+      pdf.setTextColor(100, 100, 110);
       pdf.text(k.sub, x + 3, y + 19, { maxWidth: kW - 4 });
     });
     y += 28;
