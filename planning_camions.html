@@ -74,8 +74,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 .ptbl thead tr.thead-sections{border-bottom:none;}
 
 /* Séparateurs de sections sur toute la hauteur */
-/* Frontière gauche section 2 = col index 3 (Type camion) */
-/* Frontière gauche section 3 = col index 8 (Destination départ) */
+/* Frontière gauche section 2 = col 4 (Type camion) */
+/* Col 9 = Heure réelle (séparateur central) */
+/* Frontière gauche section 3 = col 10 (Destination départ) */
 .ptbl thead tr:not(.thead-sections) th:nth-child(4),
 .ptbl tbody td:nth-child(4){
   border-left:1px solid rgba(255,255,255,0.22);
@@ -83,6 +84,24 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 .ptbl thead tr:not(.thead-sections) th:nth-child(9),
 .ptbl tbody td:nth-child(9){
   border-left:1px solid rgba(255,255,255,0.22);
+  border-right:1px solid rgba(255,255,255,0.22);
+  background:rgba(255,255,255,0.03);
+  text-align:center;
+}
+.ptbl thead tr:not(.thead-sections) th:nth-child(10),
+.ptbl tbody td:nth-child(10){
+  border-left:none;
+}
+.th-section-sep{
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(255,255,255,0.03) 0px,
+    rgba(255,255,255,0.03) 2px,
+    transparent 2px,
+    transparent 8px
+  );
+  border-left:1px solid rgba(255,255,255,0.22) !important;
+  border-right:1px solid rgba(255,255,255,0.22) !important;
 }
 
 .th-section{
@@ -458,7 +477,8 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
         <tr class="thead-sections">
           <th colspan="3" class="th-section th-section-empty"></th>
           <th colspan="5" class="th-section th-section-mid">Flux à destination de l'usine</th>
-          <th colspan="7" class="th-section th-section-right">Flux au départ de l'usine</th>
+          <th class="th-section th-section-sep"></th>
+          <th colspan="6" class="th-section th-section-right">Flux au départ de l'usine</th>
         </tr>
         <tr>
         <th style="text-align:center">#</th>
@@ -466,14 +486,13 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
         <th>Statut</th>
         <th>Type camion</th>
         <th>N° arrivée</th>
-        
         <th>Description</th>
         <th>Destination</th>
         <th>Statut arrivée</th>
+        <th id="th-hreelle" class="th-hreelle-sep">Heure réelle</th>
         <th>Destination départ</th>
         <th>N° départ</th>
         <th>Chargement</th>
-        <th id="th-hreelle">Heure réelle</th>
         <th class="th-ep" style="text-align:center;min-width:180px;" title="État de vérification des quarts">✎ Vérification</th>
         <th></th>
         <th id="th-supabase-id" style="text-align:center;white-space:nowrap;min-width:110px;" title="Identifiant unique Supabase">ID</th>
@@ -1035,6 +1054,8 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
       </span>`;
     })()}</td>
 
+    <td class="td-hreelle"><input class="ci-t" type="time" value="${esc(r.heure_reelle||'')}" oninput="fchg(${idx},'heure_reelle',this.value)"></td>
+
     <td>${(()=>{
       const items=_params['destination']||[];
       const cur=r.destination||(_params['destination']||[{valeur:''}])[0]?.valeur||'';
@@ -1062,7 +1083,6 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
       </span>`;
     })()}</td>
 
-    <td class="td-hreelle"><input class="ci-t" type="time" value="${esc(r.heure_reelle||'')}" oninput="fchg(${idx},'heure_reelle',this.value)"></td>
     <td class="td-ep verif-slider-container">${(()=>{
       const _vInactifSl = (_params['statut_ligne']||[])[1]?.valeur||'INACTIF';
       const _bobtailDst = (_params['destination']||[])[5]?.valeur||'';
