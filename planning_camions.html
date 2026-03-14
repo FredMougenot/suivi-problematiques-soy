@@ -460,7 +460,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 </div>
 <main class="main">
   <div id="spinner" class="spinner"><div class="spin"></div> Chargement…</div>
-  <div class="tbl-outer" id="tbl" style="display:none">
+  <div class="tbl-outer" id="tbl" style="display:none;position:relative;">
     <table class="ptbl">
       <thead>
         <tr class="thead-sections">
@@ -488,8 +488,51 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
       </tr></thead>
       <tbody id="tbody"></tbody>
     </table>
+    <!-- Ligne timeline dans le tableau -->
+    <div id="tl-line" style="
+      display:none;
+      position:absolute;left:0;right:0;
+      height:2px;
+      background:linear-gradient(90deg, transparent 0%, var(--amber) 8%, var(--amber) 92%, transparent 100%);
+      box-shadow:0 0 8px rgba(232,164,58,.6), 0 0 20px rgba(232,164,58,.25);
+      pointer-events:none;
+      z-index:20;
+      transition:top .6s ease;
+    ">
+      <!-- Étiquette heure -->
+      <div id="tl-lbl" style="
+        position:absolute;left:16px;top:-10px;
+        background:var(--amber);color:#0F1118;
+        font-size:.62rem;font-weight:800;
+        padding:1px 7px;border-radius:3px;
+        white-space:nowrap;
+        box-shadow:0 2px 6px rgba(0,0,0,.5);
+        font-family:'Outfit',sans-serif;
+      ">—</div>
+    </div>
   </div>
 </main>
+
+<!-- SLIDER DE TEST TIMELINE -->
+<div id="tl-test-bar" style="display:flex;align-items:center;gap:10px;padding:6px 28px 0;">
+  <span style="font-size:.62rem;font-weight:700;color:var(--text-faint);white-space:nowrap;letter-spacing:.08em;text-transform:uppercase;">⏱ Test</span>
+  <input id="tl-test-slider" type="range" min="0" max="840" value="0"
+    style="flex:1;accent-color:var(--amber);cursor:pointer;height:3px;"
+    oninput="tlTestMove(this.value)">
+  <span id="tl-test-lbl" style="
+    font-size:.72rem;font-weight:700;color:var(--amber);
+    background:rgba(232,164,58,.1);border:1px solid rgba(232,164,58,.25);
+    border-radius:4px;padding:2px 8px;min-width:48px;text-align:center;
+    white-space:nowrap;font-family:'Playfair Display',serif;">—</span>
+  <button onclick="tlTestReset()" style="
+    padding:3px 9px;border-radius:var(--r-sm);background:transparent;
+    border:1px solid var(--text-faint);color:var(--text-muted);
+    font-size:.65rem;cursor:pointer;transition:all .15s;white-space:nowrap;"
+    onmouseover="this.style.borderColor='var(--amber)';this.style.color='var(--amber)'"
+    onmouseout="this.style.borderColor='var(--text-faint)';this.style.color='var(--text-muted)'">
+    Maintenant
+  </button>
+</div>
 <div style="display:flex;justify-content:center;gap:12px;padding:18px 0 8px;">
   <button id="btn-save-all" onclick="saveAll()"
     style="display:inline-flex;align-items:center;gap:8px;padding:11px 36px;
@@ -754,6 +797,7 @@ async function load(){
     try{ applyLockRules(); }catch(e){}
     document.getElementById('spinner').style.display='none';
     document.getElementById('tbl').style.display='block';
+    tlStart();
   }
 }
 
@@ -942,6 +986,8 @@ function render(){
   document.getElementById('tbody').innerHTML=html;
   updateStats();
   if(isViewer) applyReadOnly();
+  // Recalculer la position de la ligne timeline après re-rendu
+  requestAnimationFrame(()=>tlInject());
 }
 function buildRow(idx, heure, lbl, isExtra, lineNum){
   const r=rows[idx]||{};
@@ -1390,6 +1436,107 @@ async function delRow(idx){
 
 // ── STATS ──────────────────────────────────────────────────────────
 function updateStats(){ /* stats supprimées */ }
+
+// ── TIMELINE IN-TABLE ──────────────────────────────────────────────
+let tlVirtualMin = null; // null = heure réelle
+let tlTimer = null;
+
+function tlHmToMin(hm){ const [h,m]=hm.split(':').map(Number); return h*60+m; }
+function tlMinToHm(m){ return String(Math.floor(m/60)).padStart(2,'0')+'h'+String(m%60).padStart(2,'0'); }
+function tlNowMin(){ if(tlVirtualMin!==null) return tlVirtualMin; const n=new Date(); return n.getHours()*60+n.getMinutes(); }
+
+function tlInject(){
+  const line = document.getElementById('tl-line');
+  const lbl  = document.getElementById('tl-lbl');
+  if(!line) return;
+
+  // Masquer si pas aujourd'hui et pas en mode test
+  if(!isToday() && tlVirtualMin === null){ line.style.display='none'; return; }
+
+  const tbody = document.getElementById('tbody');
+  const tblOuter = document.getElementById('tbl');
+  if(!tbody || !tblOuter) return;
+
+  const nowMin = tlNowMin();
+
+  // Construire la liste ordonnée des lignes avec leur heure planifiée
+  const trList = [...tbody.querySelectorAll('tr[id^="tr"]')];
+  if(!trList.length){ line.style.display='none'; return; }
+
+  const trData = trList.map(tr => {
+    const idx = parseInt(tr.id.replace('tr',''));
+    const r   = rows[idx] || {};
+    const slot = SLOTS.find(s => s.idx === idx);
+    const hm  = r.heure_planif || slot?.h || '00:00';
+    return { tr, min: tlHmToMin(hm) };
+  });
+
+  const firstMin = trData[0].min;
+  const lastMin  = trData[trData.length-1].min;
+
+  // Masquer si avant la 1ère ligne ou bien au-delà de la dernière + 90 min
+  if(nowMin < firstMin || nowMin > lastMin + 90){ line.style.display='none'; return; }
+
+  // Trouver les deux lignes qui encadrent l'heure actuelle
+  let before = null, after = null;
+  for(let i=0; i<trData.length; i++){
+    if(trData[i].min <= nowMin) before = trData[i];
+    else { after = trData[i]; break; }
+  }
+
+  // Calculer la position Y absolue dans tbl-outer
+  const outerRect = tblOuter.getBoundingClientRect();
+  let topY;
+
+  if(before && after){
+    // Interpoler entre le bas de "before" et le haut de "after"
+    const rectB = before.tr.getBoundingClientRect();
+    const rectA = after.tr.getBoundingClientRect();
+    const yB = rectB.bottom - outerRect.top + tblOuter.scrollTop;
+    const yA = rectA.top   - outerRect.top + tblOuter.scrollTop;
+    const ratio = (nowMin - before.min) / (after.min - before.min);
+    topY = yB + (yA - yB) * ratio;
+  } else if(before){
+    // Après toutes les lignes → bas de la dernière ligne
+    const rectB = before.tr.getBoundingClientRect();
+    topY = rectB.bottom - outerRect.top + tblOuter.scrollTop;
+  } else {
+    // Avant toutes → haut de la première ligne
+    const rectA = after.tr.getBoundingClientRect();
+    topY = rectA.top - outerRect.top + tblOuter.scrollTop;
+  }
+
+  line.style.display = 'block';
+  line.style.top = topY + 'px';
+  if(lbl) lbl.textContent = tlMinToHm(nowMin);
+}
+
+function tlStart(){
+  const nowMin = tlNowMin();
+  const slider = document.getElementById('tl-test-slider');
+  const lbl    = document.getElementById('tl-test-lbl');
+  if(slider) slider.value = Math.max(0, Math.min(840, nowMin - 6*60));
+  if(lbl)    lbl.textContent = tlMinToHm(nowMin);
+  tlInject();
+  if(tlTimer) clearInterval(tlTimer);
+  tlTimer = setInterval(()=>{ if(tlVirtualMin===null) tlInject(); }, 30000);
+}
+
+function tlTestMove(val){
+  tlVirtualMin = 6*60 + parseInt(val);
+  const lbl = document.getElementById('tl-test-lbl');
+  if(lbl) lbl.textContent = tlMinToHm(tlVirtualMin);
+  tlInject();
+}
+function tlTestReset(){
+  tlVirtualMin = null;
+  const nowMin = tlNowMin();
+  const slider = document.getElementById('tl-test-slider');
+  const lbl    = document.getElementById('tl-test-lbl');
+  if(slider) slider.value = Math.max(0, Math.min(840, nowMin - 6*60));
+  if(lbl)    lbl.textContent = tlMinToHm(nowMin);
+  tlInject();
+}
 
 // ── MODAL ──────────────────────────────────────────────────────────
 function openModal(){
