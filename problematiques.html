@@ -199,10 +199,10 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 /* TABLE */
 .tbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;touch-action:pan-x;box-shadow:var(--shadow-sm);}
 .dtbl{width:100%;border-collapse:collapse;min-width:900px;}
-.dtbl thead th{padding:11px 15px;text-align:left;font-size:.63rem;font-weight:800;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;background:var(--bg-float);border-bottom:1px solid var(--text-faint);white-space:nowrap;}
-.dtbl thead th:first-child{padding-left:18px;}
-.dtbl tbody td{padding:12px 15px;font-size:.83rem;color:var(--text-secondary);border-bottom:1px solid rgba(255,255,255,.025);vertical-align:middle;transition:background var(--t-fast);}
-.dtbl tbody td:first-child{padding-left:18px;}
+.dtbl thead th{padding:11px 8px;text-align:left;font-size:.63rem;font-weight:800;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;background:var(--bg-float);border-bottom:1px solid var(--text-faint);white-space:nowrap;overflow:hidden;}
+.dtbl thead th:first-child{padding-left:14px;}
+.dtbl tbody td{padding:12px 8px;font-size:.83rem;color:var(--text-secondary);border-bottom:1px solid rgba(255,255,255,.025);vertical-align:middle;transition:background var(--t-fast);overflow:hidden;}
+.dtbl tbody td:first-child{padding-left:14px;}
 .dtbl tbody tr:last-child td{border-bottom:none;}
 .dtbl tbody tr:hover td{background:rgba(184,115,51,.04);color:var(--text-primary);}
 .c-id{font-size:.7rem;font-weight:700;color:var(--text-muted);letter-spacing:.06em;}
@@ -896,19 +896,19 @@ body { font-size: 0.9375rem; }
     <div class="tbl-wrap" style="touch-action:pan-x">
       <table class="dtbl" style="min-width:900px;table-layout:fixed;width:100%">
         <colgroup>
-          <col style="width:52px">   <!-- ID -->
-          <col style="width:82px">   <!-- Pilier -->
-          <col style="width:78px">   <!-- Priorité -->
-          <col style="width:82px">   <!-- Statut -->
-          <col style="width:82px">   <!-- Soumis le -->
-          <col style="width:250px">  <!-- Intitulé / Description -->
-          <col style="width:250px">  <!-- Cause -->
-          <col style="width:250px">  <!-- Action -->
-          <col style="width:250px">  <!-- Résultat -->
-          <col style="width:1px;white-space:nowrap"> <!-- Responsable -->
-          <col style="width:82px">   <!-- Date prévue -->
-          <col style="width:82px">   <!-- Date résolue -->
-          <col style="width:90px">   <!-- Actions (admin) -->
+          <col style="width:52px">    <!-- ID -->
+          <col style="width:120px">   <!-- Pilier — "Environnement" -->
+          <col style="width:82px">    <!-- Priorité -->
+          <col style="width:88px">    <!-- Statut -->
+          <col style="width:90px">    <!-- Soumis le — nowrap -->
+          <col style="width:160px">   <!-- Intitulé / Description -->
+          <col style="width:160px">   <!-- Cause -->
+          <col style="width:160px">   <!-- Action -->
+          <col style="width:160px">   <!-- Résultat -->
+          <col style="width:1px">     <!-- Responsable — auto -->
+          <col style="width:90px">    <!-- Date prévue — nowrap -->
+          <col style="width:90px">    <!-- Date résolue — nowrap -->
+          <col style="width:90px">    <!-- Actions (admin) -->
         </colgroup>
         <thead><tr>
           <th>ID</th><th>Pilier</th><th>Priorité</th><th>Statut</th>
@@ -1123,8 +1123,8 @@ function filterTable() {
 function renderTable(data){
   const probs=data||allProblems;
   document.getElementById('prob-tbody').innerHTML=probs.length===0?'<tr><td colspan="13"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique trouvee.</div></div></td></tr>':probs.map(p=>{
-    const datePrevue = p.date_prevue ? `<span style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.date_prevue)}</span>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
-    const dateResolue = p.date_resolue ? `<span style="font-size:.78rem;color:var(--emerald)">${fmtDate(p.date_resolue)}</span>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+    const datePrevue  = p.date_prevue  ? `<span style="font-size:.78rem;color:var(--text-secondary);white-space:nowrap">${fmtDate(p.date_prevue)}</span>`  : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+    const dateResolue = p.date_resolue ? `<span style="font-size:.78rem;color:var(--emerald);white-space:nowrap">${fmtDate(p.date_resolue)}</span>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
     const cause = p.cause ? `<div style="font-size:.8rem;color:var(--text-secondary);white-space:normal">${esc(p.cause.substring(0,80))}${p.cause.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
     const action = p.action ? `<div style="font-size:.8rem;color:var(--text-secondary);white-space:normal">${esc(p.action.substring(0,80))}${p.action.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
     const resultat = p.resultat ? `<div style="font-size:.8rem;color:var(--text-secondary);white-space:normal">${esc(p.resultat.substring(0,80))}${p.resultat.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
@@ -1133,7 +1133,7 @@ function renderTable(data){
       <td><span class="badge bd">${esc(p.pilier||'')}</span></td>
       <td>${bPrio(p.priorite)}</td>
       <td>${bStat(p.statut)}</td>
-      <td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td>
+      <td style="font-size:.78rem;color:var(--text-secondary);white-space:nowrap">${fmtDate(p.created_at)}</td>
       <td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,65))}${(p.description||'').length>65?'...':''}</small></div></td>
       <td>${cause}</td>
       <td>${action}</td>
