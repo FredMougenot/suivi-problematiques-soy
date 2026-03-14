@@ -72,6 +72,19 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 .ptbl{width:100%;border-collapse:collapse;min-width:1080px;}
 .ptbl thead tr{background:var(--bg-float);border-bottom:2px solid var(--text-faint);}
 .ptbl thead tr.thead-sections{border-bottom:none;}
+
+/* Séparateurs de sections sur toute la hauteur */
+/* Frontière gauche section 2 = col index 3 (Type camion) */
+/* Frontière gauche section 3 = col index 8 (Destination départ) */
+.ptbl thead tr:not(.thead-sections) th:nth-child(4),
+.ptbl tbody td:nth-child(4){
+  border-left:1px solid rgba(255,255,255,0.22);
+}
+.ptbl thead tr:not(.thead-sections) th:nth-child(9),
+.ptbl tbody td:nth-child(9){
+  border-left:1px solid rgba(255,255,255,0.22);
+}
+
 .th-section{
   padding:7px 12px;
   font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
@@ -80,16 +93,16 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 }
 .th-section-empty{
   background:var(--bg-deep);
-  border-right:1px solid rgba(255,255,255,0.12);
+  border-right:1px solid rgba(255,255,255,0.22);
 }
 .th-section-mid{
   color:var(--sapphire);
-  border-right:1px solid rgba(255,255,255,0.12);
-  border-left:1px solid rgba(255,255,255,0.12);
+  border-right:1px solid rgba(255,255,255,0.22);
+  border-left:1px solid rgba(255,255,255,0.22);
 }
 .th-section-right{
   color:var(--emerald);
-  border-left:1px solid rgba(255,255,255,0.12);
+  border-left:1px solid rgba(255,255,255,0.22);
 }
 .ptbl thead th{padding:13px 12px;text-align:left;font-size:.62rem;font-weight:800;color:var(--copper);letter-spacing:.15em;text-transform:uppercase;white-space:nowrap;}
 .ptbl tbody tr{border-bottom:1px solid var(--text-faint);transition:background var(--t-fast);}
