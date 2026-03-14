@@ -1868,17 +1868,15 @@ async function exportPDF() {
           pdf.setTextColor(10, 11, 13);
           pdf.text(time, 25, y + 5);
 
-          // Numéro camion
+          // Numéro camion — position fixe
           pdf.setFont('helvetica', 'normal');
           pdf.text(truck, 50, y + 5);
 
-          // ID — même ligne que le camion, juste après
+          // ID — position fixe alignée (même écart que heure→camion)
           if (rowId) {
-            pdf.setFontSize(9);
             pdf.setFont('helvetica', 'bold');
             pdf.setTextColor(10, 11, 13);
-            const truckWidth = pdf.getTextWidth(truck);
-            pdf.text(rowId, 50 + truckWidth + 6, y + 5);
+            pdf.text(rowId, 100, y + 5);
           }
 
           // Destination — ligne du bas
