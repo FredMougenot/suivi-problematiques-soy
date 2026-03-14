@@ -567,8 +567,8 @@ body::before {
 .error-item {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px 20px;
+  gap: 20px;
+  padding: 18px 24px;
   background: var(--elevated);
   border-left: 4px solid var(--item-color);
   border-radius: var(--radius-sm);
@@ -1150,8 +1150,15 @@ function renderErrorList(rows) {
           <div class="error-time">${e.time}</div>
           <div class="error-quart">${e.quart.short}</div>
           <div class="error-truck">
-            <div style="font-weight: 600; color: var(--text-primary)">Camion ${e.truck}${e.id ? `<span style="font-size:.65rem;font-weight:500;color:var(--text-faint);font-family:monospace;margin-left:8px;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:1px 6px;letter-spacing:.02em;" title="ID Supabase">${e.id}</span>` : ''}</div>
-            <div style="font-size: .75rem; margin-top: 2px;">${e.dest}</div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <span style="font-weight:600;color:var(--text-primary)">Camion ${e.truck}</span>
+              ${e.id ? `
+              <span style="display:inline-flex;align-items:center;gap:6px;">
+                <span style="width:1px;height:14px;background:var(--border-bright);flex-shrink:0;"></span>
+                <span style="font-family:'Space Grotesk',monospace;font-size:.75rem;font-weight:700;color:var(--text-muted);letter-spacing:.03em;" title="ID Supabase">${e.id}</span>
+              </span>` : ''}
+            </div>
+            <div style="font-size:.75rem;margin-top:4px;">${e.dest}</div>
           </div>
         </div>
       `).join('')}
