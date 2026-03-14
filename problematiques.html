@@ -776,10 +776,16 @@ body { font-size: 0.9375rem; }
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--copper)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       Registre des problématiques
     </div>
-    <a href="parametres_prob.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:#1A1E2A;border:1px solid #2C3350;color:#BEC5D6;font-size:.78rem;font-weight:600;text-decoration:none;margin-left:auto;transition:all .15s;" onmouseover="this.style.borderColor='#C8843A';this.style.color='#E0A870'" onmouseout="this.style.borderColor='#2C3350';this.style.color='#BEC5D6'">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      Paramètres
-    </a>
+    <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+      <button onclick="exportPDF()" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:#1A1E2A;border:1px solid rgba(45,212,160,.3);color:#2DD4A0;font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;" onmouseover="this.style.borderColor='#2DD4A0'" onmouseout="this.style.borderColor='rgba(45,212,160,.3)'">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Exporter PDF
+      </button>
+      <a href="parametres_prob.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:#1A1E2A;border:1px solid #2C3350;color:#BEC5D6;font-size:.78rem;font-weight:600;text-decoration:none;transition:all .15s;" onmouseover="this.style.borderColor='#C8843A';this.style.color='#E0A870'" onmouseout="this.style.borderColor='#2C3350';this.style.color='#BEC5D6'">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Paramètres
+      </a>
+    </div>
   </div>
 
   <!-- DATE NAV -->
@@ -976,6 +982,7 @@ body { font-size: 0.9375rem; }
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 
 const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
@@ -1623,6 +1630,175 @@ async function init() {
   } catch(e) {
     console.error('init error:', e);
     window.location.href = 'index.html';
+  }
+}
+
+// ── EXPORT PDF ────────────────────────────────────────────────────
+async function exportPDF() {
+  try {
+    const { jsPDF } = window.jspdf;
+    const pdf  = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const W    = pdf.internal.pageSize.getWidth();
+    const H    = pdf.internal.pageSize.getHeight();
+    const M    = 10;
+    let y      = M;
+
+    const C = {
+      copper:  [200, 132,  58],
+      black:   [ 10,  11,  13],
+      grey:    [107, 114, 128],
+      light:   [180, 185, 200],
+      faint:   [ 44,  51,  80],
+      emerald: [ 45, 212, 160],
+      ruby:    [224,  85,  85],
+      amber:   [232, 164,  58],
+      sapphire:[74,  158, 232],
+    };
+
+    // ── En-tête ──
+    pdf.setFillColor(...C.copper);
+    pdf.rect(0, 0, W, 1.5, 'F');
+    pdf.setFontSize(16);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(...C.black);
+    pdf.text('Registre des Problématiques — SOY', M, y + 7);
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(...C.grey);
+    pdf.text('Exporté le ' + new Date().toLocaleDateString('fr-CA', { day:'2-digit', month:'long', year:'numeric' }), W - M, y + 7, { align: 'right' });
+    y += 14;
+    pdf.setDrawColor(...C.faint);
+    pdf.setLineWidth(0.2);
+    pdf.line(M, y, W - M, y);
+    y += 5;
+
+    // ── Filtrer les problèmes visibles (respecter les filtres actifs) ──
+    const rows = [...document.querySelectorAll('#prob-tbody tr')].filter(tr => tr.style.display !== 'none');
+
+    if (rows.length === 0) {
+      pdf.setFontSize(10);
+      pdf.setTextColor(...C.grey);
+      pdf.text('Aucune problématique à afficher.', M, y + 8);
+    } else {
+      // Colonnes : ID | Pilier | Priorité | Statut | Soumis le | Intitulé | Cause | Action | Responsable | Date prévue
+      const cols = [
+        { key: 0, label: 'ID',          w: 12 },
+        { key: 1, label: 'Pilier',       w: 22 },
+        { key: 2, label: 'Priorité',     w: 20 },
+        { key: 3, label: 'Statut',       w: 22 },
+        { key: 4, label: 'Soumis le',    w: 22 },
+        { key: 5, label: 'Intitulé',     w: 55 },
+        { key: 6, label: 'Cause',        w: 30 },
+        { key: 7, label: 'Action',       w: 30 },
+        { key: 9, label: 'Responsable',  w: 28 },
+        { key: 10, label: 'Date prévue', w: 22 },
+      ];
+
+      const rowH   = 9;
+      const headerH = 8;
+
+      // En-tête tableau
+      let x = M;
+      pdf.setFillColor(245, 245, 248);
+      pdf.rect(M, y, W - 2*M, headerH, 'F');
+      pdf.setFontSize(6.5);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(...C.copper);
+      cols.forEach(col => {
+        pdf.text(col.label.toUpperCase(), x + 2, y + 5.5);
+        x += col.w;
+      });
+      y += headerH;
+
+      // Lignes
+      rows.forEach((tr, i) => {
+        if (y > H - 16) {
+          pdf.addPage();
+          y = M;
+          // Répéter l'en-tête
+          x = M;
+          pdf.setFillColor(245, 245, 248);
+          pdf.rect(M, y, W - 2*M, headerH, 'F');
+          pdf.setFontSize(6.5);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(...C.copper);
+          cols.forEach(col => { pdf.text(col.label.toUpperCase(), x + 2, y + 5.5); x += col.w; });
+          y += headerH;
+        }
+
+        const tds = tr.querySelectorAll('td');
+        if (!tds.length) return;
+
+        // Fond alterné
+        if (i % 2 === 0) {
+          pdf.setFillColor(252, 252, 253);
+          pdf.rect(M, y, W - 2*M, rowH, 'F');
+        }
+
+        pdf.setDrawColor(220, 222, 228);
+        pdf.setLineWidth(0.15);
+        pdf.line(M, y + rowH, W - M, y + rowH);
+
+        x = M;
+        pdf.setFontSize(7);
+        pdf.setFont('helvetica', 'normal');
+
+        cols.forEach(col => {
+          const td = tds[col.key];
+          if (!td) { x += col.w; return; }
+          const txt = td.textContent.trim().replace(/\s+/g, ' ');
+
+          // Coloriser le statut
+          if (col.key === 3) {
+            const t = txt.toLowerCase();
+            if (t.includes('traiter'))      pdf.setTextColor(...C.ruby);
+            else if (t.includes('cours'))   pdf.setTextColor(...C.amber);
+            else if (t.includes('résolu'))  pdf.setTextColor(...C.emerald);
+            else if (t.includes('clôturé')) pdf.setTextColor(...C.grey);
+            else                            pdf.setTextColor(...C.grey);
+          } else if (col.key === 2) {
+            const t = txt.toLowerCase();
+            if (t.includes('critique'))     pdf.setTextColor(...C.ruby);
+            else if (t.includes('haute'))   pdf.setTextColor(...C.amber);
+            else if (t.includes('moyenne')) pdf.setTextColor(...C.sapphire);
+            else                            pdf.setTextColor(...C.emerald);
+          } else if (col.key === 0) {
+            pdf.setTextColor(...C.copper);
+            pdf.setFont('helvetica', 'bold');
+          } else {
+            pdf.setTextColor(40, 42, 55);
+            pdf.setFont('helvetica', 'normal');
+          }
+
+          // Tronquer si trop long
+          const maxChars = Math.floor(col.w / 1.8);
+          const display  = txt.length > maxChars ? txt.slice(0, maxChars - 1) + '…' : txt;
+          pdf.text(display, x + 2, y + 6);
+          x += col.w;
+        });
+
+        y += rowH;
+      });
+    }
+
+    // ── Pied de page ──
+    const pages = pdf.internal.getNumberOfPages();
+    for (let i = 1; i <= pages; i++) {
+      pdf.setPage(i);
+      pdf.setDrawColor(...C.faint);
+      pdf.setLineWidth(0.2);
+      pdf.line(M, H - 7, W - M, H - 7);
+      pdf.setFontSize(6);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(...C.grey);
+      pdf.text('SOY — Registre des Problématiques', M, H - 3);
+      pdf.text(`Page ${i} / ${pages}`, W - M, H - 3, { align: 'right' });
+    }
+
+    pdf.save('problematiques_' + new Date().toISOString().slice(0, 10) + '.pdf');
+  } catch(err) {
+    console.error('Export PDF:', err);
+    alert('Erreur export PDF : ' + (err?.message || err));
   }
 }
 
