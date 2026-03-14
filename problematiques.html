@@ -901,11 +901,11 @@ body { font-size: 0.9375rem; }
           <col style="width:78px">   <!-- Priorité -->
           <col style="width:82px">   <!-- Statut -->
           <col style="width:82px">   <!-- Soumis le -->
-          <col>                      <!-- Intitulé / Description — flex -->
-          <col>                      <!-- Cause — flex -->
-          <col>                      <!-- Action — flex -->
-          <col>                      <!-- Résultat — flex -->
-          <col style="width:96px">   <!-- Responsable -->
+          <col style="width:250px">  <!-- Intitulé / Description -->
+          <col style="width:250px">  <!-- Cause -->
+          <col style="width:250px">  <!-- Action -->
+          <col style="width:250px">  <!-- Résultat -->
+          <col style="width:1px;white-space:nowrap"> <!-- Responsable -->
           <col style="width:82px">   <!-- Date prévue -->
           <col style="width:82px">   <!-- Date résolue -->
           <col style="width:90px">   <!-- Actions (admin) -->
@@ -1138,7 +1138,7 @@ function renderTable(data){
       <td>${cause}</td>
       <td>${action}</td>
       <td>${resultat}</td>
-      <td style="font-size:.82rem;color:var(--text-secondary)">${esc(p.responsable||'')}</td>
+      <td style="font-size:.82rem;color:var(--text-secondary);white-space:nowrap">${esc(p.responsable||'')}</td>
       <td>${datePrevue}</td>
       <td>${dateResolue}</td>
       ${isAdmin?`<td><button class="ab ab-e" data-id="${p.id}" data-action="edit">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" data-id="${p.id}" data-action="cloturer">Cloturer</button>`:''}</td>`:'<td></td>'}
