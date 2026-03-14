@@ -84,7 +84,6 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 .ptbl thead tr:not(.thead-sections) th:nth-child(9),
 .ptbl tbody td:nth-child(9){
   border-right:1px solid rgba(255,255,255,0.22);
-  background:rgba(255,255,255,0.03);
   text-align:center;
 }
 .ptbl thead tr:not(.thead-sections) th:nth-child(10),
@@ -92,16 +91,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
   border-left:none;
 }
 .th-section-sep{
-  background: repeating-linear-gradient(
-    135deg,
-    rgba(255,255,255,0.03) 0px,
-    rgba(255,255,255,0.03) 2px,
-    transparent 2px,
-    transparent 8px
-  );
   border-right:1px solid rgba(255,255,255,0.22) !important;
+  background:var(--bg-deep);
 }
-
 .th-section{
   padding:7px 12px;
   font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
@@ -114,7 +106,6 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-base);color:var(--text-
 }
 .th-section-mid{
   color:var(--sapphire);
-  border-right:1px solid rgba(255,255,255,0.22);
   border-left:1px solid rgba(255,255,255,0.22);
 }
 .th-section-right{
