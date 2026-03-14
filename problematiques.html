@@ -1672,6 +1672,55 @@ async function exportPDF() {
     pdf.line(M, y, W - M, y);
     y += 5;
 
+    // ── Graphiques (si le panneau est visible) ──
+    const chartPanel = document.getElementById('chart-panel');
+    const pilierTitle = document.getElementById('chart-panel-title')?.textContent || '';
+    if (chartPanel && chartPanel.style.display !== 'none') {
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(...C.black);
+      pdf.text('Analyse par pilier — ' + pilierTitle, M, y + 5);
+      y += 10;
+
+      const chartW = (W - 2*M - 6) / 2;
+      const chartH = chartW * 0.55;
+
+      const canvases = [
+        { id: 'cm-chart-week',  label: 'Semaine en cours' },
+        { id: 'cm-chart-month', label: 'Mois en cours' },
+      ];
+
+      for (let ci = 0; ci < canvases.length; ci++) {
+        const src = document.getElementById(canvases[ci].id);
+        if (!src) continue;
+        const tmp = document.createElement('canvas');
+        tmp.width  = src.width;
+        tmp.height = src.height;
+        const ctx2 = tmp.getContext('2d');
+        ctx2.fillStyle = '#FFFFFF';
+        ctx2.fillRect(0, 0, tmp.width, tmp.height);
+        ctx2.drawImage(src, 0, 0);
+
+        const xPos = M + ci * (chartW + 6);
+        // Titre du graphique
+        pdf.setFontSize(7);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(...C.copper);
+        pdf.text(canvases[ci].label.toUpperCase(), xPos, y);
+        // Bordure légère
+        pdf.setDrawColor(220, 222, 228);
+        pdf.setLineWidth(0.2);
+        pdf.rect(xPos, y + 2, chartW, chartH);
+        // Image
+        pdf.addImage(tmp.toDataURL('image/jpeg', 0.88), 'JPEG', xPos, y + 2, chartW, chartH);
+      }
+      y += chartH + 14;
+
+      pdf.setDrawColor(...C.faint);
+      pdf.setLineWidth(0.2);
+      pdf.line(M, y - 4, W - M, y - 4);
+    }
+
     // ── Filtrer les problèmes visibles (respecter les filtres actifs) ──
     const rows = [...document.querySelectorAll('#prob-tbody tr')].filter(tr => tr.style.display !== 'none');
 
