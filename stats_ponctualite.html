@@ -949,7 +949,7 @@ function buildHeatmap(data) {
     svg += `<line x1="${colLW}" y1="${y}" x2="${W-padR+4}" y2="${y}" stroke="rgba(255,255,255,.035)" stroke-width="0.5"/>`;
   });
 
-  // En-têtes colonnes (jours)
+  // En-têtes colonnes (jours) — couleurs lisibles sur fond blanc (export PDF) ET sombre (HTML)
   days.forEach((dt, ci) => {
     const x = colLW + ci*(CELL+GAP) + CELL/2;
     const y = padT;
@@ -958,11 +958,9 @@ function buildHeatmap(data) {
     const dayW = dObj.toLocaleDateString('fr-CA',{weekday:'short'}).toUpperCase().slice(0,2);
     const dow = dObj.getDay();
     const isWknd = dow===0||dow===6;
-    // Couleurs concrètes (pas de var CSS pour compatibilité canvas export)
-    const abbrevColor = isWknd ? 'rgba(200,132,58,.65)'  : 'rgba(190,197,214,.35)';
-    const numColor    = isWknd ? 'rgba(224,168,112,.95)' : 'rgba(240,234,224,.7)';
-    svg += `<text x="${x}" y="${y+14}" text-anchor="middle" font-size="8" font-weight="800" letter-spacing="1.2" fill="${abbrevColor}">${dayW}</text>`;
-    svg += `<text x="${x}" y="${y+30}" text-anchor="middle" font-size="12" font-weight="700" fill="${numColor}">${dayN}</text>`;
+    // Même style pour tous : abréviation en gris, numéro en noir — lisible partout
+    svg += `<text x="${x}" y="${y+14}" text-anchor="middle" font-size="8" font-weight="800" letter-spacing="1.2" fill="rgba(100,110,130,.85)">${dayW}</text>`;
+    svg += `<text x="${x}" y="${y+30}" text-anchor="middle" font-size="12" font-weight="${isWknd?'800':'600'}" fill="${isWknd?'rgb(160,90,20)':'rgb(60,65,80)'}">${dayN}</text>`;
   });
 
   // En-têtes lignes (heures) + cellules
@@ -1004,12 +1002,12 @@ function buildHeatmap(data) {
         class="hm-svg-cell" style="cursor:${cursor};transition:filter .15s;"
         ${dataAttr} />`;
 
-      // Hachures légères pour les cellules vides de weekend
+      // Carré grisé visible pour cellules vides de weekend
       if (!hasData && !hasNL) {
         const dow2 = new Date(dt+'T00:00:00').getDay();
         if (dow2===0||dow2===6) {
-          svg += `<rect x="${cx}" y="${cy}" width="${CELL}" height="${CELL}" rx="6"
-            fill="rgba(255,255,255,.045)" stroke="rgba(255,255,255,.07)" stroke-width="0.4"
+          svg += `<rect x="${cx+3}" y="${cy+3}" width="${CELL-6}" height="${CELL-6}" rx="5"
+            fill="rgba(180,185,200,.13)" stroke="rgba(180,185,200,.22)" stroke-width="0.8"
             pointer-events="none"/>`;
         }
       }
