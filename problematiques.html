@@ -1746,22 +1746,30 @@ async function exportPDF() {
       pdf.text('Aucune problématique à afficher.', M, y + 8);
     } else {
       // ── Calcul des largeurs PDF (sans colonne Pilier) ──
-      // Fixes : ID(10) + Priorité(20) + Statut(22) + Soumis(20) + Responsable(24) + Date prévue(22) + Date résolue(22) = 140mm
-      const fixedW = 10 + 20 + 22 + 20 + 24 + 22 + 22; // = 140mm
-      const textW  = Math.floor((W - 2*M - fixedW) / 4); // 4 colonnes texte égales
+      // À font-size:7 helvetica, 1 char ≈ 2.5mm. Padding cellule : 2mm/côté = 4mm total.
+      // ID "#0116"=5c → 16.5mm → 14mm (tronqué court acceptable)
+      // Priorité "Moyenne"=7c → 21.5mm → 22mm
+      // Statut "À traiter"=9c → 26.5mm → 27mm
+      // Soumis "13 mars 20..."=tronqué → 18mm suffit
+      // Responsable "Dany Rochette"=13c → 36.5mm → 32mm
+      // Date prévue/résolue "03 mars 2026"=12c → 34mm → 28mm chacune
+      // Fixes total : 14+22+27+18+32+28+28 = 169mm
+      // Reste pour 4 colonnes texte : (W - 2*M - 169) / 4
+      const fixedW = 14 + 22 + 27 + 18 + 32 + 28 + 28; // = 169mm
+      const textW  = Math.floor((W - 2*M - fixedW) / 4);
 
       const cols = [
-        { key: 0,  label: 'ID',           w: 10      },
-        { key: 2,  label: 'Priorité',      w: 20      },
-        { key: 3,  label: 'Statut',        w: 22      },
-        { key: 4,  label: 'Soumis le',     w: 20      },
+        { key: 0,  label: 'ID',           w: 14      },
+        { key: 2,  label: 'Priorité',      w: 22      },
+        { key: 3,  label: 'Statut',        w: 27      },
+        { key: 4,  label: 'Soumis le',     w: 18      },
         { key: 5,  label: 'Intitulé',      w: textW   },
         { key: 6,  label: 'Cause',         w: textW   },
         { key: 7,  label: 'Action',        w: textW   },
         { key: 8,  label: 'Résultat',      w: textW   },
-        { key: 9,  label: 'Responsable',   w: 24      },
-        { key: 10, label: 'Date prévue',   w: 22      },
-        { key: 11, label: 'Date résolue',  w: 22      },
+        { key: 9,  label: 'Responsable',   w: 32      },
+        { key: 10, label: 'Date prévue',   w: 28      },
+        { key: 11, label: 'Date résolue',  w: 28      },
       ];
 
       const rowH   = 9;
