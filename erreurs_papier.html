@@ -1150,13 +1150,9 @@ function renderErrorList(rows) {
           <div class="error-time">${e.time}</div>
           <div class="error-quart">${e.quart.short}</div>
           <div class="error-truck">
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
               <span style="font-weight:600;color:var(--text-primary)">Camion ${e.truck}</span>
-              ${e.id ? `
-              <span style="display:inline-flex;align-items:center;gap:6px;">
-                <span style="width:1px;height:14px;background:var(--border-bright);flex-shrink:0;"></span>
-                <span style="font-family:'Space Grotesk',monospace;font-size:.75rem;font-weight:700;color:var(--text-muted);letter-spacing:.03em;" title="ID Supabase">${e.id}</span>
-              </span>` : ''}
+              ${e.id ? `<span style="font-family:'Space Grotesk',monospace;font-size:1rem;font-weight:700;color:var(--text-primary);" title="ID Supabase">${e.id}</span>` : ''}
             </div>
             <div style="font-size:.75rem;margin-top:4px;">${e.dest}</div>
           </div>
