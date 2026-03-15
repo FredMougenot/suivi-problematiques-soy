@@ -216,21 +216,7 @@
 
     <!-- Graphiques -->
     <div class="ic-chart-panel" id="ic-chart-panel" style="display:none">
-      <div class="ic-chart-grid">
-        <div class="ic-chart-box">
-          <div class="ic-chart-title">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            Aujourd'hui — par heure
-          </div>
-          <canvas id="ic-chart-day"></canvas>
-          <div style="display:flex;align-items:center;gap:8px;margin-top:12px;">
-            <div style="width:3px;height:14px;background:rgba(232,164,58,.8);border-radius:2px;flex-shrink:0;"></div>
-            <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;white-space:nowrap;">Limite acceptable</label>
-            <input type="number" id="ic-limit-day" min="0" placeholder="—"
-              style="width:70px;background:rgba(15,17,24,.8);border:1px solid rgba(200,132,58,.3);color:var(--text-primary);border-radius:8px;padding:5px 8px;font-size:.82rem;font-family:'Outfit',sans-serif;outline:none;"
-              oninput="saveIcLimit('day',this.value)">
-          </div>
-        </div>
+      <div class="ic-chart-grid" style="grid-template-columns:1fr 1fr;">
         <div class="ic-chart-box">
           <div class="ic-chart-title">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
@@ -573,15 +559,13 @@ function renderIcCharts(){
     const w=box?Math.floor(box.getBoundingClientRect().width-40):280;
     el.width=w>80?w:280; el.height=160;
     // Afficher la légende uniquement si une limite est définie
-    const chartOpts={...opts, plugins:{...opts.plugins, legend:{...opts.plugins.legend, display:limit!==null}}};
+    const chartOpts={...opts, plugins:{...opts.plugins, legend:{...opts.plugins.legend, display:false}}};
     return new Chart(el,{type:'line',data:{labels,datasets:buildDS(data,label,limit)},options:chartOpts});
   }
 
-  const lDay  = getIcLimit('day');
   const lWeek = getIcLimit('week');
   const lMonth= getIcLimit('month');
 
-  icChartDay  = drawChart('ic-chart-day',  dayLabels,  dayData,  icChartDay,  'Items en retard', lDay);
   icChartWeek = drawChart('ic-chart-week', weekLabels, weekData, icChartWeek, 'Items en retard', lWeek);
   icChartMonth= drawChart('ic-chart-month',monthLabels,monthData,icChartMonth,'Items en retard', lMonth);
 }
@@ -910,22 +894,21 @@ async function exportPDF(){
     });
     pdf.setFontSize(9); pdf.setFont('helvetica','bold');
     pdf.setTextColor(...C.ruby);
-    pdf.text(`🔴 ${nUrgentPdf} à vérifier en urgence`, M, y+5);
+    pdf.text(nUrgentPdf+' a verifier en urgence', M, y+5);
     pdf.setTextColor(...C.amber);
-    pdf.text(`🟠 ${nSoonPdf} bientôt à échéance`, M+80, y+5);
+    pdf.text(nSoonPdf+' bientot a echeance', M+80, y+5);
     pdf.setTextColor(...C.emerald);
-    pdf.text(`🟢 ${nOkPdf} à jour`, M+160, y+5);
+    pdf.text(nOkPdf+' a jour', M+160, y+5);
     pdf.setTextColor(...C.grey);
-    pdf.text(`${total} items total`, M+220, y+5);
+    pdf.text(total+' items total', M+220, y+5);
     y+=12;
 
-    // ── Graphiques ──
+    // ── Graphiques (semaine + mois uniquement) ──
     const canvasIds=[
-      {id:'ic-chart-day',  label:'Aujourd\'hui — par heure'},
       {id:'ic-chart-week', label:'Semaine en cours'},
       {id:'ic-chart-month',label:'Mois en cours'},
     ];
-    const chartW=(W-2*M-10)/3;
+    const chartW=(W-2*M-8)/2;
     let maxChartH=0;
     canvasIds.forEach(c=>{
       const src=document.getElementById(c.id);
@@ -941,14 +924,28 @@ async function exportPDF(){
         ctx2.fillStyle='#FFFFFF'; ctx2.fillRect(0,0,tmp.width,tmp.height);
         ctx2.drawImage(src,0,0);
         const imgH=chartW*(src.height/src.width);
-        const xPos=M+ci*(chartW+5);
+        const xPos=M+ci*(chartW+8);
         pdf.setFontSize(6.5); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.copper);
         pdf.text(c.label.toUpperCase(), xPos, y);
+        // Légende manuelle (évite les caractères bizarres de Chart.js)
+        const lim=ci===0?getIcLimit('week'):getIcLimit('month');
+        if(lim!==null){
+          pdf.setDrawColor(200,132,58); pdf.setLineWidth(1);
+          pdf.line(xPos+chartW-40, y+0.5, xPos+chartW-32, y+0.5);
+          pdf.setFontSize(5.5); pdf.setTextColor(60,65,80);
+          pdf.text('Items en retard', xPos+chartW-30, y+1.5);
+          pdf.setDrawColor(232,164,58); pdf.setLineWidth(0.8);
+          // Ligne pointillee simulee
+          for(let px=xPos+chartW-80;px<xPos+chartW-72;px+=3){
+            pdf.line(px, y+0.5, px+1.5, y+0.5);
+          }
+          pdf.text('Limite : '+lim, xPos+chartW-70, y+1.5);
+        }
         pdf.setDrawColor(220,222,228); pdf.setLineWidth(0.2);
-        pdf.rect(xPos, y+2, chartW, imgH);
-        pdf.addImage(tmp.toDataURL('image/jpeg',0.9),'JPEG', xPos, y+2, chartW, imgH);
+        pdf.rect(xPos, y+3, chartW, imgH);
+        pdf.addImage(tmp.toDataURL('image/jpeg',0.92),'JPEG', xPos, y+3, chartW, imgH);
       });
-      y+=maxChartH+14;
+      y+=maxChartH+18;
       pdf.setDrawColor(...C.faint); pdf.setLineWidth(0.2); pdf.line(M,y-4,W-M,y-4);
     }
 
