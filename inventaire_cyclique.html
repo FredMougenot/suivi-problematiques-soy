@@ -312,18 +312,24 @@ function renderVerif(){
   const today=localToday();
   let nRetard=0, nOk=0;
 
-  const html=paramItems.map((p,i)=>{
+  // Calculer statut de chaque item et ne garder que retard + bientôt
+  const visibles = paramItems.map((p,i)=>{
     const prochaine=p.derniere_verification?addDays(p.derniere_verification,p.recurrence):null;
     const verifAujourdhui=p.derniere_verification===today;
-    let statut, badgeCls;
-    if(!prochaine){ statut='Jamais vérifié'; badgeCls='vbadge-never'; nRetard++; }
-    else{
+    let statut, badgeCls, show=true;
+    if(!prochaine){
+      statut='Jamais vérifié'; badgeCls='vbadge-never'; nRetard++;
+    } else {
       const diff=Math.round((new Date(prochaine+'T00:00:00')-new Date(today+'T00:00:00'))/86400000);
       if(diff<0){        statut=Math.abs(diff)+'j de retard'; badgeCls='vbadge-overdue'; nRetard++; }
-      else if(diff<=7){  statut='Dans '+diff+'j';             badgeCls='vbadge-soon';    nOk++; }
-      else{              statut='À jour';                     badgeCls='vbadge-ok';      nOk++; }
+      else if(diff<=7){  statut='Dans '+diff+'j';             badgeCls='vbadge-soon'; }
+      else{              nOk++; show=false; } // À jour — masqué
     }
-    const recColors={'30':'var(--emerald)','60':'var(--amber)','90':'var(--sapphire)'};
+    return {p, i, prochaine, verifAujourdhui, statut, badgeCls, show};
+  }).filter(x=>x.show);
+
+  const html=visibles.map(({p,i,prochaine,verifAujourdhui,statut,badgeCls})=>{
+    const recColors={'0':'var(--ruby)','1':'var(--amber)','30':'var(--emerald)','60':'var(--amber)','90':'var(--sapphire)'};
     const rc=String(p.recurrence);
     return `<tr style="${verifAujourdhui?'background:rgba(45,212,160,.04)':''}">
       <td><span class="item-num">${i+1}</span></td>
@@ -332,7 +338,7 @@ function renderVerif(){
         <span style="font-size:.72rem;font-weight:700;color:${recColors[rc]||'var(--text-muted)'};padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.05);">${p.recurrence}j</span>
       </td>
       <td style="text-align:center;font-size:.8rem;color:var(--text-secondary)">${fmtDate(p.derniere_verification)}</td>
-      <td style="text-align:center;font-size:.8rem;color:${prochaine&&prochaine<today?'var(--ruby)':prochaine&&prochaine<=addDays(today,7)?'var(--amber)':'var(--text-secondary)'}">${fmtDate(prochaine)}</td>
+      <td style="text-align:center;font-size:.8rem;color:${prochaine&&prochaine<today?'var(--ruby)':'var(--amber)'}">${fmtDate(prochaine)}</td>
       <td style="text-align:center"><span class="vbadge ${badgeCls}">${statut}</span></td>
       <td style="text-align:center">
         <button class="btn-verif ${verifAujourdhui?'done':''}"
@@ -344,16 +350,19 @@ function renderVerif(){
     </tr>`;
   }).join('');
 
-  document.getElementById('verif-tbody').innerHTML=html||`<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px;">Aucun item configuré. <a href="parametres_inventaire.html" style="color:var(--copper)">Configurer →</a></td></tr>`;
+  document.getElementById('verif-tbody').innerHTML = visibles.length===0
+    ? `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--emerald);font-weight:600;">✓ Tous les items sont à jour</td></tr>`
+    : html;
+
   document.getElementById('verif-tbl').style.display='table';
   document.getElementById('verif-spinner').style.display='none';
 
   const total=paramItems.length;
-  document.getElementById('vkpi-total').textContent=total+' item'+(total!==1?'s':'');
+  document.getElementById('vkpi-total').textContent=total+' items total';
   const kr=document.getElementById('vkpi-retard');
   const ko=document.getElementById('vkpi-ok');
-  kr.textContent=nRetard+' en retard'; kr.style.display=nRetard>0?'block':'none';
-  ko.textContent=nOk+' à jour';        ko.style.display=nOk>0?'block':'none';
+  kr.textContent=nRetard+' en retard / à vérifier'; kr.style.display=nRetard>0?'block':'none';
+  ko.textContent=nOk+' à jour';                     ko.style.display=nOk>0?'block':'none';
 }
 
 async function marquerVerifie(paramId){
