@@ -578,46 +578,104 @@ function renderIcCharts(){
 // ALGORITHME DE LISSAGE
 // ══════════════════════════════════════════════════════════════════
 function computeRecommended(today){
-  // Candidats : items à jour avec prochaine vérif > 7 jours
-  const candidates=paramItems.filter(p=>{
-    if(!p.derniere_verification) return false;
+  // Séparer les items en 3 groupes
+  const urgent=[], soon=[], ok=[];
+  paramItems.forEach(p=>{
+    if(!p.derniere_verification){ urgent.push(p); return; }
     const prochaine=addDays(p.derniere_verification,p.recurrence);
     const diff=Math.round((new Date(prochaine+'T00:00:00')-new Date(today+'T00:00:00'))/86400000);
-    return diff>7;
+    if(diff<0)       urgent.push(p);
+    else if(diff<=7) soon.push(p);
+    else             ok.push(p);
   });
-  if(!candidates.length) return new Set();
 
-  // Trier par deadline croissante (les plus proches de leur limite en premier)
-  const sorted=candidates.map(p=>({
-    p,
-    debut: addDays(p.derniere_verification,1),
-    deadline: addDays(p.derniere_verification,p.recurrence),
-  })).sort((a,b)=>a.deadline<b.deadline?-1:1);
+  if(!ok.length) return new Set();
 
-  // Calendrier des charges par jour
-  const schedule={};
-  const assignedDates={};
+  // Les items urgent+soon vont être vérifiés de toute façon —
+  // ils occupent déjà des "slots" de travail quotidien.
+  // On les répartit sur leur fenêtre restante pour estimer leur charge journalière.
+  const scheduleOccupied={}; // charge déjà planifiée par les urgent+soon
 
-  sorted.forEach(({p,debut,deadline})=>{
-    const start=debut>today?debut:today;
-    let best=null, bestCount=Infinity;
-    let d=start;
+  [...urgent,...soon].forEach(p=>{
+    if(!p.derniere_verification){
+      // Jamais vérifié → à faire aujourd'hui
+      scheduleOccupied[today]=(scheduleOccupied[today]||0)+1;
+      return;
+    }
+    const deadline=addDays(p.derniere_verification,p.recurrence);
+    // Répartir uniformément sur les jours restants jusqu'à deadline
+    let d=today, days=0;
     while(d<=deadline){
-      const c=schedule[d]||0;
+      days++;
+      const nd=new Date(d+'T00:00:00'); nd.setDate(nd.getDate()+1);
+      d=nd.toISOString().slice(0,10);
+    }
+    // Assigner au jour le moins chargé dans la fenêtre restante
+    let best=today, bestCount=Infinity;
+    d=today;
+    while(d<=deadline){
+      const c=scheduleOccupied[d]||0;
       if(c<bestCount){bestCount=c;best=d;}
       const nd=new Date(d+'T00:00:00'); nd.setDate(nd.getDate()+1);
       d=nd.toISOString().slice(0,10);
     }
-    if(best){
-      schedule[best]=(schedule[best]||0)+1;
-      assignedDates[p.id]=best;
+    scheduleOccupied[best]=(scheduleOccupied[best]||0)+1;
+  });
+
+  // Maintenant répartir les items OK par groupe de récurrence
+  // en tenant compte de la charge déjà occupée
+  const byRec={};
+  ok.forEach(p=>{
+    const r=p.recurrence;
+    if(!byRec[r]) byRec[r]=[];
+    byRec[r].push(p);
+  });
+
+  const assignedDates={};
+
+  Object.entries(byRec).forEach(([rec,items])=>{
+    const r=parseInt(rec);
+    const sorted=[...items].sort((a,b)=>
+      a.derniere_verification<b.derniere_verification?-1:1
+    );
+    const step=r/sorted.length;
+
+    sorted.forEach((p,idx)=>{
+      const offset=Math.round((idx+1)*step);
+      const idealDate=addDays(p.derniere_verification,offset);
+      assignedDates[p.id]=idealDate<=today?today:idealDate;
+    });
+  });
+
+  // Un item est recommandé aujourd'hui si sa date idéale = today
+  // ET que la charge totale de ce jour (occupied + recommended) ne dépasse pas
+  // le plafond = ceil(totalItems / minRecurrence)
+  const totalItems=paramItems.length;
+  const minRec=Math.min(...paramItems.filter(p=>p.recurrence>0).map(p=>p.recurrence));
+  const dailyCap=Math.ceil(totalItems/minRec);
+
+  const recommendedToday=new Set();
+  const loadToday=scheduleOccupied[today]||0;
+  let addedToday=0;
+
+  // Trier par deadline croissante pour prioriser les plus proches
+  const candidates=Object.entries(assignedDates)
+    .filter(([,date])=>date===today)
+    .map(([id])=>ok.find(p=>p.id===id))
+    .filter(Boolean)
+    .sort((a,b)=>{
+      const da=addDays(a.derniere_verification,a.recurrence);
+      const db=addDays(b.derniere_verification,b.recurrence);
+      return da<db?-1:1;
+    });
+
+  candidates.forEach(p=>{
+    if(loadToday+addedToday<dailyCap){
+      recommendedToday.add(p.id);
+      addedToday++;
     }
   });
 
-  const recommendedToday=new Set();
-  Object.entries(assignedDates).forEach(([id,date])=>{
-    if(date===today) recommendedToday.add(id);
-  });
   return recommendedToday;
 }
 
