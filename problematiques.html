@@ -781,7 +781,7 @@ body { font-size: 0.9375rem; }
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         Exporter PDF
       </button>
-      <a href="parametres_prob.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:#1A1E2A;border:1px solid #2C3350;color:#BEC5D6;font-size:.78rem;font-weight:600;text-decoration:none;transition:all .15s;" onmouseover="this.style.borderColor='#C8843A';this.style.color='#E0A870'" onmouseout="this.style.borderColor='#2C3350';this.style.color='#BEC5D6'">
+      <a id="btn-params-prob" href="parametres_prob.html" style="display:none;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:#1A1E2A;border:1px solid #2C3350;color:#BEC5D6;font-size:.78rem;font-weight:600;text-decoration:none;transition:all .15s;" onmouseover="this.style.borderColor='#C8843A';this.style.color='#E0A870'" onmouseout="this.style.borderColor='#2C3350';this.style.color='#BEC5D6'">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Paramètres
       </a>
@@ -899,27 +899,28 @@ body { font-size: 0.9375rem; }
 
     <!-- Tableau -->
     <div class="tbl-wrap" style="touch-action:pan-x">
-      <table class="dtbl" style="min-width:1349px;table-layout:fixed;width:100%">
+      <table class="dtbl" style="min-width:1419px;table-layout:fixed;width:100%">
         <colgroup>
           <col style="width:52px">    <!-- ID -->
           <col style="display:none;width:0">  <!-- Pilier — masqué -->
-          <col style="width:120px">   <!-- Priorité : badge "Critique" ~107px -->
-          <col style="width:115px">   <!-- Statut : badge "À traiter" ~112px -->
-          <col style="width:102px">   <!-- Soumis le : 97px -->
-          <col style="width:140px">   <!-- Intitulé : 97px -->
-          <col style="width:110px">   <!-- Cause : 67px -->
-          <col style="width:110px">   <!-- Action : 77px -->
-          <col style="width:110px">   <!-- Résultat : 97px -->
-          <col style="width:130px">   <!-- Responsable : 127px -->
-          <col style="width:130px">   <!-- Date prévue : 127px -->
-          <col style="width:140px">   <!-- Date résolue : 137px -->
-          <col style="width:90px">    <!-- Actions admin : 87px -->
+          <col style="width:120px">   <!-- Priorité -->
+          <col style="width:115px">   <!-- Statut -->
+          <col style="width:102px">   <!-- Soumis le -->
+          <col style="width:140px">   <!-- Intitulé -->
+          <col style="width:110px">   <!-- Cause -->
+          <col style="width:110px">   <!-- Action -->
+          <col style="width:110px">   <!-- Résultat -->
+          <col style="width:130px">   <!-- Responsable -->
+          <col style="width:130px">   <!-- Date prévue -->
+          <col style="width:70px">    <!-- Retard -->
+          <col style="width:140px">   <!-- Date résolue -->
+          <col style="width:90px">    <!-- Actions admin -->
         </colgroup>
-        <!-- Total sans Pilier : 52+120+115+102+140+110+110+110+130+130+140+90 = 1349px -->
+        <!-- Total : 52+120+115+102+140+110+110+110+130+130+70+140+90 = 1419px -->
         <thead><tr>
           <th>ID</th><th style="display:none">Pilier</th><th>Priorité</th><th>Statut</th>
           <th>Soumis le</th><th>Intitulé</th><th>Cause</th><th>Action</th><th>Résultat</th>
-          <th>Responsable</th><th>Date prévue</th><th>Date résolue</th>
+          <th>Responsable</th><th>Date prévue</th><th>Retard</th><th>Date résolue</th>
           <th class="admin-only" style="display:none">Actions</th>
         </tr></thead>
         <tbody id="prob-tbody"></tbody>
@@ -1134,6 +1135,18 @@ function renderTable(data){
   document.getElementById('prob-tbody').innerHTML=probs.length===0?'<tr><td colspan="13"><div class="empty"><div class="empty-ico">&#128203;</div><div class="empty-txt">Aucune problematique trouvee.</div></div></td></tr>':probs.map(p=>{
     const datePrevue  = p.date_prevue  ? `<span style="font-size:.78rem;color:var(--text-secondary);white-space:nowrap">${fmtDate(p.date_prevue)}</span>`  : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
     const dateResolue = p.date_resolue ? `<span style="font-size:.78rem;color:var(--emerald);white-space:nowrap">${fmtDate(p.date_resolue)}</span>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+    // Calcul retard : seulement si date_prevue existe, statut non résolu/clôturé/annulé, et date dépassée
+    let retardCell = '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+    const STATUTS_TERMINES = ['Résolu','Clôturé','Annulé'];
+    if (p.date_prevue && !STATUTS_TERMINES.includes(p.statut)) {
+      const today = new Date(); today.setHours(0,0,0,0);
+      const prevue = new Date(p.date_prevue + 'T00:00:00');
+      const diffMs = today - prevue;
+      const diffJ  = Math.floor(diffMs / 86400000);
+      if (diffJ > 0) {
+        retardCell = `<span style="font-size:.78rem;font-weight:700;color:var(--ruby);white-space:nowrap;">+${diffJ}j</span>`;
+      }
+    }
     const cause = p.cause ? `<div style="font-size:.8rem;color:var(--text-secondary);white-space:normal">${esc(p.cause.substring(0,80))}${p.cause.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
     const action = p.action ? `<div style="font-size:.8rem;color:var(--text-secondary);white-space:normal">${esc(p.action.substring(0,80))}${p.action.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
     const resultat = p.resultat ? `<div style="font-size:.8rem;color:var(--text-secondary);white-space:normal">${esc(p.resultat.substring(0,80))}${p.resultat.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
@@ -1149,6 +1162,7 @@ function renderTable(data){
       <td>${resultat}</td>
       <td style="font-size:.82rem;color:var(--text-secondary);white-space:nowrap">${esc(p.responsable||'')}</td>
       <td>${datePrevue}</td>
+      <td style="text-align:center">${retardCell}</td>
       <td>${dateResolue}</td>
       ${isAdmin?`<td><button class="ab ab-e" data-id="${p.id}" data-action="edit">Modifier</button>${p.statut!=='Clôturé'?`<button class="ab ab-c" data-id="${p.id}" data-action="cloturer">Cloturer</button>`:''}</td>`:'<td></td>'}
     </tr>`;
@@ -1690,7 +1704,11 @@ async function init() {
     if (session) {
       currentUser = session.user;
       await checkRole();
-      if (isAdmin) document.querySelectorAll('.admin-only').forEach(el => el.style.removeProperty('display'));
+      if (isAdmin) {
+        document.querySelectorAll('.admin-only').forEach(el => el.style.removeProperty('display'));
+        const btnParams = document.getElementById('btn-params-prob');
+        if (btnParams) btnParams.style.display = 'inline-flex';
+      }
       curDate = localToday();
       populatePiliers();
       updateDateUI();
