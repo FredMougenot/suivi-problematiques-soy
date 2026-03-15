@@ -158,11 +158,11 @@ async function load(){
         dirty:false, isNew:false
       }));
     } else {
-      // Pré-remplir 200 items numérotés
+      // Pré-remplir 200 items numérotés avec derniere_verification au 10 mars 2026
       rows=Array.from({length:200},(_,i)=>({
         id:nextTmpId--, item_number:i+1,
         nom:'Item '+(i+1),
-        recurrence:30, derniere_verification:null,
+        recurrence:30, derniere_verification:'2026-03-10',
         dirty:true, isNew:true
       }));
     }
@@ -171,7 +171,7 @@ async function load(){
     rows=Array.from({length:200},(_,i)=>({
       id:nextTmpId--, item_number:i+1,
       nom:'Item '+(i+1),
-      recurrence:30, derniere_verification:null,
+      recurrence:30, derniere_verification:'2026-03-10',
       dirty:true, isNew:true
     }));
   }
@@ -196,6 +196,8 @@ function render(){
       <td><input class="inp-item" value="${esc(r.nom)}" placeholder="Nom de l'item…" oninput="markDirty(${i},'nom',this.value)"></td>
       <td>
         <select class="sel-rec" onchange="markDirty(${i},'recurrence',parseInt(this.value))">
+          <option value="0"  ${r.recurrence==0 ?'selected':''}>0 jour</option>
+          <option value="1"  ${r.recurrence==1 ?'selected':''}>1 jour</option>
           <option value="30" ${r.recurrence==30?'selected':''}>30 jours</option>
           <option value="60" ${r.recurrence==60?'selected':''}>60 jours</option>
           <option value="90" ${r.recurrence==90?'selected':''}>90 jours</option>
