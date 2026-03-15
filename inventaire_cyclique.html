@@ -473,8 +473,12 @@ async function delRow(idx){
 async function saveAllIc(){
   const btn=document.getElementById('btn-save-all-ic');
   if(btn){btn.disabled=true;btn.textContent='Sauvegarde…';}
+  const today=localToday();
   const indices=[...BASE_ITEMS.map(it=>it.idx),...Object.keys(stockRows).map(Number).filter(i=>i>=100)];
   let errors=0;
+  // Collecter les noms d'items sauvegardés pour mettre à jour parametres_inventaire
+  const nomsSauvegardes=new Set();
+
   for(const idx of indices){
     const r=stockRows[idx]||{};
     const hasData=r.qte_e1||r.balance1||r.qte_e2||r.balance2||r.erp||r.poids_unitaire;
@@ -491,12 +495,31 @@ async function saveAllIc(){
     };
     try{
       const{data,error}=await sb.from('inventaire_cyclique').upsert(payload,{onConflict:'date_jour,item_index'}).select().single();
-      if(error){errors++;}else if(data) stockRows[idx]={...r,...data};
+      if(error){errors++;}
+      else{
+        if(data) stockRows[idx]={...r,...data};
+        // Retenir le nom pour mise à jour derniere_verification
+        if(r.label) nomsSauvegardes.add(r.label);
+      }
     }catch(e){errors++;}
   }
+
+  // Mettre à jour derniere_verification dans parametres_inventaire pour chaque item sauvegardé
+  for(const p of paramItems){
+    if(nomsSauvegardes.has(p.item)){
+      try{
+        await sb.from('parametres_inventaire').update({derniere_verification:today}).eq('id',p.id);
+        p.derniere_verification=today; // Mise à jour locale
+      }catch(e){ console.warn('Erreur mise à jour verif:',e); }
+    }
+  }
+
   if(btn){btn.disabled=false;btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Sauvegarder tout';}
   if(errors) toast(errors+' erreur(s).','error');
   else toast('Tout sauvegardé ✓','success');
+
+  // Rafraîchir la liste des vérifications
+  renderVerif();
 }
 
 async function submitNcIc(){
