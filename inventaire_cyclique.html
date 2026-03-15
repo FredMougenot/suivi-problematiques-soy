@@ -179,6 +179,10 @@
       Inventaire Cyclique
     </div>
     <span style="font-size:.72rem;color:var(--text-muted);margin-left:auto;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--copper-dim);border:1px solid rgba(200,132,58,.2);color:var(--copper);">Qualité</span>
+    <button onclick="exportPDF()" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:#1A1E2A;border:1px solid rgba(45,212,160,.3);color:#2DD4A0;font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;margin-left:12px;" onmouseover="this.style.borderColor='#2DD4A0'" onmouseout="this.style.borderColor='rgba(45,212,160,.3)'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Exporter PDF
+    </button>
     <a href="parametres_inventaire.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:#1A1E2A;border:1px solid #2C3350;color:#BEC5D6;font-size:.78rem;font-weight:600;text-decoration:none;margin-left:12px;transition:all .15s;" onmouseover="this.style.borderColor='#C8843A';this.style.color='#E0A870'" onmouseout="this.style.borderColor='#2C3350';this.style.color='#BEC5D6'">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       Paramètres
@@ -377,6 +381,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 
 function localToday(){
@@ -864,6 +869,122 @@ function searchHistory(q){
   tbody.innerHTML=html;
 }
 
+// ── EXPORT PDF ────────────────────────────────────────────────────
+async function exportPDF(){
+  try{
+    const{jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    const W=pdf.internal.pageSize.getWidth();
+    const H=pdf.internal.pageSize.getHeight();
+    const M=10;
+    let y=M;
+    const C={
+      copper:[200,132,58], black:[10,11,13], grey:[107,114,128],
+      emerald:[45,212,160], ruby:[224,85,85], amber:[232,164,58],
+      sapphire:[74,158,232], faint:[44,51,80],
+    };
+
+    // En-tête
+    pdf.setFillColor(...C.copper);
+    pdf.rect(0,0,W,1.5,'F');
+    pdf.setFontSize(15); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.black);
+    pdf.text('Vérifications Cycliques — Inventaire SOY', M, y+7);
+    pdf.setFontSize(8); pdf.setFont('helvetica','normal'); pdf.setTextColor(...C.grey);
+    pdf.text('Exporté le '+new Date().toLocaleDateString('fr-CA',{day:'2-digit',month:'long',year:'numeric'}), W-M, y+7, {align:'right'});
+    y+=14;
+    pdf.setDrawColor(...C.faint); pdf.setLineWidth(0.2); pdf.line(M,y,W-M,y); y+=5;
+
+    // KPI
+    const total=paramItems.length;
+    const retard=paramItems.filter(p=>{
+      if(!p.derniere_verification) return true;
+      return addDays(p.derniere_verification,p.recurrence)<localToday();
+    }).length;
+    pdf.setFontSize(9); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.grey);
+    pdf.text(`${total} items au total  ·  ${retard} en retard  ·  ${total-retard} à jour`, M, y+5);
+    y+=12;
+
+    // Colonnes
+    // Fixes : # (10) + Récurrence (22) + Dernière vérif (28) + Prochaine vérif (28) + Statut (28) = 116mm
+    // Item = W - 2M - 116
+    const fixedW=10+22+28+28+28;
+    const itemW=W-2*M-fixedW;
+    const cols=[
+      {label:'#',          w:10,  key:'num'},
+      {label:'Item',       w:itemW,key:'item'},
+      {label:'Récurrence', w:22,  key:'rec'},
+      {label:'Dernière vérif.',w:28,key:'last'},
+      {label:'Prochaine vérif.',w:28,key:'next'},
+      {label:'Statut',     w:28,  key:'statut'},
+    ];
+
+    // En-tête tableau
+    const headerH=8, rowH=8;
+    let x=M;
+    pdf.setFillColor(245,245,248);
+    pdf.rect(M,y,W-2*M,headerH,'F');
+    pdf.setFontSize(6); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.copper);
+    cols.forEach(c=>{ pdf.text(c.label.toUpperCase(), x+2, y+5.5); x+=c.w; });
+    y+=headerH;
+
+    // Lignes — uniquement les items en retard ou bientôt (comme l'écran)
+    const today=localToday();
+    const visibles=paramItems.filter(p=>{
+      if(!p.derniere_verification) return true;
+      const prochaine=addDays(p.derniere_verification,p.recurrence);
+      return prochaine<=addDays(today,7);
+    });
+
+    visibles.forEach((p,i)=>{
+      if(y>H-12){ pdf.addPage(); y=M; }
+      const prochaine=p.derniere_verification?addDays(p.derniere_verification,p.recurrence):null;
+      let statutLabel,statutColor;
+      if(!prochaine||prochaine<today){ statutLabel='En retard'; statutColor=C.ruby; }
+      else{ statutLabel='Dans '+(Math.round((new Date(prochaine+'T00:00:00')-new Date(today+'T00:00:00'))/86400000))+'j'; statutColor=C.amber; }
+
+      if(i%2===0){ pdf.setFillColor(252,252,253); pdf.rect(M,y,W-2*M,rowH,'F'); }
+      pdf.setDrawColor(220,222,228); pdf.setLineWidth(0.15); pdf.line(M,y+rowH,W-M,y+rowH);
+
+      x=M;
+      const vals={
+        num: String(p.item_number),
+        item: p.item,
+        rec: p.recurrence+'j',
+        last: fmtDate(p.derniere_verification),
+        next: fmtDate(prochaine),
+        statut: statutLabel,
+      };
+      cols.forEach(c=>{
+        pdf.setFontSize(7); pdf.setFont('helvetica','normal');
+        if(c.key==='num'){ pdf.setTextColor(...C.copper); pdf.setFont('helvetica','bold'); }
+        else if(c.key==='statut'){ pdf.setTextColor(...statutColor); pdf.setFont('helvetica','bold'); }
+        else if(c.key==='next'){ pdf.setTextColor(prochaine&&prochaine<today?...C.ruby:...C.amber); }
+        else pdf.setTextColor(40,42,55);
+
+        const maxW=c.w-4;
+        let txt=vals[c.key]||'—';
+        while(txt.length>1&&pdf.getTextWidth(txt)>maxW) txt=txt.slice(0,-1);
+        if(txt!==vals[c.key]) txt+='…';
+        pdf.text(txt, x+2, y+5.5);
+        x+=c.w;
+      });
+      y+=rowH;
+    });
+
+    // Pied de page
+    const pages=pdf.internal.getNumberOfPages();
+    for(let i=1;i<=pages;i++){
+      pdf.setPage(i);
+      pdf.setDrawColor(...C.faint); pdf.setLineWidth(0.2); pdf.line(M,H-7,W-M,H-7);
+      pdf.setFontSize(6); pdf.setFont('helvetica','normal'); pdf.setTextColor(...C.grey);
+      pdf.text('SOY — Inventaire Cyclique', M, H-3);
+      pdf.text(`Page ${i} / ${pages}`, W-M, H-3, {align:'right'});
+    }
+
+    pdf.save('inventaire_cyclique_'+today+'.pdf');
+  }catch(e){ console.error(e); alert('Erreur export PDF : '+(e?.message||e)); }
+}
+
 // ── CHARGEMENT ────────────────────────────────────────────────────
 async function load(){
   document.getElementById('verif-spinner').style.display='flex';
@@ -879,12 +1000,21 @@ async function load(){
       console.warn('parametres_inventaire:',e1.message);
       paramItems=[];
     } else {
-      paramItems=(params||[]).map(p=>({
-        id:p.id, item_number:p.item_number,
-        item:p.nom||'Item #'+p.item_number,
-        recurrence:p.recurrence||30,
-        derniere_verification:p.derniere_verification||null,
-      }));
+      // Dédupliquer par item_number — garder le dernier (created_at le plus récent)
+      const seen = new Map();
+      (params||[]).forEach(p=>{
+        if(!seen.has(p.item_number) || p.created_at > seen.get(p.item_number).created_at){
+          seen.set(p.item_number, p);
+        }
+      });
+      paramItems = Array.from(seen.values())
+        .sort((a,b)=>a.item_number-b.item_number)
+        .map(p=>({
+          id:p.id, item_number:p.item_number,
+          item:p.nom||'Item #'+p.item_number,
+          recurrence:p.recurrence||30,
+          derniere_verification:p.derniere_verification||null,
+        }));
       if(paramItems.length===0){
         toast('⚠ Aucun item dans parametres_inventaire — ouvrez Paramètres et cliquez Tout sauvegarder','error');
       }
