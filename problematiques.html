@@ -800,8 +800,13 @@ body { font-size: 0.9375rem; }
 
     <!-- Bouton ajouter + boutons pilier -->
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
-      <div class="pilier-btns" id="pilier-btns">
-        <span style="font-size:.78rem;color:var(--text-muted);align-self:center;white-space:nowrap;">Graphiques :</span>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <div class="pilier-btns" id="pilier-btns" style="margin-bottom:0;">
+          <span style="font-size:.78rem;color:var(--text-muted);align-self:center;white-space:nowrap;">Graphiques :</span>
+        </div>
+        <button id="btn-incomplet" class="pilier-btn" onclick="filterIncompletes(this)" style="white-space:nowrap;">
+          ⚠ Incomplètes <span id="badge-incomplet" style="display:none;background:var(--amber);color:#0F1118;font-size:.6rem;font-weight:800;padding:1px 5px;border-radius:10px;margin-left:4px;"></span>
+        </button>
       </div>
       <button class="btn-add-prob" onclick="openNewProb()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -1096,27 +1101,30 @@ function filterTable() {
   const stat        = document.getElementById('filter-statut')?.value  || '';
   const prio        = document.getElementById('filter-priorite')?.value || '';
   const showCloture = document.getElementById('show-cloture')?.checked || false;
-  const MASQUEES    = ['Clôturé', 'Annulé'];  // seuls ces statuts sont masqués par défaut
+  const MASQUEES    = ['Clôturé', 'Annulé'];
   try {
     localStorage.setItem('soy_filter_pilier', pilier);
     localStorage.setItem('soy_filter_statut', stat);
     localStorage.setItem('soy_filter_prio',   prio);
     localStorage.setItem('soy_filter_q',      q);
   } catch(e) {}
+  // Désactiver le filtre incomplètes si l'utilisateur change un autre filtre
+  if (pilier || stat || prio || q) {
+    _filterIncompletes = false;
+    const btn = document.getElementById('btn-incomplet');
+    if (btn) btn.classList.remove('active');
+  }
   renderTable(allProblems.filter(p => {
-    // Créée avant ou le jour sélectionné
     if (localDate(p.created_at) > curDate) return false;
-    // Clôturée/annulée avec date_resolue passée : masquer
     const resolue = p.date_resolue ? localDate(p.date_resolue) : null;
     if (resolue && resolue <= curDate && MASQUEES.includes(p.statut)) return false;
-    // Case "Afficher les clôturées" : si décochée, masquer Clôturé et Annulé seulement
     if (!showCloture && MASQUEES.includes(p.statut)) return false;
-    // Filtres texte / pilier / statut / priorité
     if (q      && !(p.intitule||'').toLowerCase().includes(q)
                && !(p.description||'').toLowerCase().includes(q)) return false;
     if (pilier && p.pilier   !== pilier) return false;
     if (stat   && p.statut   !== stat)   return false;
     if (prio   && p.priorite !== prio)   return false;
+    if (_filterIncompletes && !isIncomplet(p)) return false;
     return true;
   }));
 }
@@ -1572,6 +1580,38 @@ function saveChartParams() {
   renderChartForActivePilier();
 }
 
+// ── FILTRE INCOMPLÈTES ─────────────────────────────────────────────
+let _filterIncompletes = false;
+
+function isIncomplet(p) {
+  return !p.cause || !p.action || !p.responsable || !p.date_prevue;
+}
+
+function filterIncompletes(btn) {
+  _filterIncompletes = !_filterIncompletes;
+  // Désactiver les autres boutons pilier
+  document.querySelectorAll('.pilier-btn').forEach(b => b.classList.remove('active'));
+  if (_filterIncompletes) {
+    btn.classList.add('active');
+    closePilierCharts();
+  }
+  try { localStorage.setItem('soy_filter_incomplet', _filterIncompletes ? '1' : ''); } catch(e) {}
+  filterTable();
+}
+
+function updateIncompletBadge() {
+  const MASQUEES = ['Clôturé','Annulé'];
+  const cnt = allProblems.filter(p => {
+    if (MASQUEES.includes(p.statut)) return false;
+    return isIncomplet(p);
+  }).length;
+  const badge = document.getElementById('badge-incomplet');
+  if (badge) {
+    badge.textContent = cnt;
+    badge.style.display = cnt > 0 ? 'inline' : 'none';
+  }
+}
+
 function restoreFilters() {
   const params    = new URLSearchParams(window.location.search);
   const urlPilier = params.get('pilier');
@@ -1582,31 +1622,45 @@ function restoreFilters() {
   const fc  = document.getElementById('show-cloture');
 
   if (urlPilier) {
-    // Arrivée depuis le widget pilier : réinitialiser TOUS les filtres
-    // et appliquer uniquement le pilier concerné, sans les clôturées
     if (fp)  fp.value    = urlPilier;
     if (fs)  fs.value    = '';
     if (fr)  fr.value    = '';
     if (fq)  fq.value    = '';
     if (fc)  fc.checked  = false;
+    _filterIncompletes = false;
     try {
       localStorage.setItem('soy_filter_pilier', urlPilier);
       localStorage.removeItem('soy_filter_statut');
       localStorage.removeItem('soy_filter_prio');
       localStorage.removeItem('soy_filter_q');
+      localStorage.removeItem('soy_filter_incomplet');
     } catch(e) {}
-    // Nettoyer l'URL et ouvrir les graphiques du pilier
     window.history.replaceState({}, '', window.location.pathname);
     localStorage.setItem('soy_chart_pilier', urlPilier);
     openPilierCharts(urlPilier);
   } else {
-    // Arrivée normale (menu) : restaurer le dernier filtre actif
-    try {
-      if (fp) fp.value   = localStorage.getItem('soy_filter_pilier') || '';
-      if (fs) fs.value   = localStorage.getItem('soy_filter_statut') || '';
-      if (fr) fr.value   = localStorage.getItem('soy_filter_prio')   || '';
-      if (fq) fq.value   = localStorage.getItem('soy_filter_q')      || '';
-    } catch(e) {}
+    // Vérifier si on arrive depuis le widget Incomplètes
+    let fromIncomplet = false;
+    try { fromIncomplet = localStorage.getItem('soy_filter_incomplet') === '1'; } catch(e) {}
+
+    if (fromIncomplet) {
+      if (fp) fp.value = '';
+      if (fs) fs.value = '';
+      if (fr) fr.value = '';
+      if (fq) fq.value = '';
+      _filterIncompletes = true;
+      const btn = document.getElementById('btn-incomplet');
+      if (btn) btn.classList.add('active');
+      try { localStorage.removeItem('soy_filter_incomplet'); } catch(e) {}
+    } else {
+      try {
+        if (fp) fp.value   = localStorage.getItem('soy_filter_pilier') || '';
+        if (fs) fs.value   = localStorage.getItem('soy_filter_statut') || '';
+        if (fr) fr.value   = localStorage.getItem('soy_filter_prio')   || '';
+        if (fq) fq.value   = localStorage.getItem('soy_filter_q')      || '';
+      } catch(e) {}
+      _filterIncompletes = false;
+    }
     localStorage.removeItem('soy_chart_pilier');
   }
   filterTable();
@@ -1619,6 +1673,7 @@ async function loadAll() {
     if (error) { toast('Erreur Supabase : ' + error.message, 'error'); return; }
     allProblems = data || [];
     updateDateUI();
+    updateIncompletBadge();
     restoreFilters();
     // Redessiner les graphiques avec les données fraîches
     renderChartForActivePilier();

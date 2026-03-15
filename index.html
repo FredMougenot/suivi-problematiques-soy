@@ -138,7 +138,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 @keyframes pgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* KPI */
-.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:26px;}
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:26px;}
 .kpi{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);padding:22px 20px;position:relative;overflow:hidden;transition:all var(--t-base) var(--ease);cursor:default;}
 .kpi:hover{border-color:var(--text-muted);transform:translateY(-2px);box-shadow:var(--shadow-md);}
 .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;}
@@ -151,6 +151,8 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .kpi.ruby::after{background:radial-gradient(circle,rgba(224,85,85,.1),transparent 70%);}
 .kpi.sapphire::before{background:linear-gradient(90deg,transparent,var(--sapphire),transparent);}
 .kpi.sapphire::after{background:radial-gradient(circle,rgba(74,158,232,.1),transparent 70%);}
+.kpi.amber::before{background:linear-gradient(90deg,transparent,var(--amber),transparent);}
+.kpi.amber::after{background:radial-gradient(circle,rgba(232,164,58,.1),transparent 70%);}
 
 .kpi-lbl{font-size:.65rem;font-weight:700;color:var(--text-muted);letter-spacing:.18em;text-transform:uppercase;}
 
@@ -158,11 +160,13 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .kpi.emerald 
 .kpi.ruby 
 .kpi.sapphire 
+.kpi.amber
 .kpi-val{font-family:'Playfair Display',serif;font-size:2.4rem;font-weight:700;line-height:1;letter-spacing:-.02em;position:relative;z-index:1;}
 .kpi.copper .kpi-val{color:var(--copper-light);}
 .kpi.emerald .kpi-val{color:var(--emerald);}
 .kpi.ruby .kpi-val{color:var(--ruby);}
 .kpi.sapphire .kpi-val{color:var(--sapphire);}
+.kpi.amber .kpi-val{color:var(--amber);}
 .kpi-sub{font-size:.71rem;color:var(--text-muted);margin-top:5px;font-weight:300;position:relative;z-index:1;}
 
 /* SECTION HEADER */
@@ -793,6 +797,11 @@ body { font-size: 0.9375rem; }
             <div class="kpi-top"><div class="kpi-lbl">Résolues</div></div>
             <div class="kpi-val" id="kpi-resolu">—</div>
             <div class="kpi-sub">Voir le registre →</div>
+          </div>
+          <div class="kpi amber" onclick="goToIncompletes()" style="cursor:pointer">
+            <div class="kpi-top"><div class="kpi-lbl">Incomplètes</div></div>
+            <div class="kpi-val" id="kpi-incomplet">—</div>
+            <div class="kpi-sub">Champs manquants →</div>
           </div>
         </div>
         <div class="stat-row">
@@ -1495,10 +1504,14 @@ function renderDash(){
   const ouvert=actives.filter(p=>p.statut==='À traiter').length;
   const cours=actives.filter(p=>p.statut==='En cours').length;
   const resolu=actives.filter(p=>p.statut==='Résolu').length;
+  const incomplet=actives.filter(p=>
+    !p.cause || !p.action || !p.responsable || !p.date_prevue
+  ).length;
   document.getElementById('kpi-total').textContent=total;
   document.getElementById('kpi-ouvert').textContent=ouvert;
   document.getElementById('kpi-cours').textContent=cours;
   document.getElementById('kpi-resolu').textContent=resolu;
+  document.getElementById('kpi-incomplet').textContent=incomplet;
   const badge=document.getElementById('badge-ouvert');
   if(badge){ouvert>0?(badge.style.display='',badge.textContent=ouvert):badge.style.display='none';}
   const actifs=actives.filter(p=>p.statut==='À traiter'||p.statut==='En cours'||p.statut==='Résolu');
@@ -1769,6 +1782,14 @@ function showPage(name){
 }
 function goToRegistre(statut){
   localStorage.setItem('soy_filter_statut', statut);
+  localStorage.removeItem('soy_filter_pilier');
+  localStorage.removeItem('soy_chart_pilier');
+  localStorage.removeItem('soy_filter_incomplet');
+  window.location.href = 'problematiques.html';
+}
+function goToIncompletes(){
+  localStorage.setItem('soy_filter_incomplet', '1');
+  localStorage.removeItem('soy_filter_statut');
   localStorage.removeItem('soy_filter_pilier');
   localStorage.removeItem('soy_chart_pilier');
   window.location.href = 'problematiques.html';
