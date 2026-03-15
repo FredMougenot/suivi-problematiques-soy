@@ -209,7 +209,8 @@
     </div>
     <div class="verif-kpi-bar">
       <div class="verif-kpi verif-kpi-total" id="vkpi-total">— items</div>
-      <div class="verif-kpi verif-kpi-retard" id="vkpi-retard" style="display:none">— en retard</div>
+      <div class="verif-kpi" id="vkpi-urgent" style="display:none;background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.3);color:var(--ruby);">— urgent</div>
+      <div class="verif-kpi" id="vkpi-soon"   style="display:none;background:rgba(232,164,58,.1);border:1px solid rgba(232,164,58,.3);color:var(--amber);">— bientôt</div>
       <div class="verif-kpi verif-kpi-ok" id="vkpi-ok" style="display:none">— à jour</div>
     </div>
 
@@ -589,20 +590,19 @@ function renderIcCharts(){
 
 function renderVerif(){
   const today=localToday();
-  let nRetard=0, nOk=0;
+  let nUrgent=0, nSoon=0, nOk=0;
 
-  // Calculer statut de chaque item et ne garder que retard + bientôt
   const visibles = paramItems.map((p,i)=>{
     const prochaine=p.derniere_verification?addDays(p.derniere_verification,p.recurrence):null;
     const verifAujourdhui=p.derniere_verification===today;
     let statut, badgeCls, show=true;
     if(!prochaine){
-      statut='Jamais vérifié'; badgeCls='vbadge-never'; nRetard++;
+      statut='Jamais vérifié'; badgeCls='vbadge-never'; nUrgent++;
     } else {
       const diff=Math.round((new Date(prochaine+'T00:00:00')-new Date(today+'T00:00:00'))/86400000);
-      if(diff<0){        statut=Math.abs(diff)+'j de retard'; badgeCls='vbadge-overdue'; nRetard++; }
-      else if(diff<=7){  statut='Dans '+diff+'j';             badgeCls='vbadge-soon'; }
-      else{              nOk++; show=false; } // À jour — masqué
+      if(diff<0){       statut=Math.abs(diff)+'j de retard'; badgeCls='vbadge-overdue'; nUrgent++; }
+      else if(diff<=7){ statut='Dans '+diff+'j';             badgeCls='vbadge-soon';    nSoon++; }
+      else{             nOk++; show=false; }
     }
     return {p, i, prochaine, verifAujourdhui, statut, badgeCls, show};
   }).filter(x=>x.show);
@@ -638,12 +638,14 @@ function renderVerif(){
 
   const total=paramItems.length;
   document.getElementById('vkpi-total').textContent=total+' items total';
-  const kr=document.getElementById('vkpi-retard');
-  const ko=document.getElementById('vkpi-ok');
-  kr.textContent=nRetard+' en retard / à vérifier'; kr.style.display=nRetard>0?'block':'none';
-  ko.textContent=nOk+' à jour';                     ko.style.display=nOk>0?'block':'none';
 
-  // Graphiques — after a tick so canvas sizes are settled
+  const ku=document.getElementById('vkpi-urgent');
+  const ks=document.getElementById('vkpi-soon');
+  const ko=document.getElementById('vkpi-ok');
+  ku.textContent='🔴 '+nUrgent+' à vérifier en urgence'; ku.style.display=nUrgent>0?'block':'none';
+  ks.textContent='🟠 '+nSoon+' bientôt à échéance';     ks.style.display=nSoon>0?'block':'none';
+  ko.textContent='🟢 '+nOk+' à jour';                   ko.style.display=nOk>0?'block':'none';
+
   requestAnimationFrame(()=>renderIcCharts());
 }
 
@@ -896,13 +898,59 @@ async function exportPDF(){
 
     // KPI
     const total=paramItems.length;
-    const retard=paramItems.filter(p=>{
-      if(!p.derniere_verification) return true;
-      return addDays(p.derniere_verification,p.recurrence)<localToday();
-    }).length;
-    pdf.setFontSize(9); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.grey);
-    pdf.text(`${total} items au total  ·  ${retard} en retard  ·  ${total-retard} à jour`, M, y+5);
+    const today2=localToday();
+    let nUrgentPdf=0, nSoonPdf=0, nOkPdf=0;
+    paramItems.forEach(p=>{
+      if(!p.derniere_verification){ nUrgentPdf++; return; }
+      const prochaine=addDays(p.derniere_verification,p.recurrence);
+      const diff=Math.round((new Date(prochaine+'T00:00:00')-new Date(today2+'T00:00:00'))/86400000);
+      if(diff<0) nUrgentPdf++;
+      else if(diff<=7) nSoonPdf++;
+      else nOkPdf++;
+    });
+    pdf.setFontSize(9); pdf.setFont('helvetica','bold');
+    pdf.setTextColor(...C.ruby);
+    pdf.text(`🔴 ${nUrgentPdf} à vérifier en urgence`, M, y+5);
+    pdf.setTextColor(...C.amber);
+    pdf.text(`🟠 ${nSoonPdf} bientôt à échéance`, M+80, y+5);
+    pdf.setTextColor(...C.emerald);
+    pdf.text(`🟢 ${nOkPdf} à jour`, M+160, y+5);
+    pdf.setTextColor(...C.grey);
+    pdf.text(`${total} items total`, M+220, y+5);
     y+=12;
+
+    // ── Graphiques ──
+    const canvasIds=[
+      {id:'ic-chart-day',  label:'Aujourd\'hui — par heure'},
+      {id:'ic-chart-week', label:'Semaine en cours'},
+      {id:'ic-chart-month',label:'Mois en cours'},
+    ];
+    const chartW=(W-2*M-10)/3;
+    let maxChartH=0;
+    canvasIds.forEach(c=>{
+      const src=document.getElementById(c.id);
+      if(src&&src.width>0){ const h=chartW*(src.height/src.width); if(h>maxChartH) maxChartH=h; }
+    });
+    if(maxChartH>0){
+      canvasIds.forEach((c,ci)=>{
+        const src=document.getElementById(c.id);
+        if(!src||!src.width) return;
+        const tmp=document.createElement('canvas');
+        tmp.width=src.width; tmp.height=src.height;
+        const ctx2=tmp.getContext('2d');
+        ctx2.fillStyle='#FFFFFF'; ctx2.fillRect(0,0,tmp.width,tmp.height);
+        ctx2.drawImage(src,0,0);
+        const imgH=chartW*(src.height/src.width);
+        const xPos=M+ci*(chartW+5);
+        pdf.setFontSize(6.5); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.copper);
+        pdf.text(c.label.toUpperCase(), xPos, y);
+        pdf.setDrawColor(220,222,228); pdf.setLineWidth(0.2);
+        pdf.rect(xPos, y+2, chartW, imgH);
+        pdf.addImage(tmp.toDataURL('image/jpeg',0.9),'JPEG', xPos, y+2, chartW, imgH);
+      });
+      y+=maxChartH+14;
+      pdf.setDrawColor(...C.faint); pdf.setLineWidth(0.2); pdf.line(M,y-4,W-M,y-4);
+    }
 
     // Colonnes
     // Fixes : # (10) + Récurrence (22) + Dernière vérif (28) + Prochaine vérif (28) + Statut (28) = 116mm
@@ -928,7 +976,7 @@ async function exportPDF(){
     y+=headerH;
 
     // Lignes — uniquement les items en retard ou bientôt (comme l'écran)
-    const today=localToday();
+    const today=today2;
     const visibles=paramItems.filter(p=>{
       if(!p.derniere_verification) return true;
       const prochaine=addDays(p.derniere_verification,p.recurrence);
