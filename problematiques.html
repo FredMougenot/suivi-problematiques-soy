@@ -831,18 +831,6 @@ body { font-size: 0.9375rem; }
           <div style="font-size:1.2rem;font-weight:800;color:var(--text-primary);text-shadow:0 0 20px rgba(200,132,58,.3);" id="chart-panel-title">—</div>
         </div>
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-          <!-- Ligne minimum (verte) -->
-          <div style="display:flex;align-items:center;gap:8px;background:rgba(45,212,160,.08);border:1px solid rgba(45,212,160,.25);border-radius:10px;padding:8px 12px;">
-            <div style="width:3px;height:16px;background:linear-gradient(180deg,#2DD4A0,#39E5B0);border-radius:2px;box-shadow:0 0 8px rgba(45,212,160,.4);"></div>
-            <input type="number" class="chart-param-input" id="chart-min" placeholder="Valeur min" oninput="saveChartParams()" style="width:90px;">
-            <input type="text" class="chart-param-input" id="chart-label-min" placeholder="Libellé" oninput="saveChartParams()" style="width:100px;">
-          </div>
-          <!-- Ligne maximum (rouge) -->
-          <div style="display:flex;align-items:center;gap:8px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.25);border-radius:10px;padding:8px 12px;">
-            <div style="width:3px;height:16px;background:linear-gradient(180deg,#E05555,#F07070);border-radius:2px;box-shadow:0 0 8px rgba(224,85,85,.4);"></div>
-            <input type="number" class="chart-param-input" id="chart-max" placeholder="Valeur max" oninput="saveChartParams()" style="width:90px;">
-            <input type="text" class="chart-param-input" id="chart-label-max" placeholder="Libellé" oninput="saveChartParams()" style="width:100px;">
-          </div>
           <input type="hidden" id="chart-params-pilier">
           <button onclick="closePilierCharts()" style="width:36px;height:36px;border-radius:10px;background:rgba(224,85,85,.12);border:1px solid rgba(224,85,85,.3);color:#E05555;cursor:pointer;font-size:1rem;transition:all .3s;font-weight:700;" onmouseover="this.style.background='rgba(224,85,85,.2)';this.style.borderColor='rgba(224,85,85,.5)';" onmouseout="this.style.background='rgba(224,85,85,.12)';this.style.borderColor='rgba(224,85,85,.3)';">✕</button>
         </div>
@@ -859,6 +847,18 @@ body { font-size: 0.9375rem; }
             Semaine en cours
           </div>
           <canvas id="cm-chart-week"></canvas>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;background:rgba(45,212,160,.08);border:1px solid rgba(45,212,160,.25);border-radius:8px;padding:6px 10px;">
+              <div style="width:3px;height:14px;background:linear-gradient(180deg,#2DD4A0,#39E5B0);border-radius:2px;"></div>
+              <input type="number" class="chart-param-input" id="chart-week-min" placeholder="Min" oninput="saveChartParams()" style="width:70px;">
+              <input type="text" class="chart-param-input" id="chart-week-label-min" placeholder="Libellé" oninput="saveChartParams()" style="width:80px;">
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.25);border-radius:8px;padding:6px 10px;">
+              <div style="width:3px;height:14px;background:linear-gradient(180deg,#E05555,#F07070);border-radius:2px;"></div>
+              <input type="number" class="chart-param-input" id="chart-week-max" placeholder="Max" oninput="saveChartParams()" style="width:70px;">
+              <input type="text" class="chart-param-input" id="chart-week-label-max" placeholder="Libellé" oninput="saveChartParams()" style="width:80px;">
+            </div>
+          </div>
         </div>
         <div class="chart-box">
           <div class="chart-box-title">
@@ -871,6 +871,18 @@ body { font-size: 0.9375rem; }
             Mois en cours
           </div>
           <canvas id="cm-chart-month"></canvas>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;background:rgba(45,212,160,.08);border:1px solid rgba(45,212,160,.25);border-radius:8px;padding:6px 10px;">
+              <div style="width:3px;height:14px;background:linear-gradient(180deg,#2DD4A0,#39E5B0);border-radius:2px;"></div>
+              <input type="number" class="chart-param-input" id="chart-month-min" placeholder="Min" oninput="saveChartParams()" style="width:70px;">
+              <input type="text" class="chart-param-input" id="chart-month-label-min" placeholder="Libellé" oninput="saveChartParams()" style="width:80px;">
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.25);border-radius:8px;padding:6px 10px;">
+              <div style="width:3px;height:14px;background:linear-gradient(180deg,#E05555,#F07070);border-radius:2px;"></div>
+              <input type="number" class="chart-param-input" id="chart-month-max" placeholder="Max" oninput="saveChartParams()" style="width:70px;">
+              <input type="text" class="chart-param-input" id="chart-month-label-max" placeholder="Libellé" oninput="saveChartParams()" style="width:80px;">
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1272,14 +1284,25 @@ async function checkRole(){
 function getCritereParams(pilier){
   try {
     const saved = localStorage.getItem('critere_params_'+pilier);
-    if(!saved) return {min:null,labelMin:'Minimum',max:null,labelMax:'Maximum'};
+    if(!saved) return {
+      week:{min:null,labelMin:'Minimum',max:null,labelMax:'Maximum'},
+      month:{min:null,labelMin:'Minimum',max:null,labelMax:'Maximum'}
+    };
     const p = JSON.parse(saved);
-    // Compatibilité ancienne structure {minmax, label}
-    if(p.minmax !== undefined && p.min === undefined){
-      return {min:p.minmax, labelMin:p.label||'Objectif', max:null, labelMax:'Maximum'};
+    // Rétrocompatibilité ancienne structure plate {min,max,labelMin,labelMax} ou {minmax,label}
+    if(p.week === undefined){
+      const legacy = p.minmax !== undefined
+        ? {min:p.minmax, labelMin:p.label||'Objectif', max:null, labelMax:'Maximum'}
+        : {min:p.min??null, labelMin:p.labelMin||'Minimum', max:p.max??null, labelMax:p.labelMax||'Maximum'};
+      return { week: legacy, month: legacy };
     }
     return p;
-  } catch(e){ return {min:null,labelMin:'Minimum',max:null,labelMax:'Maximum'}; }
+  } catch(e){
+    return {
+      week:{min:null,labelMin:'Minimum',max:null,labelMax:'Maximum'},
+      month:{min:null,labelMin:'Minimum',max:null,labelMax:'Maximum'}
+    };
+  }
 }
 
 function renderCmCharts(probs, params){
@@ -1312,13 +1335,16 @@ function renderCmCharts(probs, params){
   }
   const monthData = monthDays.map(d=>probs.filter(p=>isActiveOnDay(p,d)).length);
 
-  const vMin = params&&params.min!==null&&params.min!==undefined ? Number(params.min) : null;
-  const vMax = params&&params.max!==null&&params.max!==undefined ? Number(params.max) : null;
-  const lblMin = (params&&params.labelMin) ? params.labelMin : 'Minimum';
-  const lblMax = (params&&params.labelMax) ? params.labelMax : 'Maximum';
-  const hasLines = vMin!==null || vMax!==null;
+  const wMin = params&&params.week&&params.week.min!==null&&params.week.min!==undefined ? Number(params.week.min) : null;
+  const wMax = params&&params.week&&params.week.max!==null&&params.week.max!==undefined ? Number(params.week.max) : null;
+  const wLblMin = (params&&params.week&&params.week.labelMin) ? params.week.labelMin : 'Minimum';
+  const wLblMax = (params&&params.week&&params.week.labelMax) ? params.week.labelMax : 'Maximum';
+  const mMin = params&&params.month&&params.month.min!==null&&params.month.min!==undefined ? Number(params.month.min) : null;
+  const mMax = params&&params.month&&params.month.max!==null&&params.month.max!==undefined ? Number(params.month.max) : null;
+  const mLblMin = (params&&params.month&&params.month.labelMin) ? params.month.labelMin : 'Minimum';
+  const mLblMax = (params&&params.month&&params.month.labelMax) ? params.month.labelMax : 'Maximum';
 
-  function buildDS(data){
+  function buildDS(data, vMin, vMax, lblMin, lblMax){
     const ctx = document.createElement('canvas').getContext('2d');
     
     // Gradient pour la ligne principale
@@ -1403,7 +1429,7 @@ function renderCmCharts(probs, params){
     },
     plugins: {
       legend: {
-        display: hasLines,
+        display: true,
         position: 'top',
         align: 'end',
         labels: {
@@ -1502,7 +1528,7 @@ function renderCmCharts(probs, params){
     }
   };
 
-  function drawChart(id, labels, values, existing){
+  function drawChart(id, labels, values, existing, vMin, vMax, lblMin, lblMax){
     const el = document.getElementById(id);
     if(!el) return existing;
     if(existing){ existing.destroy(); }
@@ -1510,10 +1536,10 @@ function renderCmCharts(probs, params){
     const w   = box ? Math.floor(box.getBoundingClientRect().width - 48) : 300;
     el.width  = w > 80 ? w : 300;
     el.height = 180;
-    return new Chart(el, {type:'line', data:{labels, datasets:buildDS(values)}, options:opts});
+    return new Chart(el, {type:'line', data:{labels, datasets:buildDS(values, vMin, vMax, lblMin, lblMax)}, options:opts});
   }
-  cmChartWeek  = drawChart('cm-chart-week',  weekLabels,  weekData,  cmChartWeek);
-  cmChartMonth = drawChart('cm-chart-month', monthLabels, monthData, cmChartMonth);
+  cmChartWeek  = drawChart('cm-chart-week',  weekLabels,  weekData,  cmChartWeek,  wMin, wMax, wLblMin, wLblMax);
+  cmChartMonth = drawChart('cm-chart-month', monthLabels, monthData, cmChartMonth, mMin, mMax, mLblMin, mLblMax);
 }
 
 
@@ -1522,10 +1548,16 @@ function openPilierCharts(pilier) {
   document.getElementById('chart-panel-title').textContent = pilier;
   document.getElementById('chart-params-pilier').value = pilier;
   const p = getCritereParams(pilier);
-  document.getElementById('chart-min').value       = p.min  !== null ? p.min  : '';
-  document.getElementById('chart-label-min').value = p.labelMin || 'Minimum';
-  document.getElementById('chart-max').value       = p.max  !== null ? p.max  : '';
-  document.getElementById('chart-label-max').value = p.labelMax || 'Maximum';
+  // Semaine
+  document.getElementById('chart-week-min').value       = p.week.min  !== null ? p.week.min  : '';
+  document.getElementById('chart-week-label-min').value = p.week.labelMin || 'Minimum';
+  document.getElementById('chart-week-max').value       = p.week.max  !== null ? p.week.max  : '';
+  document.getElementById('chart-week-label-max').value = p.week.labelMax || 'Maximum';
+  // Mois
+  document.getElementById('chart-month-min').value       = p.month.min  !== null ? p.month.min  : '';
+  document.getElementById('chart-month-label-min').value = p.month.labelMin || 'Minimum';
+  document.getElementById('chart-month-max').value       = p.month.max  !== null ? p.month.max  : '';
+  document.getElementById('chart-month-label-max').value = p.month.labelMax || 'Maximum';
   const panel = document.getElementById('chart-panel');
   panel.style.display = 'block';
   document.querySelectorAll('.pilier-btn').forEach(b => {
@@ -1580,13 +1612,23 @@ function closePilierCharts() {
 function saveChartParams() {
   const pilier = document.getElementById('chart-params-pilier').value;
   if (!pilier) return;
-  const vMin = document.getElementById('chart-min').value.trim();
-  const vMax = document.getElementById('chart-max').value.trim();
+  const vWMin = document.getElementById('chart-week-min').value.trim();
+  const vWMax = document.getElementById('chart-week-max').value.trim();
+  const vMMin = document.getElementById('chart-month-min').value.trim();
+  const vMMax = document.getElementById('chart-month-max').value.trim();
   const p = {
-    min:      vMin !== '' ? Number(vMin) : null,
-    labelMin: document.getElementById('chart-label-min').value.trim() || 'Minimum',
-    max:      vMax !== '' ? Number(vMax) : null,
-    labelMax: document.getElementById('chart-label-max').value.trim() || 'Maximum',
+    week: {
+      min:      vWMin !== '' ? Number(vWMin) : null,
+      labelMin: document.getElementById('chart-week-label-min').value.trim() || 'Minimum',
+      max:      vWMax !== '' ? Number(vWMax) : null,
+      labelMax: document.getElementById('chart-week-label-max').value.trim() || 'Maximum',
+    },
+    month: {
+      min:      vMMin !== '' ? Number(vMMin) : null,
+      labelMin: document.getElementById('chart-month-label-min').value.trim() || 'Minimum',
+      max:      vMMax !== '' ? Number(vMMax) : null,
+      labelMax: document.getElementById('chart-month-label-max').value.trim() || 'Maximum',
+    },
   };
   localStorage.setItem('critere_params_' + pilier, JSON.stringify(p));
   if (cmChartWeek)  { cmChartWeek.destroy();  cmChartWeek  = null; }
