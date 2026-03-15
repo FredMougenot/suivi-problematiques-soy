@@ -6,63 +6,56 @@
 <title>Paramètres — Inventaire Cyclique — SOY</title>
 <link rel="stylesheet" href="soy-shared.css">
 <style>
-.page-header{margin-bottom:28px;}
 .page-eyebrow{font-size:.62rem;font-weight:800;color:var(--copper);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;}
 .page-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--text-primary);}
-.page-sub{font-size:.82rem;color:var(--text-muted);margin-top:4px;}
-
+.page-sub{font-size:.82rem;color:var(--text-muted);margin-top:4px;margin-bottom:24px;}
 .actions-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px;}
 .actions-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-
+.btn-add{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;font-size:.82rem;font-weight:800;border:none;cursor:pointer;transition:opacity .15s,transform .1s;white-space:nowrap;}
+.btn-add:hover{opacity:.88;transform:translateY(-1px);}
 .btn-save-all{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);background:var(--emerald-bg);border:1px solid rgba(45,212,160,.3);color:var(--emerald);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;}
 .btn-save-all:hover{background:rgba(45,212,160,.15);}
-
 .item-count{font-size:.78rem;color:var(--text-muted);font-weight:600;padding:5px 12px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:20px;}
-
+.kpi-retard{display:none;padding:5px 14px;border-radius:20px;background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.3);color:var(--ruby);font-size:.78rem;font-weight:700;}
 .param-tbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow:hidden;position:relative;}
 .param-tbl-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--copper),transparent);pointer-events:none;}
 .param-tbl{width:100%;border-collapse:collapse;}
 .param-tbl thead tr{background:var(--bg-float);border-bottom:1px solid var(--text-faint);}
 .param-tbl thead th{padding:12px 16px;font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:var(--text-muted);text-align:left;white-space:nowrap;}
 .param-tbl thead th:first-child{width:48px;text-align:center;}
+.param-tbl thead th:last-child{width:56px;text-align:center;}
 .param-tbl tbody tr{border-bottom:1px solid rgba(44,51,80,.5);transition:background .1s;}
 .param-tbl tbody tr:hover{background:var(--bg-hover);}
 .param-tbl tbody tr:last-child{border-bottom:none;}
 .param-tbl tbody td{padding:10px 16px;font-size:.86rem;color:var(--text-primary);vertical-align:middle;}
 .param-tbl tbody td:first-child{text-align:center;color:var(--text-muted);font-size:.76rem;font-weight:700;}
-
+.param-tbl tbody td:last-child{text-align:center;}
+.inp-item{background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text-primary);font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;padding:4px 6px;width:100%;transition:border-color .15s;}
+.inp-item:hover{border-bottom-color:var(--text-faint);}
+.inp-item:focus{border-bottom-color:var(--copper);}
 .sel-rec{background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-sm);padding:5px 10px;font-size:.82rem;font-family:'Outfit',sans-serif;outline:none;cursor:pointer;transition:border-color .15s;width:110px;}
 .sel-rec:focus{border-color:var(--copper);}
 .sel-rec option{background:var(--bg-float);}
-
 .td-date{font-size:.78rem;color:var(--text-secondary);white-space:nowrap;}
 .td-prochaine{font-size:.78rem;font-weight:700;white-space:nowrap;}
 .td-prochaine.ok{color:var(--emerald);}
 .td-prochaine.soon{color:var(--amber);}
 .td-prochaine.overdue{color:var(--ruby);}
 .td-prochaine.never{color:var(--text-faint);font-style:italic;}
-
-.rec-30{color:var(--emerald);}
-.rec-60{color:var(--amber);}
-.rec-90{color:var(--sapphire);}
-
+.btn-rm{width:28px;height:28px;border-radius:var(--r-sm);background:transparent;border:1px solid transparent;color:var(--text-muted);font-size:.85rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;}
+.btn-rm:hover{background:rgba(224,85,85,.1);border-color:rgba(224,85,85,.3);color:var(--ruby);}
 .spinner{display:flex;align-items:center;justify-content:center;padding:50px;gap:12px;color:var(--text-muted);font-size:.88rem;}
 .sp-ring{width:24px;height:24px;border:2px solid var(--text-faint);border-top-color:var(--copper);border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-.toast-bar{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
-.toast{padding:11px 18px;border-radius:var(--r-md);font-size:.82rem;font-weight:600;border:1px solid;animation:tin .2s var(--ease);max-width:320px;pointer-events:auto;}
+.toast-bar{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px;}
+.toast{padding:11px 18px;border-radius:var(--r-md);font-size:.82rem;font-weight:600;border:1px solid;animation:tin .2s;max-width:320px;}
 .toast.ok{background:rgba(45,212,160,.12);color:var(--emerald);border-color:rgba(45,212,160,.3);}
 .toast.err{background:rgba(224,85,85,.12);color:var(--ruby);border-color:rgba(224,85,85,.3);}
 @keyframes tin{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
-
-.kpi-retard{display:none;padding:5px 14px;border-radius:20px;background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.3);color:var(--ruby);font-size:.78rem;font-weight:700;}
 </style>
 </head>
 <body>
 <div class="tool-wrap">
-
-  <!-- TOPBAR -->
   <div class="tool-topbar">
     <a class="tool-back" href="inventaire_cyclique.html">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -75,17 +68,17 @@
     <span style="margin-left:auto;font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--copper-dim);border:1px solid rgba(200,132,58,.2);color:var(--copper);">Qualité</span>
   </div>
 
-  <!-- CONTENU -->
   <div class="tool-main">
-
-    <div class="page-header">
-      <div class="page-eyebrow">Configuration</div>
-      <div class="page-title">Items à vérifier — Inventaire cyclique</div>
-      <div class="page-sub">Définissez les items et leur fréquence de vérification. Les modifications sont sauvegardées dans Supabase.</div>
-    </div>
+    <div class="page-eyebrow">Configuration</div>
+    <div class="page-title">Items à vérifier</div>
+    <div class="page-sub">Définissez les items et leur fréquence de vérification. Chaque item a un numéro (1–200) et une récurrence.</div>
 
     <div class="actions-bar">
       <div class="actions-left">
+        <button class="btn-add" onclick="addRow()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter un item
+        </button>
         <button class="btn-save-all" onclick="saveAll()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
           Tout sauvegarder
@@ -97,28 +90,25 @@
       </div>
     </div>
 
-    <div id="spinner" class="spinner">
-      <div class="sp-ring"></div> Chargement…
-    </div>
+    <div id="spinner" class="spinner"><div class="sp-ring"></div> Chargement…</div>
 
     <div class="param-tbl-wrap" id="tbl-wrap" style="display:none">
       <table class="param-tbl">
         <thead>
           <tr>
             <th>#</th>
-            <th>Item</th>
+            <th>Item (nom libre)</th>
             <th>Récurrence</th>
             <th>Dernière vérif.</th>
             <th>Prochaine vérif.</th>
+            <th></th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
-
   </div>
 </div>
-
 <div class="toast-bar" id="toasts"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -127,220 +117,83 @@ const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 let sb;
 
-// ── LISTE DES ITEMS (hardcodée, ordre = item_number) ─────────────
-const ITEMS = [
-  // Réception & Expédition
-  "Quai de réception — propreté générale",
-  "Quai d'expédition — propreté générale",
-  "Portes de quai — état et fonctionnement",
-  "Niveleurs de quai — état et lubrification",
-  "Joints de quai — usure et étanchéité",
-  "Sellettes de quai — état",
-  "Signalisation de quai — lisibilité",
-  "Zone de tri — organisation",
-  "Palettes disponibles — stock et état",
-  "Banderoleuse — fonctionnement et film",
-  // Entrepôt — allées
-  "Allée principale A — dégagement",
-  "Allée principale B — dégagement",
-  "Allée principale C — dégagement",
-  "Allée secondaire 1 — dégagement",
-  "Allée secondaire 2 — dégagement",
-  "Marquage au sol — lisibilité",
-  "Signalisation de sécurité — présence",
-  "Miroirs de sécurité — propreté et angle",
-  "Éclairage allée A — fonctionnement",
-  "Éclairage allée B — fonctionnement",
-  // Rayonnages
-  "Rayonnage zone A — intégrité structurelle",
-  "Rayonnage zone B — intégrité structurelle",
-  "Rayonnage zone C — intégrité structurelle",
-  "Connecteurs de rayonnage — fixation",
-  "Cales de rayonnage — présence",
-  "Filets de sécurité — présence et état",
-  "Capacité affichée — lisibilité",
-  // Équipements de manutention
-  "Chariots élévateurs — inspection quotidienne",
-  "Chariots élévateurs — niveau huile hydraulique",
-  "Chariots élévateurs — pression des pneus",
-  "Chariots élévateurs — fourches — état",
-  "Chariots élévateurs — éclairage et avertisseur",
-  "Chariots élévateurs — courroies",
-  "Transpalettes manuels — état",
-  "Transpalettes électriques — charge batterie",
-  "Recharge batteries — zone dédiée",
-  // Sécurité incendie
-  "Extincteurs — emplacement dégagé",
-  "Extincteurs — date d'inspection",
-  "Boyaux d'incendie — accessibilité",
-  "Sorties de secours — dégagement",
-  "Panneaux de sortie — éclairage",
-  "Détecteurs de fumée — test mensuel",
-  "Système de sprinkleurs — pression",
-  // Électricité & infrastructure
-  "Armoire électrique — accès dégagé",
-  "Armoire électrique — étiquetage",
-  "Câbles électriques — état visible",
-  "Éclairage d'urgence — test",
-  // Premiers soins & environnement
-  "Trousse de premiers soins — contenu",
-  "Douche oculaire — fonctionnement",
-  "Déversoirs accidentels — stock de matériaux",
-  "Zone de matières dangereuses — signalisation",
-  "Fiches signalétiques — accessibles",
-  "Conteneurs de déchets dangereux — étiquetage",
-  // EPI
-  "EPI disponibles — stock suffisant",
-  "EPI — état général",
-  "Chaussures de sécurité — portées",
-  "Vestes haute visibilité — portées",
-  "Casques — état et disponibilité",
-  "Gants — stock et état",
-  "Protection oculaire — stock",
-  // Propreté & environnement
-  "Zone de chargement — propreté",
-  "Zone de déchargement — propreté",
-  "Température entrepôt — dans les normes",
-  "Humidité entrepôt — dans les normes",
-  "Ventilation — fonctionnement",
-  "Nettoyage des allées — effectué",
-  "Évacuation des déchets — effectuée",
-  "Conteneurs de recyclage — vidés",
-  // Locaux communs
-  "Zone de pause — propreté",
-  "Vestiaires — propreté",
-  "Toilettes — propreté et approvisionnement",
-  "Bureau logistique — ordre",
-  // Systèmes & IT
-  "Imprimantes d'étiquettes — fonctionnement",
-  "Lecteurs de code-barres — fonctionnement",
-  "Terminaux mobiles — charge",
-  "Connexion réseau entrepôt — fonctionnelle",
-  "Système WMS — accessible",
-  "Sauvegardes de données — effectuées",
-  // Sécurité site
-  "Caméras de surveillance — fonctionnement",
-  "Contrôle d'accès — fonctionnement",
-  "Journal des visiteurs — tenu à jour",
-  "Clôtures et barrières — état",
-  "Éclairage extérieur — fonctionnement",
-  "Zone de stationnement — organisation",
-  "Signalisation routière — lisibilité",
-  // Instruments & mesures
-  "Pont de pesée — calibration",
-  "Thermomètres — calibration",
-  "Hygromètres — calibration",
-  "Équipements de mesure — certification à jour",
-  // Approvisionnement
-  "Stock de fournitures de bureau — suffisant",
-  "Stock d'emballage — suffisant",
-  "Banderoles et films estirables — stock",
-  "Étiquettes — stock",
-  "Sangles et attaches — stock et état",
-  "Palettes — qualité et quantité",
-  "Caisses de transport — état",
-  "Conteneurs réutilisables — propres et en stock",
-  // Documentation & qualité
-  "Procédures affichées — à jour",
-  "Manuel qualité — accessible",
-  "Registre de non-conformités — tenu",
-  "Registre de maintenance — tenu",
-  "Plan d'évacuation — affiché",
-  "Formation sécurité — à jour",
-  "Exercice d'évacuation — planifié",
-  "Réunion sécurité — tenue",
-  // Fin de quart
-  "Tour d'entrepôt fin de quart",
-  "Rapport d'inspection quotidien — complété",
-  "Points d'action ouverts — suivi",
-  "Réunion de quart — tenue",
-  "Communication inter-quarts — réalisée",
-  "Registre de maintenance préventive — à jour",
-  "Calendrier des audits — respecté",
-  "Indicateurs KPI — mis à jour",
-  "Revue de direction — préparée",
-  // Maintenance préventive
-  "Lubrification des chariots — calendrier respecté",
-  "Filtres HVAC — remplacement",
-  "Inspections réglementaires — planifiées",
-  "Contrats de maintenance — à jour",
-  "Pièces de rechange critiques — stock",
-  "Journal de maintenance — tenu à jour",
-  "Inspection des câbles de levage",
-  "Vérification des limiteurs de charge",
-  "Test des alarmes incendie",
-  "Inspection des systèmes de sprinkleurs",
-];
-
-// État local : un objet par item_number
-// rows[item_number] = {id, recurrence, derniere_verification, dirty}
-let rows = {};
+// rows[i] = {id, item_number, nom, recurrence, derniere_verification, dirty, isNew}
+let rows = [];
+let nextTmpId = -1;
 
 // ── UTILS ────────────────────────────────────────────────────────
-function todayStr(){
-  const d=new Date();
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-}
-function addDays(s, n){
-  const d=new Date(s+'T00:00:00'); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10);
-}
-function fmtDate(d){
-  if(!d) return '—';
-  return new Date(d+'T00:00:00').toLocaleDateString('fr-CA',{day:'2-digit',month:'short',year:'numeric'});
-}
-function diffDays(s){
-  return Math.round((new Date(s+'T00:00:00')-new Date(todayStr()+'T00:00:00'))/86400000);
-}
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function addDays(s,n){const d=new Date(s+'T00:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
+function fmtDate(d){if(!d)return '—';return new Date(d+'T00:00:00').toLocaleDateString('fr-CA',{day:'2-digit',month:'short',year:'numeric'});}
+function diffDays(s){return Math.round((new Date(s+'T00:00:00')-new Date(todayStr()+'T00:00:00'))/86400000);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showSpinner(on){document.getElementById('spinner').style.display=on?'flex':'none';}
+function toast(msg,type='ok'){
+  const el=document.createElement('div');
+  el.className='toast '+type;el.textContent=msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(),3500);
+}
 
-// ── INIT ─────────────────────────────────────────────────────────
-function initApp(){ sb=supabase.createClient(SB_URL,SB_KEY); load(); }
+// ── INIT ────────────────────────────────────────────────────────
+function initApp(){sb=supabase.createClient(SB_URL,SB_KEY);load();}
 function waitSB(){
-  if(typeof supabase!=='undefined'&&supabase.createClient){ try{initApp();}catch(e){showSpinner(false);toast('Erreur init','err');} }
+  if(typeof supabase!=='undefined'&&supabase.createClient){try{initApp();}catch(e){showSpinner(false);toast('Erreur init','err');}}
   else setTimeout(waitSB,50);
 }
 window.addEventListener('load',waitSB);
 
-// ── CHARGEMENT ───────────────────────────────────────────────────
+// ── CHARGEMENT ────────────────────────────────────────────────────
 async function load(){
   showSpinner(true);
   try{
-    const {data,error}=await sb.from('parametres_inventaire').select('*').order('item_number');
+    const{data,error}=await sb.from('parametres_inventaire').select('*').order('item_number');
     if(error) throw error;
-    rows={};
-    (data||[]).forEach(r=>{
-      rows[r.item_number]={id:r.id, recurrence:r.recurrence||30, derniere_verification:r.derniere_verification||null, dirty:false};
-    });
-    // Si aucune donnée, pré-remplir avec récurrence 30 pour tous les items
-    if(!data||data.length===0){
-      ITEMS.forEach((_,i)=>{ rows[i]={id:null, recurrence:30, derniere_verification:null, dirty:true}; });
+    if(data&&data.length>0){
+      rows=data.map(r=>({
+        id:r.id, item_number:r.item_number,
+        nom:r.nom||'Item #'+r.item_number,
+        recurrence:r.recurrence||30,
+        derniere_verification:r.derniere_verification||null,
+        dirty:false, isNew:false
+      }));
+    } else {
+      // Pré-remplir 200 items numérotés
+      rows=Array.from({length:200},(_,i)=>({
+        id:nextTmpId--, item_number:i+1,
+        nom:'Item '+(i+1),
+        recurrence:30, derniere_verification:null,
+        dirty:true, isNew:true
+      }));
     }
   }catch(e){
     toast('Erreur : '+e.message,'err');
-    ITEMS.forEach((_,i)=>{ rows[i]={id:null, recurrence:30, derniere_verification:null, dirty:true}; });
+    rows=Array.from({length:200},(_,i)=>({
+      id:nextTmpId--, item_number:i+1,
+      nom:'Item '+(i+1),
+      recurrence:30, derniere_verification:null,
+      dirty:true, isNew:true
+    }));
   }
-  render();
-  showSpinner(false);
+  render();showSpinner(false);
 }
 
 // ── RENDU ────────────────────────────────────────────────────────
 function render(){
   const today=todayStr();
   let retardCount=0;
-
-  document.getElementById('tbody').innerHTML=ITEMS.map((nom,i)=>{
-    const r=rows[i]||{recurrence:30, derniere_verification:null};
+  document.getElementById('tbody').innerHTML=rows.map((r,i)=>{
     const prochaine=r.derniere_verification?addDays(r.derniere_verification,r.recurrence):null;
-    let cls='never', lbl='Jamais vérifié';
+    let cls='never',lbl='Jamais vérifié';
     if(prochaine){
       const diff=diffDays(prochaine);
-      if(diff<0){       cls='overdue'; lbl=fmtDate(prochaine)+' ('+Math.abs(diff)+'j retard)'; retardCount++; }
-      else if(diff<=7){ cls='soon';    lbl=fmtDate(prochaine)+' (dans '+diff+'j)'; }
-      else{             cls='ok';      lbl=fmtDate(prochaine); }
+      if(diff<0){cls='overdue';lbl=fmtDate(prochaine)+' ('+Math.abs(diff)+'j retard)';retardCount++;}
+      else if(diff<=7){cls='soon';lbl=fmtDate(prochaine)+' (dans '+diff+'j)';}
+      else{cls='ok';lbl=fmtDate(prochaine);}
     }
-    return `<tr>
-      <td>${i+1}</td>
-      <td style="font-weight:500;color:var(--text-primary)">${esc(nom)}</td>
+    return `<tr id="row-${i}">
+      <td>${r.item_number}</td>
+      <td><input class="inp-item" value="${esc(r.nom)}" placeholder="Nom de l'item…" oninput="markDirty(${i},'nom',this.value)"></td>
       <td>
         <select class="sel-rec" onchange="markDirty(${i},'recurrence',parseInt(this.value))">
           <option value="30" ${r.recurrence==30?'selected':''}>30 jours</option>
@@ -350,58 +203,69 @@ function render(){
       </td>
       <td class="td-date">${fmtDate(r.derniere_verification)}</td>
       <td class="td-prochaine ${cls}">${lbl}</td>
+      <td><button class="btn-rm" onclick="removeRow(${i})" title="Supprimer">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button></td>
     </tr>`;
   }).join('');
 
-  document.getElementById('item-count').textContent=ITEMS.length+' items';
+  document.getElementById('item-count').textContent=rows.length+' item'+(rows.length!==1?'s':'');
   document.getElementById('tbl-wrap').style.display='block';
-
   const kpi=document.getElementById('kpi-retard');
   document.getElementById('kpi-retard-val').textContent=retardCount;
   kpi.style.display=retardCount>0?'block':'none';
 }
 
-function markDirty(itemNumber, field, val){
-  if(!rows[itemNumber]) rows[itemNumber]={id:null, recurrence:30, derniere_verification:null};
-  rows[itemNumber][field]=val;
-  rows[itemNumber].dirty=true;
+function markDirty(idx,field,val){rows[idx][field]=val;rows[idx].dirty=true;}
+
+// ── AJOUTER ──────────────────────────────────────────────────────
+function addRow(){
+  const nextNum=rows.length>0?Math.max(...rows.map(r=>r.item_number))+1:1;
+  rows.push({id:nextTmpId--,item_number:nextNum,nom:'Item '+nextNum,recurrence:30,derniere_verification:null,dirty:true,isNew:true});
+  render();
+  setTimeout(()=>{
+    const inputs=document.querySelectorAll('.inp-item');
+    if(inputs.length) inputs[inputs.length-1].focus();
+  },50);
+}
+
+// ── SUPPRIMER ────────────────────────────────────────────────────
+async function removeRow(idx){
+  const r=rows[idx];
+  if(!r.isNew&&r.id&&String(r.id).length>10){
+    try{
+      const{error}=await sb.from('parametres_inventaire').delete().eq('id',r.id);
+      if(error) throw error;
+    }catch(e){toast('Erreur suppression : '+e.message,'err');return;}
+  }
+  rows.splice(idx,1);
+  render();
+  toast('Item supprimé','ok');
 }
 
 // ── SAUVEGARDER ──────────────────────────────────────────────────
 async function saveAll(){
-  const dirty=Object.entries(rows).filter(([,r])=>r.dirty);
+  const dirty=rows.filter(r=>r.dirty);
   if(!dirty.length){toast('Aucune modification','ok');return;}
-  let saved=0, errors=0;
-  for(const [itemNum, r] of dirty){
-    const n=parseInt(itemNum);
+  let saved=0,errors=0;
+  for(const r of dirty){
     try{
-      if(r.id){
-        const {error}=await sb.from('parametres_inventaire')
-          .update({recurrence:r.recurrence, derniere_verification:r.derniere_verification||null})
-          .eq('id',r.id);
+      const payload={item_number:r.item_number,nom:r.nom,recurrence:r.recurrence};
+      if(r.derniere_verification) payload.derniere_verification=r.derniere_verification;
+      if(!r.isNew&&r.id&&String(r.id).length>10){
+        const{error}=await sb.from('parametres_inventaire').update(payload).eq('id',r.id);
         if(error) throw error;
       } else {
-        const {data,error}=await sb.from('parametres_inventaire')
-          .insert({item_number:n, recurrence:r.recurrence, derniere_verification:r.derniere_verification||null})
-          .select().single();
+        const{data,error}=await sb.from('parametres_inventaire').insert(payload).select().single();
         if(error) throw error;
-        r.id=data.id;
+        r.id=data.id; r.isNew=false;
       }
       r.dirty=false; saved++;
-    }catch(e){ errors++; console.error(e); }
+    }catch(e){errors++;console.error(e);}
   }
   if(errors) toast(errors+' erreur(s)','err');
   else toast(saved+' item(s) sauvegardé(s) ✓','ok');
   render();
-}
-
-// ── UTILITAIRES ──────────────────────────────────────────────────
-function showSpinner(on){ document.getElementById('spinner').style.display=on?'flex':'none'; }
-function toast(msg,type='ok'){
-  const el=document.createElement('div');
-  el.className='toast '+type; el.textContent=msg;
-  document.getElementById('toasts').appendChild(el);
-  setTimeout(()=>el.remove(),3500);
 }
 </script>
 </body>
