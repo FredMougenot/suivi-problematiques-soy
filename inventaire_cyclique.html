@@ -958,7 +958,10 @@ async function exportPDF(){
         pdf.setFontSize(7); pdf.setFont('helvetica','normal');
         if(c.key==='num'){ pdf.setTextColor(...C.copper); pdf.setFont('helvetica','bold'); }
         else if(c.key==='statut'){ pdf.setTextColor(...statutColor); pdf.setFont('helvetica','bold'); }
-        else if(c.key==='next'){ pdf.setTextColor(prochaine&&prochaine<today?...C.ruby:...C.amber); }
+        else if(c.key==='next'){
+          const col = (prochaine&&prochaine<today) ? C.ruby : C.amber;
+          pdf.setTextColor(...col);
+        }
         else pdf.setTextColor(40,42,55);
 
         const maxW=c.w-4;
@@ -1028,12 +1031,17 @@ async function load(){
       if(r.item_index>=nextExtra) nextExtra=r.item_index+1;
     });
   }catch(e){toast('Erreur chargement: '+e.message,'error');}
+  finally{
+    // Toujours cacher les spinners et afficher les tableaux
+    document.getElementById('verif-spinner').style.display='none';
+    document.getElementById('verif-tbl').style.display='table';
+    document.getElementById('spinner').style.display='none';
+    document.getElementById('ic-tbl').style.display='table';
+  }
   renderVerif();
   renderStock();
   restoreIcLimits();
   await loadHistory();
-  document.getElementById('spinner').style.display='none';
-  document.getElementById('ic-tbl').style.display='table';
 }
 
 async function init(){
