@@ -648,8 +648,8 @@ async function exportPDF(){
 }
 
 </script>
-</body>
-</html> onclick="if(event.target===this)closeSstModal()">
+
+<div class="overlay" id="modal-sst" onclick="if(event.target===this)closeSstModal()">
   <div class="modal">
     <div class="modal-hd">
       <div>
@@ -698,8 +698,7 @@ async function exportPDF(){
         </div>
         <div class="fg full">
           <label class="fg-lbl">Description</label>
-          <textarea id="sst-description" class="fg-ta" rows="4"
-            placeholder="Description détaillée…"></textarea>
+          <textarea id="sst-description" class="fg-ta" rows="4" placeholder="Description détaillée…"></textarea>
         </div>
       </div>
     </div>
@@ -709,6 +708,7 @@ async function exportPDF(){
     </div>
   </div>
 </div>
+
 
 </body>
 </html>
