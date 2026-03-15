@@ -317,6 +317,47 @@
       </table>
     </div>
 
+    <!-- ══ SECTION 3 : HISTORIQUE ════════════════════════════════════ -->
+    <div class="section-divider" style="margin-top:36px;">
+      <div class="section-divider-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Historique des comptages
+      </div>
+      <div class="section-divider-line"></div>
+    </div>
+
+    <div style="margin-bottom:12px;position:relative;max-width:400px;">
+      <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:.9rem;pointer-events:none;">⌕</span>
+      <input type="text" id="hist-search" placeholder="Rechercher un item…"
+        oninput="searchHistory(this.value)"
+        style="width:100%;padding:9px 12px 9px 34px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);font-size:.84rem;color:var(--text-primary);font-family:'Outfit',sans-serif;outline:none;transition:border-color .15s;"
+        onfocus="this.style.borderColor='var(--copper)'" onblur="this.style.borderColor='var(--text-faint)'">
+    </div>
+
+    <div class="ic-tbl-wrap" id="hist-wrap" style="display:none">
+      <table class="ic-tbl" style="min-width:900px">
+        <thead>
+          <tr>
+            <th rowspan="2" style="text-align:left;padding-left:16px">Date</th>
+            <th rowspan="2" style="text-align:left">Item</th>
+            <th rowspan="2">Poids unit.<br><small style="font-weight:400;font-size:.58rem">(kg)</small></th>
+            <th colspan="2" class="th-group">Entrepôt 1</th>
+            <th colspan="2" class="th-group">Entrepôt 2</th>
+            <th rowspan="2">Total<br><small style="font-weight:400;font-size:.58rem">(kg)</small></th>
+            <th rowspan="2">ERP<br><small style="font-weight:400;font-size:.58rem">(kg)</small></th>
+            <th rowspan="2">Écart<br><small style="font-weight:400;font-size:.58rem">(kg)</small></th>
+          </tr>
+          <tr>
+            <th class="th-group">Qté E1</th>
+            <th class="th-group">Balance 1</th>
+            <th class="th-group">Qté E2</th>
+            <th class="th-group">Balance 2</th>
+          </tr>
+        </thead>
+        <tbody id="hist-tbody"></tbody>
+      </table>
+    </div>
+
   </div>
 
   <div style="display:flex;justify-content:center;align-items:center;gap:12px;padding:12px 0 4px;flex-wrap:wrap;">
@@ -754,8 +795,12 @@ async function saveAllIc(){
   if(errors) toast(errors+' erreur(s).','error');
   else toast('Tout sauvegardé ✓','success');
 
-  // Rafraîchir la liste des vérifications
+  // Rafraîchir la liste des vérifications et l'historique
   renderVerif();
+  await loadHistory();
+  // Relancer la recherche si un terme est actif
+  const q=document.getElementById('hist-search')?.value||'';
+  if(q) searchHistory(q);
 }
 
 async function submitNcIc(){
@@ -766,6 +811,57 @@ async function submitNcIc(){
   }]);
   if(error){toast('Erreur: '+error.message,'error');return;}
   toast('Non-conformité créée ✓','success');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SECTION 3 — HISTORIQUE
+// ══════════════════════════════════════════════════════════════════
+let historyData = []; // tous les enregistrements inventaire_cyclique
+
+async function loadHistory(){
+  try{
+    const{data,error}=await sb.from('inventaire_cyclique')
+      .select('*').order('date_jour',{ascending:false}).order('label');
+    if(error){ console.warn('loadHistory:',error.message); return; }
+    historyData = (data||[]).filter(r=>r.label); // garder seulement les lignes avec un nom
+  }catch(e){ console.warn('loadHistory:',e); }
+}
+
+function searchHistory(q){
+  const wrap=document.getElementById('hist-wrap');
+  const tbody=document.getElementById('hist-tbody');
+  if(!q||q.trim()===''){
+    wrap.style.display='none';
+    tbody.innerHTML='';
+    return;
+  }
+  const term=q.trim().toLowerCase();
+  const results=historyData.filter(r=>(r.label||'').toLowerCase().includes(term));
+  if(results.length===0){
+    wrap.style.display='block';
+    tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--text-muted);">Aucun résultat pour « ${esc(q)} »</td></tr>`;
+    return;
+  }
+  const html=results.map(r=>{
+    const ecart=parseFloat(r.ecart_calcule);
+    const ecartCls=ecart>0?'td-ecart-pos':ecart<0?'td-ecart-neg':'td-ecart-zero';
+    const ecartPfx=ecart>0?'+':'';
+    const dateFormatted=r.date_jour?new Date(r.date_jour+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}):'—';
+    return `<tr>
+      <td style="font-size:.82rem;color:var(--copper-light);font-weight:700;white-space:nowrap;padding-left:16px">${dateFormatted}</td>
+      <td style="font-size:.84rem;font-weight:500;color:var(--text-primary)">${esc(r.label||'')}</td>
+      <td style="text-align:center">${fmtNum(r.poids_unitaire)}</td>
+      <td style="text-align:center">${fmtNum(r.qte_e1)}</td>
+      <td style="text-align:center">${fmtNum(r.balance1)}</td>
+      <td style="text-align:center">${fmtNum(r.qte_e2)}</td>
+      <td style="text-align:center">${fmtNum(r.balance2)}</td>
+      <td style="text-align:center;font-weight:700">${fmtNum(r.total_calcule)}</td>
+      <td style="text-align:center">${fmtNum(r.erp)}</td>
+      <td style="text-align:center" class="td-calc ${isNaN(ecart)?'':ecartCls}">${isNaN(ecart)||r.ecart_calcule===null?'—':ecartPfx+fmtNum(r.ecart_calcule)}</td>
+    </tr>`;
+  }).join('');
+  wrap.style.display='block';
+  tbody.innerHTML=html;
 }
 
 // ── CHARGEMENT ────────────────────────────────────────────────────
@@ -805,6 +901,7 @@ async function load(){
   renderVerif();
   renderStock();
   restoreIcLimits();
+  await loadHistory();
   document.getElementById('spinner').style.display='none';
   document.getElementById('ic-tbl').style.display='table';
 }
