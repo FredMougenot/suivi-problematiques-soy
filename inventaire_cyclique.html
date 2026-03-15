@@ -578,10 +578,13 @@ function renderIcCharts(){
 // ALGORITHME DE LISSAGE
 // ══════════════════════════════════════════════════════════════════
 function computeRecommended(today){
-  // Séparer les items en 3 groupes
-  const urgent=[], soon=[], ok=[];
+  // urgent  = deadline dépassée (derniere_verif existe ET prochaine < today)
+  // soon    = prochaine dans <= 7 jours
+  // never   = jamais vérifié → candidat à répartir (pas urgent)
+  // ok      = à jour > 7 jours → candidat à répartir
+  const urgent=[], soon=[], never=[], ok=[];
   paramItems.forEach(p=>{
-    if(!p.derniere_verification){ urgent.push(p); return; }
+    if(!p.derniere_verification){ never.push(p); return; }
     const prochaine=addDays(p.derniere_verification,p.recurrence);
     const diff=Math.round((new Date(prochaine+'T00:00:00')-new Date(today+'T00:00:00'))/86400000);
     if(diff<0)       urgent.push(p);
@@ -589,30 +592,14 @@ function computeRecommended(today){
     else             ok.push(p);
   });
 
-  if(!ok.length) return new Set();
+  const candidates=[...ok,...never];
+  if(!candidates.length) return new Set();
 
-  // Les items urgent+soon vont être vérifiés de toute façon —
-  // ils occupent déjà des "slots" de travail quotidien.
-  // On les répartit sur leur fenêtre restante pour estimer leur charge journalière.
-  const scheduleOccupied={}; // charge déjà planifiée par les urgent+soon
-
+  // Charge occupée par urgent+soon (répartis sur leur fenêtre restante)
+  const scheduleOccupied={};
   [...urgent,...soon].forEach(p=>{
-    if(!p.derniere_verification){
-      // Jamais vérifié → à faire aujourd'hui
-      scheduleOccupied[today]=(scheduleOccupied[today]||0)+1;
-      return;
-    }
     const deadline=addDays(p.derniere_verification,p.recurrence);
-    // Répartir uniformément sur les jours restants jusqu'à deadline
-    let d=today, days=0;
-    while(d<=deadline){
-      days++;
-      const nd=new Date(d+'T00:00:00'); nd.setDate(nd.getDate()+1);
-      d=nd.toISOString().slice(0,10);
-    }
-    // Assigner au jour le moins chargé dans la fenêtre restante
-    let best=today, bestCount=Infinity;
-    d=today;
+    let best=today, bestCount=Infinity, d=today;
     while(d<=deadline){
       const c=scheduleOccupied[d]||0;
       if(c<bestCount){bestCount=c;best=d;}
@@ -622,64 +609,60 @@ function computeRecommended(today){
     scheduleOccupied[best]=(scheduleOccupied[best]||0)+1;
   });
 
-  // Maintenant répartir les items OK par groupe de récurrence
-  // en tenant compte de la charge déjà occupée
+  // Répartir les candidats par groupe de récurrence
   const byRec={};
-  ok.forEach(p=>{
-    const r=p.recurrence;
+  candidates.forEach(p=>{
+    const r=p.recurrence||30;
     if(!byRec[r]) byRec[r]=[];
     byRec[r].push(p);
   });
 
   const assignedDates={};
-
   Object.entries(byRec).forEach(([rec,items])=>{
     const r=parseInt(rec);
-    const sorted=[...items].sort((a,b)=>
-      a.derniere_verification<b.derniere_verification?-1:1
-    );
+    // Trier : jamais vérifiés en premier, puis par date derniere_verification
+    const sorted=[...items].sort((a,b)=>{
+      if(!a.derniere_verification && b.derniere_verification) return -1;
+      if(a.derniere_verification && !b.derniere_verification) return 1;
+      return (a.derniere_verification||'')<(b.derniere_verification||'')?-1:1;
+    });
     const step=r/sorted.length;
-
     sorted.forEach((p,idx)=>{
       const offset=Math.round((idx+1)*step);
-      const idealDate=addDays(p.derniere_verification,offset);
-      assignedDates[p.id]=idealDate<=today?today:idealDate;
+      if(!p.derniere_verification){
+        // Jamais vérifié : répartir à partir d'aujourd'hui sur r jours
+        const idealDate=addDays(today, Math.round(idx*step));
+        assignedDates[p.id]=idealDate<=today?today:idealDate;
+      } else {
+        const idealDate=addDays(p.derniere_verification,offset);
+        assignedDates[p.id]=idealDate<=today?today:idealDate;
+      }
     });
   });
 
-  // Un item est recommandé aujourd'hui si sa date idéale = today
-  // ET que la charge totale de ce jour (occupied + recommended) ne dépasse pas
-  // le plafond = ceil(totalItems / minRecurrence)
-  // Plafond quotidien = somme de (1/recurrence) pour chaque item
-  // = charge journalière théorique idéale, arrondie au supérieur
-  const dailyCap = Math.ceil(
-    paramItems
-      .filter(p=>p.recurrence>0)
-      .reduce((sum,p)=> sum + (1/p.recurrence), 0)
+  // Plafond = somme de 1/recurrence pour tous les items
+  const dailyCap=Math.ceil(
+    paramItems.filter(p=>p.recurrence>0).reduce((s,p)=>s+(1/p.recurrence),0)
   );
 
-  const recommendedToday=new Set();
+  // Slots disponibles aujourd'hui = plafond - charge déjà occupée
   const loadToday=scheduleOccupied[today]||0;
-  let addedToday=0;
+  const available=Math.max(0, dailyCap-loadToday);
 
-  // Trier par deadline croissante pour prioriser les plus proches
-  const candidates=Object.entries(assignedDates)
+  // Candidats pour aujourd'hui, triés par priorité (jamais vérifiés d'abord, puis deadline proche)
+  const todayCandidates=Object.entries(assignedDates)
     .filter(([,date])=>date===today)
-    .map(([id])=>ok.find(p=>p.id===id))
+    .map(([id])=>candidates.find(p=>p.id===id))
     .filter(Boolean)
     .sort((a,b)=>{
-      const da=addDays(a.derniere_verification,a.recurrence);
-      const db=addDays(b.derniere_verification,b.recurrence);
-      return da<db?-1:1;
+      if(!a.derniere_verification && b.derniere_verification) return -1;
+      if(a.derniere_verification && !b.derniere_verification) return 1;
+      return addDays(a.derniere_verification||today,a.recurrence) <
+             addDays(b.derniere_verification||today,b.recurrence) ? -1 : 1;
     });
 
-  candidates.forEach(p=>{
-    if(loadToday+addedToday<dailyCap){
-      recommendedToday.add(p.id);
-      addedToday++;
-    }
-  });
-
+  const recommendedToday=new Set();
+  todayCandidates.slice(0, available).forEach(p=>recommendedToday.add(p.id));
   return recommendedToday;
 }
 
@@ -694,8 +677,13 @@ function renderVerif(){
     const verifAujourdhui=p.derniere_verification===today;
     let statut,badgeCls,show=true,isRec=false;
     if(!prochaine){
-      statut='Jamais vérifié'; badgeCls='vbadge-never'; nUrgent++;
-    } else {
+        // Jamais vérifié → candidat recommandé, pas urgent
+        if(recommended.has(p.id)){
+          statut='Recommandé'; badgeCls='vbadge-recommended'; nRec++; isRec=true;
+        } else {
+          nOk++; show=false; // pas encore son tour
+        }
+      } else {
       const diff=Math.round((new Date(prochaine+'T00:00:00')-new Date(today+'T00:00:00'))/86400000);
       if(diff<0){
         statut=Math.abs(diff)+'j de retard'; badgeCls='vbadge-overdue'; nUrgent++;
