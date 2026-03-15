@@ -105,7 +105,37 @@
 .btn-save-all:hover{opacity:.88;}
 .btn-save-all:active{transform:scale(.97);}
 
-/* ══ SECTION VÉRIFICATIONS ══════════════════════════════════════ */
+/* ══ GRAPHIQUES INVENTAIRE ══════════════════════════════════════ */
+.ic-chart-panel{
+  background:linear-gradient(135deg,#0B0D13 0%,#0F1118 50%,#15181F 100%);
+  border:2px solid transparent;background-clip:padding-box;
+  border-radius:20px;padding:28px;margin-bottom:24px;position:relative;overflow:hidden;
+  box-shadow:0 8px 32px rgba(0,0,0,.6),inset 0 1px 0 rgba(200,132,58,.1);
+}
+.ic-chart-panel::before{
+  content:'';position:absolute;inset:0;border-radius:20px;padding:2px;
+  background:linear-gradient(135deg,rgba(200,132,58,.4) 0%,rgba(45,212,160,.3) 33%,rgba(74,158,232,.3) 66%,rgba(200,132,58,.4) 100%);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;
+}
+.ic-chart-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;position:relative;z-index:1;}
+@media(max-width:900px){.ic-chart-grid{grid-template-columns:1fr;}}
+.ic-chart-box{
+  background:linear-gradient(135deg,rgba(26,30,42,.8),rgba(21,24,31,.8));
+  border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px;
+  position:relative;overflow:hidden;backdrop-filter:blur(10px);transition:all .4s;
+}
+.ic-chart-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,rgba(200,132,58,.6) 0%,rgba(45,212,160,.6) 50%,rgba(74,158,232,.6) 100%);
+  opacity:0;transition:opacity .4s;}
+.ic-chart-box:hover{border-color:rgba(200,132,58,.4);transform:translateY(-3px);
+  box-shadow:0 8px 32px rgba(0,0,0,.5),0 0 40px rgba(200,132,58,.1);}
+.ic-chart-box:hover::before{opacity:1;}
+.ic-chart-title{font-size:.68rem;font-weight:800;color:var(--copper);letter-spacing:.15em;
+  text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.ic-chart-title::before{content:'';width:4px;height:12px;background:linear-gradient(180deg,var(--copper),var(--copper-light));
+  border-radius:2px;box-shadow:0 0 8px rgba(200,132,58,.5);}
+
 .section-divider{display:flex;align-items:center;gap:14px;margin:28px 0 18px;}
 .section-divider-line{flex:1;height:1px;background:linear-gradient(90deg,var(--copper),transparent);}
 .section-divider-title{font-size:.68rem;font-weight:800;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;white-space:nowrap;}
@@ -177,6 +207,33 @@
       <div class="verif-kpi verif-kpi-total" id="vkpi-total">— items</div>
       <div class="verif-kpi verif-kpi-retard" id="vkpi-retard" style="display:none">— en retard</div>
       <div class="verif-kpi verif-kpi-ok" id="vkpi-ok" style="display:none">— à jour</div>
+    </div>
+
+    <!-- Graphiques -->
+    <div class="ic-chart-panel" id="ic-chart-panel" style="display:none">
+      <div class="ic-chart-grid">
+        <div class="ic-chart-box">
+          <div class="ic-chart-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Aujourd'hui — par heure
+          </div>
+          <canvas id="ic-chart-day"></canvas>
+        </div>
+        <div class="ic-chart-box">
+          <div class="ic-chart-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Semaine en cours
+          </div>
+          <canvas id="ic-chart-week"></canvas>
+        </div>
+        <div class="ic-chart-box">
+          <div class="ic-chart-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Mois en cours
+          </div>
+          <canvas id="ic-chart-month"></canvas>
+        </div>
+      </div>
     </div>
     <div class="verif-tbl-wrap">
       <div class="spinner" id="verif-spinner" style="display:flex"><div class="sp-ring"></div></div>
@@ -256,6 +313,7 @@
 <!-- TOASTS -->
 <div class="toasts" id="toasts"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 
@@ -305,7 +363,118 @@ function changeDate(delta){
 function goToday(){ curDate=localToday(); refreshDateUI(); load(); }
 
 // ══════════════════════════════════════════════════════════════════
-// SECTION 1 — VÉRIFICATIONS CYCLIQUES
+// GRAPHIQUES — items en retard
+// ══════════════════════════════════════════════════════════════════
+let icChartDay=null, icChartWeek=null, icChartMonth=null;
+
+function countOverdueOnDate(dateStr){
+  // Compte les items dont prochaine_verification < dateStr
+  return paramItems.filter(p=>{
+    if(!p.derniere_verification) return true; // jamais vérifié = en retard
+    const prochaine = addDays(p.derniere_verification, p.recurrence);
+    return prochaine < dateStr;
+  }).length;
+}
+
+function renderIcCharts(){
+  const panel = document.getElementById('ic-chart-panel');
+  if(!paramItems.length){ panel.style.display='none'; return; }
+  panel.style.display='block';
+
+  const today = localToday();
+  const now   = new Date();
+
+  // ── Jour : par heure de 0h à heure actuelle ──
+  const dayLabels=[], dayData=[];
+  for(let h=0; h<=now.getHours(); h++){
+    dayLabels.push(String(h).padStart(2,'0')+'h');
+    // La date ne change pas dans la journée — on utilise today
+    dayData.push(countOverdueOnDate(today));
+  }
+
+  // ── Semaine : lun → dim ──
+  const dow = now.getDay();
+  const mondayOff = dow===0?-6:1-dow;
+  const monday = new Date(now); monday.setDate(now.getDate()+mondayOff);
+  const weekLabels=[], weekData=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(monday); d.setDate(monday.getDate()+i);
+    const ds=d.toISOString().slice(0,10);
+    weekLabels.push(d.toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'}));
+    weekData.push(countOverdueOnDate(ds));
+  }
+
+  // ── Mois : jour 1 → aujourd'hui ──
+  const yr=now.getFullYear(), mo=now.getMonth();
+  const monthLabels=[], monthData=[];
+  for(let i=1;i<=now.getDate();i++){
+    const ds=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(i).padStart(2,'0');
+    monthLabels.push(String(i));
+    monthData.push(countOverdueOnDate(ds));
+  }
+
+  function buildDS(data, label){
+    const ctx2=document.createElement('canvas').getContext('2d');
+    const gStroke=ctx2.createLinearGradient(0,0,500,0);
+    gStroke.addColorStop(0,'rgba(200,132,58,1)');
+    gStroke.addColorStop(0.33,'rgba(45,212,160,1)');
+    gStroke.addColorStop(0.66,'rgba(74,158,232,1)');
+    gStroke.addColorStop(1,'rgba(224,85,85,1)');
+    const gFill=ctx2.createLinearGradient(0,0,0,200);
+    gFill.addColorStop(0,'rgba(200,132,58,0.4)');
+    gFill.addColorStop(0.5,'rgba(45,212,160,0.2)');
+    gFill.addColorStop(1,'rgba(74,158,232,0.05)');
+    return [{
+      label, data, fill:true,
+      backgroundColor:gFill, borderColor:gStroke, borderWidth:3,
+      pointRadius:4, pointHoverRadius:7,
+      pointBackgroundColor:'rgba(200,132,58,1)', pointBorderColor:'#fff', pointBorderWidth:2,
+      tension:0.4
+    }];
+  }
+
+  const opts={
+    responsive:false, maintainAspectRatio:false,
+    animation:{duration:1000, easing:'easeInOutQuart'},
+    interaction:{mode:'index', intersect:false},
+    plugins:{
+      legend:{display:false},
+      tooltip:{
+        enabled:true,
+        backgroundColor:'rgba(15,17,24,0.95)',
+        titleColor:'#C8843A', bodyColor:'#F0EAE0',
+        borderColor:'rgba(200,132,58,0.5)', borderWidth:1, padding:10,
+        titleFont:{size:11,weight:'700',family:"'Outfit',sans-serif"},
+        bodyFont:{size:10,weight:'500',family:"'Outfit',sans-serif"},
+        callbacks:{
+          label:(ctx)=>ctx.parsed.y+' item'+(ctx.parsed.y>1?'s':'')+ ' en retard'
+        }
+      }
+    },
+    scales:{
+      x:{ticks:{color:'#BEC5D6',font:{size:9,weight:'600',family:"'Outfit',sans-serif"},maxRotation:0,padding:6},
+         grid:{color:'rgba(255,255,255,0.05)',drawBorder:false}},
+      y:{ticks:{color:'#BEC5D6',font:{size:9,weight:'600',family:"'Outfit',sans-serif"},
+               stepSize:1,precision:0,padding:6,callback:v=>Number.isInteger(v)?v:''},
+         grid:{color:'rgba(255,255,255,0.08)',drawBorder:false}, beginAtZero:true}
+    }
+  };
+
+  function drawChart(id, labels, data, existing, label){
+    const el=document.getElementById(id);
+    if(!el) return existing;
+    if(existing) existing.destroy();
+    const box=el.closest('.ic-chart-box')||el.parentElement;
+    const w=box?Math.floor(box.getBoundingClientRect().width-40):280;
+    el.width=w>80?w:280; el.height=160;
+    return new Chart(el,{type:'line',data:{labels,datasets:buildDS(data,label)},options:opts});
+  }
+
+  icChartDay  = drawChart('ic-chart-day',  dayLabels,  dayData,  icChartDay,  'Items en retard');
+  icChartWeek = drawChart('ic-chart-week', weekLabels, weekData, icChartWeek, 'Items en retard');
+  icChartMonth= drawChart('ic-chart-month',monthLabels,monthData,icChartMonth,'Items en retard');
+}
+
 // ══════════════════════════════════════════════════════════════════
 
 function renderVerif(){
@@ -363,6 +532,9 @@ function renderVerif(){
   const ko=document.getElementById('vkpi-ok');
   kr.textContent=nRetard+' en retard / à vérifier'; kr.style.display=nRetard>0?'block':'none';
   ko.textContent=nOk+' à jour';                     ko.style.display=nOk>0?'block':'none';
+
+  // Graphiques — after a tick so canvas sizes are settled
+  requestAnimationFrame(()=>renderIcCharts());
 }
 
 async function marquerVerifie(paramId){
@@ -372,7 +544,7 @@ async function marquerVerifie(paramId){
     if(error) throw error;
     const p=paramItems.find(x=>x.id===paramId);
     if(p) p.derniere_verification=today;
-    renderVerif();
+    renderVerif(); // renderIcCharts est appelé par renderVerif
     toast('✓ Vérification enregistrée','success');
   }catch(e){ toast('Erreur: '+e.message,'error'); }
 }
