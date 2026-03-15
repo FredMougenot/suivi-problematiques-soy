@@ -273,72 +273,6 @@ let stockRows = {};
 let nextExtra = 100;
 let paramItems = []; // [{id, item_number, item, recurrence, derniere_verification}]
 
-// Noms des items — même ordre que dans parametres_inventaire (item_number = index)
-const ITEMS = [
-  "Quai de réception — propreté générale","Quai d'expédition — propreté générale",
-  "Portes de quai — état et fonctionnement","Niveleurs de quai — état et lubrification",
-  "Joints de quai — usure et étanchéité","Sellettes de quai — état",
-  "Signalisation de quai — lisibilité","Zone de tri — organisation",
-  "Palettes disponibles — stock et état","Banderoleuse — fonctionnement et film",
-  "Allée principale A — dégagement","Allée principale B — dégagement",
-  "Allée principale C — dégagement","Allée secondaire 1 — dégagement",
-  "Allée secondaire 2 — dégagement","Marquage au sol — lisibilité",
-  "Signalisation de sécurité — présence","Miroirs de sécurité — propreté et angle",
-  "Éclairage allée A — fonctionnement","Éclairage allée B — fonctionnement",
-  "Rayonnage zone A — intégrité structurelle","Rayonnage zone B — intégrité structurelle",
-  "Rayonnage zone C — intégrité structurelle","Connecteurs de rayonnage — fixation",
-  "Cales de rayonnage — présence","Filets de sécurité — présence et état",
-  "Capacité affichée — lisibilité","Chariots élévateurs — inspection quotidienne",
-  "Chariots élévateurs — niveau huile hydraulique","Chariots élévateurs — pression des pneus",
-  "Chariots élévateurs — fourches — état","Chariots élévateurs — éclairage et avertisseur",
-  "Chariots élévateurs — courroies","Transpalettes manuels — état",
-  "Transpalettes électriques — charge batterie","Recharge batteries — zone dédiée",
-  "Extincteurs — emplacement dégagé","Extincteurs — date d'inspection",
-  "Boyaux d'incendie — accessibilité","Sorties de secours — dégagement",
-  "Panneaux de sortie — éclairage","Détecteurs de fumée — test mensuel",
-  "Système de sprinkleurs — pression","Armoire électrique — accès dégagé",
-  "Armoire électrique — étiquetage","Câbles électriques — état visible",
-  "Éclairage d'urgence — test","Trousse de premiers soins — contenu",
-  "Douche oculaire — fonctionnement","Déversoirs accidentels — stock de matériaux",
-  "Zone de matières dangereuses — signalisation","Fiches signalétiques — accessibles",
-  "Conteneurs de déchets dangereux — étiquetage","EPI disponibles — stock suffisant",
-  "EPI — état général","Chaussures de sécurité — portées",
-  "Vestes haute visibilité — portées","Casques — état et disponibilité",
-  "Gants — stock et état","Protection oculaire — stock",
-  "Zone de chargement — propreté","Zone de déchargement — propreté",
-  "Température entrepôt — dans les normes","Humidité entrepôt — dans les normes",
-  "Ventilation — fonctionnement","Nettoyage des allées — effectué",
-  "Évacuation des déchets — effectuée","Conteneurs de recyclage — vidés",
-  "Zone de pause — propreté","Vestiaires — propreté",
-  "Toilettes — propreté et approvisionnement","Bureau logistique — ordre",
-  "Imprimantes d'étiquettes — fonctionnement","Lecteurs de code-barres — fonctionnement",
-  "Terminaux mobiles — charge","Connexion réseau entrepôt — fonctionnelle",
-  "Système WMS — accessible","Sauvegardes de données — effectuées",
-  "Caméras de surveillance — fonctionnement","Contrôle d'accès — fonctionnement",
-  "Journal des visiteurs — tenu à jour","Clôtures et barrières — état",
-  "Éclairage extérieur — fonctionnement","Zone de stationnement — organisation",
-  "Signalisation routière — lisibilité","Pont de pesée — calibration",
-  "Thermomètres — calibration","Hygromètres — calibration",
-  "Équipements de mesure — certification à jour","Stock de fournitures de bureau — suffisant",
-  "Stock d'emballage — suffisant","Banderoles et films estirables — stock",
-  "Étiquettes — stock","Sangles et attaches — stock et état",
-  "Palettes — qualité et quantité","Caisses de transport — état",
-  "Conteneurs réutilisables — propres et en stock","Procédures affichées — à jour",
-  "Manuel qualité — accessible","Registre de non-conformités — tenu",
-  "Registre de maintenance — tenu","Plan d'évacuation — affiché",
-  "Formation sécurité — à jour","Exercice d'évacuation — planifié",
-  "Réunion sécurité — tenue","Tour d'entrepôt fin de quart",
-  "Rapport d'inspection quotidien — complété","Points d'action ouverts — suivi",
-  "Réunion de quart — tenue","Communication inter-quarts — réalisée",
-  "Registre de maintenance préventive — à jour","Calendrier des audits — respecté",
-  "Indicateurs KPI — mis à jour","Revue de direction — préparée",
-  "Lubrification des chariots — calendrier respecté","Filtres HVAC — remplacement",
-  "Inspections réglementaires — planifiées","Contrats de maintenance — à jour",
-  "Pièces de rechange critiques — stock","Journal de maintenance — tenu à jour",
-  "Inspection des câbles de levage","Vérification des limiteurs de charge",
-  "Test des alarmes incendie","Inspection des systèmes de sprinkleurs",
-];
-
 // ── UTILITAIRES ───────────────────────────────────────────────────
 function toast(msg, type='info'){
   const c=document.getElementById('toasts');
@@ -475,8 +409,10 @@ function renderStock(){
       <td>
         <select class="ni-item" id="lbl${entry.idx}" onchange="sfchg(${entry.idx},'label',this.value)"
           style="background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-sm);padding:5px 8px;font-size:.82rem;font-family:'Outfit',sans-serif;outline:none;cursor:pointer;width:220px;">
-          <option value="">— Sélectionner —</option>
-          ${paramItems.map(p=>`<option value="${esc(p.item)}" ${r.label===p.item?'selected':''}>${esc(p.item)}</option>`).join('')}
+          ${paramItems.length===0
+            ? '<option value="" disabled selected>⚠ Configurer les paramètres d\'abord</option>'
+            : '<option value="">— Sélectionner —</option>'+paramItems.map(p=>`<option value="${esc(p.item)}" ${r.label===p.item?'selected':''}>${esc(p.item)}</option>`).join('')
+          }
         </select>
       </td>
       <td><input class="ni" type="number" step="0.001" value="${r.poids_unitaire||''}" placeholder="0" oninput="sfchg(${entry.idx},'poids_unitaire',this.value)"></td>
@@ -581,7 +517,7 @@ async function load(){
     } else {
       paramItems=(params||[]).map(p=>({
         id:p.id, item_number:p.item_number,
-        item:p.nom||ITEMS[p.item_number]||'Item #'+p.item_number,
+        item:p.nom||'Item #'+p.item_number,
         recurrence:p.recurrence||30,
         derniere_verification:p.derniere_verification||null,
       }));
