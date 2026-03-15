@@ -521,6 +521,9 @@ async function load(){
         recurrence:p.recurrence||30,
         derniere_verification:p.derniere_verification||null,
       }));
+      if(paramItems.length===0){
+        toast('⚠ Aucun item dans parametres_inventaire — ouvrez Paramètres et cliquez Tout sauvegarder','error');
+      }
     }
 
     // 2. Données stock
