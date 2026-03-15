@@ -650,9 +650,13 @@ function computeRecommended(today){
   // Un item est recommandé aujourd'hui si sa date idéale = today
   // ET que la charge totale de ce jour (occupied + recommended) ne dépasse pas
   // le plafond = ceil(totalItems / minRecurrence)
-  const totalItems=paramItems.length;
-  const minRec=Math.min(...paramItems.filter(p=>p.recurrence>0).map(p=>p.recurrence));
-  const dailyCap=Math.ceil(totalItems/minRec);
+  // Plafond quotidien = somme de (1/recurrence) pour chaque item
+  // = charge journalière théorique idéale, arrondie au supérieur
+  const dailyCap = Math.ceil(
+    paramItems
+      .filter(p=>p.recurrence>0)
+      .reduce((sum,p)=> sum + (1/p.recurrence), 0)
+  );
 
   const recommendedToday=new Set();
   const loadToday=scheduleOccupied[today]||0;
