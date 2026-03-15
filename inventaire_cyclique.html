@@ -218,6 +218,13 @@
             Aujourd'hui — par heure
           </div>
           <canvas id="ic-chart-day"></canvas>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:12px;">
+            <div style="width:3px;height:14px;background:rgba(232,164,58,.8);border-radius:2px;flex-shrink:0;"></div>
+            <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;white-space:nowrap;">Limite acceptable</label>
+            <input type="number" id="ic-limit-day" min="0" placeholder="—"
+              style="width:70px;background:rgba(15,17,24,.8);border:1px solid rgba(200,132,58,.3);color:var(--text-primary);border-radius:8px;padding:5px 8px;font-size:.82rem;font-family:'Outfit',sans-serif;outline:none;"
+              oninput="saveIcLimit('day',this.value)">
+          </div>
         </div>
         <div class="ic-chart-box">
           <div class="ic-chart-title">
@@ -225,6 +232,13 @@
             Semaine en cours
           </div>
           <canvas id="ic-chart-week"></canvas>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:12px;">
+            <div style="width:3px;height:14px;background:rgba(232,164,58,.8);border-radius:2px;flex-shrink:0;"></div>
+            <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;white-space:nowrap;">Limite acceptable</label>
+            <input type="number" id="ic-limit-week" min="0" placeholder="—"
+              style="width:70px;background:rgba(15,17,24,.8);border:1px solid rgba(200,132,58,.3);color:var(--text-primary);border-radius:8px;padding:5px 8px;font-size:.82rem;font-family:'Outfit',sans-serif;outline:none;"
+              oninput="saveIcLimit('week',this.value)">
+          </div>
         </div>
         <div class="ic-chart-box">
           <div class="ic-chart-title">
@@ -232,6 +246,13 @@
             Mois en cours
           </div>
           <canvas id="ic-chart-month"></canvas>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:12px;">
+            <div style="width:3px;height:14px;background:rgba(232,164,58,.8);border-radius:2px;flex-shrink:0;"></div>
+            <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;white-space:nowrap;">Limite acceptable</label>
+            <input type="number" id="ic-limit-month" min="0" placeholder="—"
+              style="width:70px;background:rgba(15,17,24,.8);border:1px solid rgba(200,132,58,.3);color:var(--text-primary);border-radius:8px;padding:5px 8px;font-size:.82rem;font-family:'Outfit',sans-serif;outline:none;"
+              oninput="saveIcLimit('month',this.value)">
+          </div>
         </div>
       </div>
     </div>
@@ -362,6 +383,24 @@ function changeDate(delta){
 }
 function goToday(){ curDate=localToday(); refreshDateUI(); load(); }
 
+// ── LIMITES GRAPHIQUES ────────────────────────────────────────────
+function saveIcLimit(key, val){
+  try{ localStorage.setItem('ic_limit_'+key, val); }catch(e){}
+  renderIcCharts();
+}
+function getIcLimit(key){
+  try{ const v=localStorage.getItem('ic_limit_'+key); return v!==null&&v!==''?Number(v):null; }
+  catch(e){ return null; }
+}
+function restoreIcLimits(){
+  ['day','week','month'].forEach(k=>{
+    const el=document.getElementById('ic-limit-'+k);
+    if(!el) return;
+    const v=getIcLimit(k);
+    el.value = v!==null ? v : '';
+  });
+}
+
 // ══════════════════════════════════════════════════════════════════
 // GRAPHIQUES — items en retard
 // ══════════════════════════════════════════════════════════════════
@@ -413,7 +452,7 @@ function renderIcCharts(){
     monthData.push(countOverdueOnDate(ds));
   }
 
-  function buildDS(data, label){
+  function buildDS(data, label, limit){
     const ctx2=document.createElement('canvas').getContext('2d');
     const gStroke=ctx2.createLinearGradient(0,0,500,0);
     gStroke.addColorStop(0,'rgba(200,132,58,1)');
@@ -424,13 +463,24 @@ function renderIcCharts(){
     gFill.addColorStop(0,'rgba(200,132,58,0.4)');
     gFill.addColorStop(0.5,'rgba(45,212,160,0.2)');
     gFill.addColorStop(1,'rgba(74,158,232,0.05)');
-    return [{
+    const ds=[{
       label, data, fill:true,
       backgroundColor:gFill, borderColor:gStroke, borderWidth:3,
       pointRadius:4, pointHoverRadius:7,
       pointBackgroundColor:'rgba(200,132,58,1)', pointBorderColor:'#fff', pointBorderWidth:2,
       tension:0.4
     }];
+    if(limit!==null){
+      ds.push({
+        label:'Limite',
+        data:data.map(()=>limit),
+        borderColor:'rgba(232,164,58,0.85)',
+        backgroundColor:'rgba(232,164,58,0.08)',
+        borderWidth:2, borderDash:[8,4],
+        pointRadius:0, fill:false, tension:0
+      });
+    }
+    return ds;
   }
 
   const opts={
@@ -438,7 +488,12 @@ function renderIcCharts(){
     animation:{duration:1000, easing:'easeInOutQuart'},
     interaction:{mode:'index', intersect:false},
     plugins:{
-      legend:{display:false},
+      legend:{
+        display:false, // on affiche la légende seulement si limite définie — géré par dataset
+        position:'top', align:'end',
+        labels:{color:'#F0EAE0',font:{size:10,weight:'600',family:"'Outfit',sans-serif"},
+                boxWidth:20,boxHeight:2,padding:10}
+      },
       tooltip:{
         enabled:true,
         backgroundColor:'rgba(15,17,24,0.95)',
@@ -447,7 +502,10 @@ function renderIcCharts(){
         titleFont:{size:11,weight:'700',family:"'Outfit',sans-serif"},
         bodyFont:{size:10,weight:'500',family:"'Outfit',sans-serif"},
         callbacks:{
-          label:(ctx)=>ctx.parsed.y+' item'+(ctx.parsed.y>1?'s':'')+ ' en retard'
+          label:(ctx)=>{
+            if(ctx.datasetIndex===1) return 'Limite : '+ctx.parsed.y;
+            return ctx.parsed.y+' item'+(ctx.parsed.y>1?'s':'')+ ' en retard';
+          }
         }
       }
     },
@@ -460,19 +518,25 @@ function renderIcCharts(){
     }
   };
 
-  function drawChart(id, labels, data, existing, label){
+  function drawChart(id, labels, data, existing, label, limit){
     const el=document.getElementById(id);
     if(!el) return existing;
     if(existing) existing.destroy();
     const box=el.closest('.ic-chart-box')||el.parentElement;
     const w=box?Math.floor(box.getBoundingClientRect().width-40):280;
     el.width=w>80?w:280; el.height=160;
-    return new Chart(el,{type:'line',data:{labels,datasets:buildDS(data,label)},options:opts});
+    // Afficher la légende uniquement si une limite est définie
+    const chartOpts={...opts, plugins:{...opts.plugins, legend:{...opts.plugins.legend, display:limit!==null}}};
+    return new Chart(el,{type:'line',data:{labels,datasets:buildDS(data,label,limit)},options:chartOpts});
   }
 
-  icChartDay  = drawChart('ic-chart-day',  dayLabels,  dayData,  icChartDay,  'Items en retard');
-  icChartWeek = drawChart('ic-chart-week', weekLabels, weekData, icChartWeek, 'Items en retard');
-  icChartMonth= drawChart('ic-chart-month',monthLabels,monthData,icChartMonth,'Items en retard');
+  const lDay  = getIcLimit('day');
+  const lWeek = getIcLimit('week');
+  const lMonth= getIcLimit('month');
+
+  icChartDay  = drawChart('ic-chart-day',  dayLabels,  dayData,  icChartDay,  'Items en retard', lDay);
+  icChartWeek = drawChart('ic-chart-week', weekLabels, weekData, icChartWeek, 'Items en retard', lWeek);
+  icChartMonth= drawChart('ic-chart-month',monthLabels,monthData,icChartMonth,'Items en retard', lMonth);
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -740,6 +804,7 @@ async function load(){
   }catch(e){toast('Erreur chargement: '+e.message,'error');}
   renderVerif();
   renderStock();
+  restoreIcLimits();
   document.getElementById('spinner').style.display='none';
   document.getElementById('ic-tbl').style.display='table';
 }
