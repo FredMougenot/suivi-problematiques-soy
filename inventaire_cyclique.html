@@ -283,9 +283,77 @@ const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let curDate = localToday();
-let stockRows = {};     // {item_index: rowData} pour le comptage stock
+let stockRows = {};
 let nextExtra = 100;
-let paramItems = [];    // items depuis parametres [{id, item, recurrence, derniere_verification}]
+let paramItems = [];
+
+// Noms des items — doit correspondre à l'ordre dans la table parametres
+// Ces noms sont la référence hardcodée, item_number est l'index
+const DEFAULT_ITEMS = [
+  "Quai de réception — propreté générale","Quai d'expédition — propreté générale",
+  "Portes de quai — état et fonctionnement","Niveleurs de quai — état et lubrification",
+  "Joints de quai — usure et étanchéité","Sellettes de quai — état",
+  "Signalisation de quai — lisibilité","Zone de tri — organisation",
+  "Palettes disponibles — stock et état","Banderoleuse — fonctionnement et film",
+  "Allée principale A — dégagement","Allée principale B — dégagement",
+  "Allée principale C — dégagement","Allée secondaire 1 — dégagement",
+  "Allée secondaire 2 — dégagement","Marquage au sol — lisibilité",
+  "Signalisation de sécurité — présence","Miroirs de sécurité — propreté et angle",
+  "Éclairage allée A — fonctionnement","Éclairage allée B — fonctionnement",
+  "Rayonnage zone A — intégrité structurelle","Rayonnage zone B — intégrité structurelle",
+  "Rayonnage zone C — intégrité structurelle","Connecteurs de rayonnage — fixation",
+  "Cales de rayonnage — présence","Filets de sécurité — présence et état",
+  "Capacité affichée — lisibilité","Chariots élévateurs — inspection quotidienne",
+  "Chariots élévateurs — niveau huile hydraulique","Chariots élévateurs — pression des pneus",
+  "Chariots élévateurs — fourches — état","Chariots élévateurs — éclairage et avertisseur",
+  "Chariots élévateurs — courroies","Transpalettes manuels — état",
+  "Transpalettes électriques — charge batterie","Recharge batteries — zone dédiée",
+  "Extincteurs — emplacement dégagé","Extincteurs — date d'inspection",
+  "Boyaux d'incendie — accessibilité","Sorties de secours — dégagement",
+  "Panneaux de sortie — éclairage","Détecteurs de fumée — test mensuel",
+  "Système de sprinkleurs — pression","Armoire électrique — accès dégagé",
+  "Armoire électrique — étiquetage","Câbles électriques — état visible",
+  "Éclairage d'urgence — test","Trousse de premiers soins — contenu",
+  "Douche oculaire — fonctionnement","Déversoirs accidentels — stock de matériaux",
+  "Zone de matières dangereuses — signalisation","Fiches signalétiques — accessibles",
+  "Conteneurs de déchets dangereux — étiquetage","EPI disponibles — stock suffisant",
+  "EPI — état général","Chaussures de sécurité — portées",
+  "Vestes haute visibilité — portées","Casques — état et disponibilité",
+  "Gants — stock et état","Protection oculaire — stock",
+  "Zone de chargement — propreté","Zone de déchargement — propreté",
+  "Quai de réception — propreté générale (2)","Température entrepôt — dans les normes",
+  "Humidité entrepôt — dans les normes","Ventilation — fonctionnement",
+  "Nettoyage des allées — effectué","Évacuation des déchets — effectuée",
+  "Conteneurs de recyclage — vidés","Zone de pause — propreté",
+  "Vestiaires — propreté","Toilettes — propreté et approvisionnement",
+  "Bureau logistique — ordre","Imprimantes d'étiquettes — fonctionnement",
+  "Lecteurs de code-barres — fonctionnement","Terminaux mobiles — charge",
+  "Connexion réseau entrepôt — fonctionnelle","Système WMS — accessible",
+  "Sauvegardes de données — effectuées","Caméras de surveillance — fonctionnement",
+  "Contrôle d'accès — fonctionnement","Journal des visiteurs — tenu à jour",
+  "Clôtures et barrières — état","Éclairage extérieur — fonctionnement",
+  "Zone de stationnement — organisation","Signalisation routière — lisibilité",
+  "Pont de pesée — calibration","Thermomètres — calibration",
+  "Hygromètres — calibration","Équipements de mesure — certification à jour",
+  "Stock de fournitures de bureau — suffisant","Stock d'emballage — suffisant",
+  "Banderoles et films estirables — stock","Étiquettes — stock",
+  "Sangles et attaches — stock et état","Palettes — qualité et quantité",
+  "Caisses de transport — état","Conteneurs réutilisables — propres et en stock",
+  "Procédures affichées — à jour","Manuel qualité — accessible",
+  "Registre de non-conformités — tenu","Registre de maintenance — tenu",
+  "Plan d'évacuation — affiché","Formation sécurité — à jour",
+  "Exercice d'évacuation — planifié","Réunion sécurité — tenue",
+  "Tour d'entrepôt fin de quart","Rapport d'inspection quotidien — complété",
+  "Points d'action ouverts — suivi","Réunion de quart — tenue",
+  "Communication inter-quarts — réalisée","Registre de maintenance préventive — à jour",
+  "Calendrier des audits — respecté","Indicateurs KPI — mis à jour",
+  "Revue de direction — préparée","Lubrification des chariots — calendrier respecté",
+  "Filtres HVAC — remplacement","Inspections réglementaires — planifiées",
+  "Contrats de maintenance — à jour","Pièces de rechange critiques — stock",
+  "Journal de maintenance — tenu à jour","Inspection des câbles de levage",
+  "Vérification des limiteurs de charge","Test des alarmes incendie",
+  "Inspection des systèmes de sprinkleurs"
+];
 
 // ── UTILITAIRES ───────────────────────────────────────────────────
 function toast(msg, type='info'){
@@ -448,7 +516,13 @@ function renderStock(){
     const ecartPfx=ecart>0?'+':'';
     html+=`<tr id="ictr${entry.idx}">
       <td style="text-align:center"><span class="item-num">${pos+1}</span></td>
-      <td><input class="ni-item" id="lbl${entry.idx}" value="${esc(r.label||'')}" placeholder="Nom de l'item…" oninput="sfchg(${entry.idx},'label',this.value)"></td>
+      <td>
+        <select class="ni-item" id="lbl${entry.idx}" onchange="sfchg(${entry.idx},'label',this.value)"
+          style="background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-sm);padding:5px 8px;font-size:.82rem;font-family:'Outfit',sans-serif;outline:none;cursor:pointer;width:200px;">
+          <option value="">— Sélectionner un item —</option>
+          ${DEFAULT_ITEMS.map(name=>`<option value="${esc(name)}" ${r.label===name?'selected':''}>${esc(name)}</option>`).join('')}
+        </select>
+      </td>
       <td><input class="ni" type="number" step="0.001" value="${r.poids_unitaire||''}" placeholder="0" oninput="sfchg(${entry.idx},'poids_unitaire',this.value)"></td>
       <td><input class="ni" type="number" step="0.01" value="${r.qte_e1||''}" placeholder="0" oninput="sfchg(${entry.idx},'qte_e1',this.value)"></td>
       <td><input class="ni" type="number" step="0.01" value="${r.balance1||''}" placeholder="0" oninput="sfchg(${entry.idx},'balance1',this.value)"></td>
@@ -540,7 +614,6 @@ async function submitNcIc(){
 
 // ── CHARGEMENT ────────────────────────────────────────────────────
 async function load(){
-  // Spinner verif
   document.getElementById('verif-spinner').style.display='flex';
   document.getElementById('verif-tbl').style.display='none';
   document.getElementById('spinner').style.display='flex';
@@ -548,12 +621,16 @@ async function load(){
   stockRows={};
 
   try{
-    // 1. Items depuis parametres (pour les vérifications)
-    const {data:params,error:e1}=await sb.from('parametres').select('id,item,recurrence,derniere_verification').order('item');
+    // 1. Items depuis parametres — on charge item_number, recurrence, derniere_verification
+    const {data:params,error:e1}=await sb.from('parametres').select('*').order('item_number');
     if(e1) throw e1;
     paramItems=(params||[]).map(p=>({
-      id:p.id, item:p.item||'', recurrence:p.recurrence||30,
-      derniere_verification:p.derniere_verification||null,
+      id: p.id,
+      item_number: p.item_number,
+      // Le nom vient de DEFAULT_ITEMS via item_number
+      item: DEFAULT_ITEMS[p.item_number] || '(item #'+p.item_number+')',
+      recurrence: p.recurrence||30,
+      derniere_verification: p.derniere_verification||null,
     }));
 
     // 2. Données stock pour la date courante

@@ -421,22 +421,24 @@ async function load(){
   showSpinner(true);
   try {
     const {data, error} = await sb.from('parametres')
-      .select('*').order('id');
+      .select('*').order('item_number');
     if(error) throw error;
     if(data && data.length > 0){
       rows = data.map(r=>({
         id: r.id,
-        item: r.item||'',
+        item_number: r.item_number,
+        // Le nom vient de DEFAULT_ITEMS via item_number
+        item: DEFAULT_ITEMS[r.item_number] ? DEFAULT_ITEMS[r.item_number][0] : '(item #'+r.item_number+')',
         recurrence: r.recurrence||30,
         derniere_verification: r.derniere_verification||null,
         dirty: false
       }));
     } else {
-      rows = DEFAULT_ITEMS.map((d,i)=>({id: nextTmpId--, item:d[0], recurrence:d[1], derniere_verification:null, dirty:true}));
+      rows = DEFAULT_ITEMS.map((d,i)=>({id: nextTmpId--, item_number:i, item:d[0], recurrence:d[1], derniere_verification:null, dirty:true}));
     }
   } catch(e){
     toast('Erreur chargement : '+e.message, 'err');
-    rows = DEFAULT_ITEMS.map((d,i)=>({id: nextTmpId--, item:d[0], recurrence:d[1], derniere_verification:null, dirty:true}));
+    rows = DEFAULT_ITEMS.map((d,i)=>({id: nextTmpId--, item_number:i, item:d[0], recurrence:d[1], derniere_verification:null, dirty:true}));
   }
   render();
   showSpinner(false);
@@ -496,7 +498,7 @@ function markDirty(idx, field, val){
 
 // ── AJOUTER ─────────────────────────────────────────────────────
 function addRow(){
-  rows.push({id: nextTmpId--, item:'', recurrence:30, derniere_verification:null, dirty:true});
+  rows.push({id: nextTmpId--, item_number: rows.length, item: DEFAULT_ITEMS[rows.length]?DEFAULT_ITEMS[rows.length][0]:'', recurrence:30, derniere_verification:null, dirty:true});
   render();
   // Focus sur le dernier input
   setTimeout(()=>{
@@ -531,7 +533,7 @@ async function saveAll(){
   let saved = 0, errors = 0;
   for(const r of dirty){
     try {
-      const payload = {item: r.item, recurrence: r.recurrence};
+      const payload = {item_number: r.item_number, recurrence: r.recurrence};
       if(r.derniere_verification) payload.derniere_verification = r.derniere_verification;
       if(r.id > 0){
         const {error} = await sb.from('parametres').update(payload).eq('id', r.id);
