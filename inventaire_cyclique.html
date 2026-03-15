@@ -109,8 +109,6 @@
 .section-divider{display:flex;align-items:center;gap:14px;margin:28px 0 18px;}
 .section-divider-line{flex:1;height:1px;background:linear-gradient(90deg,var(--copper),transparent);}
 .section-divider-title{font-size:.68rem;font-weight:800;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;white-space:nowrap;}
-
-/* Table vérifications */
 .verif-tbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;position:relative;margin-bottom:10px;}
 .verif-tbl-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--emerald),transparent);}
 .verif-tbl{width:100%;border-collapse:collapse;min-width:700px;}
@@ -122,20 +120,14 @@
 .verif-tbl tbody tr:last-child{border-bottom:none;}
 .verif-tbl tbody td{padding:10px 14px;font-size:.84rem;color:var(--text-primary);vertical-align:middle;}
 .verif-tbl tbody td:first-child{padding-left:18px;}
-
-/* Badges statut vérification */
 .vbadge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:.68rem;font-weight:700;white-space:nowrap;}
 .vbadge-ok{background:rgba(45,212,160,.1);color:var(--emerald);border:1px solid rgba(45,212,160,.25);}
 .vbadge-soon{background:rgba(232,164,58,.1);color:var(--amber);border:1px solid rgba(232,164,58,.25);}
 .vbadge-overdue{background:rgba(224,85,85,.1);color:var(--ruby);border:1px solid rgba(224,85,85,.25);}
 .vbadge-never{background:rgba(44,51,80,.3);color:var(--text-muted);border:1px solid var(--text-faint);}
-
-/* Bouton vérifier */
 .btn-verif{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:var(--r-sm);font-size:.76rem;font-weight:700;cursor:pointer;transition:all .15s;border:1px solid rgba(45,212,160,.3);background:rgba(45,212,160,.08);color:var(--emerald);}
 .btn-verif:hover{background:rgba(45,212,160,.18);border-color:var(--emerald);}
-.btn-verif.done{background:rgba(45,212,160,.15);border-color:rgba(45,212,160,.5);color:var(--emerald);cursor:default;}
-
-/* KPI retard */
+.btn-verif.done{background:rgba(45,212,160,.15);border-color:rgba(45,212,160,.5);cursor:default;}
 .verif-kpi-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
 .verif-kpi{padding:6px 16px;border-radius:20px;font-size:.78rem;font-weight:700;}
 .verif-kpi-retard{background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.3);color:var(--ruby);}
@@ -157,7 +149,7 @@
       Inventaire Cyclique
     </div>
     <span style="font-size:.72rem;color:var(--text-muted);margin-left:auto;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--copper-dim);border:1px solid rgba(200,132,58,.2);color:var(--copper);">Qualité</span>
-    <a href="parametres.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:#1A1E2A;border:1px solid #2C3350;color:#BEC5D6;font-size:.78rem;font-weight:600;text-decoration:none;margin-left:12px;transition:all .15s;" onmouseover="this.style.borderColor='#C8843A';this.style.color='#E0A870'" onmouseout="this.style.borderColor='#2C3350';this.style.color='#BEC5D6'">
+    <a href="parametres_inventaire.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:#1A1E2A;border:1px solid #2C3350;color:#BEC5D6;font-size:.78rem;font-weight:600;text-decoration:none;margin-left:12px;transition:all .15s;" onmouseover="this.style.borderColor='#C8843A';this.style.color='#E0A870'" onmouseout="this.style.borderColor='#2C3350';this.style.color='#BEC5D6'">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       Paramètres
     </a>
@@ -181,29 +173,23 @@
       </div>
       <div class="section-divider-line"></div>
     </div>
-
-    <!-- KPI bar -->
-    <div class="verif-kpi-bar" id="verif-kpi-bar">
+    <div class="verif-kpi-bar">
       <div class="verif-kpi verif-kpi-total" id="vkpi-total">— items</div>
       <div class="verif-kpi verif-kpi-retard" id="vkpi-retard" style="display:none">— en retard</div>
       <div class="verif-kpi verif-kpi-ok" id="vkpi-ok" style="display:none">— à jour</div>
     </div>
-
-    <!-- Tableau vérifications -->
     <div class="verif-tbl-wrap">
       <div class="spinner" id="verif-spinner" style="display:flex"><div class="sp-ring"></div></div>
       <table class="verif-tbl" id="verif-tbl" style="display:none">
-        <thead>
-          <tr>
-            <th style="width:40px">#</th>
-            <th>Item</th>
-            <th style="width:90px;text-align:center">Récurrence</th>
-            <th style="width:130px;text-align:center">Dernière vérif.</th>
-            <th style="width:130px;text-align:center">Prochaine vérif.</th>
-            <th style="width:110px;text-align:center">Statut</th>
-            <th style="width:120px;text-align:center">Action</th>
-          </tr>
-        </thead>
+        <thead><tr>
+          <th style="width:40px">#</th>
+          <th>Item</th>
+          <th style="width:90px;text-align:center">Récurrence</th>
+          <th style="width:130px;text-align:center">Dernière vérif.</th>
+          <th style="width:130px;text-align:center">Prochaine vérif.</th>
+          <th style="width:110px;text-align:center">Statut</th>
+          <th style="width:120px;text-align:center">Action</th>
+        </tr></thead>
         <tbody id="verif-tbody"></tbody>
       </table>
     </div>
@@ -285,11 +271,10 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 let curDate = localToday();
 let stockRows = {};
 let nextExtra = 100;
-let paramItems = [];
+let paramItems = []; // [{id, item_number, item, recurrence, derniere_verification}]
 
-// Noms des items — doit correspondre à l'ordre dans la table parametres
-// Ces noms sont la référence hardcodée, item_number est l'index
-const DEFAULT_ITEMS = [
+// Noms des items — même ordre que dans parametres_inventaire (item_number = index)
+const ITEMS = [
   "Quai de réception — propreté générale","Quai d'expédition — propreté générale",
   "Portes de quai — état et fonctionnement","Niveleurs de quai — état et lubrification",
   "Joints de quai — usure et étanchéité","Sellettes de quai — état",
@@ -321,46 +306,44 @@ const DEFAULT_ITEMS = [
   "Vestes haute visibilité — portées","Casques — état et disponibilité",
   "Gants — stock et état","Protection oculaire — stock",
   "Zone de chargement — propreté","Zone de déchargement — propreté",
-  "Quai de réception — propreté générale (2)","Température entrepôt — dans les normes",
-  "Humidité entrepôt — dans les normes","Ventilation — fonctionnement",
-  "Nettoyage des allées — effectué","Évacuation des déchets — effectuée",
-  "Conteneurs de recyclage — vidés","Zone de pause — propreté",
-  "Vestiaires — propreté","Toilettes — propreté et approvisionnement",
-  "Bureau logistique — ordre","Imprimantes d'étiquettes — fonctionnement",
-  "Lecteurs de code-barres — fonctionnement","Terminaux mobiles — charge",
-  "Connexion réseau entrepôt — fonctionnelle","Système WMS — accessible",
-  "Sauvegardes de données — effectuées","Caméras de surveillance — fonctionnement",
-  "Contrôle d'accès — fonctionnement","Journal des visiteurs — tenu à jour",
-  "Clôtures et barrières — état","Éclairage extérieur — fonctionnement",
-  "Zone de stationnement — organisation","Signalisation routière — lisibilité",
-  "Pont de pesée — calibration","Thermomètres — calibration",
-  "Hygromètres — calibration","Équipements de mesure — certification à jour",
-  "Stock de fournitures de bureau — suffisant","Stock d'emballage — suffisant",
-  "Banderoles et films estirables — stock","Étiquettes — stock",
-  "Sangles et attaches — stock et état","Palettes — qualité et quantité",
-  "Caisses de transport — état","Conteneurs réutilisables — propres et en stock",
-  "Procédures affichées — à jour","Manuel qualité — accessible",
-  "Registre de non-conformités — tenu","Registre de maintenance — tenu",
-  "Plan d'évacuation — affiché","Formation sécurité — à jour",
-  "Exercice d'évacuation — planifié","Réunion sécurité — tenue",
-  "Tour d'entrepôt fin de quart","Rapport d'inspection quotidien — complété",
-  "Points d'action ouverts — suivi","Réunion de quart — tenue",
-  "Communication inter-quarts — réalisée","Registre de maintenance préventive — à jour",
-  "Calendrier des audits — respecté","Indicateurs KPI — mis à jour",
-  "Revue de direction — préparée","Lubrification des chariots — calendrier respecté",
-  "Filtres HVAC — remplacement","Inspections réglementaires — planifiées",
-  "Contrats de maintenance — à jour","Pièces de rechange critiques — stock",
-  "Journal de maintenance — tenu à jour","Inspection des câbles de levage",
-  "Vérification des limiteurs de charge","Test des alarmes incendie",
-  "Inspection des systèmes de sprinkleurs"
+  "Température entrepôt — dans les normes","Humidité entrepôt — dans les normes",
+  "Ventilation — fonctionnement","Nettoyage des allées — effectué",
+  "Évacuation des déchets — effectuée","Conteneurs de recyclage — vidés",
+  "Zone de pause — propreté","Vestiaires — propreté",
+  "Toilettes — propreté et approvisionnement","Bureau logistique — ordre",
+  "Imprimantes d'étiquettes — fonctionnement","Lecteurs de code-barres — fonctionnement",
+  "Terminaux mobiles — charge","Connexion réseau entrepôt — fonctionnelle",
+  "Système WMS — accessible","Sauvegardes de données — effectuées",
+  "Caméras de surveillance — fonctionnement","Contrôle d'accès — fonctionnement",
+  "Journal des visiteurs — tenu à jour","Clôtures et barrières — état",
+  "Éclairage extérieur — fonctionnement","Zone de stationnement — organisation",
+  "Signalisation routière — lisibilité","Pont de pesée — calibration",
+  "Thermomètres — calibration","Hygromètres — calibration",
+  "Équipements de mesure — certification à jour","Stock de fournitures de bureau — suffisant",
+  "Stock d'emballage — suffisant","Banderoles et films estirables — stock",
+  "Étiquettes — stock","Sangles et attaches — stock et état",
+  "Palettes — qualité et quantité","Caisses de transport — état",
+  "Conteneurs réutilisables — propres et en stock","Procédures affichées — à jour",
+  "Manuel qualité — accessible","Registre de non-conformités — tenu",
+  "Registre de maintenance — tenu","Plan d'évacuation — affiché",
+  "Formation sécurité — à jour","Exercice d'évacuation — planifié",
+  "Réunion sécurité — tenue","Tour d'entrepôt fin de quart",
+  "Rapport d'inspection quotidien — complété","Points d'action ouverts — suivi",
+  "Réunion de quart — tenue","Communication inter-quarts — réalisée",
+  "Registre de maintenance préventive — à jour","Calendrier des audits — respecté",
+  "Indicateurs KPI — mis à jour","Revue de direction — préparée",
+  "Lubrification des chariots — calendrier respecté","Filtres HVAC — remplacement",
+  "Inspections réglementaires — planifiées","Contrats de maintenance — à jour",
+  "Pièces de rechange critiques — stock","Journal de maintenance — tenu à jour",
+  "Inspection des câbles de levage","Vérification des limiteurs de charge",
+  "Test des alarmes incendie","Inspection des systèmes de sprinkleurs",
 ];
 
 // ── UTILITAIRES ───────────────────────────────────────────────────
 function toast(msg, type='info'){
   const c=document.getElementById('toasts');
   const el=document.createElement('div');
-  el.className='toast-item toast-'+type;
-  el.textContent=msg;
+  el.className='toast-item toast-'+type; el.textContent=msg;
   c.appendChild(el);
   setTimeout(()=>el.classList.add('show'),10);
   setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),300);},3200);
@@ -370,24 +353,20 @@ function fmtDate(d){
   if(!d) return '—';
   return new Date(d+'T00:00:00').toLocaleDateString('fr-CA',{day:'2-digit',month:'short',year:'numeric'});
 }
-function addDays(dateStr, days){
-  const d=new Date(dateStr+'T00:00:00');
-  d.setDate(d.getDate()+days);
-  return d.toISOString().slice(0,10);
+function addDays(s,n){
+  const d=new Date(s+'T00:00:00'); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10);
 }
 
 // ── DATE ──────────────────────────────────────────────────────────
 function refreshDateUI(){
   const d=new Date(curDate+'T00:00:00');
-  document.getElementById('date-lbl').textContent =
+  document.getElementById('date-lbl').textContent=
     d.toLocaleDateString('fr-CA',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})
      .replace(/^\w/,c=>c.toUpperCase());
 }
 function changeDate(delta){
-  const d=new Date(curDate+'T00:00:00');
-  d.setDate(d.getDate()+delta);
-  curDate=d.toISOString().slice(0,10);
-  refreshDateUI(); load();
+  const d=new Date(curDate+'T00:00:00'); d.setDate(d.getDate()+delta);
+  curDate=d.toISOString().slice(0,10); refreshDateUI(); load();
 }
 function goToday(){ curDate=localToday(); refreshDateUI(); load(); }
 
@@ -396,37 +375,27 @@ function goToday(){ curDate=localToday(); refreshDateUI(); load(); }
 // ══════════════════════════════════════════════════════════════════
 
 function renderVerif(){
-  const today = localToday();
+  const today=localToday();
   let nRetard=0, nOk=0;
 
-  const rows = paramItems.map((p, i) => {
-    const prochaine = p.derniere_verification ? addDays(p.derniere_verification, p.recurrence) : null;
-    const verifAujourdhui = p.derniere_verification === today;
-
+  const html=paramItems.map((p,i)=>{
+    const prochaine=p.derniere_verification?addDays(p.derniere_verification,p.recurrence):null;
+    const verifAujourdhui=p.derniere_verification===today;
     let statut, badgeCls;
-    if(!prochaine){
-      statut='Jamais vérifié'; badgeCls='vbadge-never';
-      nRetard++;
-    } else {
-      const diff = Math.round((new Date(prochaine+'T00:00:00') - new Date(today+'T00:00:00')) / 86400000);
-      if(diff < 0){
-        statut=`${Math.abs(diff)}j de retard`; badgeCls='vbadge-overdue'; nRetard++;
-      } else if(diff <= 7){
-        statut=`Dans ${diff}j`; badgeCls='vbadge-soon';
-        nOk++;
-      } else {
-        statut='À jour'; badgeCls='vbadge-ok'; nOk++;
-      }
+    if(!prochaine){ statut='Jamais vérifié'; badgeCls='vbadge-never'; nRetard++; }
+    else{
+      const diff=Math.round((new Date(prochaine+'T00:00:00')-new Date(today+'T00:00:00'))/86400000);
+      if(diff<0){        statut=Math.abs(diff)+'j de retard'; badgeCls='vbadge-overdue'; nRetard++; }
+      else if(diff<=7){  statut='Dans '+diff+'j';             badgeCls='vbadge-soon';    nOk++; }
+      else{              statut='À jour';                     badgeCls='vbadge-ok';      nOk++; }
     }
-
-    const recCls = p.recurrence===30?'rec-30':p.recurrence===60?'rec-60':'rec-90';
-    const recColors = {'rec-30':'var(--emerald)','rec-60':'var(--amber)','rec-90':'var(--sapphire)'};
-
+    const recColors={'30':'var(--emerald)','60':'var(--amber)','90':'var(--sapphire)'};
+    const rc=String(p.recurrence);
     return `<tr style="${verifAujourdhui?'background:rgba(45,212,160,.04)':''}">
       <td><span class="item-num">${i+1}</span></td>
       <td style="font-weight:500">${esc(p.item)}</td>
       <td style="text-align:center">
-        <span style="font-size:.72rem;font-weight:700;color:${recColors[recCls]};padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.05);">${p.recurrence}j</span>
+        <span style="font-size:.72rem;font-weight:700;color:${recColors[rc]||'var(--text-muted)'};padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.05);">${p.recurrence}j</span>
       </td>
       <td style="text-align:center;font-size:.8rem;color:var(--text-secondary)">${fmtDate(p.derniere_verification)}</td>
       <td style="text-align:center;font-size:.8rem;color:${prochaine&&prochaine<today?'var(--ruby)':prochaine&&prochaine<=addDays(today,7)?'var(--amber)':'var(--text-secondary)'}">${fmtDate(prochaine)}</td>
@@ -441,36 +410,28 @@ function renderVerif(){
     </tr>`;
   }).join('');
 
-  document.getElementById('verif-tbody').innerHTML = rows || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px;">Aucun item dans les paramètres. <a href="parametres.html" style="color:var(--copper)">Configurer →</a></td></tr>';
-  document.getElementById('verif-tbl').style.display = 'table';
-  document.getElementById('verif-spinner').style.display = 'none';
+  document.getElementById('verif-tbody').innerHTML=html||`<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px;">Aucun item configuré. <a href="parametres_inventaire.html" style="color:var(--copper)">Configurer →</a></td></tr>`;
+  document.getElementById('verif-tbl').style.display='table';
+  document.getElementById('verif-spinner').style.display='none';
 
-  // KPI
-  const total = paramItems.length;
-  document.getElementById('vkpi-total').textContent = total + ' item' + (total!==1?'s':'');
-  const kpiRetard = document.getElementById('vkpi-retard');
-  const kpiOk = document.getElementById('vkpi-ok');
-  kpiRetard.textContent = nRetard + ' en retard';
-  kpiRetard.style.display = nRetard > 0 ? 'block' : 'none';
-  kpiOk.textContent = nOk + ' à jour';
-  kpiOk.style.display = nOk > 0 ? 'block' : 'none';
+  const total=paramItems.length;
+  document.getElementById('vkpi-total').textContent=total+' item'+(total!==1?'s':'');
+  const kr=document.getElementById('vkpi-retard');
+  const ko=document.getElementById('vkpi-ok');
+  kr.textContent=nRetard+' en retard'; kr.style.display=nRetard>0?'block':'none';
+  ko.textContent=nOk+' à jour';        ko.style.display=nOk>0?'block':'none';
 }
 
 async function marquerVerifie(paramId){
-  const today = localToday();
-  try {
-    const {error} = await sb.from('parametres')
-      .update({derniere_verification: today})
-      .eq('id', paramId);
+  const today=localToday();
+  try{
+    const {error}=await sb.from('parametres_inventaire').update({derniere_verification:today}).eq('id',paramId);
     if(error) throw error;
-    // Mettre à jour localement
-    const p = paramItems.find(x=>x.id===paramId);
-    if(p) p.derniere_verification = today;
+    const p=paramItems.find(x=>x.id===paramId);
+    if(p) p.derniere_verification=today;
     renderVerif();
     toast('✓ Vérification enregistrée','success');
-  } catch(e){
-    toast('Erreur: '+e.message,'error');
-  }
+  }catch(e){ toast('Erreur: '+e.message,'error'); }
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -482,19 +443,14 @@ function calcRow(r){
   const b1=parseFloat(r.balance1)||0, q2=parseFloat(r.qte_e2)||0;
   const b2=parseFloat(r.balance2)||0, erp=parseFloat(r.erp)||0;
   const total=(q1*pu+b1)+(q2*pu+b2);
-  return {total, ecart:total-erp};
+  return{total,ecart:total-erp};
 }
 function fmtNum(n){
   if(isNaN(n)||n===null) return '—';
   return n.toFixed(2).replace(/\.?0+$/,'').replace(/\B(?=(\d{3})+(?!\d))/g,'\u202f');
 }
 
-// Items de base stock (gardés tels quels depuis l'original)
-const BASE_ITEMS = [
-  {idx:0, label:'Item 1'},
-  {idx:1, label:'Item 2'},
-  {idx:2, label:'Item 3'},
-];
+const BASE_ITEMS=[{idx:0,label:'Item 1'},{idx:1,label:'Item 2'},{idx:2,label:'Item 3'}];
 
 function renderStock(){
   BASE_ITEMS.forEach(it=>{
@@ -506,7 +462,7 @@ function renderStock(){
   let totalTotal=0,totalErp=0,totalEcart=0,totalItems=0,html='';
   all.forEach((entry,pos)=>{
     const r=stockRows[entry.idx]||{};
-    const {total,ecart}=calcRow(r);
+    const{total,ecart}=calcRow(r);
     const hasVal=[r.qte_e1,r.balance1,r.qte_e2,r.balance2].some(v=>parseFloat(v||0)!==0);
     if(hasVal) totalItems++;
     if(!isNaN(total)) totalTotal+=total;
@@ -518,9 +474,9 @@ function renderStock(){
       <td style="text-align:center"><span class="item-num">${pos+1}</span></td>
       <td>
         <select class="ni-item" id="lbl${entry.idx}" onchange="sfchg(${entry.idx},'label',this.value)"
-          style="background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-sm);padding:5px 8px;font-size:.82rem;font-family:'Outfit',sans-serif;outline:none;cursor:pointer;width:200px;">
-          <option value="">— Sélectionner un item —</option>
-          ${DEFAULT_ITEMS.map(name=>`<option value="${esc(name)}" ${r.label===name?'selected':''}>${esc(name)}</option>`).join('')}
+          style="background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-sm);padding:5px 8px;font-size:.82rem;font-family:'Outfit',sans-serif;outline:none;cursor:pointer;width:220px;">
+          <option value="">— Sélectionner —</option>
+          ${ITEMS.map(name=>`<option value="${esc(name)}" ${r.label===name?'selected':''}>${esc(name)}</option>`).join('')}
         </select>
       </td>
       <td><input class="ni" type="number" step="0.001" value="${r.poids_unitaire||''}" placeholder="0" oninput="sfchg(${entry.idx},'poids_unitaire',this.value)"></td>
@@ -535,7 +491,6 @@ function renderStock(){
     </tr>`;
   });
   document.getElementById('ic-tbody').innerHTML=html;
-  const ecartTotCls=totalEcart>0?'td-ecart-pos':totalEcart<0?'td-ecart-neg':'td-ecart-zero';
   document.getElementById('ic-tfoot').innerHTML=`<tr>
     <td colspan="9" style="text-align:right;padding:6px 16px;color:var(--text-muted);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;">Items enregistrés</td>
     <td style="font-weight:700;color:var(--text-primary);font-size:.88rem;padding:6px 12px;">${totalItems}</td>
@@ -543,11 +498,11 @@ function renderStock(){
   </tr>`;
 }
 
-function sfchg(idx, field, val){
+function sfchg(idx,field,val){
   if(!stockRows[idx]) stockRows[idx]={item_index:idx};
   stockRows[idx][field]=val;
   const r=stockRows[idx];
-  const {total,ecart}=calcRow(r);
+  const{total,ecart}=calcRow(r);
   const totEl=document.getElementById('tot'+idx);
   const ecaEl=document.getElementById('eca'+idx);
   if(totEl) totEl.textContent=isNaN(total)?'—':fmtNum(total);
@@ -559,18 +514,15 @@ function sfchg(idx, field, val){
 }
 
 function addItem(){
-  const idx=nextExtra++;
-  stockRows[idx]={item_index:idx,label:'Nouvel item'};
+  const idx=nextExtra++; stockRows[idx]={item_index:idx,label:''};
   renderStock();
-  setTimeout(()=>{const el=document.getElementById('lbl'+idx);if(el){el.focus();el.select();}},50);
+  setTimeout(()=>{const el=document.getElementById('lbl'+idx);if(el) el.focus();},50);
 }
 
 async function delRow(idx){
   if(!confirm('Supprimer cet item?')) return;
-  try{ await sb.from('inventaire_cyclique').delete().eq('date_jour',curDate).eq('item_index',idx); }catch(e){}
-  delete stockRows[idx];
-  renderStock();
-  toast('Item supprimé.','info');
+  try{await sb.from('inventaire_cyclique').delete().eq('date_jour',curDate).eq('item_index',idx);}catch(e){}
+  delete stockRows[idx]; renderStock(); toast('Item supprimé.','info');
 }
 
 async function saveAllIc(){
@@ -582,18 +534,18 @@ async function saveAllIc(){
     const r=stockRows[idx]||{};
     const hasData=r.qte_e1||r.balance1||r.qte_e2||r.balance2||r.erp||r.poids_unitaire;
     if(!r.id&&!hasData) continue;
-    const {total,ecart}=calcRow(r);
+    const{total,ecart}=calcRow(r);
     const payload={
-      date_jour:curDate, item_index:idx, label:r.label||'',
+      date_jour:curDate,item_index:idx,label:r.label||'',
       poids_unitaire:parseFloat(r.poids_unitaire)||null,
-      qte_e1:parseFloat(r.qte_e1)||null, balance1:parseFloat(r.balance1)||null,
-      qte_e2:parseFloat(r.qte_e2)||null, balance2:parseFloat(r.balance2)||null,
+      qte_e1:parseFloat(r.qte_e1)||null,balance1:parseFloat(r.balance1)||null,
+      qte_e2:parseFloat(r.qte_e2)||null,balance2:parseFloat(r.balance2)||null,
       erp:parseFloat(r.erp)||null,
-      total_calcule:isNaN(total)?null:total, ecart_calcule:isNaN(ecart)?null:ecart,
+      total_calcule:isNaN(total)?null:total,ecart_calcule:isNaN(ecart)?null:ecart,
       updated_at:new Date().toISOString(),
     };
     try{
-      const {data,error}=await sb.from('inventaire_cyclique').upsert(payload,{onConflict:'date_jour,item_index'}).select().single();
+      const{data,error}=await sb.from('inventaire_cyclique').upsert(payload,{onConflict:'date_jour,item_index'}).select().single();
       if(error){errors++;}else if(data) stockRows[idx]={...r,...data};
     }catch(e){errors++;}
   }
@@ -603,10 +555,10 @@ async function saveAllIc(){
 }
 
 async function submitNcIc(){
-  const {error}=await sb.from('problematiques').insert([{
-    intitule:'Non conformité inventaire cyclique', pilier:'Qualite', priorite:'Haute',
-    statut:'À traiter', description:'Inventaire cyclique non complété — Date: '+curDate,
-    created_at:new Date().toISOString(), updated_at:new Date().toISOString(),
+  const{error}=await sb.from('problematiques').insert([{
+    intitule:'Non conformité inventaire cyclique',pilier:'Qualite',priorite:'Haute',
+    statut:'À traiter',description:'Inventaire cyclique non complété — Date: '+curDate,
+    created_at:new Date().toISOString(),updated_at:new Date().toISOString(),
   }]);
   if(error){toast('Erreur: '+error.message,'error');return;}
   toast('Non-conformité créée ✓','success');
@@ -619,29 +571,25 @@ async function load(){
   document.getElementById('spinner').style.display='flex';
   document.getElementById('ic-tbl').style.display='none';
   stockRows={};
-
   try{
-    // 1. Items depuis parametres — on charge item_number, recurrence, derniere_verification
-    const {data:params,error:e1}=await sb.from('parametres').select('*').order('item_number');
+    // 1. Items depuis parametres_inventaire
+    const{data:params,error:e1}=await sb.from('parametres_inventaire').select('*').order('item_number');
     if(e1) throw e1;
     paramItems=(params||[]).map(p=>({
-      id: p.id,
-      item_number: p.item_number,
-      // Le nom vient de DEFAULT_ITEMS via item_number
-      item: DEFAULT_ITEMS[p.item_number] || '(item #'+p.item_number+')',
-      recurrence: p.recurrence||30,
-      derniere_verification: p.derniere_verification||null,
+      id:p.id, item_number:p.item_number,
+      item:ITEMS[p.item_number]||'(item #'+p.item_number+')',
+      recurrence:p.recurrence||30,
+      derniere_verification:p.derniere_verification||null,
     }));
 
-    // 2. Données stock pour la date courante
-    const {data:inv,error:e2}=await sb.from('inventaire_cyclique').select('*').eq('date_jour',curDate).order('item_index');
+    // 2. Données stock
+    const{data:inv,error:e2}=await sb.from('inventaire_cyclique').select('*').eq('date_jour',curDate).order('item_index');
     if(e2&&e2.code!=='PGRST116') throw e2;
     (inv||[]).forEach(r=>{
       stockRows[r.item_index]=r;
       if(r.item_index>=nextExtra) nextExtra=r.item_index+1;
     });
-  }catch(e){ toast('Erreur chargement: '+e.message,'error'); }
-
+  }catch(e){toast('Erreur chargement: '+e.message,'error');}
   renderVerif();
   renderStock();
   document.getElementById('spinner').style.display='none';
@@ -650,14 +598,280 @@ async function load(){
 
 async function init(){
   try{
-    const {data:{session}}=await sb.auth.getSession();
+    const{data:{session}}=await sb.auth.getSession();
     if(!session){window.location.href='index.html';return;}
-    refreshDateUI();
-    await load();
+    refreshDateUI(); await load();
   }catch(e){window.location.href='index.html';}
 }
 window.addEventListener('load',init);
 
+let curDate = localToday();
+let rows = {};      // {item_index: rowData}
+let nextExtra = 100; // index pour items ajoutés dynamiquement
+
+// Items de base fixes (toujours présents)
+const BASE_ITEMS = [
+  {idx:0, label:'Item 1'},
+  {idx:1, label:'Item 2'},
+  {idx:2, label:'Item 3'},
+];
+
+// ── TOAST ─────────────────────────────────────────────────────────
+function toast(msg, type='info'){
+  const c=document.getElementById('toasts');
+  const el=document.createElement('div');
+  el.className='toast-item toast-'+type;
+  el.textContent=msg;
+  c.appendChild(el);
+  setTimeout(()=>el.classList.add('show'),10);
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),300);},3200);
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── DATE ──────────────────────────────────────────────────────────
+function refreshDateUI(){
+  const d = new Date(curDate+'T00:00:00');
+  const opts = {weekday:'long',day:'2-digit',month:'long',year:'numeric'};
+  document.getElementById('date-lbl').textContent =
+    d.toLocaleDateString('fr-CA', opts).replace(/^\w/, c=>c.toUpperCase());
+}
+function changeDate(delta){
+  const d = new Date(curDate+'T00:00:00');
+  d.setDate(d.getDate()+delta);
+  curDate = d.toISOString().slice(0,10);
+  refreshDateUI(); load();
+}
+function goToday(){
+  curDate = localToday();
+  refreshDateUI(); load();
+}
+
+// ── CALCULS ───────────────────────────────────────────────────────
+function calcRow(r){
+  const pu   = parseFloat(r.poids_unitaire)||0;
+  const q1   = parseFloat(r.qte_e1)||0;
+  const b1   = parseFloat(r.balance1)||0;
+  const q2   = parseFloat(r.qte_e2)||0;
+  const b2   = parseFloat(r.balance2)||0;
+  const erp  = parseFloat(r.erp)||0;
+  // Total = (q1 * pu + b1) + (q2 * pu + b2)
+  const total = (q1 * pu + b1) + (q2 * pu + b2);
+  const ecart = total - erp;
+  return {total, ecart};
+}
+
+function fmtNum(n){
+  if(isNaN(n)||n===null||n===undefined) return '—';
+  return n.toFixed(2).replace(/\.?0+$/, '').replace(/\B(?=(\d{3})+(?!\d))/g,'\u202f');
+}
+
+// ── RENDU ─────────────────────────────────────────────────────────
+function render(){
+  // Appliquer défauts sur les items de base
+  BASE_ITEMS.forEach(it => {
+    if(!rows[it.idx]) rows[it.idx] = {item_index: it.idx};
+    if(!rows[it.idx].label) rows[it.idx].label = it.label;
+  });
+
+  const extras = Object.keys(rows).map(Number).filter(i=>i>=100).sort((a,b)=>a-b);
+  const all = [
+    ...BASE_ITEMS.map(it => ({idx:it.idx, extra:false})),
+    ...extras.map(i => ({idx:i, extra:true})),
+  ];
+
+  let totalTotal=0, totalErp=0, totalEcart=0, totalItems=0;
+  let html = '';
+  all.forEach((entry, pos) => {
+    const r = rows[entry.idx]||{};
+    const {total, ecart} = calcRow(r);
+    const hasVal=[r.qte_e1,r.balance1,r.qte_e2,r.balance2].some(v=>parseFloat(v||0)!==0);
+    if(hasVal) totalItems++;
+    if(!isNaN(total)) totalTotal += total;
+    if(!isNaN(parseFloat(r.erp))) totalErp += parseFloat(r.erp)||0;
+    if(!isNaN(ecart)) totalEcart += ecart;
+
+    const ecartCls = ecart > 0 ? 'td-ecart-pos' : ecart < 0 ? 'td-ecart-neg' : 'td-ecart-zero';
+    const ecartPfx = ecart > 0 ? '+' : '';
+
+    html += `<tr id="ictr${entry.idx}">
+      <td style="text-align:center"><span class="item-num">${pos+1}</span></td>
+      <td><input class="ni-item" id="lbl${entry.idx}" value="${esc(r.label||'')}" placeholder="Nom de l'item…" oninput="fchg(${entry.idx},'label',this.value)"></td>
+      <td><input class="ni" id="pu${entry.idx}" type="number" step="0.001" value="${r.poids_unitaire||''}" placeholder="0" oninput="fchg(${entry.idx},'poids_unitaire',this.value)"></td>
+      <td><input class="ni" type="number" step="0.01" value="${r.qte_e1||''}" placeholder="0" oninput="fchg(${entry.idx},'qte_e1',this.value)"></td>
+      <td><input class="ni" type="number" step="0.01" value="${r.balance1||''}" placeholder="0" oninput="fchg(${entry.idx},'balance1',this.value)"></td>
+      <td><input class="ni" type="number" step="0.01" value="${r.qte_e2||''}" placeholder="0" oninput="fchg(${entry.idx},'qte_e2',this.value)"></td>
+      <td><input class="ni" type="number" step="0.01" value="${r.balance2||''}" placeholder="0" oninput="fchg(${entry.idx},'balance2',this.value)"></td>
+      <td class="td-total" id="tot${entry.idx}">${isNaN(total)?'—':fmtNum(total)}</td>
+      <td><input class="ni" type="number" step="0.01" value="${r.erp||''}" placeholder="0" oninput="fchg(${entry.idx},'erp',this.value)"></td>
+      <td class="td-calc ${ecartCls}" id="eca${entry.idx}">${isNaN(ecart)||(!r.erp&&!r.qte_e1&&!r.qte_e2)?'—':ecartPfx+fmtNum(ecart)}</td>
+      <td style="text-align:center">${entry.extra ? `<button class="btn-rm" onclick="delRow(${entry.idx})" title="Supprimer">✕</button>` : ''}</td>
+    </tr>`;
+  });
+
+  document.getElementById('ic-tbody').innerHTML = html;
+
+  // Pied de tableau — totaux
+  const ecartTotCls = totalEcart>0?'td-ecart-pos':totalEcart<0?'td-ecart-neg':'td-ecart-zero';
+  document.getElementById('ic-tfoot').innerHTML = `<tr>
+    <td colspan="9" style="text-align:right;padding:6px 16px;color:var(--text-muted);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;">Items enregistrés</td>
+    <td style="font-weight:700;color:var(--text-primary);font-size:.88rem;padding:6px 12px;">${totalItems}</td>
+    <td></td>
+  </tr>`}
+
+// ── CHANGEMENT DE CHAMP ───────────────────────────────────────────
+function fchg(idx, field, val){
+  if(!rows[idx]) rows[idx]={item_index:idx};
+  rows[idx][field] = val;
+  // Recalcul en temps réel
+  const {total, ecart} = calcRow(rows[idx]);
+  const totEl = document.getElementById('tot'+idx);
+  const ecaEl = document.getElementById('eca'+idx);
+  if(totEl) totEl.textContent = isNaN(total)?'—':fmtNum(total);
+  if(ecaEl){
+    const r = rows[idx];
+    const hasData = r.qte_e1||r.qte_e2||r.erp;
+    ecaEl.className = 'td-calc '+(ecart>0?'td-ecart-pos':ecart<0?'td-ecart-neg':'td-ecart-zero');
+    ecaEl.textContent = (!hasData||isNaN(ecart))?'—':(ecart>0?'+':'')+fmtNum(ecart);
+  }
+}
+
+// ── AJOUTER ITEM ──────────────────────────────────────────────────
+function addItem(){
+  const idx = nextExtra++;
+  rows[idx] = {item_index:idx, label:'Nouvel item'};
+  render();
+  // Focus sur le label du nouvel item
+  setTimeout(()=>{
+    const el = document.getElementById('lbl'+idx);
+    if(el){el.focus();el.select();}
+  },50);
+}
+
+// ── SUPPRIMER ITEM ────────────────────────────────────────────────
+async function delRow(idx){
+  if(!confirm('Supprimer cet item?')) return;
+  try {
+    await sb.from('inventaire_cyclique').delete()
+      .eq('date_jour',curDate).eq('item_index',idx);
+  } catch(e){}
+  delete rows[idx];
+  render();
+  toast('Item supprimé.','info');
+}
+
+// ── SAUVEGARDER ───────────────────────────────────────────────────
+async function saveRow(idx){
+  const r = rows[idx]||{};
+  const {total, ecart} = calcRow(r);
+  const payload = {
+    date_jour: curDate,
+    item_index: idx,
+    label: r.label||'',
+    poids_unitaire: parseFloat(r.poids_unitaire)||null,
+    qte_e1: parseFloat(r.qte_e1)||null,
+    balance1: parseFloat(r.balance1)||null,
+    qte_e2: parseFloat(r.qte_e2)||null,
+    balance2: parseFloat(r.balance2)||null,
+    erp: parseFloat(r.erp)||null,
+    total_calcule: isNaN(total)?null:total,
+    ecart_calcule: isNaN(ecart)?null:ecart,
+    updated_at: new Date().toISOString(),
+  };
+  try {
+    const {error} = await sb.from('inventaire_cyclique')
+      .upsert(payload, {onConflict:'date_jour,item_index'});
+    if(error) toast('Erreur: '+error.message,'error');
+    else toast('Item "'+(r.label||'#'+idx)+'" sauvegardé.','success');
+  } catch(e){ toast('Erreur réseau.','error'); }
+}
+
+// ── CHARGER ───────────────────────────────────────────────────────
+async function load(){
+  document.getElementById('spinner').style.display='flex';
+  document.getElementById('ic-tbl').style.display='none';
+  rows={};
+  try {
+    const {data,error} = await sb.from('inventaire_cyclique').select('*')
+      .eq('date_jour',curDate).order('item_index');
+    if(error && error.code!=='PGRST116') toast('Erreur: '+error.message,'error');
+    (data||[]).forEach(r=>{ rows[r.item_index]=r; });
+    // Mettre à jour nextExtra si des items ajoutés existent
+    const maxIdx = Math.max(...Object.keys(rows).map(Number).filter(i=>i>=100), 99);
+    nextExtra = maxIdx+1;
+  } catch(e){ toast('Connexion impossible.','error'); }
+  render();
+  document.getElementById('spinner').style.display='none';
+  document.getElementById('ic-tbl').style.display='table';
+}
+
+async function init(){
+  try{
+    const { data:{ session } } = await sb.auth.getSession();
+    if(!session){ window.location.href='index.html'; return; }
+    refreshDateUI();
+    await load();
+  } catch(e){ window.location.href='index.html'; }
+}
+window.addEventListener('load', init);
+
+// ── Sauvegarder tout ──────────────────────────────────────────
+async function saveAllIc(){
+  const btn = document.getElementById('btn-save-all-ic');
+  const svgSave = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+  if(btn){ btn.disabled=true; btn.textContent='Sauvegarde…'; }
+  const indices = [
+    ...BASE_ITEMS.map(it => it.idx),
+    ...Object.keys(rows).map(Number).filter(i => i >= 100),
+  ];
+  let errors = 0;
+  for(const idx of indices){
+    const r = rows[idx]||{};
+    const hasData = r.qte_e1||r.balance1||r.qte_e2||r.balance2||r.erp||r.poids_unitaire;
+    if(!r.id && !hasData) continue;
+    const {total, ecart} = calcRow(r);
+    const payload = {
+      date_jour:      curDate,
+      item_index:     idx,
+      label:          r.label||'',
+      poids_unitaire: parseFloat(r.poids_unitaire)||null,
+      qte_e1:         parseFloat(r.qte_e1)||null,
+      balance1:       parseFloat(r.balance1)||null,
+      qte_e2:         parseFloat(r.qte_e2)||null,
+      balance2:       parseFloat(r.balance2)||null,
+      erp:            parseFloat(r.erp)||null,
+      total_calcule:  isNaN(total)?null:total,
+      ecart_calcule:  isNaN(ecart)?null:ecart,
+      updated_at:     new Date().toISOString(),
+    };
+    try{
+      const {data, error} = await sb.from('inventaire_cyclique')
+        .upsert(payload, {onConflict:'date_jour,item_index'})
+        .select().single();
+      if(error){ errors++; console.error('saveAllIc', idx, error); }
+      else if(data) rows[idx] = {...r, ...data};
+    }catch(e){ errors++; }
+  }
+  if(btn){ btn.disabled=false; btn.innerHTML=svgSave+' Sauvegarder tout'; }
+  if(errors) toast(errors+' erreur(s) lors de la sauvegarde.','error');
+  else toast('Tout sauvegardé ✓','success');
+}
+
+// ── Soumettre non-conformité ───────────────────────────────────
+async function submitNcIc(){
+  const desc = 'Inventaire cyclique non complété — Date: ' + curDate;
+  const {error} = await sb.from('problematiques').insert([{
+    intitule:    'Non conformité inventaire cyclique',
+    pilier:      'Qualite',
+    priorite:    'Haute',
+    statut:      'À traiter',
+    description: desc,
+    created_at:  new Date().toISOString(),
+    updated_at:  new Date().toISOString(),
+  }]);
+  if(error){ toast('Erreur: '+error.message,'error'); return; }
+  toast('Non-conformité créée dans Problématiques ✓','success');
+}
 
 </script>
 </body>

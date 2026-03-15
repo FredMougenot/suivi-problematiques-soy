@@ -33,12 +33,6 @@
 .param-tbl thead th{padding:12px 16px;font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:var(--text-muted);text-align:left;white-space:nowrap;}
 .param-tbl thead th:first-child{width:48px;text-align:center;}
 .param-tbl thead th:last-child{width:80px;text-align:center;}
-.td-date{font-size:.78rem;color:var(--text-secondary);white-space:nowrap;}
-.td-prochaine{font-size:.78rem;font-weight:700;white-space:nowrap;}
-.td-prochaine.ok{color:var(--emerald);}
-.td-prochaine.soon{color:var(--amber);}
-.td-prochaine.overdue{color:var(--ruby);}
-.td-prochaine.never{color:var(--text-faint);font-style:italic;}
 .param-tbl tbody tr{border-bottom:1px solid rgba(44,51,80,.5);transition:background .1s;}
 .param-tbl tbody tr:hover{background:var(--bg-hover);}
 .param-tbl tbody tr:last-child{border-bottom:none;}
@@ -114,12 +108,7 @@
           Tout sauvegarder
         </button>
       </div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <div class="item-count" id="item-count">— items</div>
-        <div id="kpi-retard" style="display:none;padding:5px 14px;border-radius:20px;background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.3);color:var(--ruby);font-size:.78rem;font-weight:700;">
-          <span id="kpi-retard-val">0</span> en retard
-        </div>
-      </div>
+      <div class="item-count" id="item-count">— items</div>
     </div>
 
     <div id="spinner" class="spinner">
@@ -133,8 +122,6 @@
             <th>#</th>
             <th>Item</th>
             <th>Récurrence</th>
-            <th>Dernière vérif.</th>
-            <th>Prochaine vérif.</th>
             <th></th>
           </tr>
         </thead>
@@ -378,28 +365,8 @@ const DEFAULT_ITEMS = [
   ["Inspection des systèmes de sprinkleurs", 90]];
 
 // État local
-let rows = []; // [{id, item, recurrence, derniere_verification, dirty}]
+let rows = []; // [{id, item, recurrence, dirty}]
 let nextTmpId = -1;
-
-// ── UTILS DATE ──────────────────────────────────────────────────
-function todayStr(){
-  const d=new Date();
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-}
-function addDays(dateStr, days){
-  const d = new Date(dateStr+'T00:00:00');
-  d.setDate(d.getDate()+days);
-  return d.toISOString().slice(0,10);
-}
-function fmtDate(d){
-  if(!d) return '—';
-  return new Date(d+'T00:00:00').toLocaleDateString('fr-CA',{day:'2-digit',month:'short',year:'numeric'});
-}
-function diffDays(dateStr){
-  const today = new Date(todayStr()+'T00:00:00');
-  const d = new Date(dateStr+'T00:00:00');
-  return Math.round((d - today) / 86400000);
-}
 
 // ── INIT ────────────────────────────────────────────────────────
 function initApp(){
@@ -421,24 +388,17 @@ async function load(){
   showSpinner(true);
   try {
     const {data, error} = await sb.from('parametres')
-      .select('*').order('item_number');
+      .select('*').order('id');
     if(error) throw error;
     if(data && data.length > 0){
-      rows = data.map(r=>({
-        id: r.id,
-        item_number: r.item_number,
-        // Le nom vient de DEFAULT_ITEMS via item_number
-        item: DEFAULT_ITEMS[r.item_number] ? DEFAULT_ITEMS[r.item_number][0] : '(item #'+r.item_number+')',
-        recurrence: r.recurrence||30,
-        derniere_verification: r.derniere_verification||null,
-        dirty: false
-      }));
+      rows = data.map(r=>({id:r.id, item:r.item||'', recurrence:r.recurrence||30, dirty:false}));
     } else {
-      rows = DEFAULT_ITEMS.map((d,i)=>({id: nextTmpId--, item_number:i, item:d[0], recurrence:d[1], derniere_verification:null, dirty:true}));
+      // Pré-remplir avec les 200 items par défaut
+      rows = DEFAULT_ITEMS.map((d,i)=>({id: nextTmpId--, item:d[0], recurrence:d[1], dirty:true}));
     }
   } catch(e){
     toast('Erreur chargement : '+e.message, 'err');
-    rows = DEFAULT_ITEMS.map((d,i)=>({id: nextTmpId--, item_number:i, item:d[0], recurrence:d[1], derniere_verification:null, dirty:true}));
+    rows = DEFAULT_ITEMS.map((d,i)=>({id: nextTmpId--, item:d[0], recurrence:d[1], dirty:true}));
   }
   render();
   showSpinner(false);
@@ -448,21 +408,8 @@ async function load(){
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function render(){
-  const today = todayStr();
-  let retardCount = 0;
-
   const tbody = document.getElementById('tbody');
-  tbody.innerHTML = rows.map((r,i) => {
-    // Calcul prochaine vérification
-    const prochaine = r.derniere_verification ? addDays(r.derniere_verification, r.recurrence) : null;
-    let prochaineCls = 'never', prochaineLabel = 'Jamais vérifié';
-    if(prochaine){
-      const diff = diffDays(prochaine);
-      if(diff < 0){        prochaineCls='overdue'; prochaineLabel=fmtDate(prochaine)+' ('+Math.abs(diff)+'j de retard)'; retardCount++; }
-      else if(diff <= 7){  prochaineCls='soon';    prochaineLabel=fmtDate(prochaine)+' (dans '+diff+'j)'; }
-      else{                prochaineCls='ok';      prochaineLabel=fmtDate(prochaine); }
-    }
-    return `
+  tbody.innerHTML = rows.map((r,i) => `
     <tr id="row-${i}" data-idx="${i}">
       <td>${i+1}</td>
       <td><input class="inp-item" value="${esc(r.item)}" placeholder="Nom de l'item…"
@@ -474,21 +421,12 @@ function render(){
           <option value="90" ${r.recurrence==90?'selected':''}>90 jours</option>
         </select>
       </td>
-      <td class="td-date">${fmtDate(r.derniere_verification)}</td>
-      <td class="td-prochaine ${prochaineCls}">${prochaineLabel}</td>
       <td><button class="btn-rm" onclick="removeRow(${i})" title="Supprimer">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button></td>
-    </tr>`;
-  }).join('');
-
+    </tr>`).join('');
   document.getElementById('item-count').textContent = rows.length + ' item' + (rows.length !== 1 ? 's' : '');
   document.getElementById('tbl-wrap').style.display = 'block';
-
-  // KPI retard
-  const kpi = document.getElementById('kpi-retard');
-  document.getElementById('kpi-retard-val').textContent = retardCount;
-  kpi.style.display = retardCount > 0 ? 'block' : 'none';
 }
 
 function markDirty(idx, field, val){
@@ -498,7 +436,7 @@ function markDirty(idx, field, val){
 
 // ── AJOUTER ─────────────────────────────────────────────────────
 function addRow(){
-  rows.push({id: nextTmpId--, item_number: rows.length, item: DEFAULT_ITEMS[rows.length]?DEFAULT_ITEMS[rows.length][0]:'', recurrence:30, derniere_verification:null, dirty:true});
+  rows.push({id: nextTmpId--, item:'', recurrence:30, dirty:true});
   render();
   // Focus sur le dernier input
   setTimeout(()=>{
@@ -533,23 +471,28 @@ async function saveAll(){
   let saved = 0, errors = 0;
   for(const r of dirty){
     try {
-      const payload = {item_number: r.item_number, recurrence: r.recurrence};
-      if(r.derniere_verification) payload.derniere_verification = r.derniere_verification;
       if(r.id > 0){
-        const {error} = await sb.from('parametres').update(payload).eq('id', r.id);
+        // Update
+        const {error} = await sb.from('parametres')
+          .update({item: r.item, recurrence: r.recurrence})
+          .eq('id', r.id);
         if(error) throw error;
       } else {
-        const {data, error} = await sb.from('parametres').insert(payload).select().single();
+        // Insert
+        const {data, error} = await sb.from('parametres')
+          .insert({item: r.item, recurrence: r.recurrence})
+          .select().single();
         if(error) throw error;
-        r.id = data.id;
+        r.id = data.id; // remplacer l'id temporaire
       }
       r.dirty = false;
       saved++;
-    } catch(e){ errors++; }
+    } catch(e){
+      errors++;
+    }
   }
   if(errors) toast(errors+' erreur(s) lors de la sauvegarde', 'err');
   else toast(saved+' item(s) sauvegardé(s) ✓', 'ok');
-  render(); // Recalculer les dates affichées
 }
 
 // ── UTILITAIRES ─────────────────────────────────────────────────
