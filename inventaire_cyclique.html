@@ -982,27 +982,35 @@ async function exportPDF(){
     y+=14;
     pdf.setDrawColor(...C.faint); pdf.setLineWidth(0.2); pdf.line(M,y,W-M,y); y+=5;
 
-    // KPI
+    // KPI — même logique que renderVerif
     const total=paramItems.length;
     const today2=localToday();
-    let nUrgentPdf=0, nSoonPdf=0, nOkPdf=0;
+    const recommendedPdf=computeRecommended(today2);
+    let nUrgentPdf=0, nSoonPdf=0, nRecPdf=0, nOkPdf=0;
     paramItems.forEach(p=>{
-      if(!p.derniere_verification){ nUrgentPdf++; return; }
+      if(!p.derniere_verification){
+        if(recommendedPdf.has(p.id)) nRecPdf++;
+        else nOkPdf++;
+        return;
+      }
       const prochaine=addDays(p.derniere_verification,p.recurrence);
       const diff=Math.round((new Date(prochaine+'T00:00:00')-new Date(today2+'T00:00:00'))/86400000);
       if(diff<0) nUrgentPdf++;
       else if(diff<=7) nSoonPdf++;
+      else if(recommendedPdf.has(p.id)) nRecPdf++;
       else nOkPdf++;
     });
     pdf.setFontSize(9); pdf.setFont('helvetica','bold');
     pdf.setTextColor(...C.ruby);
-    pdf.text(nUrgentPdf+' a verifier en urgence', M, y+5);
+    pdf.text(nUrgentPdf+' en urgence', M, y+5);
     pdf.setTextColor(...C.amber);
-    pdf.text(nSoonPdf+' bientot a echeance', M+80, y+5);
+    pdf.text(nSoonPdf+' bientot a echeance', M+55, y+5);
+    pdf.setTextColor(...C.sapphire);
+    pdf.text(nRecPdf+' recommande(s)', M+130, y+5);
     pdf.setTextColor(...C.emerald);
-    pdf.text(nOkPdf+' a jour', M+160, y+5);
+    pdf.text(nOkPdf+' a jour', M+200, y+5);
     pdf.setTextColor(...C.grey);
-    pdf.text(total+' items total', M+220, y+5);
+    pdf.text(total+' items total', M+235, y+5);
     y+=12;
 
     // ── Graphiques (semaine + mois uniquement) ──
@@ -1074,20 +1082,29 @@ async function exportPDF(){
     cols.forEach(c=>{ pdf.text(c.label.toUpperCase(), x+2, y+5.5); x+=c.w; });
     y+=headerH;
 
-    // Lignes — uniquement les items en retard ou bientôt (comme l'écran)
+    // Lignes — même filtre que l'écran (urgent + soon + recommandé)
     const today=today2;
     const visibles=paramItems.filter(p=>{
-      if(!p.derniere_verification) return true;
+      if(!p.derniere_verification) return recommendedPdf.has(p.id);
       const prochaine=addDays(p.derniere_verification,p.recurrence);
-      return prochaine<=addDays(today,7);
+      const diff=Math.round((new Date(prochaine+'T00:00:00')-new Date(today+'T00:00:00'))/86400000);
+      if(diff<0) return true;          // urgent
+      if(diff<=7) return true;         // soon
+      return recommendedPdf.has(p.id); // recommandé
     });
 
     visibles.forEach((p,i)=>{
       if(y>H-12){ pdf.addPage(); y=M; }
       const prochaine=p.derniere_verification?addDays(p.derniere_verification,p.recurrence):null;
-      let statutLabel,statutColor;
-      if(!prochaine||prochaine<today){ statutLabel='En retard'; statutColor=C.ruby; }
-      else{ statutLabel='Dans '+(Math.round((new Date(prochaine+'T00:00:00')-new Date(today+'T00:00:00'))/86400000))+'j'; statutColor=C.amber; }
+      let statutLabel, statutColor;
+      if(!p.derniere_verification){
+        statutLabel='Recommande'; statutColor=C.sapphire;
+      } else {
+        const diff=Math.round((new Date(prochaine+'T00:00:00')-new Date(today+'T00:00:00'))/86400000);
+        if(diff<0){        statutLabel=Math.abs(diff)+'j retard'; statutColor=C.ruby; }
+        else if(diff<=7){  statutLabel='Dans '+diff+'j';          statutColor=C.amber; }
+        else{              statutLabel='Recommande';               statutColor=C.sapphire; }
+      }
 
       if(i%2===0){ pdf.setFillColor(252,252,253); pdf.rect(M,y,W-2*M,rowH,'F'); }
       pdf.setDrawColor(220,222,228); pdf.setLineWidth(0.15); pdf.line(M,y+rowH,W-M,y+rowH);
