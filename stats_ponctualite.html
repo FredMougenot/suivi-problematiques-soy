@@ -1570,9 +1570,13 @@ async function exportPDF() {
         ctx2.drawImage(img, 0, 0, canvas.width, canvas.height);
         const imgW = W - 2*M;
         const imgH = imgW * (canvas.height / canvas.width);
-        if (y + imgH > H - M) { pdf.addPage(); y = M; }
-        pdf.addImage(canvas.toDataURL('image/jpeg', 0.85), 'JPEG', M, y, imgW, imgH);
-        y += imgH + 8;
+        const maxHeatH = 80; // hauteur max en mm pour éviter distorsion vue semaine
+        const finalH = Math.min(imgH, maxHeatH);
+        const finalW = finalH * (canvas.width / canvas.height);
+        const xOffset = M + (imgW - finalW) / 2; // centrer si plus étroit que la page
+        if (y + finalH > H - M) { pdf.addPage(); y = M; }
+        pdf.addImage(canvas.toDataURL('image/jpeg', 0.85), 'JPEG', xOffset, y, finalW, finalH);
+        y += finalH + 8;
       }
 
       // ── Graphique tendance ──
