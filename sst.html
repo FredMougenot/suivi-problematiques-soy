@@ -28,7 +28,7 @@
 .today-chip{font-size:.65rem;font-weight:700;color:var(--copper-light);background:var(--copper-dim);border:1px solid rgba(200,132,58,.25);padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle;}
 
 .sst-outer{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;}
-.sst-tbl{width:100%;border-collapse:collapse;min-width:700px;}
+.sst-tbl{width:100%;border-collapse:collapse;min-width:1200px;}
 .sst-tbl thead tr{background:var(--bg-float);border-bottom:2px solid var(--text-faint);}
 .sst-tbl thead th{padding:12px 14px;font-size:.6rem;font-weight:800;color:var(--copper);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;text-align:left;}
 .sst-tbl tbody tr{border-bottom:1px solid var(--text-faint);transition:background .1s;}
@@ -249,8 +249,17 @@
     <div class="tbl-wrap" style="touch-action:pan-x">
       <table class="dtbl">
         <thead><tr>
-          <th>ID</th><th>Intitulé / Description</th><th>Responsable</th>
-          <th>Priorité</th><th>Statut</th><th>Soumis le</th>
+          <th style="width:52px">ID</th>
+          <th style="min-width:140px">Intitulé / Description</th>
+          <th style="width:110px">Cause</th>
+          <th style="width:110px">Action</th>
+          <th style="width:110px">Résultat</th>
+          <th style="width:130px">Responsable</th>
+          <th style="width:100px">Priorité</th>
+          <th style="width:100px">Statut</th>
+          <th style="width:100px">Soumis le</th>
+          <th style="width:110px">Date prévue</th>
+          <th style="width:70px">Retard</th>
         </tr></thead>
         <tbody id="sst-tbody"></tbody>
       </table>
@@ -362,16 +371,32 @@ function filterProbs(){
 function renderProbs(data){
   const showClo=document.getElementById('sst-cloture')?.checked||false;
   const list=data!==undefined?data:allProbs.filter(p=>showClo||p.statut!=='Clôturé');
+  const today=new Date(); today.setHours(0,0,0,0);
+  const STATUTS_TERMINES=['Résolu','Clôturé','Annulé'];
+  const cell=(v,w)=>v?`<span style="font-size:.78rem;color:var(--text-secondary)">${esc(String(v).substring(0,w)+(String(v).length>w?'…':''))}</span>`:'<span style="color:var(--text-faint);font-size:.75rem">—</span>';
   document.getElementById('sst-tbody').innerHTML=list.length===0
-    ?'<tr><td colspan="6"><div class="empty"><div class="empty-ico">📋</div><div class="empty-txt">Aucune problématique pour ce pilier.</div></div></td></tr>'
-    :list.map(p=>`<tr>
-      <td><span class="c-id">#${fmtId(p.id)}</span></td>
-      <td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,80)+(p.description||'').length>80?'...':'')}</small></div></td>
-      <td style="font-size:.82rem;color:var(--text-secondary)">${esc(p.responsable||'')}</td>
-      <td>${bPrio(p.priorite)}</td>
-      <td>${bStat(p.statut)}</td>
-      <td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td>
-    </tr>`).join('');
+    ?'<tr><td colspan="11"><div class="empty"><div class="empty-ico">📋</div><div class="empty-txt">Aucune problématique pour ce pilier.</div></div></td></tr>'
+    :list.map(p=>{
+      let retardCell='<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+      if(p.date_prevue&&!STATUTS_TERMINES.includes(p.statut)){
+        const prevue=new Date(p.date_prevue+'T00:00:00');
+        const diffJ=Math.round((today-prevue)/86400000);
+        if(diffJ>0) retardCell=`<span style="font-size:.78rem;font-weight:700;color:var(--ruby);white-space:nowrap">+${diffJ}j</span>`;
+      }
+      return `<tr>
+        <td><span class="c-id">#${fmtId(p.id)}</span></td>
+        <td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,80)+(p.description||'').length>80?'...':'')}</small></div></td>
+        <td>${cell(p.cause,40)}</td>
+        <td>${cell(p.action,40)}</td>
+        <td>${cell(p.resultat,40)}</td>
+        <td style="font-size:.82rem;color:var(--text-secondary)">${esc(p.responsable||'')}</td>
+        <td>${bPrio(p.priorite)}</td>
+        <td>${bStat(p.statut)}</td>
+        <td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td>
+        <td style="font-size:.78rem;color:var(--text-secondary);white-space:nowrap">${p.date_prevue?fmtDate(p.date_prevue):'<span style="color:var(--text-faint)">—</span>'}</td>
+        <td style="text-align:center">${retardCell}</td>
+      </tr>`;
+    }).join('');
 }
 
 async function loadProbs(){
