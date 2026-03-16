@@ -7,20 +7,20 @@
 <link rel="stylesheet" href="soy-shared.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-.pg-chart-panel{background:linear-gradient(135deg,#0B0D13,#0F1118,#15181F);border:1px solid rgba(200,132,58,.2);border-radius:20px;padding:24px;margin:16px 28px 0;position:relative;overflow:hidden;}
-.pg-chart-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(200,132,58,.5),transparent);}
-.pg-chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.pg-chart-panel{background:linear-gradient(135deg,#0B0D13 0%,#0F1118 50%,#15181F 100%);border-radius:20px;padding:24px;margin:16px 0 8px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.6),inset 0 1px 0 rgba(200,132,58,.1);}
+.pg-chart-panel::before{content:'';position:absolute;inset:0;border-radius:20px;padding:2px;background:linear-gradient(135deg,rgba(200,132,58,.4) 0%,rgba(45,212,160,.3) 50%,rgba(200,132,58,.4) 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+.pg-chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;position:relative;z-index:1;}
 @media(max-width:700px){.pg-chart-grid{grid-template-columns:1fr;}}
-.pg-chart-box{background:rgba(26,30,42,.8);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:18px;position:relative;}
-.pg-chart-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,rgba(200,132,58,.5),rgba(45,212,160,.5));border-radius:14px 14px 0 0;}
-.pg-chart-title{font-size:.62rem;font-weight:800;color:var(--copper);letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:7px;}
-.pg-chart-title::before{content:'';width:3px;height:11px;background:linear-gradient(180deg,var(--copper),var(--copper-light));border-radius:2px;}
-.pg-limit-row{display:flex;align-items:center;gap:8px;margin-top:10px;}
-.pg-limit-bar{width:3px;height:13px;background:rgba(232,164,58,.8);border-radius:2px;flex-shrink:0;}
-.pg-limit-lbl{font-size:.65rem;color:var(--text-muted);font-weight:600;white-space:nowrap;}
-.pg-limit-inp{width:65px;background:rgba(15,17,24,.8);border:1px solid rgba(200,132,58,.3);color:var(--text-primary);border-radius:7px;padding:4px 8px;font-size:.8rem;font-family:'Outfit',sans-serif;outline:none;}
+.pg-chart-box{background:linear-gradient(135deg,rgba(26,30,42,.8),rgba(21,24,31,.8));border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:all .4s;}
+.pg-chart-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,rgba(200,132,58,.6),rgba(45,212,160,.6));opacity:0;transition:opacity .4s;}
+.pg-chart-box:hover{border-color:rgba(200,132,58,.4);transform:translateY(-3px);}
+.pg-chart-box:hover::before{opacity:1;}
+.pg-chart-title{font-size:.68rem;font-weight:800;color:var(--copper);letter-spacing:.15em;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.pg-chart-title::before{content:'';width:4px;height:12px;background:linear-gradient(180deg,var(--copper),var(--copper-light));border-radius:2px;}
 </style>
+<style>
 .date-nav{display:flex;align-items:center;justify-content:center;gap:10px;padding:18px 28px 0;}
 .date-arr{width:34px;height:34px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .15s;}
 .date-arr:hover{border-color:var(--copper);color:var(--copper-light);}
@@ -28,7 +28,7 @@
 .today-chip{font-size:.65rem;font-weight:700;color:var(--copper-light);background:var(--copper-dim);border:1px solid rgba(200,132,58,.25);padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle;}
 
 .sst-outer{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;}
-.sst-tbl{width:100%;border-collapse:collapse;min-width:1050px;}
+.sst-tbl{width:100%;border-collapse:collapse;min-width:700px;}
 .sst-tbl thead tr{background:var(--bg-float);border-bottom:2px solid var(--text-faint);}
 .sst-tbl thead th{padding:12px 14px;font-size:.6rem;font-weight:800;color:var(--copper);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;text-align:left;}
 .sst-tbl tbody tr{border-bottom:1px solid var(--text-faint);transition:background .1s;}
@@ -171,6 +171,10 @@
       Retour
     </a>
     <div class="tool-title">🦺 <span id="page-title">SST</span></div>
+    <button onclick="exportPDF()" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:#1A1E2A;border:1px solid rgba(45,212,160,.3);color:#2DD4A0;font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;margin-left:auto;" onmouseover="this.style.borderColor='#2DD4A0'" onmouseout="this.style.borderColor='rgba(45,212,160,.3)'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Exporter PDF
+    </button>
   </div>
 
   <div class="date-nav">
@@ -179,74 +183,45 @@
     <button class="date-arr" onclick="changeDay(1)">&#8594;</button>
   </div>
 
-  <!-- Graphiques SST -->
-  <div class="pg-chart-panel" id="sst-chart-panel" style="display:none">
-    <div class="pg-chart-grid">
-      <div class="pg-chart-box">
-        <div class="pg-chart-title">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-          Problématiques SST — Semaine
-        </div>
-        <canvas id="sst-chart-week"></canvas>
-        <div class="pg-limit-row">
-          <div class="pg-limit-bar"></div>
-          <span class="pg-limit-lbl">Limite acceptable</span>
-          <input type="number" class="pg-limit-inp" id="sst-limit-week" min="0" placeholder="—" oninput="saveSstLimit('week',this.value)">
-        </div>
-      </div>
-      <div class="pg-chart-box">
-        <div class="pg-chart-title">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          Problématiques SST — Mois
-        </div>
-        <canvas id="sst-chart-month"></canvas>
-        <div class="pg-limit-row">
-          <div class="pg-limit-bar"></div>
-          <span class="pg-limit-lbl">Limite acceptable</span>
-          <input type="number" class="pg-limit-inp" id="sst-limit-month" min="0" placeholder="—" oninput="saveSstLimit('month',this.value)">
-        </div>
-      </div>
-    </div>
-  </div>
-
   
   <div class="tool-main" style="padding-top:16px;">
-  <div id="spinner" class="spinner" style="display:flex"><div class="spin"></div> Chargement…</div>
-  <div id="prob-wrap" style="display:none">
 
-    <!-- ── Graphiques ── -->
-    <div id="sst-chart-panel" style="display:none;background:linear-gradient(135deg,#0B0D13,#0F1118,#15181F);border:1px solid rgba(200,132,58,.2);border-radius:20px;padding:24px;margin-bottom:20px;">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-        <div style="background:linear-gradient(135deg,rgba(26,30,42,.8),rgba(21,24,31,.8));border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;">
-          <div style="font-size:.66rem;font-weight:800;color:var(--copper);letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:7px;">
-            <span style="width:3px;height:12px;background:var(--copper);border-radius:2px;display:inline-block;"></span>
+    <!-- Graphiques SST -->
+    <div class="pg-chart-panel">
+      <div class="pg-chart-grid">
+        <div class="pg-chart-box">
+          <div class="pg-chart-title">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
             Problématiques SST — Semaine
           </div>
           <canvas id="sst-chart-week"></canvas>
-          <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-top:12px;">
             <div style="width:3px;height:14px;background:rgba(232,164,58,.8);border-radius:2px;flex-shrink:0;"></div>
             <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;white-space:nowrap;">Limite acceptable</label>
             <input type="number" id="sst-limit-week" min="0" placeholder="—"
               style="width:70px;background:rgba(15,17,24,.8);border:1px solid rgba(200,132,58,.3);color:var(--text-primary);border-radius:8px;padding:5px 8px;font-size:.82rem;font-family:'Outfit',sans-serif;outline:none;"
-              oninput="saveSstLimit('week',this.value)">
+              oninput="savePgLimit('week',this.value)">
           </div>
         </div>
-        <div style="background:linear-gradient(135deg,rgba(26,30,42,.8),rgba(21,24,31,.8));border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;">
-          <div style="font-size:.66rem;font-weight:800;color:var(--copper);letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:7px;">
-            <span style="width:3px;height:12px;background:var(--copper);border-radius:2px;display:inline-block;"></span>
+        <div class="pg-chart-box">
+          <div class="pg-chart-title">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             Problématiques SST — Mois
           </div>
           <canvas id="sst-chart-month"></canvas>
-          <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-top:12px;">
             <div style="width:3px;height:14px;background:rgba(232,164,58,.8);border-radius:2px;flex-shrink:0;"></div>
             <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;white-space:nowrap;">Limite acceptable</label>
             <input type="number" id="sst-limit-month" min="0" placeholder="—"
               style="width:70px;background:rgba(15,17,24,.8);border:1px solid rgba(200,132,58,.3);color:var(--text-primary);border-radius:8px;padding:5px 8px;font-size:.82rem;font-family:'Outfit',sans-serif;outline:none;"
-              oninput="saveSstLimit('month',this.value)">
+              oninput="savePgLimit('month',this.value)">
           </div>
         </div>
       </div>
     </div>
+
+  <div id="spinner" class="spinner" style="display:flex"><div class="spin"></div> Chargement…</div>
+  <div id="prob-wrap" style="display:none">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
       <button class="btn-add" onclick="openProbModal('modal-sst')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -274,17 +249,8 @@
     <div class="tbl-wrap" style="touch-action:pan-x">
       <table class="dtbl">
         <thead><tr>
-          <th style="width:52px">ID</th>
-          <th style="min-width:140px">Intitulé / Description</th>
-          <th style="width:110px">Cause</th>
-          <th style="width:110px">Action</th>
-          <th style="width:110px">Résultat</th>
-          <th style="width:130px">Responsable</th>
-          <th style="width:100px">Priorité</th>
-          <th style="width:100px">Statut</th>
-          <th style="width:100px">Soumis le</th>
-          <th style="width:110px">Date prévue</th>
-          <th style="width:70px">Retard</th>
+          <th>ID</th><th>Intitulé / Description</th><th>Responsable</th>
+          <th>Priorité</th><th>Statut</th><th>Soumis le</th>
         </tr></thead>
         <tbody id="sst-tbody"></tbody>
       </table>
@@ -366,137 +332,12 @@ async function init(){
     if(!session){ window.location.href='index.html'; return; }
     updateDateUI();
     await loadProbs();
-    await loadSstHistory();
-    restoreSstLimits();
     sb.from('piliers_criteres_lignes').select('intitule').eq('pilier','SST').eq('row_index',0).single()
       .then(({data})=>{ if(data&&data.intitule) document.getElementById('page-title').textContent=data.intitule; })
       .catch(()=>{});
   } catch(e){ window.location.href='index.html'; }
 }
 window.addEventListener('load', init);;
-
-// ── GRAPHIQUES SST ──────────────────────────────────────────────
-let sstChartWeek=null, sstChartMonth=null;
-
-function saveSstLimit(key,val){
-  try{localStorage.setItem('sst_limit_'+key,val);}catch(e){}
-  renderSstCharts();
-}
-function getSstLimit(key){
-  try{const v=localStorage.getItem('sst_limit_'+key);return v!==null&&v!==''?Number(v):null;}catch(e){return null;}
-}
-function restoreSstLimits(){
-  ['week','month'].forEach(k=>{
-    const el=document.getElementById('sst-limit-'+k);
-    const v=getSstLimit(k);
-    if(el) el.value=v!==null?v:'';
-  });
-}
-
-async function loadSstHistory(){
-  try{
-    const now=new Date();
-    const firstDay=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01';
-    const{data,error}=await sb.from('problematiques')
-      .select('created_at,statut,date_resolue')
-      .eq('pilier','SST')
-      .gte('created_at',firstDay+'T00:00:00');
-    if(error) throw error;
-    renderSstCharts(data||[]);
-    document.getElementById('sst-chart-panel').style.display='block';
-  }catch(e){ console.warn('loadSstHistory:',e); }
-}
-
-function localDate(s){ return s?s.slice(0,10):''; }
-
-function renderSstCharts(probs){
-  if(!probs) return;
-  const today=new Date(); today.setHours(0,0,0,0);
-
-  function isActiveOnDay(p,d){
-    if(localDate(p.created_at)>d) return false;
-    const resolue=p.date_resolue?localDate(p.date_resolue):null;
-    if(resolue&&resolue<=d&&(p.statut==='Résolu'||p.statut==='Clôturé'||p.statut==='Annulé')) return false;
-    return true;
-  }
-
-  // Semaine
-  const dow=today.getDay(), mondayOff=dow===0?-6:1-dow;
-  const monday=new Date(today); monday.setDate(today.getDate()+mondayOff);
-  const weekLabels=[], weekData=[];
-  for(let i=0;i<7;i++){
-    const d=new Date(monday); d.setDate(monday.getDate()+i);
-    const ds=d.toISOString().slice(0,10);
-    weekLabels.push(d.toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'}));
-    weekData.push(probs.filter(p=>isActiveOnDay(p,ds)).length);
-  }
-
-  // Mois
-  const yr=today.getFullYear(), mo=today.getMonth();
-  const daysInMonth=new Date(yr,mo+1,0).getDate();
-  const monthLabels=[], monthData=[];
-  for(let i=1;i<=daysInMonth;i++){
-    const ds=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(i).padStart(2,'0');
-    monthLabels.push(String(i));
-    monthData.push(probs.filter(p=>isActiveOnDay(p,ds)).length);
-  }
-
-  const lWeek=getSstLimit('week'), lMonth=getSstLimit('month');
-
-  function buildDS(data,label,limit){
-    const c2=document.createElement('canvas').getContext('2d');
-    const gS=c2.createLinearGradient(0,0,500,0);
-    gS.addColorStop(0,'rgba(200,132,58,1)');gS.addColorStop(0.33,'rgba(45,212,160,1)');
-    gS.addColorStop(0.66,'rgba(74,158,232,1)');gS.addColorStop(1,'rgba(224,85,85,1)');
-    const gF=c2.createLinearGradient(0,0,0,200);
-    gF.addColorStop(0,'rgba(200,132,58,0.4)');gF.addColorStop(0.5,'rgba(45,212,160,0.2)');
-    gF.addColorStop(1,'rgba(74,158,232,0.05)');
-    const ds=[{label,data,fill:true,backgroundColor:gF,borderColor:gS,borderWidth:3,
-      pointRadius:5,pointHoverRadius:8,pointBackgroundColor:'rgba(200,132,58,1)',
-      pointBorderColor:'#fff',pointBorderWidth:2,tension:0.4}];
-    if(limit!==null) ds.push({label:'Limite',data:data.map(()=>limit),
-      borderColor:'rgba(232,164,58,0.85)',borderWidth:2,borderDash:[8,4],
-      pointRadius:0,fill:false,tension:0});
-    return ds;
-  }
-
-  const opts={
-    responsive:false,maintainAspectRatio:false,
-    animation:{duration:1000,easing:'easeInOutQuart'},
-    interaction:{mode:'index',intersect:false},
-    plugins:{
-      legend:{display:false},
-      tooltip:{enabled:true,backgroundColor:'rgba(15,17,24,0.95)',titleColor:'#C8843A',
-        bodyColor:'#F0EAE0',borderColor:'rgba(200,132,58,0.5)',borderWidth:1,padding:10,
-        titleFont:{size:11,weight:'700',family:"'Outfit',sans-serif"},
-        bodyFont:{size:10,weight:'500',family:"'Outfit',sans-serif"},
-        callbacks:{label:ctx=>ctx.datasetIndex===1?'Limite : '+ctx.parsed.y:ctx.parsed.y+' problématique'+(ctx.parsed.y>1?'s':'')+' active'+(ctx.parsed.y>1?'s':'')}
-      }
-    },
-    scales:{
-      x:{ticks:{color:'#BEC5D6',font:{size:9,weight:'600',family:"'Outfit',sans-serif"},maxRotation:0,padding:6},
-         grid:{color:'rgba(255,255,255,0.05)',drawBorder:false}},
-      y:{ticks:{color:'#BEC5D6',font:{size:9,weight:'600',family:"'Outfit',sans-serif"},
-               stepSize:1,precision:0,padding:6,callback:v=>Number.isInteger(v)?v:''},
-         grid:{color:'rgba(255,255,255,0.08)',drawBorder:false},beginAtZero:true}
-    }
-  };
-
-  function drawChart(id,labels,data,existing,label,limit){
-    const el=document.getElementById(id);
-    if(!el) return existing;
-    if(existing) existing.destroy();
-    const box=el.closest('.pg-chart-box')||el.parentElement;
-    const w=box?Math.floor(box.getBoundingClientRect().width-36):280;
-    el.width=w>80?w:280; el.height=160;
-    const o={...opts,plugins:{...opts.plugins,legend:{...opts.plugins.legend,display:limit!==null}}};
-    return new Chart(el,{type:'line',data:{labels,datasets:buildDS(data,label,limit)},options:o});
-  }
-
-  sstChartWeek =drawChart('sst-chart-week', weekLabels, weekData, sstChartWeek, 'Problématiques SST actives',lWeek);
-  sstChartMonth=drawChart('sst-chart-month',monthLabels,monthData,sstChartMonth,'Problématiques SST actives',lMonth);
-}
-
 
 // ── Registre problématiques ─────────────────────────────────────
 let allProbs = [];
@@ -521,136 +362,16 @@ function filterProbs(){
 function renderProbs(data){
   const showClo=document.getElementById('sst-cloture')?.checked||false;
   const list=data!==undefined?data:allProbs.filter(p=>showClo||p.statut!=='Clôturé');
-  const today=new Date(); today.setHours(0,0,0,0);
-  const STATUTS_TERMINES=['Résolu','Clôturé','Annulé'];
   document.getElementById('sst-tbody').innerHTML=list.length===0
-    ?'<tr><td colspan="11"><div class="empty"><div class="empty-ico">📋</div><div class="empty-txt">Aucune problématique pour ce pilier.</div></div></td></tr>'
-    :list.map(p=>{
-      // Retard
-      let retardCell='<span style="color:var(--text-faint);font-size:.75rem">—</span>';
-      if(p.date_prevue&&!STATUTS_TERMINES.includes(p.statut)){
-        const prevue=new Date(p.date_prevue+'T00:00:00');
-        const diffJ=Math.round((today-prevue)/86400000);
-        if(diffJ>0) retardCell=`<span style="font-size:.78rem;font-weight:700;color:var(--ruby);white-space:nowrap">+${diffJ}j</span>`;
-      }
-      const cell=(v,w)=>v?`<span style="font-size:.78rem;color:var(--text-secondary)">${esc(v.substring(0,w)+(v.length>w?'…':''))}</span>`:'<span style="color:var(--text-faint);font-size:.75rem">—</span>';
-      return `<tr>
-        <td><span class="c-id">#${fmtId(p.id)}</span></td>
-        <td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,80)+(p.description||'').length>80?'...':'')}</small></div></td>
-        <td>${cell(p.cause,40)}</td>
-        <td>${cell(p.action,40)}</td>
-        <td>${cell(p.resultat,40)}</td>
-        <td style="font-size:.82rem;color:var(--text-secondary)">${esc(p.responsable||'')}</td>
-        <td>${bPrio(p.priorite)}</td>
-        <td>${bStat(p.statut)}</td>
-        <td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td>
-        <td style="font-size:.78rem;color:var(--text-secondary);white-space:nowrap">${p.date_prevue?fmtDate(p.date_prevue):'<span style="color:var(--text-faint)">—</span>'}</td>
-        <td style="text-align:center">${retardCell}</td>
-      </tr>`;
-    }).join('');
-}
-
-// ── GRAPHIQUES SST ────────────────────────────────────────────────
-let sstChartWeek=null, sstChartMonth=null;
-
-function saveSstLimit(key,val){
-  try{localStorage.setItem('sst_limit_'+key,val);}catch(e){}
-  renderSstCharts();
-}
-function getSstLimit(key){
-  try{const v=localStorage.getItem('sst_limit_'+key);return v!==null&&v!==''?Number(v):null;}catch(e){return null;}
-}
-function restoreSstLimits(){
-  ['week','month'].forEach(k=>{
-    const el=document.getElementById('sst-limit-'+k);
-    if(!el) return;
-    const v=getSstLimit(k);
-    el.value=v!==null?v:'';
-  });
-}
-
-function renderSstCharts(){
-  const panel=document.getElementById('sst-chart-panel');
-  if(!allProbs.length){panel.style.display='none';return;}
-  panel.style.display='block';
-
-  const now=new Date();
-  // Semaine : lun → dim
-  const dow=now.getDay(), mondayOff=dow===0?-6:1-dow;
-  const monday=new Date(now); monday.setDate(now.getDate()+mondayOff);
-  const weekLabels=[],weekData=[];
-  for(let i=0;i<7;i++){
-    const d=new Date(monday); d.setDate(monday.getDate()+i);
-    const ds=d.toISOString().slice(0,10);
-    weekLabels.push(d.toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'}));
-    weekData.push(allProbs.filter(p=>{
-      const created=p.created_at?p.created_at.slice(0,10):null;
-      if(!created||created>ds) return false;
-      const resolved=p.date_resolue?p.date_resolue.slice(0,10):null;
-      if(resolved&&resolved<=ds&&['Résolu','Clôturé','Annulé'].includes(p.statut)) return false;
-      return true;
-    }).length);
-  }
-
-  // Mois : jour 1 → aujourd'hui
-  const yr=now.getFullYear(),mo=now.getMonth();
-  const monthLabels=[],monthData=[];
-  for(let i=1;i<=now.getDate();i++){
-    const ds=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(i).padStart(2,'0');
-    monthLabels.push(String(i));
-    monthData.push(allProbs.filter(p=>{
-      const created=p.created_at?p.created_at.slice(0,10):null;
-      if(!created||created>ds) return false;
-      const resolved=p.date_resolue?p.date_resolue.slice(0,10):null;
-      if(resolved&&resolved<=ds&&['Résolu','Clôturé','Annulé'].includes(p.statut)) return false;
-      return true;
-    }).length);
-  }
-
-  function buildDS(data,label,limit){
-    const ctx2=document.createElement('canvas').getContext('2d');
-    const gStroke=ctx2.createLinearGradient(0,0,500,0);
-    gStroke.addColorStop(0,'rgba(200,132,58,1)');gStroke.addColorStop(0.33,'rgba(45,212,160,1)');
-    gStroke.addColorStop(0.66,'rgba(74,158,232,1)');gStroke.addColorStop(1,'rgba(224,85,85,1)');
-    const gFill=ctx2.createLinearGradient(0,0,0,200);
-    gFill.addColorStop(0,'rgba(200,132,58,0.4)');gFill.addColorStop(0.5,'rgba(45,212,160,0.2)');
-    gFill.addColorStop(1,'rgba(74,158,232,0.05)');
-    const ds=[{label,data,fill:true,backgroundColor:gFill,borderColor:gStroke,borderWidth:3,
-      pointRadius:4,pointHoverRadius:7,pointBackgroundColor:'rgba(200,132,58,1)',
-      pointBorderColor:'#fff',pointBorderWidth:2,tension:0.4}];
-    if(limit!==null) ds.push({label:'Limite',data:data.map(()=>limit),
-      borderColor:'rgba(232,164,58,0.85)',borderWidth:2,borderDash:[8,4],
-      pointRadius:0,fill:false,tension:0});
-    return ds;
-  }
-  const opts={
-    responsive:false,maintainAspectRatio:false,
-    animation:{duration:900,easing:'easeInOutQuart'},
-    interaction:{mode:'index',intersect:false},
-    plugins:{legend:{display:false},tooltip:{
-      enabled:true,backgroundColor:'rgba(15,17,24,0.95)',titleColor:'#C8843A',
-      bodyColor:'#F0EAE0',borderColor:'rgba(200,132,58,0.5)',borderWidth:1,padding:10,
-      titleFont:{size:11,weight:'700',family:"'Outfit',sans-serif"},
-      bodyFont:{size:10,weight:'500',family:"'Outfit',sans-serif"},
-      callbacks:{label:ctx=>ctx.datasetIndex===1?'Limite : '+ctx.parsed.y:ctx.parsed.y+' problématique'+(ctx.parsed.y>1?'s':'')}
-    }},
-    scales:{
-      x:{ticks:{color:'#BEC5D6',font:{size:9,weight:'600',family:"'Outfit',sans-serif"},maxRotation:0,padding:6},grid:{color:'rgba(255,255,255,0.05)',drawBorder:false}},
-      y:{ticks:{color:'#BEC5D6',font:{size:9,weight:'600',family:"'Outfit',sans-serif"},stepSize:1,precision:0,padding:6,callback:v=>Number.isInteger(v)?v:''},grid:{color:'rgba(255,255,255,0.08)',drawBorder:false},beginAtZero:true}
-    }
-  };
-  function drawChart(id,labels,data,existing,label,limit){
-    const el=document.getElementById(id);
-    if(!el) return existing;
-    if(existing) existing.destroy();
-    const box=el.closest('div');
-    const w=box?Math.floor(box.getBoundingClientRect().width-40):280;
-    el.width=w>80?w:280; el.height=160;
-    const o={...opts,plugins:{...opts.plugins,legend:{...opts.plugins.legend,display:limit!==null}}};
-    return new Chart(el,{type:'line',data:{labels,datasets:buildDS(data,label,limit)},options:o});
-  }
-  sstChartWeek =drawChart('sst-chart-week', weekLabels, weekData, sstChartWeek, 'Problématiques SST',getSstLimit('week'));
-  sstChartMonth=drawChart('sst-chart-month',monthLabels,monthData,sstChartMonth,'Problématiques SST',getSstLimit('month'));
+    ?'<tr><td colspan="6"><div class="empty"><div class="empty-ico">📋</div><div class="empty-txt">Aucune problématique pour ce pilier.</div></div></td></tr>'
+    :list.map(p=>`<tr>
+      <td><span class="c-id">#${fmtId(p.id)}</span></td>
+      <td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,80)+(p.description||'').length>80?'...':'')}</small></div></td>
+      <td style="font-size:.82rem;color:var(--text-secondary)">${esc(p.responsable||'')}</td>
+      <td>${bPrio(p.priorite)}</td>
+      <td>${bStat(p.statut)}</td>
+      <td style="font-size:.78rem;color:var(--text-secondary)">${fmtDate(p.created_at)}</td>
+    </tr>`).join('');
 }
 
 async function loadProbs(){
@@ -668,8 +389,7 @@ async function loadProbs(){
     renderProbs();
     if(spinner) spinner.style.display='none';
     if(wrap) wrap.style.display='block';
-    restoreSstLimits();
-    requestAnimationFrame(()=>renderSstCharts());
+    loadSstHistory().then(()=>requestAnimationFrame(()=>renderSstCharts()));
   }
 }
 
@@ -751,6 +471,182 @@ async function submitSstProb(){
   await loadProbs();
 }
 
+// ── GRAPHIQUES SST ────────────────────────────────────────────────
+let sstChartWeek=null, sstChartMonth=null;
+let sstHistByDay={};
+
+function savePgLimit(key, val){
+  try{ localStorage.setItem('sst_limit_'+key, val); }catch(e){}
+  renderSstCharts();
+}
+function getPgLimit(key){
+  try{ const v=localStorage.getItem('sst_limit_'+key); return v!==null&&v!==''?Number(v):null; }catch(e){ return null; }
+}
+
+async function loadSstHistory(){
+  try{
+    const now=new Date();
+    const firstDay=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01';
+    const {data,error}=await sb.from('problematiques')
+      .select('created_at').eq('pilier','SST').gte('created_at',firstDay+'T00:00:00');
+    if(error){ console.warn('loadSstHistory:',error.message); return; }
+    sstHistByDay={};
+    (data||[]).forEach(r=>{
+      const d=r.created_at?r.created_at.slice(0,10):null;
+      if(d) sstHistByDay[d]=(sstHistByDay[d]||0)+1;
+    });
+  }catch(e){ console.warn('loadSstHistory:',e); }
+}
+
+function renderSstCharts(){
+  const now=new Date();
+  const dow=now.getDay(), mondayOff=dow===0?-6:1-dow;
+  const monday=new Date(now); monday.setDate(now.getDate()+mondayOff);
+  const weekLabels=[], weekData=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(monday); d.setDate(monday.getDate()+i);
+    const ds=d.toISOString().slice(0,10);
+    weekLabels.push(d.toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'}));
+    weekData.push(sstHistByDay[ds]||0);
+  }
+  const yr=now.getFullYear(), mo=now.getMonth();
+  const monthLabels=[], monthData=[];
+  for(let i=1;i<=now.getDate();i++){
+    const ds=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(i).padStart(2,'0');
+    monthLabels.push(String(i));
+    monthData.push(sstHistByDay[ds]||0);
+  }
+
+  function buildDS(data,label,limit){
+    const c=document.createElement('canvas').getContext('2d');
+    const gS=c.createLinearGradient(0,0,500,0);
+    gS.addColorStop(0,'rgba(200,132,58,1)');gS.addColorStop(0.5,'rgba(45,212,160,1)');gS.addColorStop(1,'rgba(224,85,85,1)');
+    const gF=c.createLinearGradient(0,0,0,200);
+    gF.addColorStop(0,'rgba(200,132,58,0.4)');gF.addColorStop(0.5,'rgba(45,212,160,0.2)');gF.addColorStop(1,'rgba(74,158,232,0.05)');
+    const ds=[{label,data,fill:true,backgroundColor:gF,borderColor:gS,borderWidth:3,
+      pointRadius:4,pointHoverRadius:7,pointBackgroundColor:'rgba(200,132,58,1)',
+      pointBorderColor:'#fff',pointBorderWidth:2,tension:0.4}];
+    if(limit!==null) ds.push({label:'Limite',data:data.map(()=>limit),
+      borderColor:'rgba(232,164,58,0.85)',backgroundColor:'rgba(232,164,58,0.08)',
+      borderWidth:2,borderDash:[8,4],pointRadius:0,fill:false,tension:0});
+    return ds;
+  }
+  const opts={responsive:false,maintainAspectRatio:false,
+    animation:{duration:1000,easing:'easeInOutQuart'},
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{enabled:true,
+      backgroundColor:'rgba(15,17,24,0.95)',titleColor:'#C8843A',bodyColor:'#F0EAE0',
+      borderColor:'rgba(200,132,58,0.5)',borderWidth:1,padding:10,
+      titleFont:{size:11,weight:'700',family:"'Outfit',sans-serif"},
+      bodyFont:{size:10,weight:'500',family:"'Outfit',sans-serif"},
+      callbacks:{label:(ctx)=>ctx.datasetIndex===1?'Limite : '+ctx.parsed.y:ctx.parsed.y+' problématique'+(ctx.parsed.y>1?'s':'')}}},
+    scales:{
+      x:{ticks:{color:'#BEC5D6',font:{size:9,weight:'600',family:"'Outfit',sans-serif"},maxRotation:0,padding:6},grid:{color:'rgba(255,255,255,0.05)',drawBorder:false}},
+      y:{ticks:{color:'#BEC5D6',font:{size:9,weight:'600',family:"'Outfit',sans-serif"},stepSize:1,precision:0,padding:6,callback:v=>Number.isInteger(v)?v:''},grid:{color:'rgba(255,255,255,0.08)',drawBorder:false},beginAtZero:true}
+    }};
+
+  function drawChart(id,labels,data,existing,label,limit){
+    const el=document.getElementById(id); if(!el) return existing;
+    if(existing) existing.destroy();
+    const box=el.closest('.pg-chart-box')||el.parentElement;
+    const w=box?Math.floor(box.getBoundingClientRect().width-40):280;
+    el.width=w>80?w:280; el.height=160;
+    return new Chart(el,{type:'line',data:{labels,datasets:buildDS(data,label,limit)},options:opts});
+  }
+  ['week','month'].forEach(k=>{
+    const el=document.getElementById('sst-limit-'+k);
+    if(el){ const v=getPgLimit(k); el.value=v!==null?v:''; }
+  });
+  sstChartWeek =drawChart('sst-chart-week', weekLabels, weekData, sstChartWeek, 'Problématiques', getPgLimit('week'));
+  sstChartMonth=drawChart('sst-chart-month',monthLabels,monthData,sstChartMonth,'Problématiques', getPgLimit('month'));
+}
+
+// ── EXPORT PDF SST ────────────────────────────────────────────────
+async function exportPDF(){
+  try{
+    const{jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    const W=pdf.internal.pageSize.getWidth(), H=pdf.internal.pageSize.getHeight(), M=10;
+    let y=M;
+    const C={copper:[200,132,58],black:[10,11,13],grey:[107,114,128],
+              emerald:[45,212,160],ruby:[224,85,85],amber:[232,164,58],faint:[44,51,80]};
+
+    pdf.setFillColor(...C.copper); pdf.rect(0,0,W,1.5,'F');
+    pdf.setFontSize(15);pdf.setFont('helvetica','bold');pdf.setTextColor(...C.black);
+    pdf.text('SST — Suivi Problématiques', M, y+7);
+    pdf.setFontSize(8);pdf.setFont('helvetica','normal');pdf.setTextColor(...C.grey);
+    pdf.text('Exporte le '+new Date().toLocaleDateString('fr-CA',{day:'2-digit',month:'long',year:'numeric'}), W-M, y+7,{align:'right'});
+    y+=14;
+    pdf.setDrawColor(...C.faint);pdf.setLineWidth(0.2);pdf.line(M,y,W-M,y);y+=5;
+
+    // KPI
+    pdf.setFontSize(9);pdf.setFont('helvetica','bold');pdf.setTextColor(...C.copper);
+    pdf.text(allProbs.length+' problematiques SST au total', M, y+5);
+    y+=12;
+
+    // Graphiques
+    const charts=[{id:'sst-chart-week',label:'Semaine en cours',limKey:'week'},{id:'sst-chart-month',label:'Mois en cours',limKey:'month'}];
+    const cW=(W-2*M-8)/2; let maxH=0;
+    charts.forEach(c=>{const s=document.getElementById(c.id);if(s&&s.width>0){const h=cW*(s.height/s.width);if(h>maxH)maxH=h;}});
+    if(maxH>0){
+      charts.forEach((c,ci)=>{
+        const src=document.getElementById(c.id); if(!src||!src.width) return;
+        const tmp=document.createElement('canvas');tmp.width=src.width;tmp.height=src.height;
+        const ctx2=tmp.getContext('2d');ctx2.fillStyle='#FFFFFF';ctx2.fillRect(0,0,tmp.width,tmp.height);ctx2.drawImage(src,0,0);
+        const imgH=cW*(src.height/src.width), xPos=M+ci*(cW+8);
+        pdf.setFontSize(6.5);pdf.setFont('helvetica','bold');pdf.setTextColor(...C.copper);
+        pdf.text(c.label.toUpperCase(), xPos, y);
+        const lim=getPgLimit(c.limKey);
+        if(lim!==null){pdf.setFontSize(5.5);pdf.setTextColor(60,65,80);pdf.text('Limite : '+lim, xPos+cW-28, y+1.5);}
+        pdf.setDrawColor(220,222,228);pdf.setLineWidth(0.2);pdf.rect(xPos,y+3,cW,imgH);
+        pdf.addImage(tmp.toDataURL('image/jpeg',0.92),'JPEG',xPos,y+3,cW,imgH);
+      });
+      y+=maxH+18;
+      pdf.setDrawColor(...C.faint);pdf.setLineWidth(0.2);pdf.line(M,y-4,W-M,y-4);
+    }
+
+    // Tableau
+    const cols=[{label:'ID',w:14,key:'id'},{label:'Intitule',w:0,key:'intitule'},{label:'Responsable',w:36,key:'resp'},{label:'Priorite',w:24,key:'prio'},{label:'Statut',w:28,key:'statut'},{label:'Soumis le',w:28,key:'date'}];
+    const fixedW=cols.filter(c=>c.w>0).reduce((s,c)=>s+c.w,0);
+    cols.find(c=>c.key==='intitule').w=W-2*M-fixedW;
+    const hH=8, rH=7; let x=M;
+    pdf.setFillColor(245,245,248);pdf.rect(M,y,W-2*M,hH,'F');
+    pdf.setFontSize(6);pdf.setFont('helvetica','bold');pdf.setTextColor(...C.copper);
+    cols.forEach(c=>{pdf.text(c.label.toUpperCase(),x+2,y+5.5);x+=c.w;});y+=hH;
+
+    const showClo=document.getElementById('sst-cloture')?.checked||false;
+    const list=allProbs.filter(p=>showClo||p.statut!=='Clôturé');
+    list.forEach((p,i)=>{
+      if(y>H-12){pdf.addPage();y=M;}
+      if(i%2===0){pdf.setFillColor(252,252,253);pdf.rect(M,y,W-2*M,rH,'F');}
+      pdf.setDrawColor(220,222,228);pdf.setLineWidth(0.15);pdf.line(M,y+rH,W-M,y+rH);
+      x=M;
+      const statCol={'À traiter':C.ruby,'En cours':C.amber,'Résolu':C.emerald};
+      const prioCol={'Critique':C.ruby,'Haute':C.amber,'Basse':C.emerald};
+      const vals={id:'#'+String(p.id||'').padStart(4,'0').slice(-4),intitule:p.intitule||'',resp:p.responsable||'—',prio:p.priorite||'',statut:p.statut||'',date:p.created_at?p.created_at.slice(0,10):''};
+      cols.forEach(c=>{
+        pdf.setFontSize(6.5);pdf.setFont('helvetica','normal');pdf.setTextColor(40,42,55);
+        if(c.key==='id'){pdf.setTextColor(...C.copper);pdf.setFont('helvetica','bold');}
+        if(c.key==='statut'&&statCol[p.statut]){pdf.setTextColor(...statCol[p.statut]);pdf.setFont('helvetica','bold');}
+        if(c.key==='prio'&&prioCol[p.priorite]){pdf.setTextColor(...prioCol[p.priorite]);pdf.setFont('helvetica','bold');}
+        const maxW=c.w-4; let txt=vals[c.key]||'—';
+        while(txt.length>1&&pdf.getTextWidth(txt)>maxW) txt=txt.slice(0,-1);
+        if(txt!==vals[c.key]) txt+='…';
+        pdf.text(txt,x+2,y+4.5); x+=c.w;
+      });
+      y+=rH;
+    });
+
+    const pages=pdf.internal.getNumberOfPages();
+    for(let i=1;i<=pages;i++){
+      pdf.setPage(i);pdf.setDrawColor(...C.faint);pdf.setLineWidth(0.2);pdf.line(M,H-7,W-M,H-7);
+      pdf.setFontSize(6);pdf.setFont('helvetica','normal');pdf.setTextColor(...C.grey);
+      pdf.text('SOY — SST', M, H-3);pdf.text('Page '+i+' / '+pages, W-M, H-3,{align:'right'});
+    }
+    pdf.save('sst_'+new Date().toISOString().slice(0,10)+'.pdf');
+  }catch(e){console.error(e);alert('Erreur PDF : '+(e?.message||e));}
+}
+
 </script>
 
 <div class="overlay" id="modal-sst" onclick="if(event.target===this)closeSstModal()">
@@ -802,8 +698,7 @@ async function submitSstProb(){
         </div>
         <div class="fg full">
           <label class="fg-lbl">Description</label>
-          <textarea id="sst-description" class="fg-ta" rows="4"
-            placeholder="Description détaillée…"></textarea>
+          <textarea id="sst-description" class="fg-ta" rows="4" placeholder="Description détaillée…"></textarea>
         </div>
       </div>
     </div>
@@ -813,6 +708,7 @@ async function submitSstProb(){
     </div>
   </div>
 </div>
+
 
 </body>
 </html>
