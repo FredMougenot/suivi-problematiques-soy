@@ -261,7 +261,6 @@
           <th style="width:130px;text-align:center">Dernière vérif.</th>
           <th style="width:130px;text-align:center">Prochaine vérif.</th>
           <th style="width:110px;text-align:center">Statut</th>
-          <th style="width:120px;text-align:center">Action</th>
         </tr></thead>
         <tbody id="verif-tbody"></tbody>
       </table>
@@ -713,18 +712,11 @@ function renderVerif(){
       <td style="text-align:center;font-size:.8rem;color:var(--text-secondary)">${fmtDate(p.derniere_verification)}</td>
       <td style="text-align:center;font-size:.8rem;color:${prochaine&&prochaine<today?'var(--ruby)':'var(--amber)'}">${fmtDate(prochaine)}</td>
       <td style="text-align:center"><span class="vbadge ${badgeCls}">${statut}</span></td>
-      <td style="text-align:center">
-        <button class="btn-verif ${verifAujourdhui?'done':''}"
-          ${verifAujourdhui?'disabled title="Déjà vérifié aujourd\'hui"':'onclick="marquerVerifie(\''+p.id+'\')" title="Marquer comme vérifié aujourd\'hui"'}>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          ${verifAujourdhui?'Vérifié ✓':'Vérifier'}
-        </button>
-      </td>
     </tr>`;
   }).join('');
 
   document.getElementById('verif-tbody').innerHTML=visibles.length===0
-    ?`<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--emerald);font-weight:600;">✓ Tous les items sont à jour</td></tr>`
+    ?`<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--emerald);font-weight:600;">✓ Tous les items sont à jour</td></tr>`
     :html;
 
   document.getElementById('verif-tbl').style.display='table';
