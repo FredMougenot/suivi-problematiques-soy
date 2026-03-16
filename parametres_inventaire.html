@@ -15,6 +15,21 @@
 .btn-add:hover{opacity:.88;transform:translateY(-1px);}
 .btn-save-all{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);background:var(--emerald-bg);border:1px solid rgba(45,212,160,.3);color:var(--emerald);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;}
 .btn-save-all:hover{background:rgba(45,212,160,.15);}
+
+/* ── Tableau récurrences ── */
+.rec-section{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);padding:20px;margin-bottom:28px;position:relative;}
+.rec-section::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--sapphire),transparent);border-radius:var(--r-lg) var(--r-lg) 0 0;}
+.rec-section-title{font-size:.68rem;font-weight:800;color:var(--sapphire);letter-spacing:.15em;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.rec-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+.rec-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;background:var(--bg-float);border:1px solid rgba(74,158,232,.3);color:var(--sapphire);font-size:.82rem;font-weight:700;}
+.rec-chip-rm{background:none;border:none;color:rgba(74,158,232,.5);cursor:pointer;font-size:.85rem;padding:0;line-height:1;transition:color .15s;}
+.rec-chip-rm:hover{color:var(--ruby);}
+.rec-add-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.inp-rec{background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-sm);padding:6px 10px;font-size:.84rem;font-family:'Outfit',sans-serif;outline:none;width:90px;transition:border-color .15s;}
+.inp-rec:focus{border-color:var(--sapphire);}
+.btn-add-rec{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r-sm);background:rgba(74,158,232,.1);border:1px solid rgba(74,158,232,.3);color:var(--sapphire);font-size:.78rem;font-weight:700;cursor:pointer;transition:all .15s;}
+.btn-add-rec:hover{background:rgba(74,158,232,.2);}
+
 .item-count{font-size:.78rem;color:var(--text-muted);font-weight:600;padding:5px 12px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:20px;}
 .kpi-retard{display:none;padding:5px 14px;border-radius:20px;background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.3);color:var(--ruby);font-size:.78rem;font-weight:700;}
 .param-tbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow:hidden;position:relative;}
@@ -73,6 +88,25 @@
     <div class="page-title">Items à vérifier</div>
     <div class="page-sub">Définissez les items et leur fréquence de vérification. Chaque item a un numéro (1–200) et une récurrence.</div>
 
+    <!-- ── Section Récurrences ── -->
+    <div class="rec-section">
+      <div class="rec-section-title">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Récurrences disponibles
+      </div>
+      <div class="rec-chips" id="rec-chips"></div>
+      <div class="rec-add-row">
+        <input type="number" class="inp-rec" id="inp-new-rec" min="0" placeholder="ex: 120" 
+          onkeydown="if(event.key==='Enter') addRecurrence()">
+        <span style="font-size:.78rem;color:var(--text-muted)">jours</span>
+        <button class="btn-add-rec" onclick="addRecurrence()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter
+        </button>
+        <span style="font-size:.72rem;color:var(--text-muted);margin-left:4px;">Les récurrences sont sauvegardées localement</span>
+      </div>
+    </div>
+
     <div class="actions-bar">
       <div class="actions-left">
         <button class="btn-add" onclick="addRow()">
@@ -121,6 +155,65 @@ let sb;
 let rows = [];
 let nextTmpId = -1;
 
+// ── RÉCURRENCES ──────────────────────────────────────────────────
+// Stockées en localStorage, triées par valeur
+const REC_KEY = 'soy_recurrences';
+const DEFAULT_RECS = [0, 1, 30, 60, 90, 120];
+
+function loadRecs(){
+  try{
+    const v = localStorage.getItem(REC_KEY);
+    return v ? JSON.parse(v) : [...DEFAULT_RECS];
+  }catch(e){ return [...DEFAULT_RECS]; }
+}
+function saveRecs(recs){
+  try{ localStorage.setItem(REC_KEY, JSON.stringify(recs)); }catch(e){}
+}
+
+let recurrences = loadRecs();
+
+function renderRecChips(){
+  const sorted = [...recurrences].sort((a,b)=>a-b);
+  document.getElementById('rec-chips').innerHTML = sorted.map(r=>`
+    <span class="rec-chip">
+      ${r} jour${r>1?'s':''}
+      ${r===0||r===1?'':
+        `<button class="rec-chip-rm" onclick="removeRec(${r})" title="Supprimer">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>`
+      }
+    </span>`).join('');
+}
+
+function addRecurrence(){
+  const inp = document.getElementById('inp-new-rec');
+  const val = parseInt(inp.value);
+  if(isNaN(val)||val<0){ toast('Valeur invalide','err'); return; }
+  if(recurrences.includes(val)){ toast('Récurrence déjà existante','err'); return; }
+  recurrences.push(val);
+  saveRecs(recurrences);
+  inp.value='';
+  renderRecChips();
+  render(); // rafraîchir les selects
+  toast(val+'j ajouté ✓','ok');
+}
+
+function removeRec(val){
+  // Vérifier si des items utilisent cette récurrence
+  const used = rows.some(r=>r.recurrence===val);
+  if(used){ toast('Impossible — des items utilisent cette récurrence','err'); return; }
+  recurrences = recurrences.filter(r=>r!==val);
+  saveRecs(recurrences);
+  renderRecChips();
+  toast('Récurrence supprimée','ok');
+}
+
+function recOptions(currentRec){
+  return [...recurrences].sort((a,b)=>a-b).map(r=>
+    `<option value="${r}" ${r===currentRec?'selected':''}>${r} jour${r>1?'s':''}</option>`
+  ).join('');
+}
+
 // ── UTILS ────────────────────────────────────────────────────────
 function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function addDays(s,n){const d=new Date(s+'T00:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
@@ -154,8 +247,10 @@ async function load(){
         id:r.id, item_number:r.item_number,
         nom:r.nom||'Item #'+r.item_number,
         recurrence:r.recurrence||30,
-        derniere_verification:r.derniere_verification||null,
-        dirty:false, isNew:false
+        // Forcer 2026-03-10 si pas encore de date (temporaire pour validation)
+        derniere_verification:r.derniere_verification||'2026-03-10',
+        dirty:!r.derniere_verification, // marquer dirty si on vient de forcer la date
+        isNew:false
       }));
     } else {
       // Pré-remplir 200 items numérotés avec derniere_verification au 10 mars 2026
@@ -175,7 +270,7 @@ async function load(){
       dirty:true, isNew:true
     }));
   }
-  render();showSpinner(false);
+  render(); renderRecChips(); showSpinner(false);
 }
 
 // ── RENDU ────────────────────────────────────────────────────────
@@ -196,11 +291,7 @@ function render(){
       <td><input class="inp-item" value="${esc(r.nom)}" placeholder="Nom de l'item…" oninput="markDirty(${i},'nom',this.value)"></td>
       <td>
         <select class="sel-rec" onchange="markDirty(${i},'recurrence',parseInt(this.value))">
-          <option value="0"  ${r.recurrence==0 ?'selected':''}>0 jour</option>
-          <option value="1"  ${r.recurrence==1 ?'selected':''}>1 jour</option>
-          <option value="30" ${r.recurrence==30?'selected':''}>30 jours</option>
-          <option value="60" ${r.recurrence==60?'selected':''}>60 jours</option>
-          <option value="90" ${r.recurrence==90?'selected':''}>90 jours</option>
+          ${recOptions(r.recurrence)}
         </select>
       </td>
       <td class="td-date">${fmtDate(r.derniere_verification)}</td>
@@ -223,7 +314,8 @@ function markDirty(idx,field,val){rows[idx][field]=val;rows[idx].dirty=true;}
 // ── AJOUTER ──────────────────────────────────────────────────────
 function addRow(){
   const nextNum=rows.length>0?Math.max(...rows.map(r=>r.item_number))+1:1;
-  rows.push({id:nextTmpId--,item_number:nextNum,nom:'Item '+nextNum,recurrence:30,derniere_verification:null,dirty:true,isNew:true});
+  const defaultRec = [...recurrences].sort((a,b)=>a-b).find(r=>r>=30)||recurrences[0]||30;
+  rows.push({id:nextTmpId--,item_number:nextNum,nom:'Item '+nextNum,recurrence:defaultRec,derniere_verification:null,dirty:true,isNew:true});
   render();
   setTimeout(()=>{
     const inputs=document.querySelectorAll('.inp-item');
