@@ -1568,14 +1568,27 @@ async function exportPDF() {
           img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
         });
         ctx2.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const imgW = W - 2*M;
-        const imgH = imgW * (canvas.height / canvas.width);
-        const maxHeatH = 80; // hauteur max en mm pour éviter distorsion vue semaine
-        const finalH = Math.min(imgH, maxHeatH);
-        const finalW = finalH * (canvas.width / canvas.height);
-        const xOffset = M + (imgW - finalW) / 2; // centrer si plus étroit que la page
+        // Lire les dimensions natives du SVG (pas le rendu écran)
+        const svgW = parseFloat(hmWrap.getAttribute('width')) || canvas.width/ratio;
+        const svgH = parseFloat(hmWrap.getAttribute('height')) || canvas.height/ratio;
+        const nativeRatio = svgH / svgW;
+
+        // Largeur max = page entière, mais limiter la hauteur à 70mm max
+        const maxW = W - 2*M;
+        const maxH = 70;
+        let finalW, finalH;
+        if(maxW * nativeRatio <= maxH){
+          // La largeur pleine tient dans la hauteur max
+          finalW = maxW;
+          finalH = maxW * nativeRatio;
+        } else {
+          // Trop haut : contraindre par la hauteur
+          finalH = maxH;
+          finalW = maxH / nativeRatio;
+        }
+        const xOffset = M + (maxW - finalW) / 2;
         if (y + finalH > H - M) { pdf.addPage(); y = M; }
-        pdf.addImage(canvas.toDataURL('image/jpeg', 0.85), 'JPEG', xOffset, y, finalW, finalH);
+        pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', xOffset, y, finalW, finalH);
         y += finalH + 8;
       }
 
