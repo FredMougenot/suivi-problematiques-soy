@@ -631,7 +631,19 @@ async function exportPDF(){
     }
 
     // Tableau
-    const cols=[{label:'ID',w:14,key:'id'},{label:'Intitule',w:0,key:'intitule'},{label:'Responsable',w:36,key:'resp'},{label:'Priorite',w:24,key:'prio'},{label:'Statut',w:28,key:'statut'},{label:'Soumis le',w:28,key:'date'}];
+    const cols=[
+      {label:'ID',        w:14,  key:'id'},
+      {label:'Intitule',  w:0,   key:'intitule'},
+      {label:'Cause',     w:30,  key:'cause'},
+      {label:'Action',    w:30,  key:'action'},
+      {label:'Resultat',  w:30,  key:'resultat'},
+      {label:'Responsable',w:32, key:'resp'},
+      {label:'Priorite',  w:20,  key:'prio'},
+      {label:'Statut',    w:22,  key:'statut'},
+      {label:'Soumis le', w:22,  key:'date'},
+      {label:'Dt prevue', w:22,  key:'dateprev'},
+      {label:'Retard',    w:16,  key:'retard'},
+    ];
     const fixedW=cols.filter(c=>c.w>0).reduce((s,c)=>s+c.w,0);
     cols.find(c=>c.key==='intitule').w=W-2*M-fixedW;
     const hH=8, rH=7; let x=M;
@@ -639,6 +651,8 @@ async function exportPDF(){
     pdf.setFontSize(6);pdf.setFont('helvetica','bold');pdf.setTextColor(...C.copper);
     cols.forEach(c=>{pdf.text(c.label.toUpperCase(),x+2,y+5.5);x+=c.w;});y+=hH;
 
+    const today2=new Date(); today2.setHours(0,0,0,0);
+    const STATUTS_TERMINES=['Résolu','Clôturé','Annulé'];
     const showClo=document.getElementById('sst-cloture')?.checked||false;
     const list=allProbs.filter(p=>showClo||p.statut!=='Clôturé');
     list.forEach((p,i)=>{
@@ -646,14 +660,34 @@ async function exportPDF(){
       if(i%2===0){pdf.setFillColor(252,252,253);pdf.rect(M,y,W-2*M,rH,'F');}
       pdf.setDrawColor(220,222,228);pdf.setLineWidth(0.15);pdf.line(M,y+rH,W-M,y+rH);
       x=M;
+      // Calcul retard
+      let retardVal='—';
+      if(p.date_prevue&&!STATUTS_TERMINES.includes(p.statut)){
+        const prevue=new Date(p.date_prevue+'T00:00:00');
+        const diffJ=Math.round((today2-prevue)/86400000);
+        if(diffJ>0) retardVal='+'+diffJ+'j';
+      }
       const statCol={'À traiter':C.ruby,'En cours':C.amber,'Résolu':C.emerald};
       const prioCol={'Critique':C.ruby,'Haute':C.amber,'Basse':C.emerald};
-      const vals={id:'#'+String(p.id||'').padStart(4,'0').slice(-4),intitule:p.intitule||'',resp:p.responsable||'—',prio:p.priorite||'',statut:p.statut||'',date:p.created_at?p.created_at.slice(0,10):''};
+      const vals={
+        id:'#'+String(p.id||'').padStart(4,'0').slice(-4),
+        intitule:p.intitule||'',
+        cause:p.cause||'',
+        action:p.action||'',
+        resultat:p.resultat||'',
+        resp:p.responsable||'',
+        prio:p.priorite||'',
+        statut:p.statut||'',
+        date:p.created_at?p.created_at.slice(0,10):'',
+        dateprev:p.date_prevue||'',
+        retard:retardVal,
+      };
       cols.forEach(c=>{
         pdf.setFontSize(6.5);pdf.setFont('helvetica','normal');pdf.setTextColor(40,42,55);
         if(c.key==='id'){pdf.setTextColor(...C.copper);pdf.setFont('helvetica','bold');}
         if(c.key==='statut'&&statCol[p.statut]){pdf.setTextColor(...statCol[p.statut]);pdf.setFont('helvetica','bold');}
         if(c.key==='prio'&&prioCol[p.priorite]){pdf.setTextColor(...prioCol[p.priorite]);pdf.setFont('helvetica','bold');}
+        if(c.key==='retard'&&retardVal!=='—'){pdf.setTextColor(...C.ruby);pdf.setFont('helvetica','bold');}
         const maxW=c.w-4; let txt=vals[c.key]||'—';
         while(txt.length>1&&pdf.getTextWidth(txt)>maxW) txt=txt.slice(0,-1);
         if(txt!==vals[c.key]) txt+='…';
