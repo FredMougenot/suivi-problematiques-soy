@@ -1065,7 +1065,12 @@ function localDate(isoStr){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 
-function fmtDate(d){return d?new Date(d).toLocaleDateString('fr-CA',{day:'2-digit',month:'short',year:'numeric'}):''}
+function fmtDate(d){
+  if(!d) return '';
+  // Forcer T00:00:00 pour éviter le décalage UTC → heure locale
+  const s = String(d).length === 10 ? d+'T00:00:00' : d;
+  return new Date(s).toLocaleDateString('fr-CA',{day:'2-digit',month:'short',year:'numeric'});
+}
 
 function fmtId(id){return String(id||'').padStart(4,'0').slice(-4);}
 
@@ -1247,8 +1252,18 @@ async function saveEdit(){
   const prevProb=allProblems.find(x=>x.id===eid)||{};
   const wasResolu=prevProb.statut==='Résolu';
   const nowResolu=newStatut==='Résolu';
-  const drField=document.getElementById('edit-date-resolue').value||null;
-  const dateResolue=drField||(nowResolu?(prevProb.date_resolue||localToday()):(wasResolu&&!nowResolu?null:prevProb.date_resolue));
+  const drRaw=document.getElementById('edit-date-resolue').value;
+  let dateResolue;
+  if(drRaw){
+    // Champ rempli → utiliser cette valeur
+    dateResolue=drRaw;
+  } else if(nowResolu && !prevProb.date_resolue){
+    // Passage à Résolu sans date → mettre aujourd'hui
+    dateResolue=localToday();
+  } else {
+    // Champ vide → null (efface la date si elle existait)
+    dateResolue=null;
+  }
   const {error}=await sb.from('problematiques').update({
     intitule:    document.getElementById('edit-intitule').value.trim()||prevProb.intitule,
     pilier:      document.getElementById('edit-pilier').value,
