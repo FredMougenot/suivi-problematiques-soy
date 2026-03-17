@@ -517,7 +517,12 @@ async function loadSstHistory(){
     if(error){ console.warn('loadSstHistory:',error.message); return; }
     sstHistByDay={};
     (data||[]).forEach(r=>{
-      const d=r.created_at?r.created_at.slice(0,10):null;
+      // Convertir created_at en date locale (évite le décalage UTC)
+      let d=null;
+      if(r.created_at){
+        const dt=new Date(r.created_at);
+        d=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+      }
       if(d) sstHistByDay[d]=(sstHistByDay[d]||0)+1;
     });
   }catch(e){ console.warn('loadSstHistory:',e); }
@@ -530,7 +535,8 @@ function renderSstCharts(){
   const weekLabels=[], weekData=[];
   for(let i=0;i<7;i++){
     const d=new Date(monday); d.setDate(monday.getDate()+i);
-    const ds=d.toISOString().slice(0,10);
+    // Utiliser l'heure locale (pas toISOString qui retourne UTC)
+    const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
     weekLabels.push(d.toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'}));
     weekData.push(sstHistByDay[ds]||0);
   }
