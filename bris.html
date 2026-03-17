@@ -730,34 +730,32 @@ async function exportPDF(){
       pdf.setFontSize(10);pdf.setFont('helvetica','bold');pdf.setTextColor(...C.black);
       pdf.text('Historique du mois', M, y);y+=6;
 
-      const hFixedW=28+22+22+28+28+16+16+24;
-      const hItemW=W-2*M-hFixedW;
+      // Largeurs fixes : Date(28) Qte(18) Poids(20) Cout(26) Total(26) Et1(14) Et2(14) Finalise(22) Comm(45) = 213mm
+      // Item = 277 - 213 = 64mm
       const hCols=[
-        {label:'Date',    w:28, key:'date'},
-        {label:'Item',    w:hItemW, key:'item'},
-        {label:'Qte',     w:22, key:'qte'},
-        {label:'Poids',   w:22, key:'poids'},
-        {label:'Cout $',  w:28, key:'cout'},
-        {label:'Total $', w:28, key:'total'},
-        {label:'Et.1',    w:16, key:'e1'},
-        {label:'Et.2',    w:16, key:'e2'},
-        {label:'Finalise',w:24, key:'findate'},
-        {label:'Commentaires', w:0, key:'comm'},
+        {label:'Date',         w:28, key:'date',    wrap:false},
+        {label:'Item',         w:0,  key:'item',    wrap:true},
+        {label:'Qte',          w:18, key:'qte',     wrap:false},
+        {label:'Poids',        w:20, key:'poids',   wrap:false},
+        {label:'Cout $',       w:26, key:'cout',    wrap:false},
+        {label:'Total $',      w:26, key:'total',   wrap:false},
+        {label:'Et.1',         w:14, key:'e1',      wrap:false},
+        {label:'Et.2',         w:14, key:'e2',      wrap:false},
+        {label:'Finalise',     w:22, key:'findate', wrap:false},
+        {label:'Commentaires', w:45, key:'comm',    wrap:true},
       ];
-      // Colonne commentaires prend le reste
-      const hFixed2=hCols.filter(c=>c.w>0).reduce((s,c)=>s+c.w,0);
-      hCols.find(c=>c.key==='comm').w=W-2*M-hFixed2;
+      const hFixedAll=hCols.filter(c=>c.w>0).reduce((s,c)=>s+c.w,0);
+      hCols.find(c=>c.key==='item').w=W-2*M-hFixedAll;
 
       let hx=M;
       pdf.setFillColor(245,245,248);pdf.rect(M,y,W-2*M,7,'F');
       pdf.setFontSize(5.5);pdf.setFont('helvetica','bold');pdf.setTextColor(...C.copper);
       hCols.forEach(c=>{pdf.text(c.label.toUpperCase(),hx+2,y+5);hx+=c.w;});y+=7;
 
+      const lineH=3.5, maxLines=3;
+      pdf.setFontSize(6);
       histData.forEach((r,i)=>{
         if(y>H-12){pdf.addPage();y=M;}
-        if(i%2===0){pdf.setFillColor(252,252,253);pdf.rect(M,y,W-2*M,6,'F');}
-        pdf.setDrawColor(220,222,228);pdf.setLineWidth(0.15);pdf.line(M,y+6,W-M,y+6);
-        hx=M;
         const tot=parseFloat(r.cout||0)*parseFloat(r.quantite||1);
         const hVals={
           date:r.date_jour||'',
@@ -771,16 +769,34 @@ async function exportPDF(){
           findate:r.date_finalisation||'—',
           comm:r.commentaires||'',
         };
+        // Calculer hauteur dynamique selon colonnes wrap
+        let nLines=1;
+        hCols.filter(c=>c.wrap).forEach(c=>{
+          const lines=pdf.splitTextToSize(hVals[c.key]||'—', c.w-3);
+          nLines=Math.max(nLines, Math.min(lines.length, maxLines));
+        });
+        const rH=Math.max(6, nLines*lineH+2.5);
+
+        if(y+rH>H-12){pdf.addPage();y=M;}
+        if(i%2===0){pdf.setFillColor(252,252,253);pdf.rect(M,y,W-2*M,rH,'F');}
+        pdf.setDrawColor(220,222,228);pdf.setLineWidth(0.15);pdf.line(M,y+rH,W-M,y+rH);
+        hx=M;
         hCols.forEach(c=>{
           pdf.setFontSize(6);pdf.setFont('helvetica','normal');pdf.setTextColor(40,42,55);
           if(c.key==='cout'||c.key==='total'){pdf.setTextColor(...C.ruby);pdf.setFont('helvetica','bold');}
           if(c.key==='date'){pdf.setTextColor(...C.copper);}
-          const maxW=c.w-3; let txt=hVals[c.key]||'—';
-          while(txt.length>1&&pdf.getTextWidth(txt)>maxW) txt=txt.slice(0,-1);
-          if(txt!==hVals[c.key]) txt+='…';
-          pdf.text(txt,hx+2,y+4.2); hx+=c.w;
+          if(c.wrap){
+            const lines=pdf.splitTextToSize(hVals[c.key]||'—', c.w-3).slice(0,maxLines);
+            lines.forEach((line,li)=>pdf.text(line, hx+2, y+4+li*lineH));
+          } else {
+            const maxW=c.w-3; let txt=hVals[c.key]||'—';
+            while(txt.length>1&&pdf.getTextWidth(txt)>maxW) txt=txt.slice(0,-1);
+            if(txt!==(hVals[c.key]||'—')) txt+='…';
+            pdf.text(txt,hx+2,y+4.2);
+          }
+          hx+=c.w;
         });
-        y+=6;
+        y+=rH;
       });
     }
 
