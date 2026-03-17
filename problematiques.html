@@ -944,7 +944,7 @@ body { font-size: 0.9375rem; }
 
 <!-- MODAL ÉDITION -->
 <div class="overlay" id="modal-edit">
-  <div class="modal" style="max-width:600px">
+  <div class="modal" style="max-width:600px" onclick="event.stopPropagation()">
     <div class="modal-hd">
       <div><div class="modal-t">Modifier la problématique</div><div class="modal-s" id="edit-subtitle"></div></div>
       <button class="modal-x" onclick="closeModal('modal-edit')">✕</button>
@@ -2092,11 +2092,9 @@ window.addEventListener('load', () => {
   waitSB();
 });
 
-// Fermer les overlays au clic extérieur
+// Fermer les overlays uniquement via les boutons Annuler / Enregistrer / ✕
+// (le clic sur l'overlay ne ferme plus le modal)
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.overlay').forEach(ov => {
-    ov.addEventListener('click', e => { if (e.target === ov) ov.classList.remove('open'); });
-  });
 
   // Construire les boutons pilier
   const container = document.getElementById('pilier-btns');
