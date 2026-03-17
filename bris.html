@@ -11,6 +11,21 @@
 <style>
 .pg-chart-panel{background:linear-gradient(135deg,#0B0D13 0%,#0F1118 50%,#15181F 100%);border-radius:20px;padding:24px;margin:16px 0 8px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.6),inset 0 1px 0 rgba(200,132,58,.1);}
 .pg-chart-panel::before{content:'';position:absolute;inset:0;border-radius:20px;padding:2px;background:linear-gradient(135deg,rgba(200,132,58,.4) 0%,rgba(45,212,160,.3) 50%,rgba(200,132,58,.4) 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+
+.hist-section{margin-top:24px;}
+.hist-divider{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.hist-divider-line{flex:1;height:1px;background:linear-gradient(90deg,var(--copper),transparent);}
+.hist-divider-title{font-size:.68rem;font-weight:800;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;white-space:nowrap;}
+.hist-outer{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;position:relative;}
+.hist-outer::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--copper),transparent);pointer-events:none;}
+.hist-tbl{width:100%;border-collapse:collapse;min-width:800px;}
+.hist-tbl thead tr{background:var(--bg-float);border-bottom:1px solid var(--text-faint);}
+.hist-tbl thead th{padding:11px 13px;font-size:.6rem;font-weight:800;color:var(--copper);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;text-align:left;}
+.hist-tbl tbody tr{border-bottom:1px solid rgba(44,51,80,.5);transition:background .1s;}
+.hist-tbl tbody tr:hover{background:var(--bg-hover);}
+.hist-tbl tbody tr:last-child{border-bottom:none;}
+.hist-tbl tbody td{padding:9px 13px;font-size:.82rem;color:var(--text-primary);vertical-align:middle;}
+.hist-empty{text-align:center;padding:28px;color:var(--text-muted);font-size:.84rem;}
 .pg-chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;position:relative;z-index:1;}
 @media(max-width:700px){.pg-chart-grid{grid-template-columns:1fr;}}
 .pg-chart-box{background:linear-gradient(135deg,rgba(26,30,42,.8),rgba(21,24,31,.8));border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:all .4s;}
@@ -233,6 +248,37 @@
 </div>
 
 </div><!-- /tool-wrap -->
+
+<!-- SECTION HISTORIQUE DU MOIS -->
+<div style="padding:0 0 24px;" id="hist-section-wrap">
+  <div class="hist-section" style="max-width:1400px;margin:0 auto;padding:0 16px;">
+    <div class="hist-divider">
+      <div class="hist-divider-title">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Historique du mois
+      </div>
+      <div class="hist-divider-line"></div>
+      <span id="hist-count" style="font-size:.72rem;color:var(--text-muted);font-weight:600;padding:3px 10px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:20px;white-space:nowrap;">— entrées</span>
+    </div>
+    <div class="hist-outer">
+      <table class="hist-tbl">
+        <thead><tr>
+          <th>Date</th>
+          <th>Item</th>
+          <th style="width:80px">Quantité</th>
+          <th style="width:90px">Poids (kg)</th>
+          <th style="width:90px">Coût ($)</th>
+          <th style="width:90px">Total ($)</th>
+          <th style="width:80px;text-align:center">Étape 1</th>
+          <th style="width:80px;text-align:center">Étape 2</th>
+          <th style="width:110px">Date finalisation</th>
+          <th>Commentaires</th>
+        </tr></thead>
+        <tbody id="hist-tbody"><tr><td colspan="10" class="hist-empty">Chargement…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL -->
 <div class="overlay" id="modal">
@@ -487,14 +533,43 @@ async function loadBrisHistory(){
   try{
     const now=new Date();
     const firstDay=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01';
-    const {data,error}=await sb.from('bris').select('date_jour,cout,quantite').gte('date_jour',firstDay);
+    const {data,error}=await sb.from('bris').select('*').gte('date_jour',firstDay).order('date_jour',{ascending:false}).order('created_at',{ascending:false});
     if(error){ console.warn('loadBrisHistory:',error.message); return; }
     brisHistByDay={};
     (data||[]).forEach(r=>{
       const d=r.date_jour; if(!d) return;
       brisHistByDay[d]=(brisHistByDay[d]||0)+parseFloat(r.cout||0)*parseFloat(r.quantite||1);
     });
+    renderBrisHistTable(data||[]);
   }catch(e){ console.warn('loadBrisHistory:',e); }
+}
+
+function renderBrisHistTable(data){
+  const tbody=document.getElementById('hist-tbody');
+  const countEl=document.getElementById('hist-count');
+  if(!tbody) return;
+  if(!data||data.length===0){
+    tbody.innerHTML='<tr><td colspan="10" class="hist-empty">Aucun bris enregistré ce mois</td></tr>';
+    if(countEl) countEl.textContent='0 entrée';
+    return;
+  }
+  if(countEl) countEl.textContent=data.length+' entrée'+(data.length>1?'s':'');
+  tbody.innerHTML=data.map(r=>{
+    const total=parseFloat(r.cout||0)*parseFloat(r.quantite||1);
+    const dateStr=r.date_jour?new Date(r.date_jour+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}):'—';
+    return `<tr>
+      <td style="font-size:.78rem;color:var(--copper-light);font-weight:700;white-space:nowrap">${dateStr}</td>
+      <td style="font-weight:500">${esc(r.item||'—')}</td>
+      <td style="text-align:center;color:var(--text-secondary)">${r.quantite||'—'}</td>
+      <td style="text-align:center;color:var(--text-secondary)">${r.poids?r.poids+' kg':'—'}</td>
+      <td style="text-align:center;color:var(--ruby);font-weight:700">${r.cout?fmt(r.cout)+' $':'—'}</td>
+      <td style="text-align:center;color:var(--ruby);font-weight:700">${fmt(total)} $</td>
+      <td style="text-align:center">${r.etape1?'<span style="color:var(--emerald);font-size:.85rem">✓</span>':'<span style="color:var(--text-faint);font-size:.8rem">—</span>'}</td>
+      <td style="text-align:center">${r.etape2?'<span style="color:var(--emerald);font-size:.85rem">✓</span>':'<span style="color:var(--text-faint);font-size:.8rem">—</span>'}</td>
+      <td style="font-size:.78rem;color:var(--text-secondary)">${r.date_finalisation?new Date(r.date_finalisation+'T00:00:00').toLocaleDateString('fr-CA',{day:'2-digit',month:'short',year:'numeric'}):'—'}</td>
+      <td style="font-size:.78rem;color:var(--text-secondary)">${esc(r.commentaires||'—')}</td>
+    </tr>`;
+  }).join('');
 }
 
 function renderBrisCharts(){
@@ -640,6 +715,75 @@ async function exportPDF(){
       });
       y+=rH;
     });
+
+    // ── Historique du mois ──
+    const now2=new Date();
+    const firstDay2=now2.getFullYear()+'-'+String(now2.getMonth()+1).padStart(2,'0')+'-01';
+    let histData=[];
+    try{
+      const {data:hd}=await sb.from('bris').select('*').gte('date_jour',firstDay2).order('date_jour',{ascending:false}).order('created_at',{ascending:false});
+      histData=hd||[];
+    }catch(e){}
+
+    if(histData.length>0){
+      if(y>H-30){pdf.addPage();y=M;}
+      pdf.setDrawColor(...C.faint);pdf.setLineWidth(0.2);pdf.line(M,y,W-M,y);y+=6;
+      pdf.setFontSize(10);pdf.setFont('helvetica','bold');pdf.setTextColor(...C.black);
+      pdf.text('Historique du mois', M, y);y+=6;
+
+      const hFixedW=28+22+22+28+28+16+16+24;
+      const hItemW=W-2*M-hFixedW;
+      const hCols=[
+        {label:'Date',    w:28, key:'date'},
+        {label:'Item',    w:hItemW, key:'item'},
+        {label:'Qte',     w:22, key:'qte'},
+        {label:'Poids',   w:22, key:'poids'},
+        {label:'Cout $',  w:28, key:'cout'},
+        {label:'Total $', w:28, key:'total'},
+        {label:'Et.1',    w:16, key:'e1'},
+        {label:'Et.2',    w:16, key:'e2'},
+        {label:'Finalise',w:24, key:'findate'},
+        {label:'Commentaires', w:0, key:'comm'},
+      ];
+      // Colonne commentaires prend le reste
+      const hFixed2=hCols.filter(c=>c.w>0).reduce((s,c)=>s+c.w,0);
+      hCols.find(c=>c.key==='comm').w=W-2*M-hFixed2;
+
+      let hx=M;
+      pdf.setFillColor(245,245,248);pdf.rect(M,y,W-2*M,7,'F');
+      pdf.setFontSize(5.5);pdf.setFont('helvetica','bold');pdf.setTextColor(...C.copper);
+      hCols.forEach(c=>{pdf.text(c.label.toUpperCase(),hx+2,y+5);hx+=c.w;});y+=7;
+
+      histData.forEach((r,i)=>{
+        if(y>H-12){pdf.addPage();y=M;}
+        if(i%2===0){pdf.setFillColor(252,252,253);pdf.rect(M,y,W-2*M,6,'F');}
+        pdf.setDrawColor(220,222,228);pdf.setLineWidth(0.15);pdf.line(M,y+6,W-M,y+6);
+        hx=M;
+        const tot=parseFloat(r.cout||0)*parseFloat(r.quantite||1);
+        const hVals={
+          date:r.date_jour||'',
+          item:r.item||'',
+          qte:String(r.quantite||'—'),
+          poids:r.poids?r.poids+'kg':'—',
+          cout:r.cout?fmt(r.cout)+'$':'—',
+          total:fmt(tot)+'$',
+          e1:r.etape1?'Oui':'—',
+          e2:r.etape2?'Oui':'—',
+          findate:r.date_finalisation||'—',
+          comm:r.commentaires||'',
+        };
+        hCols.forEach(c=>{
+          pdf.setFontSize(6);pdf.setFont('helvetica','normal');pdf.setTextColor(40,42,55);
+          if(c.key==='cout'||c.key==='total'){pdf.setTextColor(...C.ruby);pdf.setFont('helvetica','bold');}
+          if(c.key==='date'){pdf.setTextColor(...C.copper);}
+          const maxW=c.w-3; let txt=hVals[c.key]||'—';
+          while(txt.length>1&&pdf.getTextWidth(txt)>maxW) txt=txt.slice(0,-1);
+          if(txt!==hVals[c.key]) txt+='…';
+          pdf.text(txt,hx+2,y+4.2); hx+=c.w;
+        });
+        y+=6;
+      });
+    }
 
     const pages=pdf.internal.getNumberOfPages();
     for(let i=1;i<=pages;i++){
