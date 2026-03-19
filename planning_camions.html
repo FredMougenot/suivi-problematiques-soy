@@ -1315,7 +1315,18 @@ function fchg(idx, field, val){
     if(val){
       const _saFP=_params['statut_arrivee']||[];
       const _saV1=_saFP[0]?.valeur||'';
-      if(_saV1) rows[idx].statut=_saV1;
+      if(_saV1){
+        rows[idx].statut=_saV1;
+        // Mettre à jour le select statut dans le DOM immédiatement
+        const tr=document.getElementById('tr'+idx);
+        if(tr){
+          const sel=tr.querySelector('select[data-cat="statut_arrivee"]');
+          if(sel){
+            sel.value=_saV1;
+            updStatut(sel);
+          }
+        }
+      }
     }
     saveRow(idx);
     // Recalculer et déplacer la classe row-awaited immédiatement
