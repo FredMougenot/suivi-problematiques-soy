@@ -854,9 +854,15 @@ function render(){
     _allIdx.forEach(i => {
       if(!rows[i]) rows[i]={slot_index:i};
       if(i === _idxDernierActif){
-        rows[i].destination = _BOBTAIL;
+        // Appliquer BOBTAIL seulement si pas encore sauvegardé en DB (pas d'id ou destination null)
+        if(!rows[i].id || rows[i].destination === null || rows[i].destination === undefined){
+          rows[i].destination = _BOBTAIL;
+        }
       } else {
-        if(rows[i].destination === _BOBTAIL) rows[i].destination = '';
+        // Vider si c'est encore la valeur par défaut et pas sauvegardée
+        if((!rows[i].id || rows[i].destination === null || rows[i].destination === undefined) && rows[i].destination === _BOBTAIL){
+          rows[i].destination = '';
+        }
       }
     });
   }
@@ -879,6 +885,10 @@ function render(){
       const dbSt=(rows[i]||{}).statut_ligne;
       const stEff=dbSt||(_rIsWkEnd&&_wkID.includes(i)?_rVInactifD:_rVActif);
       if(!_isActifOuNL(stEff, _rVActif, _rVInactifD)) return; // ignorer inactifs
+
+      // Ne pré-remplir description que si pas encore sauvegardée en DB
+      const hasSavedDesc = rows[i].id && rows[i].description !== null && rows[i].description !== undefined;
+      if(hasSavedDesc) return; // valeur saisie par l'utilisateur → ne pas écraser
 
       if(_rIsWkEnd){
         // ── Weekend : 1er actif → param #1, 2ème actif → param #4 ──
