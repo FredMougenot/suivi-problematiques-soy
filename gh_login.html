@@ -18,13 +18,12 @@ body{margin:0;background:#0A0B0F;display:flex;align-items:center;justify-content
   Connexion à GH Logistics…
 </div>
 <form id="f" method="POST" action="http://mail.ghlogistics.ca/ghe/st/login_netrack.asp" style="display:none">
-  <input name="login"     value="fredm">
-  <input name="passe"     value="fred">
   <input name="noclient"  value="soy">
-  <input name="connexion" value="LOGIN">
+  <input name="code"      value="fredm">
+  <input name="passe"     value="fred">
+  <input name="connexion" value="OK">
 </form>
 <script>
-  // Soumettre automatiquement dès le chargement
   window.addEventListener('load', function(){
     document.getElementById('f').submit();
   });
