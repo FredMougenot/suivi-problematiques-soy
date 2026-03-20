@@ -114,10 +114,6 @@
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--sapphire)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
       Inventaire GH Logistics
     </div>
-    <button onclick="openConfig()" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--copper)';this.style.color='var(--copper)'" onmouseout="this.style.borderColor='var(--text-faint)';this.style.color='var(--text-secondary)'">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      Identifiants
-    </button>
   </div>
 
   <!-- MAIN -->
@@ -220,24 +216,6 @@
   </div>
 </div>
 
-<!-- Config modal -->
-<div class="modal-overlay" id="modal-config" onclick="event.stopPropagation()">
-  <div class="modal-box" onclick="event.stopPropagation()">
-    <div class="mhd">Identifiants GH Logistics</div>
-    <div class="mbd">
-      <div class="fg"><label>Utilisateur (login)</label><input type="text" id="cfg-login" placeholder="ex: fredm"></div>
-      <div class="fg"><label>Mot de passe (passe)</label><input type="password" id="cfg-passe" placeholder="••••••••"></div>
-      <div class="fg"><label>No. client (noclient)</label><input type="text" id="cfg-noclient" placeholder="ex: 37009"></div>
-      <div class="fg"><label>Code (kcr0107)</label><input type="text" id="cfg-kcr" placeholder="ex: 509"></div>
-      <p style="font-size:.75rem;color:var(--text-muted);margin-top:4px;">Ces identifiants sont sauvegardés dans votre navigateur uniquement.</p>
-    </div>
-    <div class="mft">
-      <button class="btn-cancel" onclick="closeConfig()">Annuler</button>
-      <button class="btn-ok" onclick="saveConfig()">Sauvegarder</button>
-    </div>
-  </div>
-</div>
-
 <div class="toast-bar" id="toasts"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -247,9 +225,13 @@ const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 
 // GH portail constants
-const GH_LOGIN_URL  = 'http://mail.ghlogistics.ca/ghe/st/login_netrack.asp';
+const GH_LOGIN_URL   = 'http://mail.ghlogistics.ca/ghe/st/login_netrack.asp';
 const GH_DATA_PREFIX = 'http://mail.ghlogistics.ca/ghe/st/enconsultd.asp?id1=';
-const GH_DATA_SUFFIX = '&client=SOY&choix1=no_produit&critere=&kcr0107=KCRVAL&code=CODEVAL&entrepot=999&detaille=O';
+const GH_DATA_SUFFIX = '&client=SOY&choix1=no_produit&critere=&kcr0107=509&code=fredm&entrepot=999&detaille=O';
+// Credentials GH Logistics (identiques au code VBA)
+const GH_NOCLIENT = 'soy';
+const GH_LOGIN    = 'fredm';
+const GH_PASSE    = 'fred';
 
 let sb;
 let allInventory = [];  // raw rows
@@ -271,39 +253,7 @@ async function init(){
     const {data:{session}} = await sb.auth.getSession();
     if(!session){ window.location.href='index.html'; return; }
   }catch(e){}
-  loadConfig();
   await loadSession();
-}
-
-// ── CONFIG (localStorage) ──────────────────────────────────────────
-function loadConfig(){
-  const cfg = getConfig();
-  document.getElementById('cfg-login').value   = cfg.login   || '';
-  document.getElementById('cfg-passe').value   = cfg.passe   || '';
-  document.getElementById('cfg-noclient').value= cfg.noclient|| '';
-  document.getElementById('cfg-kcr').value     = cfg.kcr     || '509';
-}
-function getConfig(){
-  try{ return JSON.parse(localStorage.getItem('gh_config')||'{}'); }
-  catch(e){ return {}; }
-}
-function openConfig(){
-  loadConfig();
-  document.getElementById('modal-config').classList.add('open');
-}
-function closeConfig(){
-  document.getElementById('modal-config').classList.remove('open');
-}
-function saveConfig(){
-  const cfg = {
-    login:    document.getElementById('cfg-login').value.trim(),
-    passe:    document.getElementById('cfg-passe').value,
-    noclient: document.getElementById('cfg-noclient').value.trim(),
-    kcr:      document.getElementById('cfg-kcr').value.trim() || '509',
-  };
-  localStorage.setItem('gh_config', JSON.stringify(cfg));
-  closeConfig();
-  toast('Identifiants sauvegardés ✓', 'ok');
 }
 
 // ── SESSION (Supabase) ─────────────────────────────────────────────
@@ -341,20 +291,12 @@ function setConnected(ts){
 
 // ── CONNEXION ─────────────────────────────────────────────────────
 function connectGH(){
-  const cfg = getConfig();
-  if(!cfg.login || !cfg.passe || !cfg.noclient){
-    toast('Veuillez d\'abord configurer vos identifiants (bouton Identifiants)', 'err');
-    openConfig();
-    return;
-  }
-
-  // Build a self-submitting form page as a data URL and open it in a popup
-  // The form auto-submits to GH login, then we read the resulting URL
+  // Credentials en dur — identiques au code VBA Excel
   const formHtml = `<!DOCTYPE html><html><body>
     <form id="f" method="POST" action="${GH_LOGIN_URL}">
-      <input name="login"     value="${esc(cfg.login)}">
-      <input name="passe"     value="${esc(cfg.passe)}">
-      <input name="noclient"  value="${esc(cfg.noclient)}">
+      <input name="login"     value="${GH_LOGIN}">
+      <input name="passe"     value="${GH_PASSE}">
+      <input name="noclient"  value="${GH_NOCLIENT}">
       <input name="connexion" value="LOGIN">
     </form>
     <script>document.getElementById('f').submit();<\/script>
@@ -364,9 +306,8 @@ function connectGH(){
   if(!popup){ toast('Veuillez autoriser les popups pour ce site','err'); return; }
   popup.document.write(formHtml);
 
-  toast('Fenêtre de connexion ouverte… Attendez la redirection puis cliquez "Capturer la session"','info');
+  toast('Connexion en cours…','info');
 
-  // Poll the popup URL every 500ms to detect the session id1
   document.getElementById('btn-connect').disabled = true;
   document.getElementById('btn-connect').innerHTML = '<div class="sp-ring-sm"></div> Connexion en cours…';
 
@@ -375,7 +316,6 @@ function connectGH(){
     attempts++;
     try{
       const url = popup.location.href;
-      // Extract id1 from URL like: ...menu.asp?id1=37009&...
       const m = url.match(/[?&]id1=(\d+)/);
       if(m){
         clearInterval(poll);
@@ -385,14 +325,14 @@ function connectGH(){
         return;
       }
     }catch(e){
-      // Cross-origin — page not yet loaded or still on login page — normal, keep polling
+      // Cross-origin — normal pendant la redirection, on continue
     }
     if(popup.closed){
       clearInterval(poll);
       resetConnectBtn();
       toast('Fenêtre fermée sans détecter de session. Réessayez.','err');
     }
-    if(attempts > 60){ // 30 seconds timeout
+    if(attempts > 60){
       clearInterval(poll);
       resetConnectBtn();
       if(!popup.closed) popup.close();
@@ -412,13 +352,9 @@ function esc(s){ return String(s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;
 // ── LOAD INVENTORY ────────────────────────────────────────────────
 async function loadInventory(){
   if(!sessionId1){ toast('Connectez-vous d\'abord','err'); return; }
-  const cfg = getConfig();
 
-  // Build URL
-  const suffix = GH_DATA_SUFFIX
-    .replace('KCRVAL', encodeURIComponent(cfg.kcr||'509'))
-    .replace('CODEVAL', encodeURIComponent(cfg.login||'fredm'));
-  const url = GH_DATA_PREFIX + sessionId1 + suffix;
+  // URL complète avec le id1 de session + paramètres SOY
+  const url = GH_DATA_PREFIX + sessionId1 + GH_DATA_SUFFIX;
 
   document.getElementById('inv-spinner').style.display='block';
   document.getElementById('inv-empty').style.display='none';
