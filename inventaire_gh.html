@@ -271,7 +271,8 @@ async function loadSession(){
 async function saveSession(id1){
   try{
     // Upsert single row
-    const {data:existing} = await sb.from('gh_session').select('id').limit(1).single().catch(()=>({data:null}));
+    let existing = null;
+    try { const r = await sb.from('gh_session').select('id').limit(1).single(); existing = r.data; } catch(e) {}
     if(existing?.id){
       await sb.from('gh_session').update({id1, updated_at: new Date().toISOString()}).eq('id', existing.id);
     } else {
