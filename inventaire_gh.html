@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Inventaire GH — SOY</title>
+<link rel="stylesheet" href="soy-shared.css">
+<style>
+/* ── Layout ── */
+.gh-layout{display:grid;grid-template-columns:1fr 420px;gap:16px;align-items:start;}
+@media(max-width:1100px){.gh-layout{grid-template-columns:1fr;}}
+
+/* ── Status bar ── */
+.gh-status{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+.gh-dot{width:10px;height:10px;border-radius:50%;background:var(--text-faint);flex-shrink:0;transition:background .3s;}
+.gh-dot.connected{background:var(--emerald);box-shadow:0 0 6px rgba(45,212,160,.5);}
+.gh-dot.error{background:var(--ruby);}
+.gh-status-text{font-size:.82rem;color:var(--text-muted);font-weight:600;}
+.gh-timestamp{font-size:.74rem;color:var(--text-faint);}
+
+/* ── Buttons ── */
+.btn-connect{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);background:linear-gradient(135deg,var(--sapphire),#1a6bff);color:#fff;font-size:.84rem;font-weight:700;border:none;cursor:pointer;transition:opacity .15s;white-space:nowrap;}
+.btn-connect:hover{opacity:.88;}
+.btn-connect:disabled{opacity:.4;cursor:default;}
+.btn-refresh{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid rgba(45,212,160,.3);color:var(--emerald);font-size:.84rem;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn-refresh:hover{background:rgba(45,212,160,.08);}
+.btn-refresh:disabled{opacity:.4;cursor:default;}
+
+/* ── Search bar ── */
+.gh-search-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.gh-search{flex:1;min-width:200px;padding:8px 12px 8px 34px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);font-size:.84rem;color:var(--text-primary);font-family:'Outfit',sans-serif;outline:none;transition:border-color .15s;position:relative;}
+.gh-search:focus{border-color:var(--copper);}
+.search-wrap{position:relative;flex:1;min-width:200px;}
+.search-wrap::before{content:'⌕';position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:.9rem;pointer-events:none;}
+.fsel-sm{padding:7px 12px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);color:var(--text-secondary);font-size:.8rem;cursor:pointer;font-family:'Outfit',sans-serif;outline:none;}
+
+/* ── Inventory table ── */
+.inv-tbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;position:relative;}
+.inv-tbl-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--sapphire),transparent);pointer-events:none;}
+.inv-tbl{width:100%;border-collapse:collapse;min-width:1100px;}
+.inv-tbl thead tr{background:var(--bg-float);border-bottom:1px solid var(--text-faint);}
+.inv-tbl thead th{padding:10px 11px;font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);white-space:nowrap;text-align:left;}
+.inv-tbl tbody tr{border-bottom:1px solid rgba(44,51,80,.4);transition:background .1s;cursor:pointer;}
+.inv-tbl tbody tr:hover{background:rgba(74,158,232,.06);}
+.inv-tbl tbody tr.selected{background:rgba(74,158,232,.12);border-left:3px solid var(--sapphire);}
+.inv-tbl tbody td{padding:7px 11px;font-size:.78rem;color:var(--text-secondary);white-space:nowrap;}
+.inv-tbl tbody td:first-child{color:var(--sapphire);font-weight:700;font-size:.74rem;}
+.inv-tbl tbody tr:last-child{border-bottom:none;}
+.count-badge{font-size:.72rem;color:var(--text-muted);font-weight:600;padding:4px 10px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:20px;}
+
+/* ── Commande panel ── */
+.cmd-panel{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);position:sticky;top:16px;overflow:hidden;}
+.cmd-panel::before{content:'';display:block;height:2px;background:linear-gradient(90deg,transparent,var(--copper),transparent);}
+.cmd-header{padding:14px 16px;border-bottom:1px solid var(--text-faint);display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.cmd-title{font-size:.72rem;font-weight:800;color:var(--copper);letter-spacing:.15em;text-transform:uppercase;}
+.cmd-clear{background:none;border:none;color:var(--ruby);font-size:.74rem;cursor:pointer;font-weight:600;padding:4px 8px;border-radius:var(--r-sm);transition:background .15s;}
+.cmd-clear:hover{background:rgba(224,85,85,.1);}
+.cmd-body{max-height:420px;overflow-y:auto;}
+.cmd-empty{padding:32px 16px;text-align:center;color:var(--text-muted);font-size:.82rem;}
+.cmd-row{display:grid;grid-template-columns:1fr auto;gap:8px;padding:10px 14px;border-bottom:1px solid rgba(44,51,80,.4);align-items:start;}
+.cmd-row:last-child{border-bottom:none;}
+.cmd-item-code{font-size:.72rem;color:var(--sapphire);font-weight:700;}
+.cmd-item-desc{font-size:.78rem;color:var(--text-primary);font-weight:500;line-height:1.3;}
+.cmd-item-meta{font-size:.7rem;color:var(--text-muted);margin-top:2px;}
+.cmd-rm{background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:.9rem;padding:2px 6px;border-radius:4px;transition:all .15s;flex-shrink:0;}
+.cmd-rm:hover{color:var(--ruby);background:rgba(224,85,85,.1);}
+.cmd-footer{padding:14px 16px;border-top:1px solid var(--text-faint);background:var(--bg-float);}
+.cmd-total{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.cmd-total-lbl{font-size:.72rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.1em;}
+.cmd-total-val{font-size:1.1rem;font-weight:700;color:var(--copper);}
+.cmd-actions{display:flex;gap:8px;}
+.btn-export{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;border-radius:var(--r-md);background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;font-size:.82rem;font-weight:800;border:none;cursor:pointer;transition:opacity .15s;}
+.btn-export:hover{opacity:.88;}
+.btn-export:disabled{opacity:.4;cursor:default;}
+
+/* ── Spinner ── */
+.spinner-sm{display:inline-flex;align-items:center;gap:8px;color:var(--text-muted);font-size:.82rem;}
+.sp-ring-sm{width:16px;height:16px;border:2px solid var(--text-faint);border-top-color:var(--sapphire);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Toast ── */
+.toast-bar{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px;}
+.toast{padding:10px 16px;border-radius:var(--r-md);font-size:.82rem;font-weight:600;border:1px solid;animation:tin .2s;max-width:320px;}
+.toast.ok{background:rgba(45,212,160,.12);color:var(--emerald);border-color:rgba(45,212,160,.3);}
+.toast.err{background:rgba(224,85,85,.12);color:var(--ruby);border-color:rgba(224,85,85,.3);}
+.toast.info{background:rgba(74,158,232,.12);color:var(--sapphire);border-color:rgba(74,158,232,.3);}
+@keyframes tin{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+
+/* ── Session config modal ── */
+.modal-overlay{position:fixed;inset:0;z-index:900;background:rgba(7,8,12,.82);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:24px;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-xl);width:100%;max-width:480px;overflow:hidden;}
+.modal-box .mhd{padding:20px 24px 0;font-size:1.1rem;font-weight:700;color:var(--text-primary);}
+.modal-box .mbd{padding:20px 24px;}
+.modal-box .mft{padding:12px 24px 20px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--text-faint);}
+.fg label{display:block;font-size:.72rem;font-weight:700;color:var(--copper);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;}
+.fg input{width:100%;padding:9px 12px;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);color:var(--text-primary);font-size:.86rem;font-family:'Outfit',sans-serif;outline:none;transition:border-color .15s;}
+.fg input:focus{border-color:var(--copper);}
+.fg{margin-bottom:14px;}
+.btn-cancel{padding:9px 18px;border-radius:var(--r-md);background:transparent;border:1px solid var(--text-faint);color:var(--text-secondary);font-size:.84rem;cursor:pointer;}
+.btn-ok{padding:9px 22px;border-radius:var(--r-md);background:var(--sapphire);border:none;color:#fff;font-size:.84rem;font-weight:700;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+
+  <!-- TOPBAR -->
+  <div class="tool-topbar">
+    <a class="tool-back" href="index.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Retour
+    </a>
+    <div class="tool-title">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--sapphire)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      Inventaire GH Logistics
+    </div>
+    <button onclick="openConfig()" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-secondary);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--copper)';this.style.color='var(--copper)'" onmouseout="this.style.borderColor='var(--text-faint)';this.style.color='var(--text-secondary)'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Identifiants
+    </button>
+  </div>
+
+  <!-- MAIN -->
+  <div class="tool-main">
+
+    <!-- Status + Actions -->
+    <div class="gh-status">
+      <div class="gh-dot" id="gh-dot"></div>
+      <span class="gh-status-text" id="gh-status-text">Non connecté</span>
+      <span class="gh-timestamp" id="gh-timestamp"></span>
+      <button class="btn-connect" id="btn-connect" onclick="connectGH()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Se connecter à GH
+      </button>
+      <button class="btn-refresh" id="btn-refresh" onclick="loadInventory()" disabled>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Rafraîchir l'inventaire
+      </button>
+      <span class="count-badge" id="inv-count" style="display:none"></span>
+    </div>
+
+    <div class="gh-layout">
+      <!-- LEFT — Inventory -->
+      <div>
+        <!-- Search -->
+        <div class="gh-search-bar">
+          <div class="search-wrap" style="flex:2">
+            <input type="text" class="gh-search" id="gh-search" placeholder="Rechercher par code, description, lot…" oninput="filterInventory()">
+          </div>
+          <select class="fsel-sm" id="filter-type" onchange="filterInventory()">
+            <option value="">Tous les types</option>
+          </select>
+          <select class="fsel-sm" id="filter-fourn" onchange="filterInventory()">
+            <option value="">Tous les fournisseurs</option>
+          </select>
+        </div>
+
+        <!-- Table -->
+        <div class="inv-tbl-wrap">
+          <div id="inv-spinner" style="display:none;padding:40px;text-align:center;">
+            <span class="spinner-sm"><div class="sp-ring-sm"></div> Chargement de l'inventaire…</span>
+          </div>
+          <div id="inv-empty" style="padding:40px;text-align:center;color:var(--text-muted);font-size:.84rem;">
+            Connectez-vous à GH pour charger l'inventaire.
+          </div>
+          <table class="inv-tbl" id="inv-tbl" style="display:none">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Code TRAX</th>
+                <th>Description</th>
+                <th>No. lot</th>
+                <th>Qté Inv</th>
+                <th>Poids unit.</th>
+                <th>Poids total</th>
+                <th>No. palette</th>
+                <th>Date lot</th>
+                <th>Expiration</th>
+                <th>No. comm.</th>
+                <th>Réception</th>
+                <th>Type</th>
+                <th>Fournisseur</th>
+                <th>Localisation</th>
+              </tr>
+            </thead>
+            <tbody id="inv-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RIGHT — Commande panel -->
+      <div class="cmd-panel">
+        <div class="cmd-header">
+          <span class="cmd-title">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--copper)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            Commande camion
+          </span>
+          <button class="cmd-clear" onclick="clearCommande()">Effacer tout</button>
+        </div>
+        <div class="cmd-body" id="cmd-body">
+          <div class="cmd-empty" id="cmd-empty">
+            Cliquez sur une ligne de l'inventaire pour l'ajouter à la commande.
+          </div>
+        </div>
+        <div class="cmd-footer">
+          <div class="cmd-total">
+            <span class="cmd-total-lbl">Poids total camion</span>
+            <span class="cmd-total-val" id="cmd-total">0 kg</span>
+          </div>
+          <div class="cmd-actions">
+            <button class="btn-export" id="btn-export" onclick="exportPDF()" disabled>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              Exporter PDF
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Config modal -->
+<div class="modal-overlay" id="modal-config" onclick="event.stopPropagation()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="mhd">Identifiants GH Logistics</div>
+    <div class="mbd">
+      <div class="fg"><label>Utilisateur (login)</label><input type="text" id="cfg-login" placeholder="ex: fredm"></div>
+      <div class="fg"><label>Mot de passe (passe)</label><input type="password" id="cfg-passe" placeholder="••••••••"></div>
+      <div class="fg"><label>No. client (noclient)</label><input type="text" id="cfg-noclient" placeholder="ex: 37009"></div>
+      <div class="fg"><label>Code (kcr0107)</label><input type="text" id="cfg-kcr" placeholder="ex: 509"></div>
+      <p style="font-size:.75rem;color:var(--text-muted);margin-top:4px;">Ces identifiants sont sauvegardés dans votre navigateur uniquement.</p>
+    </div>
+    <div class="mft">
+      <button class="btn-cancel" onclick="closeConfig()">Annuler</button>
+      <button class="btn-ok" onclick="saveConfig()">Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-bar" id="toasts"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+
+// GH portail constants
+const GH_LOGIN_URL  = 'http://mail.ghlogistics.ca/ghe/st/login_netrack.asp';
+const GH_DATA_PREFIX = 'http://mail.ghlogistics.ca/ghe/st/enconsultd.asp?id1=';
+const GH_DATA_SUFFIX = '&client=SOY&choix1=no_produit&critere=&kcr0107=KCRVAL&code=CODEVAL&entrepot=999&detaille=O';
+
+let sb;
+let allInventory = [];  // raw rows
+let filtered     = [];  // after search/filter
+let commande     = [];  // selected items
+let sessionId1   = null;
+
+// ── INIT ──────────────────────────────────────────────────────────
+function waitSB(){
+  if(typeof supabase !== 'undefined' && supabase.createClient){
+    sb = supabase.createClient(SB_URL, SB_KEY);
+    init();
+  } else { setTimeout(waitSB, 50); }
+}
+window.addEventListener('load', waitSB);
+
+async function init(){
+  try{
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session){ window.location.href='index.html'; return; }
+  }catch(e){}
+  loadConfig();
+  await loadSession();
+}
+
+// ── CONFIG (localStorage) ──────────────────────────────────────────
+function loadConfig(){
+  const cfg = getConfig();
+  document.getElementById('cfg-login').value   = cfg.login   || '';
+  document.getElementById('cfg-passe').value   = cfg.passe   || '';
+  document.getElementById('cfg-noclient').value= cfg.noclient|| '';
+  document.getElementById('cfg-kcr').value     = cfg.kcr     || '509';
+}
+function getConfig(){
+  try{ return JSON.parse(localStorage.getItem('gh_config')||'{}'); }
+  catch(e){ return {}; }
+}
+function openConfig(){
+  loadConfig();
+  document.getElementById('modal-config').classList.add('open');
+}
+function closeConfig(){
+  document.getElementById('modal-config').classList.remove('open');
+}
+function saveConfig(){
+  const cfg = {
+    login:    document.getElementById('cfg-login').value.trim(),
+    passe:    document.getElementById('cfg-passe').value,
+    noclient: document.getElementById('cfg-noclient').value.trim(),
+    kcr:      document.getElementById('cfg-kcr').value.trim() || '509',
+  };
+  localStorage.setItem('gh_config', JSON.stringify(cfg));
+  closeConfig();
+  toast('Identifiants sauvegardés ✓', 'ok');
+}
+
+// ── SESSION (Supabase) ─────────────────────────────────────────────
+async function loadSession(){
+  try{
+    const {data} = await sb.from('gh_session').select('*').order('updated_at',{ascending:false}).limit(1).single();
+    if(data){
+      sessionId1 = data.id1;
+      setConnected(data.updated_at);
+    }
+  }catch(e){ /* no session yet */ }
+}
+
+async function saveSession(id1){
+  try{
+    // Upsert single row
+    const {data:existing} = await sb.from('gh_session').select('id').limit(1).single().catch(()=>({data:null}));
+    if(existing?.id){
+      await sb.from('gh_session').update({id1, updated_at: new Date().toISOString()}).eq('id', existing.id);
+    } else {
+      await sb.from('gh_session').insert({id1, updated_at: new Date().toISOString()});
+    }
+    sessionId1 = id1;
+    setConnected(new Date().toISOString());
+    toast('Session connectée — id1: '+id1, 'ok');
+  }catch(e){ toast('Erreur sauvegarde session: '+e.message,'err'); }
+}
+
+function setConnected(ts){
+  document.getElementById('gh-dot').className = 'gh-dot connected';
+  document.getElementById('gh-status-text').textContent = 'Connecté à GH Logistics';
+  document.getElementById('gh-timestamp').textContent = 'Dernière connexion : ' + new Date(ts).toLocaleString('fr-CA');
+  document.getElementById('btn-refresh').disabled = false;
+}
+
+// ── CONNEXION ─────────────────────────────────────────────────────
+function connectGH(){
+  const cfg = getConfig();
+  if(!cfg.login || !cfg.passe || !cfg.noclient){
+    toast('Veuillez d\'abord configurer vos identifiants (bouton Identifiants)', 'err');
+    openConfig();
+    return;
+  }
+
+  // Build a self-submitting form page as a data URL and open it in a popup
+  // The form auto-submits to GH login, then we read the resulting URL
+  const formHtml = `<!DOCTYPE html><html><body>
+    <form id="f" method="POST" action="${GH_LOGIN_URL}">
+      <input name="login"     value="${esc(cfg.login)}">
+      <input name="passe"     value="${esc(cfg.passe)}">
+      <input name="noclient"  value="${esc(cfg.noclient)}">
+      <input name="connexion" value="LOGIN">
+    </form>
+    <script>document.getElementById('f').submit();<\/script>
+  </body></html>`;
+
+  const popup = window.open('', 'gh_login', 'width=900,height=700,scrollbars=yes');
+  if(!popup){ toast('Veuillez autoriser les popups pour ce site','err'); return; }
+  popup.document.write(formHtml);
+
+  toast('Fenêtre de connexion ouverte… Attendez la redirection puis cliquez "Capturer la session"','info');
+
+  // Poll the popup URL every 500ms to detect the session id1
+  document.getElementById('btn-connect').disabled = true;
+  document.getElementById('btn-connect').innerHTML = '<div class="sp-ring-sm"></div> Connexion en cours…';
+
+  let attempts = 0;
+  const poll = setInterval(()=>{
+    attempts++;
+    try{
+      const url = popup.location.href;
+      // Extract id1 from URL like: ...menu.asp?id1=37009&...
+      const m = url.match(/[?&]id1=(\d+)/);
+      if(m){
+        clearInterval(poll);
+        popup.close();
+        saveSession(m[1]);
+        resetConnectBtn();
+        return;
+      }
+    }catch(e){
+      // Cross-origin — page not yet loaded or still on login page — normal, keep polling
+    }
+    if(popup.closed){
+      clearInterval(poll);
+      resetConnectBtn();
+      toast('Fenêtre fermée sans détecter de session. Réessayez.','err');
+    }
+    if(attempts > 60){ // 30 seconds timeout
+      clearInterval(poll);
+      resetConnectBtn();
+      if(!popup.closed) popup.close();
+      toast('Délai dépassé — connexion non détectée','err');
+    }
+  }, 500);
+}
+
+function resetConnectBtn(){
+  const btn = document.getElementById('btn-connect');
+  btn.disabled = false;
+  btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Se connecter à GH`;
+}
+
+function esc(s){ return String(s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+// ── LOAD INVENTORY ────────────────────────────────────────────────
+async function loadInventory(){
+  if(!sessionId1){ toast('Connectez-vous d\'abord','err'); return; }
+  const cfg = getConfig();
+
+  // Build URL
+  const suffix = GH_DATA_SUFFIX
+    .replace('KCRVAL', encodeURIComponent(cfg.kcr||'509'))
+    .replace('CODEVAL', encodeURIComponent(cfg.login||'fredm'));
+  const url = GH_DATA_PREFIX + sessionId1 + suffix;
+
+  document.getElementById('inv-spinner').style.display='block';
+  document.getElementById('inv-empty').style.display='none';
+  document.getElementById('inv-tbl').style.display='none';
+  document.getElementById('btn-refresh').disabled=true;
+
+  try{
+    // Fetch via proxy approach — open in hidden iframe or direct fetch
+    const resp = await fetch(url, {mode:'cors'});
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    const html = await resp.text();
+    parseInventory(html);
+  }catch(e){
+    // CORS blocked — fallback: open in popup and ask user to wait
+    document.getElementById('inv-spinner').style.display='none';
+    document.getElementById('inv-empty').style.display='block';
+    document.getElementById('inv-empty').innerHTML = `
+      <div style="margin-bottom:12px;color:var(--amber);font-weight:600;">⚠ Accès direct bloqué (CORS)</div>
+      <div style="margin-bottom:16px;font-size:.8rem;">Le navigateur bloque la requête directe vers GH. 
+      Cliquez ci-dessous pour ouvrir l'inventaire dans une fenêtre séparée — 
+      copiez ensuite le contenu HTML et collez-le ci-dessous.</div>
+      <button onclick="openInventoryPopup('${url}')" style="padding:8px 16px;background:var(--sapphire);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:600;margin-bottom:12px;">
+        Ouvrir l'inventaire GH →
+      </button>
+      <br><textarea id="html-paste" placeholder="Collez le HTML ici si nécessaire…" 
+        style="width:100%;height:80px;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:8px;padding:8px;color:var(--text-primary);font-size:.76rem;margin-top:8px;font-family:monospace;"></textarea>
+      <br><button onclick="parseFromPaste()" style="padding:7px 14px;background:var(--emerald-bg);border:1px solid rgba(45,212,160,.3);color:var(--emerald);border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:600;margin-top:6px;">Analyser le HTML collé</button>
+    `;
+    toast('CORS bloqué — voir instructions dans le tableau','info');
+  }
+  document.getElementById('btn-refresh').disabled=false;
+}
+
+function openInventoryPopup(url){
+  window.open(url, 'gh_inventory', 'width=1100,height=700,scrollbars=yes');
+}
+
+function parseFromPaste(){
+  const html = document.getElementById('html-paste')?.value;
+  if(!html){ toast('Collez le HTML d\'abord','err'); return; }
+  parseInventory(html);
+}
+
+// ── PARSE HTML TABLE ──────────────────────────────────────────────
+function parseInventory(html){
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const tables = doc.querySelectorAll('table');
+
+  let dataTable = null;
+  for(const t of tables){
+    const rows = t.querySelectorAll('tr');
+    if(rows.length > 5){
+      const headers = [...rows[0].querySelectorAll('th,td')].map(c=>c.textContent.trim().toLowerCase());
+      if(headers.some(h=>h.includes('code') || h.includes('lot') || h.includes('qté') || h.includes('qty'))){
+        dataTable = t; break;
+      }
+    }
+  }
+
+  if(!dataTable){
+    // Try any table with enough rows
+    for(const t of tables){
+      if(t.querySelectorAll('tr').length > 10){ dataTable = t; break; }
+    }
+  }
+
+  if(!dataTable){
+    document.getElementById('inv-spinner').style.display='none';
+    document.getElementById('inv-empty').style.display='block';
+    document.getElementById('inv-empty').textContent = 'Impossible de trouver le tableau d\'inventaire dans la réponse.';
+    toast('Tableau non trouvé dans la réponse HTML','err');
+    return;
+  }
+
+  const rows = [...dataTable.querySelectorAll('tr')];
+  allInventory = [];
+
+  // Detect header row
+  let headerIdx = 0;
+  const headers = [...rows[headerIdx].querySelectorAll('th,td')].map(c=>c.textContent.trim());
+
+  for(let i=headerIdx+1; i<rows.length; i++){
+    const cells = [...rows[i].querySelectorAll('td')];
+    if(cells.length < 3) continue;
+    const vals = cells.map(c=>c.textContent.trim());
+    // Map to our structure — GH table columns based on known structure
+    // CODE, DESCRIPTION, No.lot, Qté, Poids unit, Poids total, No.PAL, Date lot, Expiration, No.comm, Réception, TYPE, FOURNISSEUR, LOCALISATION
+    allInventory.push({
+      code:       vals[0]||'',
+      code_trax:  vals[1]||'',
+      description:vals[2]||'',
+      no_lot:     vals[3]||'',
+      qte:        vals[4]||'',
+      poids_unit: vals[5]||'',
+      poids_total:vals[6]||'',
+      no_pal:     vals[7]||'',
+      date_lot:   vals[8]||'',
+      expiration: vals[9]||'',
+      no_comm:    vals[10]||'',
+      reception:  vals[11]||'',
+      type:       vals[12]||'',
+      fournisseur:vals[13]||'',
+      localisation:vals[14]||'',
+      _raw: vals,
+    });
+  }
+
+  document.getElementById('inv-spinner').style.display='none';
+
+  if(allInventory.length === 0){
+    document.getElementById('inv-empty').style.display='block';
+    document.getElementById('inv-empty').textContent = 'Aucune donnée trouvée.';
+    return;
+  }
+
+  // Populate filters
+  const types = [...new Set(allInventory.map(r=>r.type).filter(Boolean))].sort();
+  const fourns = [...new Set(allInventory.map(r=>r.fournisseur).filter(Boolean))].sort();
+  const tSel = document.getElementById('filter-type');
+  const fSel = document.getElementById('filter-fourn');
+  tSel.innerHTML = '<option value="">Tous les types</option>' + types.map(t=>`<option value="${esc(t)}">${t}</option>`).join('');
+  fSel.innerHTML = '<option value="">Tous les fournisseurs</option>' + fourns.map(f=>`<option value="${esc(f)}">${f}</option>`).join('');
+
+  filterInventory();
+  const c = document.getElementById('inv-count');
+  c.textContent = allInventory.length + ' items';
+  c.style.display = 'block';
+  toast(allInventory.length + ' items chargés ✓', 'ok');
+}
+
+// ── FILTER & RENDER ───────────────────────────────────────────────
+function filterInventory(){
+  const q = document.getElementById('gh-search').value.toLowerCase().trim();
+  const type = document.getElementById('filter-type').value;
+  const fourn = document.getElementById('filter-fourn').value;
+
+  filtered = allInventory.filter(r=>{
+    if(type && r.type !== type) return false;
+    if(fourn && r.fournisseur !== fourn) return false;
+    if(q && !`${r.code} ${r.description} ${r.no_lot} ${r.fournisseur}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  renderTable();
+  document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
+}
+
+function renderTable(){
+  const tbody = document.getElementById('inv-tbody');
+  if(filtered.length === 0){
+    document.getElementById('inv-tbl').style.display='none';
+    document.getElementById('inv-empty').style.display='block';
+    document.getElementById('inv-empty').textContent = 'Aucun item correspondant.';
+    return;
+  }
+  document.getElementById('inv-empty').style.display='none';
+  document.getElementById('inv-tbl').style.display='table';
+
+  const selectedKeys = new Set(commande.map(c=>c._key));
+
+  tbody.innerHTML = filtered.map((r,i)=>{
+    const key = r.no_pal || r.no_lot || r.code+i;
+    const sel = selectedKeys.has(key) ? 'selected' : '';
+    return `<tr class="${sel}" onclick="toggleItem(${i}, '${escAttr(key)}')">
+      <td>${escH(r.code)}</td>
+      <td style="font-size:.72rem">${escH(r.code_trax)}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;color:var(--text-primary);font-weight:500">${escH(r.description)}</td>
+      <td>${escH(r.no_lot)}</td>
+      <td style="text-align:right;color:var(--emerald);font-weight:700">${escH(r.qte)}</td>
+      <td style="text-align:right">${escH(r.poids_unit)}</td>
+      <td style="text-align:right;color:var(--amber);font-weight:700">${escH(r.poids_total)}</td>
+      <td style="font-size:.72rem">${escH(r.no_pal)}</td>
+      <td style="font-size:.72rem">${escH(r.date_lot)}</td>
+      <td style="font-size:.72rem;color:${isExpired(r.expiration)?'var(--ruby)':'inherit'}">${escH(r.expiration)}</td>
+      <td style="font-size:.72rem">${escH(r.no_comm)}</td>
+      <td style="font-size:.72rem">${escH(r.reception)}</td>
+      <td><span style="font-size:.68rem;padding:2px 7px;border-radius:10px;background:rgba(74,158,232,.1);color:var(--sapphire)">${escH(r.type)}</span></td>
+      <td style="font-size:.72rem">${escH(r.fournisseur)}</td>
+      <td style="font-size:.72rem">${escH(r.localisation)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function isExpired(dateStr){
+  if(!dateStr) return false;
+  try{
+    const d = new Date(dateStr);
+    return d < new Date();
+  }catch(e){ return false; }
+}
+
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s){ return String(s||'').replace(/'/g,"\\'"); }
+
+// ── COMMANDE ──────────────────────────────────────────────────────
+function toggleItem(filteredIdx, key){
+  const item = filtered[filteredIdx];
+  if(!item) return;
+  const existIdx = commande.findIndex(c=>c._key===key);
+  if(existIdx >= 0){
+    commande.splice(existIdx, 1);
+  } else {
+    commande.push({...item, _key: key});
+  }
+  renderTable();
+  renderCommande();
+}
+
+function removeFromCommande(key){
+  commande = commande.filter(c=>c._key!==key);
+  renderTable();
+  renderCommande();
+}
+
+function clearCommande(){
+  commande = [];
+  renderTable();
+  renderCommande();
+}
+
+function renderCommande(){
+  const body = document.getElementById('cmd-body');
+  const empty = document.getElementById('cmd-empty');
+  const btnExport = document.getElementById('btn-export');
+
+  if(commande.length === 0){
+    if(!empty){ body.innerHTML='<div class="cmd-empty" id="cmd-empty">Cliquez sur une ligne de l\'inventaire pour l\'ajouter à la commande.</div>'; }
+    else empty.style.display='block';
+    body.querySelectorAll('.cmd-row').forEach(r=>r.remove());
+    document.getElementById('cmd-total').textContent = '0 kg';
+    btnExport.disabled = true;
+    return;
+  }
+
+  if(empty) empty.style.display='none';
+  btnExport.disabled = false;
+
+  body.innerHTML = commande.map(item=>`
+    <div class="cmd-row">
+      <div>
+        <div class="cmd-item-code">${escH(item.code)} ${item.no_pal?`<span style="color:var(--text-muted);font-weight:400">| Pal. ${escH(item.no_pal)}</span>`:''}
+        </div>
+        <div class="cmd-item-desc">${escH(item.description)}</div>
+        <div class="cmd-item-meta">Lot: ${escH(item.no_lot)||'—'} · Qté: ${escH(item.qte)} · ${escH(item.poids_total)||'—'} kg</div>
+      </div>
+      <button class="cmd-rm" onclick="removeFromCommande('${escAttr(item._key)}')" title="Retirer">✕</button>
+    </div>
+  `).join('');
+
+  // Total weight
+  let total = 0;
+  commande.forEach(item=>{
+    const p = parseFloat(item.poids_total) || parseFloat((parseFloat(item.poids_unit)||0) * (parseFloat(item.qte)||0));
+    if(!isNaN(p)) total += p;
+  });
+  document.getElementById('cmd-total').textContent = total.toLocaleString('fr-CA',{maximumFractionDigits:1}) + ' kg';
+}
+
+// ── EXPORT PDF ────────────────────────────────────────────────────
+async function exportPDF(){
+  if(commande.length === 0){ toast('Aucun item dans la commande','err'); return; }
+  try{
+    const {jsPDF} = window.jspdf;
+    const pdf = new jsPDF({orientation:'landscape', unit:'mm', format:'a4'});
+    const W=pdf.internal.pageSize.getWidth(), H=pdf.internal.pageSize.getHeight(), M=10;
+    let y=M;
+    const C={copper:[200,132,58],black:[10,11,13],grey:[107,114,128],
+              sapphire:[74,158,232],emerald:[45,212,160],amber:[232,164,58],faint:[44,51,80]};
+
+    // Header
+    pdf.setFillColor(...C.sapphire); pdf.rect(0,0,W,1.5,'F');
+    pdf.setFontSize(16); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.black);
+    pdf.text('Bon de Commande — GH Logistics', M, y+8);
+    pdf.setFontSize(9); pdf.setFont('helvetica','normal'); pdf.setTextColor(...C.grey);
+    pdf.text('SOY  ·  Généré le '+new Date().toLocaleString('fr-CA'), W-M, y+8, {align:'right'});
+    y+=14;
+    pdf.setDrawColor(...C.faint); pdf.setLineWidth(0.2); pdf.line(M,y,W-M,y); y+=5;
+
+    // Summary
+    let total=0;
+    commande.forEach(item=>{
+      const p=parseFloat(item.poids_total)||parseFloat((parseFloat(item.poids_unit)||0)*(parseFloat(item.qte)||0));
+      if(!isNaN(p)) total+=p;
+    });
+    pdf.setFontSize(9); pdf.setFont('helvetica','bold');
+    pdf.setTextColor(...C.sapphire); pdf.text(commande.length+' palettes / items', M, y+5);
+    pdf.setTextColor(...C.amber); pdf.text('Poids total : '+total.toLocaleString('fr-CA',{maximumFractionDigits:1})+' kg', M+70, y+5);
+    y+=12;
+
+    // Table
+    const cols=[
+      {label:'No. Palette', w:28, key:'no_pal'},
+      {label:'Code',        w:24, key:'code'},
+      {label:'Description', w:0,  key:'description'},
+      {label:'No. lot',     w:24, key:'no_lot'},
+      {label:'Qté',         w:16, key:'qte'},
+      {label:'Poids unit.', w:22, key:'poids_unit'},
+      {label:'Poids total', w:22, key:'poids_total'},
+      {label:'Expiration',  w:22, key:'expiration'},
+    ];
+    const fixedW = cols.filter(c=>c.w>0).reduce((s,c)=>s+c.w,0);
+    cols.find(c=>c.key==='description').w = W-2*M-fixedW;
+
+    const hH=7, rH=6.5;
+    let x=M;
+    pdf.setFillColor(245,245,248); pdf.rect(M,y,W-2*M,hH,'F');
+    pdf.setFontSize(6); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.sapphire);
+    cols.forEach(c=>{ pdf.text(c.label.toUpperCase(), x+2, y+5); x+=c.w; }); y+=hH;
+
+    commande.forEach((item,i)=>{
+      if(y>H-12){ pdf.addPage(); y=M; }
+      if(i%2===0){ pdf.setFillColor(252,252,253); pdf.rect(M,y,W-2*M,rH,'F'); }
+      pdf.setDrawColor(220,222,228); pdf.setLineWidth(0.15); pdf.line(M,y+rH,W-M,y+rH);
+      x=M;
+      cols.forEach(c=>{
+        pdf.setFontSize(6.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(40,42,55);
+        if(c.key==='code'){ pdf.setTextColor(...C.sapphire); pdf.setFont('helvetica','bold'); }
+        if(c.key==='poids_total'){ pdf.setTextColor(...C.amber); pdf.setFont('helvetica','bold'); }
+        const maxW=c.w-4;
+        let txt=item[c.key]||'—';
+        while(txt.length>1 && pdf.getTextWidth(txt)>maxW) txt=txt.slice(0,-1);
+        if(txt!==String(item[c.key]||'—')) txt+='…';
+        pdf.text(txt, x+2, y+4.5); x+=c.w;
+      });
+      y+=rH;
+    });
+
+    // Footer
+    const pages=pdf.internal.getNumberOfPages();
+    for(let i=1;i<=pages;i++){
+      pdf.setPage(i);
+      pdf.setDrawColor(...C.faint); pdf.setLineWidth(0.2); pdf.line(M,H-7,W-M,H-7);
+      pdf.setFontSize(6); pdf.setFont('helvetica','normal'); pdf.setTextColor(...C.grey);
+      pdf.text('SOY — Commande GH Logistics', M, H-3);
+      pdf.text('Page '+i+' / '+pages, W-M, H-3, {align:'right'});
+    }
+
+    const d = new Date();
+    pdf.save(`commande_GH_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.pdf`);
+    toast('PDF exporté ✓','ok');
+  }catch(e){ console.error(e); toast('Erreur PDF : '+(e?.message||e),'err'); }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────
+function toast(msg, type='ok'){
+  const el=document.createElement('div');
+  el.className='toast '+type; el.textContent=msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(), 4000);
+}
+</script>
+</body>
+</html>
