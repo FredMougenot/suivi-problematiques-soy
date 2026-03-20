@@ -314,6 +314,7 @@ async function connectGH(){
       await saveSession(data.id1);
       toast('Connecté à GH Logistics ✓','ok');
       resetConnectBtn();
+      loadInventory();
     } else {
       toast('Connexion GH échouée : '+(data.error||'réponse inattendue'),'err');
       resetConnectBtn();
@@ -336,20 +337,30 @@ function esc(s){ return String(s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;
 async function loadInventory(){
   if(!sessionId1){ toast('Connectez-vous d\'abord','err'); return; }
 
-  // URL complète avec le id1 de session + paramètres SOY
-  const url = GH_DATA_PREFIX + sessionId1 + GH_DATA_SUFFIX;
-
   document.getElementById('inv-spinner').style.display='block';
   document.getElementById('inv-empty').style.display='none';
   document.getElementById('inv-tbl').style.display='none';
   document.getElementById('btn-refresh').disabled=true;
 
   try{
-    // Fetch via proxy approach — open in hidden iframe or direct fetch
-    const resp = await fetch(url, {mode:'cors'});
-    if(!resp.ok) throw new Error('HTTP '+resp.status);
-    const html = await resp.text();
-    parseInventory(html);
+    // Appel Edge Function pour récupérer l'inventaire côté serveur
+    const resp = await fetch(
+      'https://xppzmdmnuztozgukrcta.supabase.co/functions/v1/gh-login',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug',
+        },
+        body: JSON.stringify({ action: 'inventory', id1: sessionId1 }),
+      }
+    );
+    const data = await resp.json();
+    if(data.html){
+      parseInventory(data.html);
+    } else {
+      throw new Error(data.error || 'Pas de données');
+    }
   }catch(e){
     // CORS blocked — fallback: open in popup and ask user to wait
     document.getElementById('inv-spinner').style.display='none';
