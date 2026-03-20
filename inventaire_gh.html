@@ -312,6 +312,7 @@ async function connectGH(){
     if(data.id1){
       await saveSession(data.id1);
       toast('Connecté à GH Logistics ✓','ok');
+      resetConnectBtn();
     } else {
       toast('Connexion GH échouée : '+(data.error||'réponse inattendue'),'err');
       resetConnectBtn();
