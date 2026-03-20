@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Connexion GH…</title>
+<style>
+body{margin:0;background:#0A0B0F;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#8A9EBF;}
+.msg{text-align:center;font-size:14px;}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#4A9EE8;margin:0 3px;animation:pulse 1.2s ease-in-out infinite;}
+.dot:nth-child(2){animation-delay:.2s;}
+.dot:nth-child(3){animation-delay:.4s;}
+@keyframes pulse{0%,80%,100%{opacity:.3}40%{opacity:1}}
+</style>
+</head>
+<body>
+<div class="msg">
+  <div style="margin-bottom:14px"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+  Connexion à GH Logistics…
+</div>
+<form id="f" method="POST" action="http://mail.ghlogistics.ca/ghe/st/login_netrack.asp" style="display:none">
+  <input name="login"     value="fredm">
+  <input name="passe"     value="fred">
+  <input name="noclient"  value="soy">
+  <input name="connexion" value="LOGIN">
+</form>
+<script>
+  // Soumettre automatiquement dès le chargement
+  window.addEventListener('load', function(){
+    document.getElementById('f').submit();
+  });
+</script>
+</body>
+</html>

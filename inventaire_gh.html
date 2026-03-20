@@ -291,20 +291,9 @@ function setConnected(ts){
 
 // ── CONNEXION ─────────────────────────────────────────────────────
 function connectGH(){
-  // Credentials en dur — identiques au code VBA Excel
-  const formHtml = `<!DOCTYPE html><html><body>
-    <form id="f" method="POST" action="${GH_LOGIN_URL}">
-      <input name="login"     value="${GH_LOGIN}">
-      <input name="passe"     value="${GH_PASSE}">
-      <input name="noclient"  value="${GH_NOCLIENT}">
-      <input name="connexion" value="LOGIN">
-    </form>
-    <script>document.getElementById('f').submit();<\/script>
-  </body></html>`;
-
-  const popup = window.open('', 'gh_login', 'width=900,height=700,scrollbars=yes');
+  // Ouvrir gh_login.html (hébergé sur notre domaine) qui soumet le formulaire automatiquement
+  const popup = window.open('gh_login.html', 'gh_login', 'width=900,height=700,scrollbars=yes');
   if(!popup){ toast('Veuillez autoriser les popups pour ce site','err'); return; }
-  popup.document.write(formHtml);
 
   toast('Connexion en cours…','info');
 
