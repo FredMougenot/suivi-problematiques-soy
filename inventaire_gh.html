@@ -254,23 +254,6 @@
   <!-- MAIN -->
   <div class="tool-main">
 
-    <!-- Status + Actions -->
-    <div class="gh-status">
-      <div class="gh-dot" id="gh-dot"></div>
-      <span class="gh-status-text" id="gh-status-text">Non connecté</span>
-      <span class="gh-timestamp" id="gh-timestamp"></span>
-      <button class="btn-connect" id="btn-connect" onclick="connectGH()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-        Se connecter à GH
-      </button>
-      <button class="btn-refresh" id="btn-refresh" onclick="loadInventory()" disabled>
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-        Rafraîchir l'inventaire
-      </button>
-      <span class="count-badge" id="inv-count" style="display:none"></span>
-    </div>
-
-
     <!-- Category overlay -->
     <div class="cat-overlay" id="cat-overlay" onclick="closeFlyout()"></div>
 
@@ -294,6 +277,22 @@
 
       <!-- Content -->
       <div class="gh-content">
+
+    <!-- Status + Actions -->
+    <div class="gh-status">
+      <div class="gh-dot" id="gh-dot"></div>
+      <span class="gh-status-text" id="gh-status-text">Non connecté</span>
+      <span class="gh-timestamp" id="gh-timestamp"></span>
+      <button class="btn-connect" id="btn-connect" onclick="connectGH()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Se connecter à GH
+      </button>
+      <button class="btn-refresh" id="btn-refresh" onclick="loadInventory()" disabled>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Rafraîchir l'inventaire
+      </button>
+      <span class="count-badge" id="inv-count" style="display:none"></span>
+    </div>
 
     <div class="gh-layout">
       <!-- LEFT — Inventory -->
@@ -570,10 +569,6 @@ function waitSB(){
 window.addEventListener('load', waitSB);
 
 async function init(){
-  try{
-    const {data:{session}} = await sb.auth.getSession();
-    if(!session){ window.location.href='index.html'; return; }
-  }catch(e){}
   await loadSession();
   await loadGhCategories();
 }
