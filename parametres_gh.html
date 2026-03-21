@@ -129,7 +129,7 @@ window.addEventListener('load',waitSB);
 async function loadCategories(){
   try{
     const {data}=await sb.from('gh_categories').select('*').order('created_at');
-    categories=(data||[]).map(c=>({...c,rules:c.rules||[]}));
+    categories=(data||[]).map(c=>({...c,rules:c.cat_rules||c.rules||[]}));
   }catch(e){
     categories=JSON.parse(localStorage.getItem('gh_categories')||'[]');
   }
@@ -295,7 +295,7 @@ async function saveCategory(){
   const cat=categories.find(c=>c.id===activeCatId);
   if(!cat) return;
   try{
-    await sb.from('gh_categories').upsert({id:cat.id,name:cat.name,icon:cat.icon,color:cat.color,rules:cat.rules,updated_at:new Date().toISOString()});
+    await sb.from('gh_categories').upsert({id:cat.id,name:cat.name,icon:cat.icon,color:cat.color,cat_rules:cat.rules,updated_at:new Date().toISOString()});
     toast('Catégorie sauvegardée ✓','ok');
   }catch(e){
     localStorage.setItem('gh_categories',JSON.stringify(categories));

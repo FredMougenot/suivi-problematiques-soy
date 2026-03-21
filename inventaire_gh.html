@@ -406,7 +406,7 @@ let activeFlyoutId = null;
 async function loadGhCategories(){
   try{
     const {data} = await sb.from('gh_categories').select('*').order('created_at');
-    ghCategories = data || [];
+    ghCategories = (data||[]).map(c=>({...c,rules:c.cat_rules||c.rules||[]}));
   }catch(e){
     ghCategories = JSON.parse(localStorage.getItem('gh_categories')||'[]');
   }
@@ -725,6 +725,7 @@ function loadFromItems(items){
   c.textContent = allInventory.length + ' items';
   c.style.display = 'block';
   toast(allInventory.length + ' items chargés ✓', 'ok');
+  renderCatSidebar();
 }
 
 function parseInventory(html){
@@ -837,6 +838,7 @@ function parseInventory(html){
   c.textContent = allInventory.length + ' items';
   c.style.display = 'block';
   toast(allInventory.length + ' items chargés ✓', 'ok');
+  renderCatSidebar();
 }
 
 // ── FILTER & RENDER ───────────────────────────────────────────────
