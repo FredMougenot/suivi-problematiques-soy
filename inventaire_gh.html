@@ -202,7 +202,7 @@
 .cat-overlay.open{display:block;}
 
 /* ── Content area ── */
-.gh-content{flex:1;padding:16px 20px;overflow-x:auto;min-width:0;}
+.gh-content{flex:1;padding:16px 20px;overflow:hidden;min-width:0;}
 
 /* ── Status bar ── */
 .gh-status{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
@@ -229,7 +229,7 @@
 .fsel-sm{padding:7px 12px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);color:var(--text-secondary);font-size:.8rem;cursor:pointer;font-family:'Outfit',sans-serif;outline:none;}
 
 /* ── Inventory table ── */
-.inv-tbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;position:relative;-webkit-overflow-scrolling:touch;}
+.inv-tbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;position:relative;}
 .inv-tbl-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--sapphire),transparent);pointer-events:none;}
 .inv-tbl{width:100%;border-collapse:collapse;min-width:1100px;}
 .inv-tbl thead tr{background:var(--bg-float);border-bottom:1px solid var(--text-faint);}
@@ -658,17 +658,13 @@ function waitSB(){
 }
 window.addEventListener('load', waitSB);
 
-// Version du format de données — incrémenter si le parsing change
-const INV_VERSION = '2';
-
 async function init(){
   await loadSession();
   await loadGhCategories();
-  // Restaurer inventaire depuis localStorage si disponible et version correcte
+  // Restaurer inventaire depuis localStorage si disponible
   try{
     const saved = localStorage.getItem('gh_inventory');
-    const ver = localStorage.getItem('gh_inventory_ver');
-    if(saved && ver === INV_VERSION){
+    if(saved){
       const items = JSON.parse(saved);
       if(items && items.length > 0){
         allInventory = items;
@@ -680,10 +676,6 @@ async function init(){
         document.getElementById('inv-empty').style.display = 'none';
         document.getElementById('btn-refresh').disabled = false;
       }
-    } else {
-      // Version différente — vider le cache
-      localStorage.removeItem('gh_inventory');
-      localStorage.removeItem('gh_inventory_ver');
     }
   }catch(e){}
 }
@@ -837,47 +829,20 @@ function loadFromItems(items){
   toast(allInventory.length + ' items chargés ✓', 'ok');
   renderCatSidebar();
   // Persister l'inventaire pour éviter de recharger à chaque visite
-  try{
-    localStorage.setItem('gh_inventory', JSON.stringify(allInventory));
-    localStorage.setItem('gh_inventory_ver', INV_VERSION);
-  }catch(e){}
+  try{ localStorage.setItem('gh_inventory', JSON.stringify(allInventory)); }catch(e){}
 }
 
 function parseInventory(html){
   allInventory = [];
 
-  // Nettoyer et supprimer TOUS les accents quelle que soit leur encodage
-  const removeAccents = (s) => s
-    // Entités HTML
-    .replace(/&eacute;/gi,'e').replace(/&egrave;/gi,'e').replace(/&ecirc;/gi,'e').replace(/&euml;/gi,'e')
-    .replace(/&agrave;/gi,'a').replace(/&acirc;/gi,'a').replace(/&auml;/gi,'a')
-    .replace(/&ocirc;/gi,'o').replace(/&ouml;/gi,'o')
-    .replace(/&ugrave;/gi,'u').replace(/&ucirc;/gi,'u').replace(/&uuml;/gi,'u')
-    .replace(/&ccedil;/gi,'c').replace(/&ntilde;/gi,'n')
-    .replace(/&nbsp;/gi,' ').replace(/&amp;/gi,'&').replace(/&lt;/gi,'<').replace(/&gt;/gi,'>')
-    .replace(/&[a-z]+;/gi,'')
-    // Caractères Unicode accentués
-    .replace(/[àáâãäåà-å]/gi,'a')
-    .replace(/[èéêëè-ë]/gi,'e')
-    .replace(/[ìíîïì-ï]/gi,'i')
-    .replace(/[òóôõöò-ö]/gi,'o')
-    .replace(/[ùúûüù-ü]/gi,'u')
-    .replace(/[ýÿýÿ]/gi,'y')
-    .replace(/[çç]/gi,'c')
-    .replace(/[ññ]/gi,'n')
-    // Caractères Windows-1252 corrompus (encodage ASP)
-    .replace(/É/g,'E').replace(/é/g,'e') // É é
-    .replace(/È/g,'E').replace(/è/g,'e') // È è
-    .replace(/Ê/g,'E').replace(/ê/g,'e') // Ê ê
-    .replace(/À/g,'A').replace(/à/g,'a') // À à
-    .replace(/Ç/g,'C').replace(/ç/g,'c') // Ç ç
-    .replace(/Ù/g,'U').replace(/ù/g,'u') // Ù ù
-    // Tout caractère non-ASCII restant — le supprimer
-    .replace(/[^ -]/g,'');
-
-  const cleanCell = (s) => removeAccents(s
-    .replace(/<[^>]+>/g,''))
-    .replace(/\s+/g,' ').trim();
+  const cleanCell = (s) => s
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/gi, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
 
   // GH utilise TR/TD en MAJUSCULES — regex insensible à la casse
   // Formater les dates — format: J mois AAAA
@@ -941,24 +906,6 @@ function parseInventory(html){
       return prev[key] || '';
     };
 
-    // Normalise une date : enlève accents, convertit "j mois aaaa" ou "dd/mm/yyyy" en "YYYY-MM-DD"
-    const MONTHS = {jan:1,fev:2,feb:2,mar:3,avr:4,apr:4,mai:5,may:5,jun:6,jul:7,aou:8,aug:8,sep:9,oct:10,nov:11,dec:12};
-    const normalizeDate = (s) => {
-      if(!s) return '';
-      // Déjà au format YYYY-MM-DD
-      if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-      // Format DD/MM/YYYY ou DD-MM-YYYY
-      const m1 = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
-      if(m1) return m1[3]+'-'+m1[2].padStart(2,'0')+'-'+m1[1].padStart(2,'0');
-      // Format "J mois AAAA" ex: "15 janvier 2024" ou "15 jan 2024"
-      const m2 = s.toLowerCase().match(/^(\d{1,2})\s+([a-z]+)\.?\s+(\d{4})$/);
-      if(m2){
-        const mon = MONTHS[m2[2].substring(0,3)];
-        if(mon) return m2[3]+'-'+String(mon).padStart(2,'0')+'-'+m2[1].padStart(2,'0');
-      }
-      return s;
-    };
-
     const row = {
       division:      get(3,  'division'),
       no_produit:    get(4,  'no_produit'),
@@ -970,9 +917,9 @@ function parseInventory(html){
       etiquette:     get(10, 'etiquette'),
       no_lot:        get(11, 'no_lot'),
       no_sous_lot:   get(12, 'no_sous_lot'),
-      date_lot:      normalizeDate(get(13, 'date_lot')),
-      expiration:    normalizeDate(get(14, 'expiration')),
-      reception:     normalizeDate(get(15, 'reception')),
+      date_lot:      get(13, 'date_lot'),
+      expiration:    get(14, 'expiration'),
+      reception:     get(15, 'reception'),
       bloquer:       get(16, 'bloquer'),
       raison:        get(17, 'raison'),
       qte_inv:       get(18, 'qte_inv'),
@@ -994,12 +941,7 @@ function parseInventory(html){
     if(v[13]) v[13] = fmtDate(v[13]);
     if(v[14]) v[14] = fmtDate(v[14]);
 
-    // Normaliser les dates dans _raw pour l'affichage
-    const rawNorm = [...v];
-    rawNorm[13] = normalizeDate(v[13]||'') || v[13]||'';
-    rawNorm[14] = normalizeDate(v[14]||'') || v[14]||'';
-    rawNorm[15] = normalizeDate(v[15]||'') || v[15]||'';
-    row._raw = rawNorm;
+    row._raw = v;
     row._idx = allInventory.length;
     allInventory.push(row);
   }
@@ -1027,10 +969,7 @@ function parseInventory(html){
   toast(allInventory.length + ' items chargés ✓', 'ok');
   renderCatSidebar();
   // Persister l'inventaire pour éviter de recharger à chaque visite
-  try{
-    localStorage.setItem('gh_inventory', JSON.stringify(allInventory));
-    localStorage.setItem('gh_inventory_ver', INV_VERSION);
-  }catch(e){}
+  try{ localStorage.setItem('gh_inventory', JSON.stringify(allInventory)); }catch(e){}
 }
 
 // ── FILTER & RENDER ───────────────────────────────────────────────
