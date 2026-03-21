@@ -1259,23 +1259,32 @@ function updateSelectionSummary(){
   bar.style.display = 'flex';
   document.getElementById('sel-count').textContent = count;
   
-  // Calculer totaux
+  // Calculer totaux avec fill-down comme dans renderTable
   let totalQty = 0;
   let totalWeight = 0;
   const keep = [1, 2, 8, 13, 15, 16, 17, 18, 19, 20];
   
-  selectedRows.forEach(key => {
-    const item = filtered.find(f => {
-      const fKey = f._idx !== undefined ? 'row_'+f._idx : (f.no_lot || f.no_produit);
-      return fKey === key;
-    });
-    if(item){
-      const raw = item._raw || [];
+  // Parcourir filtered avec fill-down pour avoir les bons codes
+  let prevCol0 = '';
+  filtered.forEach((r, i) => {
+    const key = r._idx !== undefined ? 'row_'+r._idx : (r.no_lot || r.no_produit+i);
+    const raw = r._raw || [];
+    
+    if(selectedRows.has(key)){
+      // Fill-down sur la première colonne
+      const v0 = raw[keep[0]] || '';
+      const code = v0 || prevCol0;
+      if(v0) prevCol0 = v0;
+      
       const qte = parseFloat(raw[18] || 0);
-      const code = raw[keep[0]] || '';  // Première colonne affichée
       const poidsUnit = getPoidsUnitaire(code);
+      
       totalQty += qte;
       totalWeight += qte * poidsUnit;
+    } else {
+      // Même si non sélectionné, mettre à jour prevCol0 pour le fill-down
+      const v0 = raw[keep[0]] || '';
+      if(v0) prevCol0 = v0;
     }
   });
   
@@ -1284,13 +1293,37 @@ function updateSelectionSummary(){
 }
 
 function addSelectionToTruck(){
-  selectedRows.forEach(key => {
-    const item = filtered.find(f => {
-      const fKey = f._idx !== undefined ? 'row_'+f._idx : (f.no_lot || f.no_produit);
-      return fKey === key;
-    });
-    if(item && !commande.find(c => c._key === key)){
-      commande.push({...item, _key: key});
+  const keep = [1, 2, 8, 13, 15, 16, 17, 18, 19, 20];
+  
+  // Parcourir filtered avec fill-down pour résoudre les codes
+  let prevCol0 = '', prevCol1 = '';
+  
+  filtered.forEach((r, i) => {
+    const key = r._idx !== undefined ? 'row_'+r._idx : (r.no_lot || r.no_produit+i);
+    const raw = r._raw || [];
+    
+    // Fill-down
+    const v0 = raw[keep[0]] || '';
+    const v1 = raw[keep[1]] || '';
+    const code = v0 || prevCol0;
+    const desc = v1 || prevCol1;
+    if(v0) prevCol0 = v0;
+    if(v1) prevCol1 = v1;
+    
+    if(selectedRows.has(key) && !commande.find(c => c._key === key)){
+      const qte = parseFloat(raw[18] || 0);
+      const poidsUnit = getPoidsUnitaire(code);
+      const poidsTotal = qte * poidsUnit;
+      
+      commande.push({
+        ...r, 
+        _key: key,
+        _resolved_code: code,
+        _resolved_desc: desc,
+        _resolved_qte: qte,
+        _resolved_poids_unit: poidsUnit,
+        _resolved_poids_total: poidsTotal
+      });
     }
   });
   
@@ -1331,27 +1364,18 @@ function renderCommande(){
   if(empty) empty.style.display='none';
   btnExport.disabled = false;
 
-  // Colonnes affichées : indices dans keep = [1, 2, 3, 8, 13, 15, 16, 17, 18, 19, 20]
-  const keep = [1, 2, 8, 13, 15, 16, 17, 18, 19, 20];
-  
   body.innerHTML = commande.map(item=>{
-    const raw = item._raw || [];
-    
-    // Fill-down pour colonnes 1 et 2
-    const col0 = raw[keep[0]] || '';  // No. produit
-    const col1 = raw[keep[1]] || '';  // Description
-    
-    // Calcul poids
-    const code = col0;
-    const qte = parseFloat(raw[18] || 0);
-    const poidsUnit = getPoidsUnitaire(code);
-    const poidsTotal = qte * poidsUnit;
+    const code = item._resolved_code || '';
+    const desc = item._resolved_desc || '';
+    const qte = item._resolved_qte || 0;
+    const poidsUnit = item._resolved_poids_unit || 0;
+    const poidsTotal = item._resolved_poids_total || 0;
     
     return `
     <div class="cmd-row">
       <div>
-        <div class="cmd-item-code">${escH(col0)}</div>
-        <div class="cmd-item-desc">${escH(col1)}</div>
+        <div class="cmd-item-code">${escH(code)}</div>
+        <div class="cmd-item-desc">${escH(desc)}</div>
         <div class="cmd-item-meta">Qté: ${qte} · ${poidsUnit > 0 ? poidsUnit.toFixed(1) : '—'} kg/unité · <strong>${poidsTotal > 0 ? poidsTotal.toFixed(1) : '—'} kg total</strong></div>
       </div>
       <button class="cmd-rm" onclick="removeFromCommande('${escAttr(item._key)}')" title="Retirer">✕</button>
@@ -1362,11 +1386,7 @@ function renderCommande(){
   // Total weight
   let total = 0;
   commande.forEach(item=>{
-    const raw = item._raw || [];
-    const code = raw[keep[0]] || '';
-    const qte = parseFloat(raw[18] || 0);
-    const poidsUnit = getPoidsUnitaire(code);
-    total += qte * poidsUnit;
+    total += item._resolved_poids_total || 0;
   });
   document.getElementById('cmd-total').textContent = total.toLocaleString('fr-CA',{maximumFractionDigits:1}) + ' kg';
 }
