@@ -163,29 +163,32 @@
           <table class="inv-tbl" id="inv-tbl" style="display:none">
             <thead>
               <tr>
-                <th>Division</th>
-                <th>No. produit</th>
-                <th>Description</th>
-                <th>Unité 1</th>
-                <th>Unité 2</th>
-                <th>No. comm. client</th>
-                <th>Ent.</th>
-                <th>Étiquette</th>
-                <th>No. lot</th>
-                <th>No. sous-lot</th>
-                <th>Date lot</th>
-                <th>Expiration</th>
-                <th>Réception originale</th>
-                <th>Bloquer</th>
-                <th>Raison</th>
-                <th>Qté inv.</th>
-                <th>Expéd. att.</th>
-                <th>Bloqués</th>
-                <th>Disponibles</th>
-                <th>Qté inv. (poids)</th>
-                <th>Expéd. att. (poids)</th>
-                <th>Bloqués (poids)</th>
-                <th>Disponibles (poids)</th>
+                <th>Col 0</th>
+                <th>Col 1</th>
+                <th>Col 2</th>
+                <th>Col 3</th>
+                <th>Col 4</th>
+                <th>Col 5</th>
+                <th>Col 6</th>
+                <th>Col 7</th>
+                <th>Col 8</th>
+                <th>Col 9</th>
+                <th>Col 10</th>
+                <th>Col 11</th>
+                <th>Col 12</th>
+                <th>Col 13</th>
+                <th>Col 14</th>
+                <th>Col 15</th>
+                <th>Col 16</th>
+                <th>Col 17</th>
+                <th>Col 18</th>
+                <th>Col 19</th>
+                <th>Col 20</th>
+                <th>Col 21</th>
+                <th>Col 22</th>
+                <th>Col 23</th>
+                <th>Col 24</th>
+                <th>Col 25</th>
               </tr>
             </thead>
             <tbody id="inv-tbody"></tbody>
@@ -499,6 +502,7 @@ function parseInventory(html){
 
     if(!row.no_produit && !row.no_lot && !row.description) continue;
 
+    row._raw = v;
     allInventory.push(row);
   }
 
@@ -558,30 +562,9 @@ function renderTable(){
   tbody.innerHTML = filtered.map((r,i)=>{
     const key = r.no_lot || r.no_produit+i;
     const sel = selectedKeys.has(key) ? 'selected' : '';
+    const raw = r._raw || [];
     return `<tr class="${sel}" onclick="toggleItem(${i}, '${escAttr(key)}')">
-      <td>${escH(r.division)}</td>
-      <td style="color:var(--text-primary);font-weight:700">${escH(r.no_produit)}</td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;color:var(--text-primary);font-weight:500">${escH(r.description)}</td>
-      <td style="font-size:.72rem">${escH(r.unite1)}</td>
-      <td style="font-size:.72rem">${escH(r.unite2)}</td>
-      <td style="font-size:.72rem">${escH(r.no_comm)}</td>
-      <td style="font-size:.72rem">${escH(r.entrepot)}</td>
-      <td style="font-size:.72rem">${escH(r.etiquette)}</td>
-      <td style="font-size:.72rem">${escH(r.no_lot)}</td>
-      <td style="font-size:.72rem">${escH(r.no_sous_lot)}</td>
-      <td style="font-size:.72rem">${escH(r.date_lot)}</td>
-      <td style="font-size:.72rem;color:${isExpired(r.expiration)?'var(--ruby)':'inherit'}">${escH(r.expiration)}</td>
-      <td style="font-size:.72rem">${escH(r.reception)}</td>
-      <td style="font-size:.72rem">${escH(r.bloquer)}</td>
-      <td style="font-size:.72rem">${escH(r.raison)}</td>
-      <td style="text-align:right;color:var(--emerald);font-weight:700">${escH(r.qte_inv)}</td>
-      <td style="text-align:right">${escH(r.exped_att)}</td>
-      <td style="text-align:right">${escH(r.bloques)}</td>
-      <td style="text-align:right;color:var(--amber);font-weight:700">${escH(r.disponibles)}</td>
-      <td style="text-align:right">${escH(r.qte_inv_p)}</td>
-      <td style="text-align:right">${escH(r.exped_att_p)}</td>
-      <td style="text-align:right">${escH(r.bloques_p)}</td>
-      <td style="text-align:right;color:var(--amber);font-weight:700">${escH(r.disponibles_p)}</td>
+      ${raw.map(v=>`<td style="font-size:.72rem">${escH(v)}</td>`).join('')}
     </tr>`;
   }).join('');
 }
