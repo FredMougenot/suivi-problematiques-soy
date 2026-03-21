@@ -875,7 +875,10 @@ function parseInventory(html){
       disponibles_p: get(25, 'disponibles_p'),
     };
 
-    if(!row.no_produit && !row.no_lot && !row.description) continue;
+    // Supprimer les lignes dont toutes les colonnes affichées sont vides (avant fill-down)
+    const displayCols = [1, 2, 3, 8, 13, 15, 16, 17, 18, 19, 20];
+    const allEmpty = displayCols.every(idx => !(v[idx]||'').trim());
+    if(allEmpty) continue;
 
     row._raw = v;
     allInventory.push(row);
