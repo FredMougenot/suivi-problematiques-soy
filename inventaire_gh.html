@@ -1161,7 +1161,11 @@ function renderTable(){
 
     // Calcul des poids - UTILISER disp0 = première colonne AFFICHÉE
     const code = disp0;  // Première colonne affichée dans le tableau
-    const qte = parseFloat(raw[18] || 0);  // Qté inv (colonne 18 ou 3)
+    
+    // Quantité AFFICHÉE = 3ème colonne = keep[2]
+    const qteAffichee = raw[keep[2]] || '';
+    const qte = parseFloat(qteAffichee || 0);
+    
     const poidsUnit = getPoidsUnitaire(code);
     const poidsTotal = qte * poidsUnit;
 
@@ -1276,7 +1280,10 @@ function updateSelectionSummary(){
       const code = v0 || prevCol0;
       if(v0) prevCol0 = v0;
       
-      const qte = parseFloat(raw[18] || 0);
+      // Quantité AFFICHÉE = 3ème colonne = keep[2]
+      const qteAffichee = raw[keep[2]] || '';
+      const qte = parseFloat(qteAffichee || 0);
+      
       const poidsUnit = getPoidsUnitaire(code);
       
       totalQty += qte;
@@ -1311,7 +1318,10 @@ function addSelectionToTruck(){
     if(v1) prevCol1 = v1;
     
     if(selectedRows.has(key) && !commande.find(c => c._key === key)){
-      const qte = parseFloat(raw[18] || 0);
+      // Quantité AFFICHÉE = 3ème colonne = keep[2]
+      const qteAffichee = raw[keep[2]] || '';
+      const qte = parseFloat(qteAffichee || 0);
+      
       const poidsUnit = getPoidsUnitaire(code);
       const poidsTotal = qte * poidsUnit;
       
