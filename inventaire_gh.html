@@ -475,7 +475,21 @@ async function loadPoids(){
 
 function getPoidsUnitaire(code){
   if(!code) return 0;
-  const p = poidsList.find(p => p.code === code);
+  code = String(code).trim().toUpperCase();
+  
+  // Chercher d'abord une correspondance exacte
+  let p = poidsList.find(p => String(p.code).trim().toUpperCase() === code);
+  
+  // Si pas trouvé, chercher si le code commence par
+  if(!p){
+    p = poidsList.find(p => code.startsWith(String(p.code).trim().toUpperCase()));
+  }
+  
+  // Debug: afficher dans la console
+  if(code.includes('CI.1750')){
+    console.log('Recherche poids pour:', code, 'Trouvé:', p, 'Liste complète:', poidsList);
+  }
+  
   return p ? parseFloat(p.poids_unitaire || 0) : 0;
 }
 
@@ -1101,8 +1115,8 @@ function renderTable(){
     if(v1) prevCol1 = v1;
 
     // Calcul des poids
-    const code = disp0;  // No. produit
-    const qte = parseFloat(raw[3] || 0);  // Qté inv (colonne 3)
+    const code = raw[4] || r.no_produit || '';  // No. produit (colonne 4)
+    const qte = parseFloat(raw[18] || raw[3] || 0);  // Qté inv (colonne 18 ou 3)
     const poidsUnit = getPoidsUnitaire(code);
     const poidsTotal = qte * poidsUnit;
 
