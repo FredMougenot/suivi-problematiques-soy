@@ -1531,16 +1531,20 @@ async function exportPDF(){
     pdf.setTextColor(...C.amber); pdf.text('Poids total : '+total.toLocaleString('fr-CA',{maximumFractionDigits:1})+' kg', M+70, y+5);
     y+=12;
 
-    // Table
+    // Table - TOUTES les colonnes affichées dans le tableau
     const cols=[
-      {label:'No. Palette', w:28, key:'no_pal'},
-      {label:'Code',        w:24, key:'code'},
-      {label:'Description', w:0,  key:'description'},
-      {label:'No. lot',     w:24, key:'no_lot'},
-      {label:'Qté',         w:16, key:'qte'},
-      {label:'Poids unit.', w:22, key:'poids_unit'},
-      {label:'Poids total', w:22, key:'poids_total'},
-      {label:'Expiration',  w:22, key:'expiration'},
+      {label:'No. produit',    w:22, key:'code'},
+      {label:'Description',    w:0,  key:'description'},
+      {label:'Qté',            w:12, key:'qte'},
+      {label:'No. comm',       w:22, key:'no_comm'},
+      {label:'Étiquette',      w:22, key:'etiquette'},
+      {label:'No. lot',        w:22, key:'no_lot'},
+      {label:'No. sous-lot',   w:20, key:'no_sous_lot'},
+      {label:'Date lot',       w:22, key:'date_lot'},
+      {label:'Expiration',     w:22, key:'expiration'},
+      {label:'Réception',      w:22, key:'reception'},
+      {label:'Poids u.',       w:18, key:'poids_unit'},
+      {label:'Poids tot.',     w:18, key:'poids_total'},
     ];
     const fixedW = cols.filter(c=>c.w>0).reduce((s,c)=>s+c.w,0);
     cols.find(c=>c.key==='description').w = W-2*M-fixedW;
@@ -1548,7 +1552,7 @@ async function exportPDF(){
     const hH=7, rH=6.5;
     let x=M;
     pdf.setFillColor(245,245,248); pdf.rect(M,y,W-2*M,hH,'F');
-    pdf.setFontSize(6); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.sapphire);
+    pdf.setFontSize(5.5); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.sapphire);
     cols.forEach(c=>{ pdf.text(c.label.toUpperCase(), x+2, y+5); x+=c.w; }); y+=hH;
 
     commande.forEach((item,i)=>{
@@ -1557,21 +1561,26 @@ async function exportPDF(){
       pdf.setDrawColor(220,222,228); pdf.setLineWidth(0.15); pdf.line(M,y+rH,W-M,y+rH);
       x=M;
       
-      // Mapper les valeurs résolues
+      // Mapper TOUTES les valeurs depuis raw[] directement
       const raw = item._raw || [];
+      
       const rowData = {
-        no_pal: raw[6] || '—',  // No. palette si disponible
         code: item._resolved_code || '—',
         description: item._resolved_desc || '—',
-        no_lot: raw[11] || '—',  // No. lot
         qte: item._resolved_qte || '—',
+        no_comm: raw[8] || '—',         // Colonne 8 = No. comm client
+        etiquette: raw[10] || '—',      // Colonne 10 = Étiquette
+        no_lot: raw[11] || '—',         // Colonne 11 = No. lot
+        no_sous_lot: raw[12] || '—',    // Colonne 12 = No. sous-lot
+        date_lot: raw[13] || '—',       // Colonne 13 = Date lot
+        expiration: raw[14] || '—',     // Colonne 14 = Expiration
+        reception: raw[15] || '—',      // Colonne 15 = Réception originale
         poids_unit: item._resolved_poids_unit ? item._resolved_poids_unit.toFixed(1) : '—',
         poids_total: item._resolved_poids_total ? item._resolved_poids_total.toFixed(1) : '—',
-        expiration: raw[14] || '—',  // Expiration
       };
       
       cols.forEach(c=>{
-        pdf.setFontSize(6.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(40,42,55);
+        pdf.setFontSize(5.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(40,42,55);
         if(c.key==='code'){ pdf.setTextColor(...C.sapphire); pdf.setFont('helvetica','bold'); }
         if(c.key==='poids_total'){ pdf.setTextColor(...C.amber); pdf.setFont('helvetica','bold'); }
         const maxW=c.w-4;
