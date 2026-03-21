@@ -936,7 +936,7 @@ function parseInventory(html){
 
   let prev = {};
 
-  for(const v of allRows){
+  for(let v of allRows){
     // Ignorer lignes de total/réservé
     const rowText = v.join(' ');
     if(rowText.includes('Total du produit') || rowText.includes('TOTAL') ||
