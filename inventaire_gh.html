@@ -835,16 +835,15 @@ function loadFromItems(items){
 function parseInventory(html){
   allInventory = [];
 
-  const cleanCell = (s) => s
+  // Décodeur HTML complet via le DOM
+  const decodeHTML = (s) => {
+    const txt = document.createElement('textarea');
+    txt.innerHTML = s;
+    return txt.value;
+  };
+  const cleanCell = (s) => decodeHTML(s
     .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&\w+;/g, '')
-    .replace(/[^ -~À-ɏ\/\-\.]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  ).replace(/\s+/g, ' ').trim();
 
   // GH utilise TR/TD en MAJUSCULES — regex insensible à la casse
   // Formater les dates — format: J mois AAAA
