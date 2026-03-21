@@ -3,463 +3,63 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Paramètres — Inventaire GH</title>
+<title>Paramètres GH — SOY</title>
 <link rel="stylesheet" href="soy-shared.css">
 <style>
-/* ── Layout ── */
-.pg-layout {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 0;
-  min-height: calc(100vh - 60px);
-}
-
-/* ── Sidebar ── */
-.sidebar {
-  background: var(--bg-raised);
-  border-right: 1px solid rgba(255,255,255,.06);
-  padding: 20px 0;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow-y: auto;
-}
-
-.sidebar-title {
-  font-size: .7rem;
-  font-weight: 800;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-  padding: 0 20px 12px;
-}
-
-/* ── Category item ── */
-.cat-item {
-  position: relative;
-}
-
-.cat-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 11px 20px;
-  cursor: pointer;
-  transition: background .15s;
-  user-select: none;
-  border-left: 2px solid transparent;
-}
-
-.cat-header:hover {
-  background: rgba(255,255,255,.04);
-}
-
-.cat-header.active {
-  background: rgba(74,158,232,.08);
-  border-left-color: var(--sapphire);
-}
-
-.cat-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: .85rem;
-  flex-shrink: 0;
-}
-
-.cat-label {
-  font-size: .84rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  flex: 1;
-}
-
-.cat-header.active .cat-label {
-  color: var(--sapphire);
-}
-
-.cat-arrow {
-  width: 14px;
-  height: 14px;
-  color: var(--text-faint);
-  transition: transform .3s cubic-bezier(.4,0,.2,1);
-  flex-shrink: 0;
-}
-
-.cat-header.active .cat-arrow {
-  transform: rotate(90deg);
-}
-
-/* ── Submenu ── */
-.cat-submenu {
-  overflow: hidden;
-  max-height: 0;
-  transition: max-height .35s cubic-bezier(.4,0,.2,1), opacity .25s ease;
-  opacity: 0;
-}
-
-.cat-submenu.open {
-  opacity: 1;
-}
-
-.cat-subitem {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 20px 8px 46px;
-  font-size: .8rem;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all .12s;
-  border-left: 2px solid transparent;
-}
-
-.cat-subitem:hover {
-  background: rgba(255,255,255,.03);
-  color: var(--text-primary);
-}
-
-.cat-subitem.selected {
-  color: var(--sapphire);
-  background: rgba(74,158,232,.06);
-  border-left-color: var(--sapphire);
-}
-
-.cat-subitem-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--text-faint);
-  flex-shrink: 0;
-  transition: background .12s;
-}
-
-.cat-subitem.selected .cat-subitem-dot,
-.cat-subitem:hover .cat-subitem-dot {
-  background: var(--sapphire);
-}
-
-/* ── Add buttons ── */
-.cat-add-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 20px 7px 46px;
-  font-size: .75rem;
-  color: var(--text-faint);
-  cursor: pointer;
-  transition: color .12s;
-  background: none;
-  border: none;
-  width: 100%;
-  text-align: left;
-}
-
-.cat-add-btn:hover {
-  color: var(--emerald);
-}
-
-.sidebar-add-cat {
-  margin: 16px 20px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 14px;
-  border-radius: var(--r-md);
-  background: rgba(45,212,160,.06);
-  border: 1px dashed rgba(45,212,160,.25);
-  color: var(--emerald);
-  font-size: .8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .15s;
-  width: calc(100% - 40px);
-}
-
-.sidebar-add-cat:hover {
-  background: rgba(45,212,160,.1);
-  border-color: rgba(45,212,160,.4);
-}
-
-/* ── Main content ── */
-.pg-main {
-  padding: 28px 32px;
-  background: var(--bg-base);
-}
-
-.pg-main-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 6px;
-}
-
-.pg-main-sub {
-  font-size: .82rem;
-  color: var(--text-muted);
-  margin-bottom: 24px;
-}
-
-/* ── Category editor ── */
-.cat-editor {
-  background: var(--bg-raised);
-  border: 1px solid rgba(255,255,255,.07);
-  border-radius: var(--r-xl);
-  padding: 24px;
-  max-width: 600px;
-}
-
-.cat-editor-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255,255,255,.06);
-}
-
-.cat-editor-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: transform .2s;
-}
-
-.cat-editor-icon:hover {
-  transform: scale(1.1);
-}
-
-.cat-editor-name {
-  flex: 1;
-  background: var(--bg-float);
-  border: 1px solid var(--text-faint);
-  border-radius: var(--r-md);
-  padding: 8px 12px;
-  color: var(--text-primary);
-  font-size: .9rem;
-  font-weight: 600;
-  font-family: Outfit, sans-serif;
-  outline: none;
-  transition: border-color .15s;
-}
-
-.cat-editor-name:focus {
-  border-color: var(--sapphire);
-}
-
-/* ── Items list ── */
-.items-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 16px;
-  max-height: 320px;
-  overflow-y: auto;
-}
-
-.item-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  background: var(--bg-float);
-  border-radius: var(--r-md);
-  border: 1px solid rgba(255,255,255,.05);
-  transition: border-color .12s;
-}
-
-.item-row:hover {
-  border-color: rgba(255,255,255,.1);
-}
-
-.item-row-name {
-  flex: 1;
-  font-size: .82rem;
-  color: var(--text-secondary);
-}
-
-.item-row-del {
-  background: none;
-  border: none;
-  color: var(--text-faint);
-  cursor: pointer;
-  padding: 2px 4px;
-  border-radius: 4px;
-  transition: color .12s, background .12s;
-  display: flex;
-  align-items: center;
-}
-
-.item-row-del:hover {
-  color: var(--ruby);
-  background: rgba(255,82,82,.08);
-}
-
-/* ── Add item input ── */
-.add-item-row {
-  display: flex;
-  gap: 8px;
-}
-
-.add-item-input {
-  flex: 1;
-  background: var(--bg-float);
-  border: 1px solid var(--text-faint);
-  border-radius: var(--r-md);
-  padding: 8px 12px;
-  color: var(--text-primary);
-  font-size: .82rem;
-  font-family: Outfit, sans-serif;
-  outline: none;
-  transition: border-color .15s;
-}
-
-.add-item-input:focus {
-  border-color: var(--sapphire);
-}
-
-.add-item-btn {
-  padding: 8px 16px;
-  background: var(--sapphire);
-  border: none;
-  border-radius: var(--r-md);
-  color: #fff;
-  font-size: .82rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: opacity .15s;
-  white-space: nowrap;
-}
-
-.add-item-btn:hover { opacity: .85; }
-
-/* ── Empty state ── */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-  color: var(--text-faint);
-}
-
-.empty-state svg {
-  margin-bottom: 16px;
-  opacity: .3;
-}
-
-.empty-state-title {
-  font-size: .9rem;
-  font-weight: 600;
-  margin-bottom: 6px;
-  color: var(--text-muted);
-}
-
-/* ── Emoji picker ── */
-.emoji-picker {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background: var(--bg-raised);
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: var(--r-lg);
-  padding: 10px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  width: 200px;
-  z-index: 100;
-  box-shadow: 0 8px 32px rgba(0,0,0,.4);
-  animation: fadeIn .15s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.emoji-opt {
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1.1rem;
-  transition: background .1s;
-}
-
-.emoji-opt:hover {
-  background: rgba(255,255,255,.1);
-}
-
-/* ── Colors ── */
-.color-dot {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: transform .15s, border-color .15s;
-  flex-shrink: 0;
-}
-
-.color-dot:hover, .color-dot.active {
-  transform: scale(1.2);
-  border-color: rgba(255,255,255,.5);
-}
-
-.color-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.color-label {
-  font-size: .75rem;
-  color: var(--text-muted);
-  margin-right: 4px;
-}
-
-/* ── Save btn ── */
-.save-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 9px 20px;
-  background: linear-gradient(135deg, var(--sapphire), #1a6bff);
-  border: none;
-  border-radius: var(--r-md);
-  color: #fff;
-  font-size: .84rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: opacity .15s;
-  margin-top: 8px;
-}
-
-.save-btn:hover { opacity: .88; }
-
-@media(max-width:700px){
-  .pg-layout { grid-template-columns: 1fr; }
-  .sidebar { height: auto; position: static; }
-  .pg-main { padding: 20px 16px; }
-}
+.param-layout{display:grid;grid-template-columns:280px 1fr;gap:0;min-height:calc(100vh - 60px);}
+@media(max-width:800px){.param-layout{grid-template-columns:1fr;}}
+.param-sidebar{background:var(--bg-raised);border-right:1px solid rgba(255,255,255,.06);padding:16px 0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.sidebar-section{font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text-faint);padding:0 18px 10px;margin-top:8px;}
+.cat-nav-item{display:flex;align-items:center;gap:10px;padding:10px 18px;cursor:pointer;transition:all .15s;border-left:2px solid transparent;}
+.cat-nav-item:hover{background:rgba(255,255,255,.04);}
+.cat-nav-item.active{background:rgba(74,158,232,.07);border-left-color:var(--sapphire);}
+.cat-nav-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.cat-nav-name{font-size:.83rem;font-weight:600;color:var(--text-secondary);flex:1;}
+.cat-nav-item.active .cat-nav-name{color:var(--sapphire);}
+.cat-nav-count{font-size:.68rem;padding:2px 7px;border-radius:10px;background:var(--bg-float);color:var(--text-faint);font-weight:700;}
+.add-cat-btn{margin:12px 18px 0;display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:var(--r-md);background:rgba(45,212,160,.05);border:1px dashed rgba(45,212,160,.2);color:var(--emerald);font-size:.8rem;font-weight:600;cursor:pointer;transition:all .15s;width:calc(100% - 36px);}
+.add-cat-btn:hover{background:rgba(45,212,160,.1);border-color:rgba(45,212,160,.35);}
+.param-main{padding:28px 32px;background:var(--bg-base);}
+.cat-editor-hd{display:flex;align-items:center;gap:14px;margin-bottom:20px;}
+.cat-emoji-btn{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;cursor:pointer;transition:transform .2s;position:relative;}
+.cat-emoji-btn:hover{transform:scale(1.08);}
+.cat-name-input{flex:1;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:9px 14px;color:var(--text-primary);font-size:1rem;font-weight:700;font-family:Outfit,sans-serif;outline:none;transition:border-color .15s;}
+.cat-name-input:focus{border-color:var(--sapphire);}
+.color-row{display:flex;align-items:center;gap:8px;margin-bottom:20px;}
+.color-swatch{width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .15s;}
+.color-swatch:hover,.color-swatch.active{transform:scale(1.25);border-color:rgba(255,255,255,.5);}
+.rules-title{font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.rules-table{background:var(--bg-raised);border:1px solid rgba(255,255,255,.07);border-radius:var(--r-lg);overflow:hidden;margin-bottom:16px;}
+.rules-table-header{display:grid;grid-template-columns:70px 160px 180px 1fr 36px;gap:0;padding:8px 12px;background:var(--bg-float);border-bottom:1px solid rgba(255,255,255,.06);font-size:.67rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);}
+.rule-row{display:grid;grid-template-columns:70px 160px 180px 1fr 36px;gap:0;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.04);align-items:center;transition:background .1s;}
+.rule-row:last-child{border-bottom:none;}
+.rule-row:hover{background:rgba(255,255,255,.02);}
+.rule-select,.rule-input{background:var(--bg-float);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:5px 8px;color:var(--text-primary);font-size:.78rem;font-family:Outfit,sans-serif;outline:none;transition:border-color .12s;width:100%;}
+.rule-select:focus,.rule-input:focus{border-color:var(--sapphire);}
+.rule-logic-badge{display:inline-flex;align-items:center;justify-content:center;padding:3px 8px;border-radius:5px;font-size:.68rem;font-weight:800;cursor:pointer;transition:all .12s;user-select:none;letter-spacing:.05em;}
+.rule-logic-badge.AND{background:rgba(74,158,232,.15);color:var(--sapphire);}
+.rule-logic-badge.OR{background:rgba(245,158,11,.15);color:var(--amber);}
+.rule-del-btn{background:none;border:none;cursor:pointer;color:var(--text-faint);padding:4px;border-radius:4px;transition:color .12s,background .12s;display:flex;align-items:center;justify-content:center;}
+.rule-del-btn:hover{color:var(--ruby);background:rgba(255,82,82,.08);}
+.add-rule-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid rgba(255,255,255,.08);color:var(--text-muted);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;}
+.add-rule-btn:hover{border-color:var(--sapphire);color:var(--sapphire);}
+.preview-section{background:var(--bg-raised);border:1px solid rgba(255,255,255,.07);border-radius:var(--r-lg);padding:16px;margin-top:20px;}
+.preview-title{font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.emoji-picker-pop{position:absolute;top:56px;left:0;background:var(--bg-raised);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-lg);padding:10px;display:flex;flex-wrap:wrap;gap:4px;width:220px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:popIn .15s cubic-bezier(.4,0,.2,1);}
+@keyframes popIn{from{opacity:0;transform:scale(.92) translateY(-4px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.emoji-opt{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;cursor:pointer;transition:background .1s;}
+.emoji-opt:hover{background:rgba(255,255,255,.1);}
+.save-bar{display:flex;align-items:center;gap:10px;margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.06);}
+.btn-save{display:inline-flex;align-items:center;gap:7px;padding:9px 22px;background:linear-gradient(135deg,var(--sapphire),#1a6bff);border:none;border-radius:var(--r-md);color:#fff;font-size:.84rem;font-weight:700;cursor:pointer;transition:opacity .15s;}
+.btn-save:hover{opacity:.88;}
+.btn-delete{padding:9px 16px;background:rgba(255,82,82,.07);border:1px solid rgba(255,82,82,.18);border-radius:var(--r-md);color:var(--ruby);font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s;}
+.btn-delete:hover{background:rgba(255,82,82,.13);}
+.empty-pg{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;text-align:center;color:var(--text-faint);}
+.empty-pg svg{margin-bottom:16px;opacity:.25;}
+.empty-pg-title{font-size:.95rem;font-weight:600;color:var(--text-muted);margin-bottom:8px;}
 </style>
 </head>
 <body>
-
 <div class="tool-topbar">
   <a class="tool-back" href="inventaire_gh.html">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -467,387 +67,263 @@
   </a>
   <div class="tool-title">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--sapphire)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    Paramètres GH
+    Paramètres GH — Catégories
   </div>
 </div>
 
-<div class="pg-layout">
-
-  <!-- ── SIDEBAR ── -->
-  <div class="sidebar">
-    <div class="sidebar-title">Catégories</div>
-    <div id="cat-list"></div>
-    <button class="sidebar-add-cat" onclick="addCategory()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+<div class="param-layout">
+  <div class="param-sidebar">
+    <div class="sidebar-section">Catégories</div>
+    <div id="cat-nav-list"></div>
+    <button class="add-cat-btn" onclick="createCategory()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Nouvelle catégorie
     </button>
   </div>
 
-  <!-- ── MAIN ── -->
-  <div class="pg-main">
-    <div id="pg-content">
-      <div class="empty-state">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-        <div class="empty-state-title">Aucune catégorie sélectionnée</div>
-        <div style="font-size:.8rem">Créez une catégorie ou sélectionnez-en une dans le menu</div>
-      </div>
+  <div class="param-main" id="param-main">
+    <div class="empty-pg">
+      <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+      <div class="empty-pg-title">Sélectionnez ou créez une catégorie</div>
+      <div style="font-size:.8rem;max-width:340px;line-height:1.6">Définissez des règles de reconnaissance style Power Query pour filtrer votre inventaire GH instantanément.</div>
     </div>
   </div>
-
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-// ── SUPABASE ──
-const SUPA_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
-const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
-
-const COLORS = [
-  '#4A9EE8','#2DD4A0','#F59E0B','#EF4444','#A78BFA','#F97316','#EC4899','#06B6D4'
+const SB_URL='https://xppzmdmnuztozgukrcta.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+let sb;
+const COLORS=['#4A9EE8','#2DD4A0','#F59E0B','#EF4444','#A78BFA','#F97316','#EC4899','#06B6D4','#84CC16','#14B8A6'];
+const EMOJIS=['📦','🧪','🏭','⚗️','🔬','🧬','🌿','🍃','💊','🧴','🥤','🫙','📋','⚙️','🔧','🏷️','🎯','🔑','⭐','🚀'];
+const COLUMNS=[
+  {key:'1',label:'No. produit'},
+  {key:'2',label:'Description'},
+  {key:'3',label:'Qté inv.'},
+  {key:'8',label:'No. comm client'},
+  {key:'11',label:'No. lot'},
+  {key:'12',label:'No. sous-lot'},
+  {key:'13',label:'Date lot'},
+  {key:'14',label:'Expiration'},
+  {key:'15',label:'Réception originale'},
 ];
-const EMOJIS = ['📦','🧪','🏭','⚗️','🔬','🧬','🌿','🍃','💊','🧴','🥤','🫙','📋','⚙️','🔧','🏷️'];
+const OPERATORS=[
+  {key:'contains',label:'contient'},
+  {key:'not_contains',label:'ne contient pas'},
+  {key:'starts_with',label:'commence par'},
+  {key:'ends_with',label:'se termine par'},
+  {key:'equals',label:'est égal à'},
+  {key:'not_equals',label:'est différent de'},
+];
+let categories=[],activeCatId=null,emojiOpen=false;
 
-let categories = [];
-let activeCatId = null;
-let emojiPickerOpen = null;
+function waitSB(){
+  if(typeof supabase!=='undefined'&&supabase.createClient){
+    sb=supabase.createClient(SB_URL,SB_KEY);
+    loadCategories();
+  } else setTimeout(waitSB,50);
+}
+window.addEventListener('load',waitSB);
 
-// ── LOAD ──
-async function loadCategories() {
-  try {
-    const { data } = await sb.from('gh_categories').select('*').order('created_at');
-    categories = data || [];
-  } catch(e) {
-    categories = JSON.parse(localStorage.getItem('gh_categories') || '[]');
+async function loadCategories(){
+  try{
+    const {data}=await sb.from('gh_categories').select('*').order('created_at');
+    categories=(data||[]).map(c=>({...c,rules:c.rules||[]}));
+  }catch(e){
+    categories=JSON.parse(localStorage.getItem('gh_categories')||'[]');
   }
-  renderSidebar();
+  renderNav();
 }
 
-async function saveCategories() {
-  try {
-    // Upsert all categories
-    for(const cat of categories) {
-      await sb.from('gh_categories').upsert({
-        id: cat.id,
-        name: cat.name,
-        icon: cat.icon,
-        color: cat.color,
-        items: cat.items,
-        updated_at: new Date().toISOString()
-      });
-    }
-  } catch(e) {
-    localStorage.setItem('gh_categories', JSON.stringify(categories));
-  }
-}
-
-// ── SIDEBAR ──
-function renderSidebar() {
-  const list = document.getElementById('cat-list');
-  if(categories.length === 0) {
-    list.innerHTML = '<div style="padding:12px 20px;font-size:.78rem;color:var(--text-faint);">Aucune catégorie</div>';
+function renderNav(){
+  const nav=document.getElementById('cat-nav-list');
+  if(categories.length===0){
+    nav.innerHTML='<div style="padding:10px 18px;font-size:.78rem;color:var(--text-faint);">Aucune catégorie</div>';
     return;
   }
-
-  list.innerHTML = categories.map(cat => `
-    <div class="cat-item" id="cat-item-${cat.id}">
-      <div class="cat-header ${activeCatId === cat.id ? 'active' : ''}"
-           onclick="toggleCat('${cat.id}')">
-        <div class="cat-icon" style="background:${cat.color}22">${cat.icon}</div>
-        <span class="cat-label">${escH(cat.name)}</span>
-        <svg class="cat-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="9 18 15 12 9 6"/>
-        </svg>
-      </div>
-      <div class="cat-submenu ${activeCatId === cat.id ? 'open' : ''}"
-           id="submenu-${cat.id}">
-        ${(cat.items||[]).map((item,idx) => `
-          <div class="cat-subitem ${false ? 'selected' : ''}"
-               onclick="selectItem('${cat.id}', ${idx})">
-            <div class="cat-subitem-dot"></div>
-            ${escH(item)}
-          </div>
-        `).join('')}
-        <button class="cat-add-btn" onclick="focusAddItem('${cat.id}')">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Ajouter un item
-        </button>
-      </div>
-    </div>
-  `).join('');
-
-  // Animate open submenu
-  if(activeCatId) {
-    const submenu = document.getElementById(`submenu-${activeCatId}`);
-    if(submenu) submenu.style.maxHeight = submenu.scrollHeight + 200 + 'px';
-  }
+  nav.innerHTML=categories.map(cat=>`
+    <div class="cat-nav-item ${activeCatId===cat.id?'active':''}" onclick="selectCat('${cat.id}')">
+      <div class="cat-nav-icon" style="background:${cat.color}22">${cat.icon||'📦'}</div>
+      <span class="cat-nav-name">${escH(cat.name)}</span>
+      <span class="cat-nav-count">${(cat.rules||[]).length}</span>
+    </div>`).join('');
 }
 
-function toggleCat(id) {
-  if(activeCatId === id) {
-    activeCatId = null;
-  } else {
-    activeCatId = id;
-    showCatEditor(id);
-  }
-
-  // Animate all submenus
-  categories.forEach(cat => {
-    const submenu = document.getElementById(`submenu-${cat.id}`);
-    const header = submenu?.previousElementSibling;
-    if(!submenu) return;
-    if(cat.id === activeCatId) {
-      submenu.style.maxHeight = submenu.scrollHeight + 200 + 'px';
-      submenu.classList.add('open');
-      header?.classList.add('active');
-    } else {
-      submenu.style.maxHeight = '0';
-      submenu.classList.remove('open');
-      header?.classList.remove('active');
-    }
-  });
+function selectCat(id){
+  activeCatId=id;renderNav();renderEditor();
 }
 
-function selectItem(catId, idx) {
-  document.querySelectorAll('.cat-subitem').forEach(el => el.classList.remove('selected'));
-  event.currentTarget.classList.add('selected');
-}
-
-function focusAddItem(catId) {
-  activeCatId = catId;
-  showCatEditor(catId);
-  setTimeout(() => {
-    const inp = document.getElementById('add-item-input');
-    if(inp) inp.focus();
-  }, 100);
-}
-
-// ── EDITOR ──
-function showCatEditor(catId) {
-  const cat = categories.find(c => c.id === catId);
+function renderEditor(){
+  const cat=categories.find(c=>c.id===activeCatId);
   if(!cat) return;
-
-  const content = document.getElementById('pg-content');
-  content.innerHTML = `
-    <div class="pg-main-title">Catégorie : ${escH(cat.name)}</div>
-    <div class="pg-main-sub">Gérez les items appartenant à cette catégorie</div>
-
-    <div class="cat-editor">
-      <div class="cat-editor-header">
-        <div class="cat-editor-icon" style="background:${cat.color}22;font-size:1.3rem"
-             id="icon-picker-btn" onclick="toggleEmojiPicker('${catId}')"
-             title="Changer l'icône">
-          ${cat.icon}
-          <div id="emoji-picker-${catId}" class="emoji-picker" style="display:none" onclick="event.stopPropagation()">
-            ${EMOJIS.map(e => `<div class="emoji-opt" onclick="setIcon('${catId}','${e}')">${e}</div>`).join('')}
-          </div>
+  document.getElementById('param-main').innerHTML=`
+    <div class="cat-editor-hd">
+      <div class="cat-emoji-btn" style="background:${cat.color}22" id="emoji-btn" onclick="toggleEmoji()">
+        <span id="cat-icon-display">${cat.icon||'📦'}</span>
+        <div class="emoji-picker-pop" id="emoji-picker" style="display:none">
+          ${EMOJIS.map(e=>`<div class="emoji-opt" onclick="setIcon('${e}');event.stopPropagation()">${e}</div>`).join('')}
         </div>
-        <input class="cat-editor-name" id="cat-name-input" value="${escH(cat.name)}"
-               placeholder="Nom de la catégorie"
-               onchange="updateCatName('${catId}', this.value)">
       </div>
-
-      <div class="color-row">
-        <span class="color-label">Couleur :</span>
-        ${COLORS.map(c => `
-          <div class="color-dot ${cat.color === c ? 'active' : ''}"
-               style="background:${c}"
-               onclick="setColor('${catId}','${c}')"></div>
-        `).join('')}
-      </div>
-
-      <div style="font-size:.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">
-        Items (${(cat.items||[]).length})
-      </div>
-
-      <div class="items-list" id="items-list-${catId}">
-        ${(cat.items||[]).length === 0
-          ? '<div style="padding:16px;text-align:center;color:var(--text-faint);font-size:.8rem;">Aucun item — ajoutez-en ci-dessous</div>'
-          : (cat.items||[]).map((item,idx) => `
-            <div class="item-row">
-              <div class="item-row-name">${escH(item)}</div>
-              <button class="item-row-del" onclick="removeItem('${catId}',${idx})" title="Supprimer">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
-            </div>
-          `).join('')
-        }
-      </div>
-
-      <div class="add-item-row">
-        <input class="add-item-input" id="add-item-input"
-               placeholder="Nom du produit GH (ex: DCA-T697-03)…"
-               onkeydown="if(event.key==='Enter') addItem('${catId}')">
-        <button class="add-item-btn" onclick="addItem('${catId}')">Ajouter</button>
-      </div>
-
-      <div style="display:flex;gap:10px;align-items:center;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.06);">
-        <button class="save-btn" onclick="saveCat('${catId}')">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          Sauvegarder
-        </button>
-        <button onclick="deleteCategory('${catId}')"
-          style="padding:9px 16px;background:rgba(255,82,82,.08);border:1px solid rgba(255,82,82,.2);border-radius:var(--r-md);color:var(--ruby);font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s;">
-          Supprimer la catégorie
-        </button>
-      </div>
+      <input class="cat-name-input" id="cat-name-input" value="${escH(cat.name)}"
+             placeholder="Nom de la catégorie" oninput="updateName(this.value)">
     </div>
-  `;
-}
-
-// ── ACTIONS ──
-function addCategory() {
-  const id = 'cat_' + Date.now();
-  const cat = {
-    id,
-    name: 'Nouvelle catégorie',
-    icon: EMOJIS[Math.floor(Math.random() * EMOJIS.length)],
-    color: COLORS[categories.length % COLORS.length],
-    items: [],
-    created_at: new Date().toISOString()
-  };
-  categories.push(cat);
-  renderSidebar();
-  activeCatId = id;
-  toggleCat(id);
-  setTimeout(() => {
-    const inp = document.getElementById('cat-name-input');
-    if(inp) { inp.focus(); inp.select(); }
-  }, 100);
-}
-
-function updateCatName(catId, name) {
-  const cat = categories.find(c => c.id === catId);
-  if(cat) {
-    cat.name = name;
-    renderSidebar();
-    // Keep submenu open
-    activeCatId = catId;
-    const submenu = document.getElementById(`submenu-${catId}`);
-    if(submenu) {
-      submenu.style.maxHeight = submenu.scrollHeight + 200 + 'px';
-      submenu.classList.add('open');
-    }
-  }
-}
-
-function setIcon(catId, emoji) {
-  const cat = categories.find(c => c.id === catId);
-  if(cat) {
-    cat.icon = emoji;
-    document.getElementById(`emoji-picker-${catId}`).style.display = 'none';
-    emojiPickerOpen = null;
-    showCatEditor(catId);
-    renderSidebar();
-  }
-}
-
-function setColor(catId, color) {
-  const cat = categories.find(c => c.id === catId);
-  if(cat) {
-    cat.color = color;
-    showCatEditor(catId);
-    renderSidebar();
-    activeCatId = catId;
-    const submenu = document.getElementById(`submenu-${catId}`);
-    if(submenu) {
-      submenu.style.maxHeight = submenu.scrollHeight + 200 + 'px';
-      submenu.classList.add('open');
-    }
-  }
-}
-
-function toggleEmojiPicker(catId) {
-  const picker = document.getElementById(`emoji-picker-${catId}`);
-  if(!picker) return;
-  if(emojiPickerOpen && emojiPickerOpen !== catId) {
-    const old = document.getElementById(`emoji-picker-${emojiPickerOpen}`);
-    if(old) old.style.display = 'none';
-  }
-  const isOpen = picker.style.display !== 'none';
-  picker.style.display = isOpen ? 'none' : 'flex';
-  picker.style.flexWrap = 'wrap';
-  emojiPickerOpen = isOpen ? null : catId;
-}
-
-function addItem(catId) {
-  const inp = document.getElementById('add-item-input');
-  const val = inp?.value.trim();
-  if(!val) return;
-  const cat = categories.find(c => c.id === catId);
-  if(cat) {
-    if(!cat.items) cat.items = [];
-    cat.items.push(val);
-    inp.value = '';
-    showCatEditor(catId);
-    renderSidebar();
-    activeCatId = catId;
-    const submenu = document.getElementById(`submenu-${catId}`);
-    if(submenu) {
-      submenu.style.maxHeight = submenu.scrollHeight + 200 + 'px';
-      submenu.classList.add('open');
-    }
-    // Scroll items list to bottom
-    const list = document.getElementById(`items-list-${catId}`);
-    if(list) list.scrollTop = list.scrollHeight;
-  }
-}
-
-function removeItem(catId, idx) {
-  const cat = categories.find(c => c.id === catId);
-  if(cat) {
-    cat.items.splice(idx, 1);
-    showCatEditor(catId);
-    renderSidebar();
-    activeCatId = catId;
-    const submenu = document.getElementById(`submenu-${catId}`);
-    if(submenu) {
-      submenu.style.maxHeight = submenu.scrollHeight + 200 + 'px';
-      submenu.classList.add('open');
-    }
-  }
-}
-
-async function saveCat(catId) {
-  await saveCategories();
-  toast('Catégorie sauvegardée ✓', 'ok');
-}
-
-function deleteCategory(catId) {
-  if(!confirm('Supprimer cette catégorie ?')) return;
-  categories = categories.filter(c => c.id !== catId);
-  activeCatId = null;
-  document.getElementById('pg-content').innerHTML = `
-    <div class="empty-state">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-      <div class="empty-state-title">Catégorie supprimée</div>
-      <div style="font-size:.8rem">Sélectionnez ou créez une catégorie</div>
+    <div class="color-row">
+      <span style="font-size:.72rem;color:var(--text-muted);margin-right:4px;">Couleur :</span>
+      ${COLORS.map(c=>`<div class="color-swatch ${cat.color===c?'active':''}" style="background:${c}" onclick="setColor('${c}')"></div>`).join('')}
+    </div>
+    <div class="rules-title">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Règles de reconnaissance
+      <span style="font-size:.68rem;color:var(--text-faint);font-weight:400;text-transform:none;letter-spacing:0">— style Power Query</span>
+    </div>
+    <div class="rules-table">
+      <div class="rules-table-header">
+        <div>Logique</div><div>Colonne</div><div>Opérateur</div><div>Valeur</div><div></div>
+      </div>
+      <div id="rules-body">${renderRules(cat)}</div>
+    </div>
+    <button class="add-rule-btn" onclick="addRule()">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Ajouter une règle
+    </button>
+    <div class="preview-section">
+      <div class="preview-title">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Aperçu des règles
+      </div>
+      <div id="rules-preview" style="font-size:.8rem;color:var(--text-muted);line-height:1.8">${buildPreviewText(cat)}</div>
+    </div>
+    <div class="save-bar">
+      <button class="btn-save" onclick="saveCategory()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Sauvegarder
+      </button>
+      <button class="btn-delete" onclick="deleteCategory()">Supprimer</button>
     </div>`;
-  saveCategories();
-  renderSidebar();
 }
 
-// ── UTILS ──
-function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-function toast(msg, type='info'){
-  const t = document.createElement('div');
-  t.style.cssText = `position:fixed;bottom:20px;right:20px;padding:10px 18px;border-radius:10px;font-size:.82rem;font-weight:600;z-index:9999;animation:fadeIn .2s ease;color:#fff;background:${type==='ok'?'#1a7a50':type==='err'?'#7a1a1a':'#1a3a7a'}`;
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(()=>t.remove(), 3000);
+function renderRules(cat){
+  if(!cat.rules||cat.rules.length===0)
+    return '<div style="padding:16px;text-align:center;font-size:.78rem;color:var(--text-faint);">Aucune règle — cliquez sur Ajouter une règle</div>';
+  return cat.rules.map((rule,i)=>`
+    <div class="rule-row">
+      <div>${i===0
+        ?'<span style="font-size:.72rem;color:var(--text-faint);font-weight:700;">SI</span>'
+        :`<span class="rule-logic-badge ${rule.logic||'AND'}" onclick="toggleLogic(${i})">${rule.logic||'AND'}</span>`
+      }</div>
+      <div><select class="rule-select" onchange="updateRule(${i},'col',this.value)">
+        ${COLUMNS.map(c=>`<option value="${c.key}" ${rule.col===c.key?'selected':''}>${c.label}</option>`).join('')}
+      </select></div>
+      <div><select class="rule-select" onchange="updateRule(${i},'operator',this.value)">
+        ${OPERATORS.map(o=>`<option value="${o.key}" ${rule.operator===o.key?'selected':''}>${o.label}</option>`).join('')}
+      </select></div>
+      <div><input class="rule-input" value="${escH(rule.value||'')}" placeholder="valeur…" oninput="updateRule(${i},'value',this.value)"></div>
+      <div><button class="rule-del-btn" onclick="deleteRule(${i})">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button></div>
+    </div>`).join('');
 }
 
-// Close emoji picker on outside click
-document.addEventListener('click', (e) => {
-  if(emojiPickerOpen && !e.target.closest('#icon-picker-btn')) {
-    const picker = document.getElementById(`emoji-picker-${emojiPickerOpen}`);
-    if(picker) picker.style.display = 'none';
-    emojiPickerOpen = null;
+function buildPreviewText(cat){
+  if(!cat.rules||cat.rules.length===0) return 'Aucune règle définie.';
+  return cat.rules.map((rule,i)=>{
+    const col=COLUMNS.find(c=>c.key===rule.col)?.label||rule.col;
+    const op=OPERATORS.find(o=>o.key===rule.operator)?.label||rule.operator;
+    const val=rule.value?`"<strong>${escH(rule.value)}</strong>"`:'<em style="color:var(--ruby)">valeur manquante</em>';
+    const logic=i===0?'<span style="color:var(--sapphire);font-weight:700">SI</span>'
+      :`<span style="color:${rule.logic==='OR'?'var(--amber)':'var(--sapphire)'};font-weight:700">${rule.logic||'AND'}</span>`;
+    return `${logic} <span style="color:var(--text-secondary)">${col}</span> <span style="color:var(--emerald)">${op}</span> ${val}`;
+  }).join('<br>');
+}
+
+function createCategory(){
+  const id='cat_'+Date.now();
+  const cat={id,name:'Nouvelle catégorie',icon:EMOJIS[Math.floor(Math.random()*EMOJIS.length)],
+    color:COLORS[categories.length%COLORS.length],rules:[],created_at:new Date().toISOString()};
+  categories.push(cat);activeCatId=id;renderNav();renderEditor();
+  setTimeout(()=>{const n=document.getElementById('cat-name-input');if(n){n.focus();n.select();}},100);
+}
+function updateName(val){const cat=categories.find(c=>c.id===activeCatId);if(cat){cat.name=val;renderNav();}}
+function setIcon(emoji){
+  const cat=categories.find(c=>c.id===activeCatId);
+  if(cat){cat.icon=emoji;document.getElementById('cat-icon-display').textContent=emoji;document.getElementById('emoji-picker').style.display='none';emojiOpen=false;renderNav();}
+}
+function setColor(color){
+  const cat=categories.find(c=>c.id===activeCatId);
+  if(cat){cat.color=color;renderEditor();renderNav();}
+}
+function toggleEmoji(){
+  const p=document.getElementById('emoji-picker');
+  if(!p) return;
+  emojiOpen=!emojiOpen;
+  p.style.display=emojiOpen?'flex':'none';
+  if(emojiOpen) p.style.flexWrap='wrap';
+}
+function addRule(){
+  const cat=categories.find(c=>c.id===activeCatId);
+  if(!cat) return;
+  if(!cat.rules) cat.rules=[];
+  cat.rules.push({col:'1',operator:'contains',value:'',logic:'AND'});
+  document.getElementById('rules-body').innerHTML=renderRules(cat);
+  updatePreview();
+}
+function updateRule(idx,field,val){
+  const cat=categories.find(c=>c.id===activeCatId);
+  if(!cat||!cat.rules[idx]) return;
+  cat.rules[idx][field]=val;updatePreview();
+}
+function toggleLogic(idx){
+  const cat=categories.find(c=>c.id===activeCatId);
+  if(!cat||!cat.rules[idx]) return;
+  cat.rules[idx].logic=cat.rules[idx].logic==='OR'?'AND':'OR';
+  document.getElementById('rules-body').innerHTML=renderRules(cat);updatePreview();
+}
+function deleteRule(idx){
+  const cat=categories.find(c=>c.id===activeCatId);
+  if(!cat) return;
+  cat.rules.splice(idx,1);
+  document.getElementById('rules-body').innerHTML=renderRules(cat);updatePreview();
+}
+function updatePreview(){
+  const cat=categories.find(c=>c.id===activeCatId);
+  if(!cat) return;
+  const p=document.getElementById('rules-preview');
+  if(p) p.innerHTML=buildPreviewText(cat);
+}
+async function saveCategory(){
+  const cat=categories.find(c=>c.id===activeCatId);
+  if(!cat) return;
+  try{
+    await sb.from('gh_categories').upsert({id:cat.id,name:cat.name,icon:cat.icon,color:cat.color,rules:cat.rules,updated_at:new Date().toISOString()});
+    toast('Catégorie sauvegardée ✓','ok');
+  }catch(e){
+    localStorage.setItem('gh_categories',JSON.stringify(categories));
+    toast('Sauvegardé en local ✓','ok');
+  }
+  renderNav();
+}
+async function deleteCategory(){
+  if(!confirm('Supprimer cette catégorie ?')) return;
+  try{await sb.from('gh_categories').delete().eq('id',activeCatId);}catch(e){}
+  categories=categories.filter(c=>c.id!==activeCatId);
+  activeCatId=null;
+  localStorage.setItem('gh_categories',JSON.stringify(categories));
+  renderNav();
+  document.getElementById('param-main').innerHTML='<div class="empty-pg"><div class="empty-pg-title">Catégorie supprimée</div></div>';
+  toast('Supprimée','ok');
+}
+function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(msg,type='info'){
+  const t=document.createElement('div');
+  t.style.cssText=`position:fixed;bottom:20px;right:20px;padding:10px 18px;border-radius:10px;font-size:.82rem;font-weight:600;z-index:9999;color:#fff;background:${type==='ok'?'#1a7a50':'#1a3a7a'}`;
+  t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3000);
+}
+document.addEventListener('click',e=>{
+  if(emojiOpen&&!e.target.closest('#emoji-btn')){
+    const p=document.getElementById('emoji-picker');if(p) p.style.display='none';emojiOpen=false;
   }
 });
-
-// ── INIT ──
-loadCategories();
 </script>
 </body>
 </html>

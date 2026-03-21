@@ -10,6 +10,137 @@
 .gh-layout{display:grid;grid-template-columns:1fr 420px;gap:16px;align-items:start;}
 @media(max-width:1100px){.gh-layout{grid-template-columns:1fr;}}
 
+/* ── Page layout with category sidebar ── */
+.gh-page-layout{display:flex;gap:0;min-height:calc(100vh - 120px);}
+
+/* ── Category Sidebar ── */
+.cat-sidebar{
+  width:52px;
+  flex-shrink:0;
+  background:var(--bg-raised);
+  border-right:1px solid rgba(255,255,255,.06);
+  padding:12px 0;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  position:relative;
+  z-index:50;
+}
+
+.cat-btn{
+  width:36px;
+  height:36px;
+  margin:0 8px;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.1rem;
+  cursor:pointer;
+  transition:all .18s cubic-bezier(.4,0,.2,1);
+  position:relative;
+  border:1.5px solid transparent;
+  background:transparent;
+}
+.cat-btn:hover{
+  background:rgba(255,255,255,.06);
+  transform:scale(1.1);
+}
+.cat-btn.active{
+  border-color:var(--sapphire);
+  background:rgba(74,158,232,.12);
+  box-shadow:0 0 12px rgba(74,158,232,.2);
+}
+.cat-btn-all{
+  font-size:.55rem;
+  font-weight:800;
+  color:var(--text-muted);
+  letter-spacing:.05em;
+}
+.cat-btn.active .cat-btn-all{color:var(--sapphire);}
+
+/* ── Flyout panel ── */
+.cat-flyout{
+  position:fixed;
+  left:52px;
+  top:0;
+  width:260px;
+  height:100vh;
+  background:var(--bg-float);
+  border-right:1px solid rgba(255,255,255,.08);
+  box-shadow:8px 0 40px rgba(0,0,0,.5);
+  z-index:49;
+  padding:16px 0;
+  transform:translateX(-100%);
+  opacity:0;
+  pointer-events:none;
+  transition:transform .3s cubic-bezier(.4,0,.2,1), opacity .25s ease;
+  overflow-y:auto;
+}
+.cat-flyout.open{
+  transform:translateX(0);
+  opacity:1;
+  pointer-events:all;
+}
+
+.cat-flyout-header{
+  padding:0 16px 12px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  margin-bottom:8px;
+}
+.cat-flyout-icon{
+  font-size:1.6rem;
+  margin-bottom:4px;
+}
+.cat-flyout-name{
+  font-size:.9rem;
+  font-weight:700;
+  color:var(--text-primary);
+}
+.cat-flyout-count{
+  font-size:.72rem;
+  color:var(--text-faint);
+  margin-top:2px;
+}
+
+.cat-flyout-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:9px 16px;
+  cursor:pointer;
+  transition:background .12s;
+  font-size:.8rem;
+  color:var(--text-muted);
+  border-left:2px solid transparent;
+}
+.cat-flyout-item:hover{
+  background:rgba(255,255,255,.04);
+  color:var(--text-primary);
+}
+.cat-flyout-item.selected{
+  background:rgba(74,158,232,.08);
+  color:var(--sapphire);
+  border-left-color:var(--sapphire);
+}
+.cat-flyout-item-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--text-faint);flex-shrink:0;
+  transition:background .12s;
+}
+.cat-flyout-item:hover .cat-flyout-item-dot,
+.cat-flyout-item.selected .cat-flyout-item-dot{background:var(--sapphire);}
+
+/* Overlay to close flyout */
+.cat-overlay{
+  position:fixed;inset:0;z-index:48;
+  display:none;
+}
+.cat-overlay.open{display:block;}
+
+/* ── Content area ── */
+.gh-content{flex:1;padding:0;overflow:hidden;min-width:0;}
+
 /* ── Status bar ── */
 .gh-status{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
 .gh-dot{width:10px;height:10px;border-radius:50%;background:var(--text-faint);flex-shrink:0;transition:background .3s;}
@@ -140,6 +271,30 @@
     </div>
 
 
+    <!-- Category overlay -->
+    <div class="cat-overlay" id="cat-overlay" onclick="closeFlyout()"></div>
+
+    <!-- Flyout panel -->
+    <div class="cat-flyout" id="cat-flyout">
+      <div class="cat-flyout-header">
+        <div class="cat-flyout-icon" id="flyout-icon">📦</div>
+        <div class="cat-flyout-name" id="flyout-name">Catégorie</div>
+        <div class="cat-flyout-count" id="flyout-count"></div>
+      </div>
+      <div id="flyout-items"></div>
+    </div>
+
+    <div class="gh-page-layout">
+      <!-- Category sidebar -->
+      <div class="cat-sidebar" id="cat-sidebar">
+        <div class="cat-btn cat-btn-all active" id="cat-btn-all"
+             onclick="filterByCategory(null)"
+             title="Tout afficher">TOUT</div>
+      </div>
+
+      <!-- Content -->
+      <div class="gh-content">
+
     <div class="gh-layout">
       <!-- LEFT — Inventory -->
       <div>
@@ -214,6 +369,9 @@
       </div>
     </div>
 
+      </div><!-- end gh-content -->
+    </div><!-- end gh-page-layout -->
+
   </div>
 </div>
 
@@ -240,6 +398,168 @@ let filtered     = [];  // after search/filter
 let commande     = [];  // selected items
 let sessionId1   = null;
 
+// ── CATEGORIES ────────────────────────────────────────────────────
+let ghCategories = [];
+let activeCatId = null;
+let activeFlyoutId = null;
+
+async function loadGhCategories(){
+  try{
+    const {data} = await sb.from('gh_categories').select('*').order('created_at');
+    ghCategories = data || [];
+  }catch(e){
+    ghCategories = JSON.parse(localStorage.getItem('gh_categories')||'[]');
+  }
+  renderCatSidebar();
+}
+
+function renderCatSidebar(){
+  const sidebar = document.getElementById('cat-sidebar');
+  if(!sidebar) return;
+
+  // Keep the TOUT button, add category buttons
+  const existing = sidebar.querySelector('#cat-btn-all');
+  sidebar.innerHTML = '';
+
+  // TOUT button
+  const allBtn = document.createElement('div');
+  allBtn.className = 'cat-btn cat-btn-all' + (activeCatId === null ? ' active' : '');
+  allBtn.id = 'cat-btn-all';
+  allBtn.title = 'Tout afficher';
+  allBtn.innerHTML = 'TOUT';
+  allBtn.onclick = () => filterByCategory(null);
+  sidebar.appendChild(allBtn);
+
+  // Category buttons
+  ghCategories.forEach(cat => {
+    const btn = document.createElement('div');
+    btn.className = 'cat-btn' + (activeCatId === cat.id ? ' active' : '');
+    btn.title = cat.name;
+    btn.style.borderColor = activeCatId === cat.id ? cat.color : 'transparent';
+    btn.style.background = activeCatId === cat.id ? cat.color+'22' : '';
+    btn.innerHTML = cat.icon || '📦';
+    btn.onclick = (e) => { e.stopPropagation(); openFlyout(cat.id); };
+    sidebar.appendChild(btn);
+  });
+}
+
+function openFlyout(catId){
+  const cat = ghCategories.find(c => c.id === catId);
+  if(!cat) return;
+
+  // If same cat — toggle
+  if(activeFlyoutId === catId){
+    closeFlyout();
+    return;
+  }
+
+  activeFlyoutId = catId;
+
+  // Get matching items from current inventory
+  const matches = allInventory.filter(r => matchesCategory(r, cat));
+
+  document.getElementById('flyout-icon').textContent = cat.icon || '📦';
+  document.getElementById('flyout-name').textContent = cat.name;
+  document.getElementById('flyout-count').textContent = matches.length + ' item' + (matches.length !== 1 ? 's' : '');
+
+  // Build items list — unique no_produit values
+  const produits = [...new Set(matches.map(r => r._raw?.[1]||'').filter(Boolean))];
+  const flyoutItems = document.getElementById('flyout-items');
+  flyoutItems.innerHTML = produits.length === 0
+    ? '<div style="padding:16px;font-size:.78rem;color:var(--text-faint);text-align:center;">Aucun item dans l'inventaire actuel</div>'
+    : produits.map(p => `
+        <div class="cat-flyout-item" onclick="filterByProduct('${p.replace(/'/g,"\'")}')">
+          <div class="cat-flyout-item-dot"></div>
+          ${escH(p)}
+        </div>`).join('');
+
+  // Open flyout
+  const flyout = document.getElementById('cat-flyout');
+  const overlay = document.getElementById('cat-overlay');
+  flyout.classList.add('open');
+  overlay.classList.add('open');
+
+  // Auto-close after 4 seconds of inactivity
+  clearTimeout(window._flyoutTimer);
+  flyout.onmouseenter = () => clearTimeout(window._flyoutTimer);
+  flyout.onmouseleave = () => {
+    window._flyoutTimer = setTimeout(closeFlyout, 1500);
+  };
+}
+
+function closeFlyout(){
+  clearTimeout(window._flyoutTimer);
+  activeFlyoutId = null;
+  document.getElementById('cat-flyout')?.classList.remove('open');
+  document.getElementById('cat-overlay')?.classList.remove('open');
+}
+
+function filterByCategory(catId){
+  closeFlyout();
+  activeCatId = catId;
+  renderCatSidebar();
+
+  if(catId === null){
+    // Show all
+    filterInventory();
+    return;
+  }
+
+  const cat = ghCategories.find(c => c.id === catId);
+  if(!cat) return;
+
+  filtered = allInventory.filter(r => matchesCategory(r, cat));
+  renderTable();
+  document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
+}
+
+function filterByProduct(produit){
+  closeFlyout();
+  filtered = allInventory.filter(r => (r._raw?.[1]||'') === produit);
+  renderTable();
+  document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
+}
+
+function matchesCategory(row, cat){
+  if(!cat.rules || cat.rules.length === 0) return false;
+  const raw = row._raw || [];
+
+  // Rules are AND by default, groups are OR
+  // Each rule: { col, operator, value, logic }
+  // operators: contains, starts_with, ends_with, equals, not_contains
+
+  const colMap = {
+    'no_produit': 1, 'description': 2, 'qte_inv': 3,
+    'no_comm': 13, 'no_lot': 16, 'no_sous_lot': 17,
+    'date_lot': 18, 'expiration': 19, 'reception': 20
+  };
+
+  let result = true;
+  for(let i = 0; i < cat.rules.length; i++){
+    const rule = cat.rules[i];
+    const colIdx = colMap[rule.col] ?? parseInt(rule.col);
+    const cellVal = (raw[colIdx]||'').toLowerCase();
+    const ruleVal = (rule.value||'').toLowerCase();
+
+    let match = false;
+    if(rule.operator === 'contains')      match = cellVal.includes(ruleVal);
+    if(rule.operator === 'not_contains')  match = !cellVal.includes(ruleVal);
+    if(rule.operator === 'starts_with')   match = cellVal.startsWith(ruleVal);
+    if(rule.operator === 'ends_with')     match = cellVal.endsWith(ruleVal);
+    if(rule.operator === 'equals')        match = cellVal === ruleVal;
+    if(rule.operator === 'not_equals')    match = cellVal !== ruleVal;
+
+    if(i === 0){
+      result = match;
+    } else if(rule.logic === 'OR'){
+      result = result || match;
+    } else {
+      result = result && match;
+    }
+  }
+  return result;
+}
+
 // ── INIT ──────────────────────────────────────────────────────────
 function waitSB(){
   if(typeof supabase !== 'undefined' && supabase.createClient){
@@ -255,6 +575,7 @@ async function init(){
     if(!session){ window.location.href='index.html'; return; }
   }catch(e){}
   await loadSession();
+  await loadGhCategories();
 }
 
 // ── SESSION (Supabase) ─────────────────────────────────────────────
