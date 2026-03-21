@@ -202,7 +202,7 @@
 .cat-overlay.open{display:block;}
 
 /* ── Content area ── */
-.gh-content{flex:1;padding:16px 20px;overflow:hidden;min-width:0;}
+.gh-content{flex:1;padding:16px 20px;overflow-x:auto;min-width:0;}
 
 /* ── Status bar ── */
 .gh-status{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
@@ -229,7 +229,7 @@
 .fsel-sm{padding:7px 12px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);color:var(--text-secondary);font-size:.8rem;cursor:pointer;font-family:'Outfit',sans-serif;outline:none;}
 
 /* ── Inventory table ── */
-.inv-tbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;position:relative;}
+.inv-tbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow-x:auto;position:relative;-webkit-overflow-scrolling:touch;}
 .inv-tbl-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--sapphire),transparent);pointer-events:none;}
 .inv-tbl{width:100%;border-collapse:collapse;min-width:1100px;}
 .inv-tbl thead tr{background:var(--bg-float);border-bottom:1px solid var(--text-faint);}
@@ -837,10 +837,12 @@ function parseInventory(html){
 
   const cleanCell = (s) => s
     .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/gi, '')
+    .replace(/&nbsp;/gi, ' ')
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
+    .replace(/&\w+;/g, '')
+    .replace(/[^ -~À-ɏ\/\-\.]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
 
