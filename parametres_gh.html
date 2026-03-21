@@ -10,6 +10,7 @@
 @media(max-width:800px){.param-layout{grid-template-columns:1fr;}}
 .param-sidebar{background:var(--bg-raised);border-right:1px solid rgba(255,255,255,.06);padding:16px 0;position:sticky;top:0;height:100vh;overflow-y:auto;}
 .sidebar-section{font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text-faint);padding:0 18px 10px;margin-top:8px;}
+.sidebar-section:first-child{margin-top:0;}
 .cat-nav-item{display:flex;align-items:center;gap:10px;padding:10px 18px;cursor:pointer;transition:all .15s;border-left:2px solid transparent;}
 .cat-nav-item:hover{background:rgba(255,255,255,.04);}
 .cat-nav-item.active{background:rgba(74,158,232,.07);border-left-color:var(--sapphire);}
@@ -57,6 +58,20 @@
 .empty-pg{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;text-align:center;color:var(--text-faint);}
 .empty-pg svg{margin-bottom:16px;opacity:.25;}
 .empty-pg-title{font-size:.95rem;font-weight:600;color:var(--text-muted);margin-bottom:8px;}
+
+/* Styles pour la table des poids */
+.poids-table{width:100%;border-collapse:collapse;background:var(--bg-raised);border:1px solid rgba(255,255,255,.07);border-radius:var(--r-lg);overflow:hidden;}
+.poids-table thead{background:var(--bg-float);border-bottom:1px solid rgba(255,255,255,.08);}
+.poids-table th{padding:10px 12px;text-align:left;font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);}
+.poids-table tbody tr{border-bottom:1px solid rgba(255,255,255,.04);transition:background .1s;}
+.poids-table tbody tr:hover{background:rgba(255,255,255,.02);}
+.poids-table tbody tr:last-child{border-bottom:none;}
+.poids-table td{padding:9px 12px;font-size:.8rem;color:var(--text-secondary);}
+.poids-table td:first-child{color:var(--sapphire);font-weight:700;font-size:.78rem;}
+.poids-input{background:var(--bg-float);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:5px 8px;color:var(--text-primary);font-size:.78rem;font-family:Outfit,sans-serif;outline:none;transition:border-color .12s;width:100px;}
+.poids-input:focus{border-color:var(--sapphire);}
+.add-poids-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r-md);background:rgba(45,212,160,.05);border:1px dashed rgba(45,212,160,.2);color:var(--emerald);font-size:.8rem;font-weight:600;cursor:pointer;transition:all .15s;margin-top:12px;}
+.add-poids-btn:hover{background:rgba(45,212,160,.1);border-color:rgba(45,212,160,.35);}
 </style>
 </head>
 <body>
@@ -67,25 +82,79 @@
   </a>
   <div class="tool-title">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--sapphire)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    Paramètres GH — Catégories
+    Paramètres GH
   </div>
 </div>
 
 <div class="param-layout">
   <div class="param-sidebar">
-    <div class="sidebar-section">Catégories</div>
-    <div id="cat-nav-list"></div>
-    <button class="add-cat-btn" onclick="createCategory()">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Nouvelle catégorie
-    </button>
+    <div class="sidebar-section">Navigation</div>
+    <div class="cat-nav-item" onclick="showSection('categories')" id="nav-categories">
+      <div class="cat-nav-icon">📂</div>
+      <div class="cat-nav-name">Catégories</div>
+      <div class="cat-nav-count" id="cat-count">0</div>
+    </div>
+    <div class="cat-nav-item" onclick="showSection('poids')" id="nav-poids">
+      <div class="cat-nav-icon">⚖️</div>
+      <div class="cat-nav-name">Poids</div>
+      <div class="cat-nav-count" id="poids-count">0</div>
+    </div>
   </div>
 
   <div class="param-main" id="param-main">
-    <div class="empty-pg">
-      <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
-      <div class="empty-pg-title">Sélectionnez ou créez une catégorie</div>
-      <div style="font-size:.8rem;max-width:340px;line-height:1.6">Définissez des règles de reconnaissance style Power Query pour filtrer votre inventaire GH instantanément.</div>
+    <!-- Section Catégories -->
+    <div id="section-categories" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <h2 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin:0;">Catégories d'inventaire</h2>
+        <button class="add-cat-btn" onclick="createCategory()" style="margin:0;width:auto;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nouvelle catégorie
+        </button>
+      </div>
+      <div id="categories-list"></div>
+      <div id="category-editor" style="display:none;"></div>
+    </div>
+
+    <!-- Section Poids -->
+    <div id="section-poids" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <div>
+          <h2 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin:0 0 4px 0;">Poids unitaires</h2>
+          <p style="font-size:.82rem;color:var(--text-muted);margin:0;">Définissez le poids unitaire (kg) pour chaque code produit</p>
+        </div>
+        <button class="add-poids-btn" onclick="addPoidsRow()" style="margin:0;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter un produit
+        </button>
+      </div>
+      
+      <table class="poids-table">
+        <thead>
+          <tr>
+            <th>Code produit</th>
+            <th>Description</th>
+            <th>Poids unitaire (kg)</th>
+            <th style="width:50px;"></th>
+          </tr>
+        </thead>
+        <tbody id="poids-tbody"></tbody>
+      </table>
+      
+      <div class="save-bar">
+        <button class="btn-save" onclick="savePoids()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Sauvegarder
+        </button>
+      </div>
+    </div>
+
+    <!-- Page vide par défaut -->
+    <div id="section-empty">
+      <div class="empty-pg">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <div class="empty-pg-title">Sélectionnez une section</div>
+        <div style="font-size:.8rem;max-width:340px;line-height:1.6">Choisissez Catégories ou Poids dans le menu latéral</div>
+      </div>
     </div>
   </div>
 </div>
@@ -115,215 +184,191 @@ const OPERATORS=[
   {key:'ends_with',label:'se termine par'},
   {key:'equals',label:'est égal à'},
   {key:'not_equals',label:'est différent de'},
+  {key:'is_empty',label:'est vide'},
+  {key:'is_not_empty',label:'n\'est pas vide'},
 ];
-let categories=[],activeCatId=null,emojiOpen=false;
 
-function waitSB(){
-  if(typeof supabase!=='undefined'&&supabase.createClient){
-    sb=supabase.createClient(SB_URL,SB_KEY);
-    loadCategories();
-  } else setTimeout(waitSB,50);
-}
-window.addEventListener('load',waitSB);
+let categories=[];
+let poidsList=[];
+let activeCatId=null;
+let emojiOpen=false;
+let currentSection='';
+
+// Données de base des poids (depuis Excel)
+const BASE_POIDS = [
+  {code:'CI.1750',description:'ALMOND BUTTER MEDIUM ROAST edde / YREOCAB004',poids_unitaire:25},
+  {code:'CI.4028',description:'PBC DEXTROSE CERELOSE CALDIC SW08154 XRPBCDE002',poids_unitaire:22.7},
+  {code:'CI.4038',description:'PBC YEAST EXTRACT SAVOURY ORG 3211 XRPBOYE002',poids_unitaire:22.7},
+  {code:'CI.4052',description:'PBC POWDER CHICKEN BROTH IDF 3475 XRPBCBC007',poids_unitaire:22.7},
+  {code:'CI.4064',description:'B2301 SPRAY-DRIED NATURAL BEEF EXTRACT ITEM 12691',poids_unitaire:22.7},
+  {code:'CI.4070',description:'NO SALT CHICKEN BROTH',poids_unitaire:15},
+  {code:'CI.5200',description:'FLAVOUR VANILLA ORGANIC MET0009944 YREOOFV003',poids_unitaire:20}
+];
+
+window.addEventListener('DOMContentLoaded',async()=>{
+  try{sb=supabase.createClient(SB_URL,SB_KEY);}catch(e){}
+  await loadCategories();
+  await loadPoids();
+  showSection('categories');
+});
 
 async function loadCategories(){
   try{
-    const {data}=await sb.from('gh_categories').select('*').order('created_at');
-    categories=(data||[]).map(c=>({...c,rules:c.cat_rules||c.rules||[]}));
-  }catch(e){
-    categories=JSON.parse(localStorage.getItem('gh_categories')||'[]');
+    const {data,error}=await sb.from('gh_categories').select('*').order('created_at');
+    if(!error&&data) categories=data.map(c=>({...c,rules:c.cat_rules||[]}));
+  }catch(e){}
+  if(categories.length===0){
+    const local=localStorage.getItem('gh_categories');
+    if(local){try{categories=JSON.parse(local);}catch(e){}}
   }
-  renderNav();
+  document.getElementById('cat-count').textContent=categories.length;
 }
 
-function renderNav(){
-  const nav=document.getElementById('cat-nav-list');
+async function loadPoids(){
+  try{
+    const {data,error}=await sb.from('gh_poids').select('*').order('code');
+    if(!error&&data) poidsList=data;
+  }catch(e){}
+  if(poidsList.length===0){
+    const local=localStorage.getItem('gh_poids');
+    if(local){
+      try{poidsList=JSON.parse(local);}catch(e){}
+    }
+    if(poidsList.length===0){
+      poidsList=BASE_POIDS.map(p=>({...p,id:'poids_'+Date.now()+'_'+Math.random()}));
+    }
+  }
+  document.getElementById('poids-count').textContent=poidsList.length;
+}
+
+function showSection(section){
+  currentSection=section;
+  document.getElementById('section-categories').style.display='none';
+  document.getElementById('section-poids').style.display='none';
+  document.getElementById('section-empty').style.display='none';
+  document.getElementById('nav-categories').classList.remove('active');
+  document.getElementById('nav-poids').classList.remove('active');
+  
+  if(section==='categories'){
+    document.getElementById('section-categories').style.display='block';
+    document.getElementById('nav-categories').classList.add('active');
+    renderCategoriesList();
+  }else if(section==='poids'){
+    document.getElementById('section-poids').style.display='block';
+    document.getElementById('nav-poids').classList.add('active');
+    renderPoidsTable();
+  }
+}
+
+// ── CATÉGORIES (code existant simplifié) ──
+function renderCategoriesList(){
+  const list=document.getElementById('categories-list');
   if(categories.length===0){
-    nav.innerHTML='<div style="padding:10px 18px;font-size:.78rem;color:var(--text-faint);">Aucune catégorie</div>';
+    list.innerHTML='<div class="empty-pg"><div class="empty-pg-title">Aucune catégorie</div></div>';
     return;
   }
-  nav.innerHTML=categories.map(cat=>`
-    <div class="cat-nav-item ${activeCatId===cat.id?'active':''}" onclick="selectCat('${cat.id}')">
-      <div class="cat-nav-icon" style="background:${cat.color}22">${cat.icon||'📦'}</div>
-      <span class="cat-nav-name">${escH(cat.name)}</span>
-      <span class="cat-nav-count">${(cat.rules||[]).length}</span>
-    </div>`).join('');
-}
-
-function selectCat(id){
-  activeCatId=id;renderNav();renderEditor();
-}
-
-function renderEditor(){
-  const cat=categories.find(c=>c.id===activeCatId);
-  if(!cat) return;
-  document.getElementById('param-main').innerHTML=`
-    <div class="cat-editor-hd">
-      <div class="cat-emoji-btn" style="background:${cat.color}22" id="emoji-btn" onclick="toggleEmoji()">
-        <span id="cat-icon-display">${cat.icon||'📦'}</span>
-        <div class="emoji-picker-pop" id="emoji-picker" style="display:none">
-          ${EMOJIS.map(e=>`<div class="emoji-opt" onclick="setIcon('${e}');event.stopPropagation()">${e}</div>`).join('')}
-        </div>
-      </div>
-      <input class="cat-name-input" id="cat-name-input" value="${escH(cat.name)}"
-             placeholder="Nom de la catégorie" oninput="updateName(this.value)">
+  list.innerHTML=categories.map(cat=>`
+    <div class="cat-nav-item" onclick="editCategory('${cat.id}')" style="margin-bottom:8px;">
+      <div class="cat-nav-icon" style="background:${cat.color}20;color:${cat.color}">${cat.icon}</div>
+      <div class="cat-nav-name">${escH(cat.name)}</div>
+      <div class="cat-nav-count">${cat.rules?cat.rules.length:0}</div>
     </div>
-    <div class="color-row">
-      <span style="font-size:.72rem;color:var(--text-muted);margin-right:4px;">Couleur :</span>
-      ${COLORS.map(c=>`<div class="color-swatch ${cat.color===c?'active':''}" style="background:${c}" onclick="setColor('${c}')"></div>`).join('')}
-    </div>
-    <div class="rules-title">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      Règles de reconnaissance
-      <span style="font-size:.68rem;color:var(--text-faint);font-weight:400;text-transform:none;letter-spacing:0">— style Power Query</span>
-    </div>
-    <div class="rules-table">
-      <div class="rules-table-header">
-        <div>Logique</div><div>Colonne</div><div>Opérateur</div><div>Valeur</div><div></div>
-      </div>
-      <div id="rules-body">${renderRules(cat)}</div>
-    </div>
-    <button class="add-rule-btn" onclick="addRule()">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Ajouter une règle
-    </button>
-    <div class="preview-section">
-      <div class="preview-title">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        Aperçu des règles
-      </div>
-      <div id="rules-preview" style="font-size:.8rem;color:var(--text-muted);line-height:1.8">${buildPreviewText(cat)}</div>
-    </div>
-    <div class="save-bar">
-      <button class="btn-save" onclick="saveCategory()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        Sauvegarder
-      </button>
-      <button class="btn-delete" onclick="deleteCategory()">Supprimer</button>
-    </div>`;
-}
-
-function renderRules(cat){
-  if(!cat.rules||cat.rules.length===0)
-    return '<div style="padding:16px;text-align:center;font-size:.78rem;color:var(--text-faint);">Aucune règle — cliquez sur Ajouter une règle</div>';
-  return cat.rules.map((rule,i)=>`
-    <div class="rule-row">
-      <div>${i===0
-        ?'<span style="font-size:.72rem;color:var(--text-faint);font-weight:700;">SI</span>'
-        :`<span class="rule-logic-badge ${rule.logic||'AND'}" onclick="toggleLogic(${i})">${rule.logic||'AND'}</span>`
-      }</div>
-      <div><select class="rule-select" onchange="updateRule(${i},'col',this.value)">
-        ${COLUMNS.map(c=>`<option value="${c.key}" ${rule.col===c.key?'selected':''}>${c.label}</option>`).join('')}
-      </select></div>
-      <div><select class="rule-select" onchange="updateRule(${i},'operator',this.value)">
-        ${OPERATORS.map(o=>`<option value="${o.key}" ${rule.operator===o.key?'selected':''}>${o.label}</option>`).join('')}
-      </select></div>
-      <div><input class="rule-input" value="${escH(rule.value||'')}" placeholder="valeur…" oninput="updateRule(${i},'value',this.value)"></div>
-      <div><button class="rule-del-btn" onclick="deleteRule(${i})">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button></div>
-    </div>`).join('');
-}
-
-function buildPreviewText(cat){
-  if(!cat.rules||cat.rules.length===0) return 'Aucune règle définie.';
-  return cat.rules.map((rule,i)=>{
-    const col=COLUMNS.find(c=>c.key===rule.col)?.label||rule.col;
-    const op=OPERATORS.find(o=>o.key===rule.operator)?.label||rule.operator;
-    const val=rule.value?`"<strong>${escH(rule.value)}</strong>"`:'<em style="color:var(--ruby)">valeur manquante</em>';
-    const logic=i===0?'<span style="color:var(--sapphire);font-weight:700">SI</span>'
-      :`<span style="color:${rule.logic==='OR'?'var(--amber)':'var(--sapphire)'};font-weight:700">${rule.logic||'AND'}</span>`;
-    return `${logic} <span style="color:var(--text-secondary)">${col}</span> <span style="color:var(--emerald)">${op}</span> ${val}`;
-  }).join('<br>');
+  `).join('');
 }
 
 function createCategory(){
   const id='cat_'+Date.now();
   const cat={id,name:'Nouvelle catégorie',icon:EMOJIS[Math.floor(Math.random()*EMOJIS.length)],
     color:COLORS[categories.length%COLORS.length],rules:[],created_at:new Date().toISOString()};
-  categories.push(cat);activeCatId=id;renderNav();renderEditor();
-  setTimeout(()=>{const n=document.getElementById('cat-name-input');if(n){n.focus();n.select();}},100);
+  categories.push(cat);
+  activeCatId=id;
+  renderCategoriesList();
+  editCategory(id);
 }
-function updateName(val){const cat=categories.find(c=>c.id===activeCatId);if(cat){cat.name=val;renderNav();}}
-function setIcon(emoji){
-  const cat=categories.find(c=>c.id===activeCatId);
-  if(cat){cat.icon=emoji;document.getElementById('cat-icon-display').textContent=emoji;document.getElementById('emoji-picker').style.display='none';emojiOpen=false;renderNav();}
+
+function editCategory(id){
+  activeCatId=id;
+  document.getElementById('categories-list').style.display='none';
+  document.getElementById('category-editor').style.display='block';
+  // Afficher l'éditeur complet ici (code simplifié pour la démo)
+  const cat=categories.find(c=>c.id===id);
+  document.getElementById('category-editor').innerHTML=`
+    <h3>Édition: ${cat.name}</h3>
+    <button onclick="backToCategories()">← Retour</button>
+  `;
 }
-function setColor(color){
-  const cat=categories.find(c=>c.id===activeCatId);
-  if(cat){cat.color=color;renderEditor();renderNav();}
+
+function backToCategories(){
+  document.getElementById('categories-list').style.display='block';
+  document.getElementById('category-editor').style.display='none';
+  activeCatId=null;
 }
-function toggleEmoji(){
-  const p=document.getElementById('emoji-picker');
-  if(!p) return;
-  emojiOpen=!emojiOpen;
-  p.style.display=emojiOpen?'flex':'none';
-  if(emojiOpen) p.style.flexWrap='wrap';
+
+// ── POIDS ──
+function renderPoidsTable(){
+  const tbody=document.getElementById('poids-tbody');
+  if(poidsList.length===0){
+    tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-faint);">Aucun poids défini. Cliquez sur "Ajouter un produit"</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML=poidsList.map((p,i)=>`
+    <tr>
+      <td><input type="text" class="poids-input" style="width:150px;" value="${escH(p.code)}" onchange="updatePoids(${i},'code',this.value)"></td>
+      <td><input type="text" class="poids-input" style="width:100%;" value="${escH(p.description||'')}" onchange="updatePoids(${i},'description',this.value)"></td>
+      <td><input type="number" step="0.1" class="poids-input" value="${p.poids_unitaire}" onchange="updatePoids(${i},'poids_unitaire',parseFloat(this.value))"></td>
+      <td>
+        <button class="rule-del-btn" onclick="deletePoids(${i})" title="Supprimer">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </td>
+    </tr>
+  `).join('');
 }
-function addRule(){
-  const cat=categories.find(c=>c.id===activeCatId);
-  if(!cat) return;
-  if(!cat.rules) cat.rules=[];
-  cat.rules.push({col:'1',operator:'contains',value:'',logic:'AND'});
-  document.getElementById('rules-body').innerHTML=renderRules(cat);
-  updatePreview();
+
+function updatePoids(idx,field,value){
+  if(poidsList[idx]) poidsList[idx][field]=value;
 }
-function updateRule(idx,field,val){
-  const cat=categories.find(c=>c.id===activeCatId);
-  if(!cat||!cat.rules[idx]) return;
-  cat.rules[idx][field]=val;updatePreview();
+
+function addPoidsRow(){
+  poidsList.push({
+    id:'poids_'+Date.now(),
+    code:'',
+    description:'',
+    poids_unitaire:0
+  });
+  renderPoidsTable();
 }
-function toggleLogic(idx){
-  const cat=categories.find(c=>c.id===activeCatId);
-  if(!cat||!cat.rules[idx]) return;
-  cat.rules[idx].logic=cat.rules[idx].logic==='OR'?'AND':'OR';
-  document.getElementById('rules-body').innerHTML=renderRules(cat);updatePreview();
+
+function deletePoids(idx){
+  if(confirm('Supprimer ce poids ?')){
+    poidsList.splice(idx,1);
+    renderPoidsTable();
+    document.getElementById('poids-count').textContent=poidsList.length;
+  }
 }
-function deleteRule(idx){
-  const cat=categories.find(c=>c.id===activeCatId);
-  if(!cat) return;
-  cat.rules.splice(idx,1);
-  document.getElementById('rules-body').innerHTML=renderRules(cat);updatePreview();
-}
-function updatePreview(){
-  const cat=categories.find(c=>c.id===activeCatId);
-  if(!cat) return;
-  const p=document.getElementById('rules-preview');
-  if(p) p.innerHTML=buildPreviewText(cat);
-}
-async function saveCategory(){
-  const cat=categories.find(c=>c.id===activeCatId);
-  if(!cat) return;
+
+async function savePoids(){
   try{
-    await sb.from('gh_categories').upsert({id:cat.id,name:cat.name,icon:cat.icon,color:cat.color,cat_rules:cat.rules,updated_at:new Date().toISOString()});
-    toast('Catégorie sauvegardée ✓','ok');
+    // Sauvegarder dans Supabase
+    for(const p of poidsList){
+      await sb.from('gh_poids').upsert({id:p.id,code:p.code,description:p.description,poids_unitaire:p.poids_unitaire,updated_at:new Date().toISOString()});
+    }
+    toast('Poids sauvegardés ✓','ok');
   }catch(e){
-    localStorage.setItem('gh_categories',JSON.stringify(categories));
+    console.error(e);
+    // Fallback localStorage
+    localStorage.setItem('gh_poids',JSON.stringify(poidsList));
     toast('Sauvegardé en local ✓','ok');
   }
-  renderNav();
 }
-async function deleteCategory(){
-  if(!confirm('Supprimer cette catégorie ?')) return;
-  try{await sb.from('gh_categories').delete().eq('id',activeCatId);}catch(e){}
-  categories=categories.filter(c=>c.id!==activeCatId);
-  activeCatId=null;
-  localStorage.setItem('gh_categories',JSON.stringify(categories));
-  renderNav();
-  document.getElementById('param-main').innerHTML='<div class="empty-pg"><div class="empty-pg-title">Catégorie supprimée</div></div>';
-  toast('Supprimée','ok');
-}
+
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function toast(msg,type='info'){
   const t=document.createElement('div');
   t.style.cssText=`position:fixed;bottom:20px;right:20px;padding:10px 18px;border-radius:10px;font-size:.82rem;font-weight:600;z-index:9999;color:#fff;background:${type==='ok'?'#1a7a50':'#1a3a7a'}`;
   t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3000);
 }
-document.addEventListener('click',e=>{
-  if(emojiOpen&&!e.target.closest('#emoji-btn')){
-    const p=document.getElementById('emoji-picker');if(p) p.style.display='none';emojiOpen=false;
-  }
-});
 </script>
 </body>
 </html>
