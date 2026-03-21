@@ -845,13 +845,17 @@ function parseInventory(html){
       .replace(/\s+/g, ' ')
       .trim();
     
-    // Corriger les caractères mal encodés dans les dates
-    // Utiliser des regex qui capturent n'importe quel caractère entre les lettres
+    // Corriger les caractères mal encodés dans les noms de mois
+    // Cibler spécifiquement les mois avec accents : Février (É), Août (Û), Décembre (É)
     cleaned = cleaned
-      .replace(/D[^\w]C/gi, 'DEC')        // D�C, D�C, etc. → DEC
-      .replace(/F[^\w]VR/gi, 'FEVR')      // F�VR → FEVR
-      .replace(/AO[^\w]T/gi, 'AOUT')      // AO�T → AOUT
-      .replace(/A[^\w]T/gi, 'AOU');       // A�T → AOU
+      // Février : F�V, F�VR → FEV, FEVR
+      .replace(/F[^\w-]+VR/gi, 'FEVR')
+      .replace(/F[^\w-]+V(?!R)/gi, 'FEV')
+      // Août : AO�T, A�T → AOUT, AOU  
+      .replace(/AO[^\w-]+T/gi, 'AOUT')
+      .replace(/A[^\w-]+T(?!O)/gi, 'AOU')
+      // Décembre : D�C → DEC
+      .replace(/D[^\w-]+C/gi, 'DEC');
     
     return cleaned;
   };
