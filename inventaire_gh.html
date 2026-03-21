@@ -1561,20 +1561,24 @@ async function exportPDF(){
       pdf.setDrawColor(220,222,228); pdf.setLineWidth(0.15); pdf.line(M,y+rH,W-M,y+rH);
       x=M;
       
-      // Mapper TOUTES les valeurs depuis raw[] directement
+      // Utiliser EXACTEMENT l'ordre des colonnes affichées
+      // keep = [1, 2, 8, 13, 15, 16, 17, 18, 19, 20]
+      // keep.slice(2) = [8, 13, 15, 16, 17, 18, 19, 20]
+      // Ordre affiché : Qté(8), No.comm(13), Étiquette(15), No.lot(16), No.sous-lot(17), Date lot(18), Expiration(19), Réception(20)
+      
       const raw = item._raw || [];
       
       const rowData = {
         code: item._resolved_code || '—',
         description: item._resolved_desc || '—',
         qte: item._resolved_qte || '—',
-        no_comm: raw[8] || '—',         // Colonne 8 = No. comm client
-        etiquette: raw[10] || '—',      // Colonne 10 = Étiquette
-        no_lot: raw[11] || '—',         // Colonne 11 = No. lot
-        no_sous_lot: raw[12] || '—',    // Colonne 12 = No. sous-lot
-        date_lot: raw[13] || '—',       // Colonne 13 = Date lot
-        expiration: raw[14] || '—',     // Colonne 14 = Expiration
-        reception: raw[15] || '—',      // Colonne 15 = Réception originale
+        no_comm: raw[13] || '—',        // keep.slice(2)[1] = 13
+        etiquette: raw[15] || '—',      // keep.slice(2)[2] = 15
+        no_lot: raw[16] || '—',         // keep.slice(2)[3] = 16
+        no_sous_lot: raw[17] || '—',    // keep.slice(2)[4] = 17
+        date_lot: raw[18] || '—',       // keep.slice(2)[5] = 18
+        expiration: raw[19] || '—',     // keep.slice(2)[6] = 19
+        reception: raw[20] || '—',      // keep.slice(2)[7] = 20
         poids_unit: item._resolved_poids_unit ? item._resolved_poids_unit.toFixed(1) : '—',
         poids_total: item._resolved_poids_total ? item._resolved_poids_total.toFixed(1) : '—',
       };
