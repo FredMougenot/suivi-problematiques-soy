@@ -394,6 +394,8 @@
                 <th>Date lot</th>
                 <th>Expiration</th>
                 <th>Réception originale</th>
+                <th>Poids unit. (kg)</th>
+                <th>Poids total (kg)</th>
               </tr>
             </thead>
             <tbody id="inv-tbody"></tbody>
@@ -458,6 +460,24 @@ let allInventory = [];  // raw rows
 let filtered     = [];  // after search/filter
 let commande     = [];  // selected items
 let sessionId1   = null;
+
+// ── POIDS ─────────────────────────────────────────────────────────
+let poidsList = [];
+
+async function loadPoids(){
+  try{
+    const {data} = await sb.from('gh_poids').select('*');
+    poidsList = data || [];
+  }catch(e){
+    poidsList = JSON.parse(localStorage.getItem('gh_poids')||'[]');
+  }
+}
+
+function getPoidsUnitaire(code){
+  if(!code) return 0;
+  const p = poidsList.find(p => p.code === code);
+  return p ? parseFloat(p.poids_unitaire || 0) : 0;
+}
 
 // ── CATEGORIES ────────────────────────────────────────────────────
 let ghCategories = [];
@@ -661,6 +681,7 @@ window.addEventListener('load', waitSB);
 async function init(){
   await loadSession();
   await loadGhCategories();
+  await loadPoids();  // Charger les poids
   // Restaurer inventaire depuis localStorage si disponible
   try{
     const saved = localStorage.getItem('gh_inventory');
@@ -1079,6 +1100,12 @@ function renderTable(){
     if(v0) prevCol0 = v0;
     if(v1) prevCol1 = v1;
 
+    // Calcul des poids
+    const code = disp0;  // No. produit
+    const qte = parseFloat(raw[3] || 0);  // Qté inv (colonne 3)
+    const poidsUnit = getPoidsUnitaire(code);
+    const poidsTotal = qte * poidsUnit;
+
     return `<tr class="${sel}" onclick="toggleItem(${i}, '${escAttr(key)}')">
       <td style="font-size:.72rem">${escH(disp0)}</td>
       <td style="font-size:.72rem">${escH(disp1)}</td>
@@ -1088,6 +1115,8 @@ function renderTable(){
         if(idx===13||idx===14||idx===15) val = fmtDate(val);
         return `<td style="font-size:.72rem">${escH(val)}</td>`;
       }).join('')}
+      <td style="font-size:.72rem;color:var(--amber);font-weight:600">${poidsUnit > 0 ? poidsUnit.toFixed(1) : '—'}</td>
+      <td style="font-size:.72rem;color:var(--emerald);font-weight:700">${poidsTotal > 0 ? poidsTotal.toFixed(1) : '—'}</td>
     </tr>`;
   }).join('');
 }
