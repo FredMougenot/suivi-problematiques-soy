@@ -390,94 +390,92 @@ function parseFromPaste(){
 
 // ── PARSE HTML TABLE ──────────────────────────────────────────────
 function parseInventory(html){
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
-  const tables = doc.querySelectorAll('table');
+  allInventory = [];
 
-  let dataTable = null;
-  for(const t of tables){
-    const rows = t.querySelectorAll('tr');
-    if(rows.length > 5){
-      const headers = [...rows[0].querySelectorAll('th,td')].map(c=>c.textContent.trim().toLowerCase());
-      if(headers.some(h=>h.includes('produit') || h.includes('lot') || h.includes('division'))){
-        dataTable = t; break;
-      }
+  // Parser case-insensitive — GH utilise TD/TR en majuscules
+  // Extraire toutes les lignes TR avec leurs cellules TD
+  const trRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+  const tdRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+
+  const cleanCell = (s) => s
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/gi, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const allRows = [];
+  let trMatch;
+  while((trMatch = trRegex.exec(html)) !== null){
+    const rowHtml = trMatch[1];
+    const cells = [];
+    let tdMatch;
+    const tdReg = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+    while((tdMatch = tdReg.exec(rowHtml)) !== null){
+      cells.push(cleanCell(tdMatch[1]));
     }
+    if(cells.length >= 3) allRows.push(cells);
   }
 
-  if(!dataTable){
-    for(const t of tables){
-      if(t.querySelectorAll('tr').length > 10){ dataTable = t; break; }
-    }
-  }
-
-  if(!dataTable){
+  if(allRows.length === 0){
     document.getElementById('inv-spinner').style.display='none';
     document.getElementById('inv-empty').style.display='block';
-    document.getElementById('inv-empty').textContent = 'Impossible de trouver le tableau d\'inventaire dans la réponse.';
-    toast('Tableau non trouvé dans la réponse HTML','err');
+    document.getElementById('inv-empty').textContent = 'Aucune donnée trouvée dans la réponse GH.';
+    toast('Aucune ligne de données trouvée','err');
     return;
   }
 
-  const rows = [...dataTable.querySelectorAll('tr')];
-  allInventory = [];
-
-  // Colonnes GH exactes (indices 3 à 25 dans le tableau source)
-  // 0=vide, 1=voir liste, 2=tri, 3=Division, 4=No.produit, 5=Description,
-  // 6=Unité1, 7=Unité2, 8=No.comm client, 9=Ent., 10=Étiquette,
-  // 11=No.lot, 12=No.sous-lot, 13=Date lot, 14=Expiration,
+  // Colonnes GH : 0=vide, 1=voir liste, 2=tri, 3=Division, 4=No.produit,
+  // 5=Description, 6=Unité1, 7=Unité2, 8=No.comm client, 9=Ent.,
+  // 10=Étiquette, 11=No.lot, 12=No.sous-lot, 13=Date lot, 14=Expiration,
   // 15=Réception originale, 16=Bloquer, 17=Raison,
   // 18=Qté inv, 19=Expéd.att, 20=Bloqués, 21=Disponibles (unités)
   // 22=Qté inv, 23=Expéd.att, 24=Bloqués, 25=Disponibles (poids)
 
-  // Valeurs précédentes pour fill-down
   let prev = {};
 
-  for(let i=1; i<rows.length; i++){
-    const cells = [...rows[i].querySelectorAll('td')];
-    if(cells.length < 10) continue;
-
+  for(const v of allRows){
     // Ignorer lignes de total/réservé
-    const rowText = rows[i].textContent.trim();
-    if(rowText.includes('Total du produit') || rowText.includes('RÉSERVÉE') || rowText.includes('GRAND TOTAL')) continue;
+    const rowText = v.join(' ');
+    if(rowText.includes('Total du produit') || rowText.includes('TOTAL') ||
+       rowText.includes('GRAND TOTAL') || rowText.includes('RESERVEE') ||
+       rowText.includes('RÉSERVÉE')) continue;
 
-    const v = cells.map(c=>c.textContent.replace(/\s+/g,' ').trim());
-
-    // Fill-down : si champ vide, reprendre valeur précédente
     const get = (idx, key) => {
-      const val = v[idx] || '';
-      if(val && val !== '\u00a0' && val !== '&nbsp;') { prev[key] = val; return val; }
+      const val = (v[idx] || '').trim();
+      if(val) { prev[key] = val; return val; }
       return prev[key] || '';
     };
 
     const row = {
-      division:     get(3,  'division'),
-      no_produit:   get(4,  'no_produit'),
-      description:  get(5,  'description'),
-      unite1:       get(6,  'unite1'),
-      unite2:       get(7,  'unite2'),
-      no_comm:      get(8,  'no_comm'),
-      entrepot:     get(9,  'entrepot'),
-      etiquette:    get(10, 'etiquette'),
-      no_lot:       get(11, 'no_lot'),
-      no_sous_lot:  get(12, 'no_sous_lot'),
-      date_lot:     get(13, 'date_lot'),
-      expiration:   get(14, 'expiration'),
-      reception:    get(15, 'reception'),
-      bloquer:      get(16, 'bloquer'),
-      raison:       get(17, 'raison'),
-      qte_inv:      get(18, 'qte_inv'),
-      exped_att:    get(19, 'exped_att'),
-      bloques:      get(20, 'bloques'),
-      disponibles:  get(21, 'disponibles'),
-      qte_inv_p:    get(22, 'qte_inv_p'),
-      exped_att_p:  get(23, 'exped_att_p'),
-      bloques_p:    get(24, 'bloques_p'),
-      disponibles_p:get(25, 'disponibles_p'),
+      division:      get(3,  'division'),
+      no_produit:    get(4,  'no_produit'),
+      description:   get(5,  'description'),
+      unite1:        get(6,  'unite1'),
+      unite2:        get(7,  'unite2'),
+      no_comm:       get(8,  'no_comm'),
+      entrepot:      get(9,  'entrepot'),
+      etiquette:     get(10, 'etiquette'),
+      no_lot:        get(11, 'no_lot'),
+      no_sous_lot:   get(12, 'no_sous_lot'),
+      date_lot:      get(13, 'date_lot'),
+      expiration:    get(14, 'expiration'),
+      reception:     get(15, 'reception'),
+      bloquer:       get(16, 'bloquer'),
+      raison:        get(17, 'raison'),
+      qte_inv:       get(18, 'qte_inv'),
+      exped_att:     get(19, 'exped_att'),
+      bloques:       get(20, 'bloques'),
+      disponibles:   get(21, 'disponibles'),
+      qte_inv_p:     get(22, 'qte_inv_p'),
+      exped_att_p:   get(23, 'exped_att_p'),
+      bloques_p:     get(24, 'bloques_p'),
+      disponibles_p: get(25, 'disponibles_p'),
     };
 
-    // Ignorer lignes complètement vides
-    if(!row.no_produit && !row.no_lot) continue;
+    if(!row.no_produit && !row.no_lot && !row.description) continue;
 
     allInventory.push(row);
   }
