@@ -1134,7 +1134,9 @@ function renderTable(){
         if(idx===13||idx===14||idx===15) val = fmtDate(val);
         return `<td style="font-size:.72rem">${escH(val)}</td>`;
       }).join('')}
-      <td style="font-size:.72rem;color:var(--amber);font-weight:600">${poidsUnit > 0 ? poidsUnit.toFixed(1) : '—'}</td>
+      <td style="font-size:.65rem;color:var(--amber)">Cherche: "${escH(code)}"<br>Liste: ${poidsList.length} items<br>${poidsUnit > 0 ? poidsUnit.toFixed(1) + ' kg' : 'NON TROUVÉ'}</td>
+      <td style="font-size:.72rem;color:var(--emerald);font-weight:700">${poidsTotal > 0 ? poidsTotal.toFixed(1) : '—'}</td>
+    </tr>`;
       <td style="font-size:.72rem;color:var(--emerald);font-weight:700">${poidsTotal > 0 ? poidsTotal.toFixed(1) : '—'}</td>
     </tr>`;
   }).join('');
