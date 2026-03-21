@@ -163,32 +163,17 @@
           <table class="inv-tbl" id="inv-tbl" style="display:none">
             <thead>
               <tr>
-                <th>Col 0</th>
-                <th>Col 1</th>
-                <th>Col 2</th>
-                <th>Col 3</th>
-                <th>Col 4</th>
-                <th>Col 5</th>
-                <th>Col 6</th>
-                <th>Col 7</th>
-                <th>Col 8</th>
-                <th>Col 9</th>
-                <th>Col 10</th>
-                <th>Col 11</th>
-                <th>Col 12</th>
-                <th>Col 13</th>
-                <th>Col 14</th>
-                <th>Col 15</th>
-                <th>Col 16</th>
-                <th>Col 17</th>
-                <th>Col 18</th>
-                <th>Col 19</th>
-                <th>Col 20</th>
-                <th>Col 21</th>
-                <th>Col 22</th>
-                <th>Col 23</th>
-                <th>Col 24</th>
-                <th>Col 25</th>
+                <th>Voir liste</th>
+                <th>Tri</th>
+                <th>Division</th>
+                <th>No. comm. client</th>
+                <th>Date lot</th>
+                <th>Réception originale</th>
+                <th>Bloquer</th>
+                <th>Raison</th>
+                <th>Qté inv.</th>
+                <th>Expéd. att.</th>
+                <th>Bloqués</th>
               </tr>
             </thead>
             <tbody id="inv-tbody"></tbody>
@@ -563,8 +548,9 @@ function renderTable(){
     const key = r.no_lot || r.no_produit+i;
     const sel = selectedKeys.has(key) ? 'selected' : '';
     const raw = r._raw || [];
+    const keep = [1,2,3,8,13,15,16,17,18,19,20];
     return `<tr class="${sel}" onclick="toggleItem(${i}, '${escAttr(key)}')">
-      ${raw.map(v=>`<td style="font-size:.72rem">${escH(v)}</td>`).join('')}
+      ${keep.map(idx=>`<td style="font-size:.72rem">${escH(raw[idx]||'')}</td>`).join('')}
     </tr>`;
   }).join('');
 }
