@@ -10,6 +10,69 @@
 .gh-layout{display:grid;grid-template-columns:1fr 420px;gap:16px;align-items:start;}
 @media(max-width:1100px){.gh-layout{grid-template-columns:1fr;}}
 
+/* ── Page layout avec sidebar catégories ── */
+.gh-page-layout{display:flex;gap:0;}
+
+/* ── Sidebar catégories ── */
+.cat-sidebar{
+  width:56px;flex-shrink:0;
+  background:var(--bg-raised);
+  border-right:1px solid rgba(255,255,255,.06);
+  padding:10px 0;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  position:relative;z-index:10;
+}
+.cat-btn{
+  width:38px;height:38px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;cursor:pointer;
+  transition:all .18s cubic-bezier(.4,0,.2,1);
+  border:1.5px solid transparent;background:transparent;
+  position:relative;
+}
+.cat-btn:hover{background:rgba(255,255,255,.06);transform:scale(1.08);}
+.cat-btn.active{border-color:var(--sapphire);background:rgba(74,158,232,.12);}
+.cat-btn-all{font-size:.5rem;font-weight:800;color:var(--text-muted);letter-spacing:.04em;line-height:1.2;text-align:center;}
+.cat-btn.active .cat-btn-all{color:var(--sapphire);}
+
+/* ── Flyout ── */
+.cat-flyout{
+  position:fixed;
+  left:56px;top:60px;
+  width:240px;
+  background:var(--bg-float);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:0 var(--r-lg) var(--r-lg) 0;
+  box-shadow:8px 0 32px rgba(0,0,0,.45);
+  z-index:200;
+  padding:12px 0;
+  transform:translateX(-110%);
+  opacity:0;
+  pointer-events:none;
+  transition:transform .28s cubic-bezier(.4,0,.2,1), opacity .22s ease;
+  overflow-y:auto;max-height:80vh;
+}
+.cat-flyout.open{transform:translateX(0);opacity:1;pointer-events:all;}
+.cat-flyout-header{padding:0 14px 10px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:6px;}
+.cat-flyout-icon{font-size:1.4rem;margin-bottom:2px;}
+.cat-flyout-name{font-size:.88rem;font-weight:700;color:var(--text-primary);}
+.cat-flyout-count{font-size:.7rem;color:var(--text-faint);margin-top:1px;}
+.cat-flyout-item{
+  display:flex;align-items:center;gap:9px;
+  padding:8px 14px;cursor:pointer;
+  transition:background .12s;font-size:.79rem;color:var(--text-muted);
+  border-left:2px solid transparent;
+}
+.cat-flyout-item:hover{background:rgba(255,255,255,.04);color:var(--text-primary);}
+.cat-flyout-item.selected{background:rgba(74,158,232,.08);color:var(--sapphire);border-left-color:var(--sapphire);}
+.cat-flyout-item-dot{width:5px;height:5px;border-radius:50%;background:var(--text-faint);flex-shrink:0;transition:background .12s;}
+.cat-flyout-item:hover .cat-flyout-item-dot,.cat-flyout-item.selected .cat-flyout-item-dot{background:var(--sapphire);}
+.cat-overlay{position:fixed;inset:0;z-index:199;display:none;}
+.cat-overlay.open{display:block;}
+
+/* ── Content ── */
+.gh-content{flex:1;min-width:0;padding:0 0 0 16px;}
+
 /* ── Page layout with category sidebar ── */
 .gh-page-layout{display:flex;gap:0;}
 
@@ -254,6 +317,29 @@
   <!-- MAIN -->
   <div class="tool-main">
 
+    <!-- Flyout overlay -->
+    <div class="cat-overlay" id="cat-overlay" onclick="closeFlyout()"></div>
+
+    <!-- Flyout panel -->
+    <div class="cat-flyout" id="cat-flyout">
+      <div class="cat-flyout-header">
+        <div class="cat-flyout-icon" id="flyout-icon">📦</div>
+        <div class="cat-flyout-name" id="flyout-name"></div>
+        <div class="cat-flyout-count" id="flyout-count"></div>
+      </div>
+      <div id="flyout-items"></div>
+    </div>
+
+    <div class="gh-page-layout">
+      <!-- Sidebar -->
+      <div class="cat-sidebar" id="cat-sidebar">
+        <div class="cat-btn cat-btn-all active" id="cat-btn-all"
+             onclick="filterByCategory(null)" title="Tout afficher">TOUT</div>
+      </div>
+
+      <!-- Content -->
+      <div class="gh-content">
+
     <!-- Status + Actions -->
     <div class="gh-status">
       <div class="gh-dot" id="gh-dot"></div>
@@ -344,7 +430,8 @@
       </div>
     </div>
 
-
+      </div><!-- /gh-content -->
+    </div><!-- /gh-page-layout -->
 
   </div>
 </div>
