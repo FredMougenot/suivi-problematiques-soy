@@ -576,7 +576,14 @@ function filterByCategory(catId){
 
 function filterByProduct(produit){
   closeFlyout();
-  filtered = allInventory.filter(r => (r._raw?.[1]||'') === produit);
+  // Fill-down : recalculer la valeur effective de la colonne 1 pour chaque ligne
+  let prev1 = '';
+  filtered = allInventory.filter(r => {
+    const v1 = r._raw?.[1] || '';
+    if(v1) prev1 = v1;
+    const effective = v1 || prev1;
+    return effective === produit;
+  });
   renderTable();
   document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
 }
