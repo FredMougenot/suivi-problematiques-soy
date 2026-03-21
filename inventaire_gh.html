@@ -767,6 +767,8 @@ async function init(){
   await loadSession();
   await loadGhCategories();
   await loadPoids();  // Charger les poids
+  loadCommande();  // Charger la commande sauvegardée
+  
   // Restaurer inventaire depuis localStorage si disponible
   try{
     const saved = localStorage.getItem('gh_inventory');
@@ -1417,6 +1419,7 @@ function addSelectionToTruck(){
   updateSelectionSummary();
   renderTable();
   renderCommande();
+  saveCommande();  // Sauvegarder
   toast('Ajouté au camion ✓', 'ok');
 }
 
@@ -1424,12 +1427,34 @@ function removeFromCommande(key){
   commande = commande.filter(c=>c._key!==key);
   renderTable();
   renderCommande();
+  saveCommande();  // Sauvegarder
 }
 
 function clearCommande(){
   commande = [];
   renderTable();
   renderCommande();
+  saveCommande();  // Sauvegarder
+}
+
+function saveCommande(){
+  try{
+    localStorage.setItem('gh_commande', JSON.stringify(commande));
+  }catch(e){
+    console.error('Erreur sauvegarde commande:', e);
+  }
+}
+
+function loadCommande(){
+  try{
+    const saved = localStorage.getItem('gh_commande');
+    if(saved){
+      commande = JSON.parse(saved);
+      renderCommande();
+    }
+  }catch(e){
+    console.error('Erreur chargement commande:', e);
+  }
 }
 
 function renderCommande(){
@@ -1499,8 +1524,7 @@ async function exportPDF(){
     // Summary
     let total=0;
     commande.forEach(item=>{
-      const p=parseFloat(item.poids_total)||parseFloat((parseFloat(item.poids_unit)||0)*(parseFloat(item.qte)||0));
-      if(!isNaN(p)) total+=p;
+      total += item._resolved_poids_total || 0;
     });
     pdf.setFontSize(9); pdf.setFont('helvetica','bold');
     pdf.setTextColor(...C.sapphire); pdf.text(commande.length+' palettes / items', M, y+5);
@@ -1532,14 +1556,28 @@ async function exportPDF(){
       if(i%2===0){ pdf.setFillColor(252,252,253); pdf.rect(M,y,W-2*M,rH,'F'); }
       pdf.setDrawColor(220,222,228); pdf.setLineWidth(0.15); pdf.line(M,y+rH,W-M,y+rH);
       x=M;
+      
+      // Mapper les valeurs résolues
+      const raw = item._raw || [];
+      const rowData = {
+        no_pal: raw[6] || '—',  // No. palette si disponible
+        code: item._resolved_code || '—',
+        description: item._resolved_desc || '—',
+        no_lot: raw[11] || '—',  // No. lot
+        qte: item._resolved_qte || '—',
+        poids_unit: item._resolved_poids_unit ? item._resolved_poids_unit.toFixed(1) : '—',
+        poids_total: item._resolved_poids_total ? item._resolved_poids_total.toFixed(1) : '—',
+        expiration: raw[14] || '—',  // Expiration
+      };
+      
       cols.forEach(c=>{
         pdf.setFontSize(6.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(40,42,55);
         if(c.key==='code'){ pdf.setTextColor(...C.sapphire); pdf.setFont('helvetica','bold'); }
         if(c.key==='poids_total'){ pdf.setTextColor(...C.amber); pdf.setFont('helvetica','bold'); }
         const maxW=c.w-4;
-        let txt=item[c.key]||'—';
+        let txt = String(rowData[c.key]||'—');
         while(txt.length>1 && pdf.getTextWidth(txt)>maxW) txt=txt.slice(0,-1);
-        if(txt!==String(item[c.key]||'—')) txt+='…';
+        if(txt!==String(rowData[c.key]||'—')) txt+='…';
         pdf.text(txt, x+2, y+4.5); x+=c.w;
       });
       y+=rH;
