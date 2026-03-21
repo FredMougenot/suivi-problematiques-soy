@@ -658,13 +658,17 @@ function waitSB(){
 }
 window.addEventListener('load', waitSB);
 
+// Version du format de données — incrémenter si le parsing change
+const INV_VERSION = '2';
+
 async function init(){
   await loadSession();
   await loadGhCategories();
-  // Restaurer inventaire depuis localStorage si disponible
+  // Restaurer inventaire depuis localStorage si disponible et version correcte
   try{
     const saved = localStorage.getItem('gh_inventory');
-    if(saved){
+    const ver = localStorage.getItem('gh_inventory_ver');
+    if(saved && ver === INV_VERSION){
       const items = JSON.parse(saved);
       if(items && items.length > 0){
         allInventory = items;
@@ -676,6 +680,10 @@ async function init(){
         document.getElementById('inv-empty').style.display = 'none';
         document.getElementById('btn-refresh').disabled = false;
       }
+    } else {
+      // Version différente — vider le cache
+      localStorage.removeItem('gh_inventory');
+      localStorage.removeItem('gh_inventory_ver');
     }
   }catch(e){}
 }
@@ -829,7 +837,10 @@ function loadFromItems(items){
   toast(allInventory.length + ' items chargés ✓', 'ok');
   renderCatSidebar();
   // Persister l'inventaire pour éviter de recharger à chaque visite
-  try{ localStorage.setItem('gh_inventory', JSON.stringify(allInventory)); }catch(e){}
+  try{
+    localStorage.setItem('gh_inventory', JSON.stringify(allInventory));
+    localStorage.setItem('gh_inventory_ver', INV_VERSION);
+  }catch(e){}
 }
 
 function parseInventory(html){
@@ -1016,7 +1027,10 @@ function parseInventory(html){
   toast(allInventory.length + ' items chargés ✓', 'ok');
   renderCatSidebar();
   // Persister l'inventaire pour éviter de recharger à chaque visite
-  try{ localStorage.setItem('gh_inventory', JSON.stringify(allInventory)); }catch(e){}
+  try{
+    localStorage.setItem('gh_inventory', JSON.stringify(allInventory));
+    localStorage.setItem('gh_inventory_ver', INV_VERSION);
+  }catch(e){}
 }
 
 // ── FILTER & RENDER ───────────────────────────────────────────────
