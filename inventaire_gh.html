@@ -846,16 +846,12 @@ function parseInventory(html){
       .trim();
     
     // Corriger les caractères mal encodés dans les dates
-    // D�C → DEC, ao�t → aout, f�vr → fevr, etc.
+    // Utiliser des regex qui capturent n'importe quel caractère entre les lettres
     cleaned = cleaned
-      .replace(/D�C/gi, 'DEC')
-      .replace(/d�c/gi, 'dec')
-      .replace(/F�VR/gi, 'FEVR')
-      .replace(/f�vr/gi, 'fevr')
-      .replace(/AO�T/gi, 'AOUT')
-      .replace(/ao�t/gi, 'aout')
-      .replace(/A�T/gi, 'AOU')
-      .replace(/a�t/gi, 'aou');
+      .replace(/D[^\w]C/gi, 'DEC')        // D�C, D�C, etc. → DEC
+      .replace(/F[^\w]VR/gi, 'FEVR')      // F�VR → FEVR
+      .replace(/AO[^\w]T/gi, 'AOUT')      // AO�T → AOUT
+      .replace(/A[^\w]T/gi, 'AOU');       // A�T → AOU
     
     return cleaned;
   };
