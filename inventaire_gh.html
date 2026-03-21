@@ -835,26 +835,38 @@ function loadFromItems(items){
 function parseInventory(html){
   allInventory = [];
 
-  // Supprimer les accents et décoder les entités HTML
+  // Nettoyer et supprimer TOUS les accents quelle que soit leur encodage
   const removeAccents = (s) => s
-    .replace(/[àáâãäå]/gi, 'a')
-    .replace(/[èéêë]/gi, 'e')
-    .replace(/[ìíîï]/gi, 'i')
-    .replace(/[òóôõö]/gi, 'o')
-    .replace(/[ùúûü]/gi, 'u')
-    .replace(/[ýÿ]/gi, 'y')
-    .replace(/[ç]/gi, 'c')
-    .replace(/[ñ]/gi, 'n')
-    .replace(/&eacute;/gi, 'e').replace(/&egrave;/gi, 'e').replace(/&ecirc;/gi, 'e')
-    .replace(/&agrave;/gi, 'a').replace(/&acirc;/gi, 'a')
-    .replace(/&ocirc;/gi, 'o').replace(/&ugrave;/gi, 'u').replace(/&ucirc;/gi, 'u')
-    .replace(/&ccedil;/gi, 'c').replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>')
-    .replace(/&[a-z]+;/gi, '');
+    // Entités HTML
+    .replace(/&eacute;/gi,'e').replace(/&egrave;/gi,'e').replace(/&ecirc;/gi,'e').replace(/&euml;/gi,'e')
+    .replace(/&agrave;/gi,'a').replace(/&acirc;/gi,'a').replace(/&auml;/gi,'a')
+    .replace(/&ocirc;/gi,'o').replace(/&ouml;/gi,'o')
+    .replace(/&ugrave;/gi,'u').replace(/&ucirc;/gi,'u').replace(/&uuml;/gi,'u')
+    .replace(/&ccedil;/gi,'c').replace(/&ntilde;/gi,'n')
+    .replace(/&nbsp;/gi,' ').replace(/&amp;/gi,'&').replace(/&lt;/gi,'<').replace(/&gt;/gi,'>')
+    .replace(/&[a-z]+;/gi,'')
+    // Caractères Unicode accentués
+    .replace(/[àáâãäåà-å]/gi,'a')
+    .replace(/[èéêëè-ë]/gi,'e')
+    .replace(/[ìíîïì-ï]/gi,'i')
+    .replace(/[òóôõöò-ö]/gi,'o')
+    .replace(/[ùúûüù-ü]/gi,'u')
+    .replace(/[ýÿýÿ]/gi,'y')
+    .replace(/[çç]/gi,'c')
+    .replace(/[ññ]/gi,'n')
+    // Caractères Windows-1252 corrompus (encodage ASP)
+    .replace(/É/g,'E').replace(/é/g,'e') // É é
+    .replace(/È/g,'E').replace(/è/g,'e') // È è
+    .replace(/Ê/g,'E').replace(/ê/g,'e') // Ê ê
+    .replace(/À/g,'A').replace(/à/g,'a') // À à
+    .replace(/Ç/g,'C').replace(/ç/g,'c') // Ç ç
+    .replace(/Ù/g,'U').replace(/ù/g,'u') // Ù ù
+    // Tout caractère non-ASCII restant — le supprimer
+    .replace(/[^ -]/g,'');
 
   const cleanCell = (s) => removeAccents(s
-    .replace(/<[^>]+>/g, ''))
-    .replace(/\s+/g, ' ').trim();
+    .replace(/<[^>]+>/g,''))
+    .replace(/\s+/g,' ').trim();
 
   // GH utilise TR/TD en MAJUSCULES — regex insensible à la casse
   // Formater les dates — format: J mois AAAA
