@@ -523,7 +523,11 @@ function filterInventory(){
   filtered = allInventory.filter(r=>{
     if(type && r.division !== type) return false;
     if(fourn && r.no_produit !== fourn) return false;
-    if(q && !`${r.no_produit} ${r.description} ${r.no_lot} ${r.no_comm}`.toLowerCase().includes(q)) return false;
+    if(q){
+      const raw = r._raw || [];
+      const searchStr = [raw[1], raw[2], raw[13], raw[16], raw[17]].join(' ').toLowerCase();
+      if(!searchStr.includes(q)) return false;
+    }
     return true;
   });
 
