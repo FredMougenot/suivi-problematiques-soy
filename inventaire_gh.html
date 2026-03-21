@@ -477,6 +477,7 @@ async function loadPoids(){
     const {data, error} = await sb.from('gh_poids').select('*');
     if(error) throw error;
     poidsList = data || [];
+    console.log('POIDS CHARGÉS:', poidsList.length, 'items');
   }catch(e){
     console.error('Erreur chargement poids:', e);
     poidsList = JSON.parse(localStorage.getItem('gh_poids')||'[]');
@@ -489,6 +490,10 @@ function getPoidsUnitaire(code){
   // Comparaison exacte mais insensible à la casse
   const codeUpper = String(code).trim().toUpperCase();
   const p = poidsList.find(p => String(p.code || '').trim().toUpperCase() === codeUpper);
+  
+  if(codeUpper.includes('CI')) {
+    console.log('Recherche:', code, '→', codeUpper, '| Trouvé:', p ? p.poids_unitaire + ' kg' : 'NON');
+  }
   
   return p ? parseFloat(p.poids_unitaire || 0) : 0;
 }
