@@ -392,11 +392,6 @@ function parseFromPaste(){
 function parseInventory(html){
   allInventory = [];
 
-  // Parser case-insensitive — GH utilise TD/TR en majuscules
-  // Extraire toutes les lignes TR avec leurs cellules TD
-  const trRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
-  const tdRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
-
   const cleanCell = (s) => s
     .replace(/<[^>]+>/g, '')
     .replace(/&nbsp;/gi, '')
@@ -406,13 +401,15 @@ function parseInventory(html){
     .replace(/\s+/g, ' ')
     .trim();
 
+  // GH utilise TR/TD en MAJUSCULES — regex insensible à la casse
   const allRows = [];
+  const trRegex = /<TR[^>]*>([\s\S]*?)<\/TR>/gi;
   let trMatch;
   while((trMatch = trRegex.exec(html)) !== null){
     const rowHtml = trMatch[1];
     const cells = [];
+    const tdReg = /<TD[^>]*>([\s\S]*?)<\/TD>/gi;
     let tdMatch;
-    const tdReg = /<td[^>]*>([\s\S]*?)<\/td>/gi;
     while((tdMatch = tdReg.exec(rowHtml)) !== null){
       cells.push(cleanCell(tdMatch[1]));
     }
