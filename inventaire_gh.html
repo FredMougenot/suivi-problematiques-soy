@@ -583,6 +583,15 @@ function renderCatSidebar(){
     btn.onclick = (e) => { e.stopPropagation(); openFlyout(cat.id); };
     sidebar.appendChild(btn);
   });
+  
+  // VIDE button (at the bottom)
+  const videBtn = document.createElement('div');
+  videBtn.className = 'cat-btn cat-btn-all' + (activeCatId === 'VIDE' ? ' active' : '');
+  videBtn.id = 'cat-btn-vide';
+  videBtn.title = 'Afficher les lignes vides';
+  videBtn.innerHTML = 'VIDE';
+  videBtn.onclick = () => filterByCategory('VIDE');
+  sidebar.appendChild(videBtn);
 }
 
 function openFlyout(catId){
@@ -645,13 +654,28 @@ function filterByCategory(catId){
     filterInventory();
     return;
   }
+  
+  // Cas spécial VIDE : filtrer les lignes où keep[2] (quantité) est vide
+  if(catId === 'VIDE'){
+    const keep = [1, 2, 8, 13, 15, 16, 17, 18, 19, 20];
+    filtered = allInventory.filter(r => {
+      const raw = r._raw || [];
+      const qteAffichee = raw[keep[2]] || '';
+      return !qteAffichee || qteAffichee.toString().trim() === '';
+    });
+    // Trier par date d'expiration (plus ancien au plus récent)
+    sortByExpiration();
+    renderTable();
+    document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
+    return;
+  }
 
   const cat = ghCategories.find(c => c.id === catId);
   if(!cat) return;
 
   filtered = allInventory.filter(r => matchesCategory(r, cat));
-  // Trier du plus ancien au plus récent
-  filtered.sort((a,b) => parseDate(a._raw?.[13]) - parseDate(b._raw?.[13]));
+  // Trier par date d'expiration (plus ancien au plus récent)
+  sortByExpiration();
   renderTable();
   document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
 }
@@ -750,10 +774,12 @@ async function init(){
       const items = JSON.parse(saved);
       if(items && items.length > 0){
         allInventory = items;
-        filtered = allInventory;
-        renderTable();
+        
+        // Par défaut : activer le filtre VIDE
+        activeCatId = 'VIDE';
+        filterByCategory('VIDE');
+        
         renderCatSidebar();
-        document.getElementById('inv-count').textContent = allInventory.length + ' items';
         document.getElementById('inv-count').style.display = 'block';
         document.getElementById('inv-empty').style.display = 'none';
         document.getElementById('btn-refresh').disabled = false;
@@ -904,9 +930,11 @@ function loadFromItems(items){
   tSel.innerHTML = '<option value="">Toutes les divisions</option>' + divisions.map(t=>`<option value="${esc(t)}">${t}</option>`).join('');
   fSel.innerHTML = '<option value="">Tous les produits</option>' + produits.map(f=>`<option value="${esc(f)}">${f}</option>`).join('');
 
-  filterInventory();
+  // Par défaut : activer le filtre VIDE
+  activeCatId = 'VIDE';
+  filterByCategory('VIDE');
+  
   const c = document.getElementById('inv-count');
-  c.textContent = allInventory.length + ' items';
   c.style.display = 'block';
   toast(allInventory.length + ' items chargés ✓', 'ok');
   renderCatSidebar();
@@ -1112,6 +1140,50 @@ function parseInventory(html){
 }
 
 // ── FILTER & RENDER ───────────────────────────────────────────────
+// ── TRI PAR DATE D'EXPIRATION ─────────────────────────────────────
+function sortByExpiration(){
+  const keep = [1, 2, 8, 13, 15, 16, 17, 18, 19, 20];
+  // keep[4] = index 15 = Expiration (selon keep.slice(2) qui donne [8, 13, 15, ...])
+  // Mais attention : keep[3] dans le tableau affiché = keep.slice(2)[1] = index 13
+  // La colonne "Expiration" dans l'en-tête est la 9ème colonne affichée
+  // En-têtes : No.produit, Description, Qté, No.comm, Étiquette, No.lot, No.sous-lot, Date lot, Expiration
+  // Donc Expiration = 8ème colonne affichée = keep.slice(2)[6] = keep[8] = index 19? Non...
+  
+  // Regardons les en-têtes : ligne 419-431
+  // <th>Expiration</th> est entre "Date lot" et "Réception originale"
+  // keep.slice(2) = [8, 13, 15, 16, 17, 18, 19, 20]
+  // Position 0=Qté(8), 1=No.comm(13), 2=?(15), 3=?(16), 4=?(17), 5=Date lot(18?), 6=Expiration(?), 7=Réception
+  
+  // D'après le commentaire ligne 1029: 14=Expiration
+  filtered.sort((a, b) => {
+    const dateA = (a._raw || [])[14] || '';
+    const dateB = (b._raw || [])[14] || '';
+    return parseDate(dateA) - parseDate(dateB);
+  });
+}
+
+function parseDate(s){
+  if(!s) return 0;
+  s = String(s).trim();
+  
+  // Format DD-MMM-YYYY ou DD/MM/YYYY
+  let match = s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{2,4})$/);
+  if(match){
+    const d = parseInt(match[1]);
+    const m = parseInt(match[2]);
+    const y = match[3].length === 2 ? '20' + match[3] : match[3];
+    return new Date(y, m-1, d).getTime();
+  }
+  
+  // Format YYYY-MM-DD
+  match = s.match(/^(\d{4})[-\/](\d{2})[-\/](\d{2})$/);
+  if(match){
+    return new Date(match[1], parseInt(match[2])-1, parseInt(match[3])).getTime();
+  }
+  
+  return 0;
+}
+
 function filterInventory(){
   const q = document.getElementById('gh-search').value.toLowerCase().trim();
   const type = document.getElementById('filter-type').value;
@@ -1128,6 +1200,9 @@ function filterInventory(){
     return true;
   });
 
+  // Toujours trier par date d'expiration
+  sortByExpiration();
+  
   renderTable();
   document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
 }
