@@ -835,15 +835,26 @@ function loadFromItems(items){
 function parseInventory(html){
   allInventory = [];
 
-  // Décodeur HTML complet via le DOM
-  const decodeHTML = (s) => {
-    const txt = document.createElement('textarea');
-    txt.innerHTML = s;
-    return txt.value;
-  };
-  const cleanCell = (s) => decodeHTML(s
-    .replace(/<[^>]+>/g, '')
-  ).replace(/\s+/g, ' ').trim();
+  // Supprimer les accents et décoder les entités HTML
+  const removeAccents = (s) => s
+    .replace(/[àáâãäå]/gi, 'a')
+    .replace(/[èéêë]/gi, 'e')
+    .replace(/[ìíîï]/gi, 'i')
+    .replace(/[òóôõö]/gi, 'o')
+    .replace(/[ùúûü]/gi, 'u')
+    .replace(/[ýÿ]/gi, 'y')
+    .replace(/[ç]/gi, 'c')
+    .replace(/[ñ]/gi, 'n')
+    .replace(/&eacute;/gi, 'e').replace(/&egrave;/gi, 'e').replace(/&ecirc;/gi, 'e')
+    .replace(/&agrave;/gi, 'a').replace(/&acirc;/gi, 'a')
+    .replace(/&ocirc;/gi, 'o').replace(/&ugrave;/gi, 'u').replace(/&ucirc;/gi, 'u')
+    .replace(/&ccedil;/gi, 'c').replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>')
+    .replace(/&[a-z]+;/gi, '');
+
+  const cleanCell = (s) => removeAccents(s
+    .replace(/<[^>]+>/g, ''))
+    .replace(/\s+/g, ' ').trim();
 
   // GH utilise TR/TD en MAJUSCULES — regex insensible à la casse
   // Formater les dates — format: J mois AAAA
@@ -907,6 +918,24 @@ function parseInventory(html){
       return prev[key] || '';
     };
 
+    // Normalise une date : enlève accents, convertit "j mois aaaa" ou "dd/mm/yyyy" en "YYYY-MM-DD"
+    const MONTHS = {jan:1,fev:2,feb:2,mar:3,avr:4,apr:4,mai:5,may:5,jun:6,jul:7,aou:8,aug:8,sep:9,oct:10,nov:11,dec:12};
+    const normalizeDate = (s) => {
+      if(!s) return '';
+      // Déjà au format YYYY-MM-DD
+      if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+      // Format DD/MM/YYYY ou DD-MM-YYYY
+      const m1 = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
+      if(m1) return m1[3]+'-'+m1[2].padStart(2,'0')+'-'+m1[1].padStart(2,'0');
+      // Format "J mois AAAA" ex: "15 janvier 2024" ou "15 jan 2024"
+      const m2 = s.toLowerCase().match(/^(\d{1,2})\s+([a-z]+)\.?\s+(\d{4})$/);
+      if(m2){
+        const mon = MONTHS[m2[2].substring(0,3)];
+        if(mon) return m2[3]+'-'+String(mon).padStart(2,'0')+'-'+m2[1].padStart(2,'0');
+      }
+      return s;
+    };
+
     const row = {
       division:      get(3,  'division'),
       no_produit:    get(4,  'no_produit'),
@@ -918,9 +947,9 @@ function parseInventory(html){
       etiquette:     get(10, 'etiquette'),
       no_lot:        get(11, 'no_lot'),
       no_sous_lot:   get(12, 'no_sous_lot'),
-      date_lot:      get(13, 'date_lot'),
-      expiration:    get(14, 'expiration'),
-      reception:     get(15, 'reception'),
+      date_lot:      normalizeDate(get(13, 'date_lot')),
+      expiration:    normalizeDate(get(14, 'expiration')),
+      reception:     normalizeDate(get(15, 'reception')),
       bloquer:       get(16, 'bloquer'),
       raison:        get(17, 'raison'),
       qte_inv:       get(18, 'qte_inv'),
@@ -942,7 +971,12 @@ function parseInventory(html){
     if(v[13]) v[13] = fmtDate(v[13]);
     if(v[14]) v[14] = fmtDate(v[14]);
 
-    row._raw = v;
+    // Normaliser les dates dans _raw pour l'affichage
+    const rawNorm = [...v];
+    rawNorm[13] = normalizeDate(v[13]||'') || v[13]||'';
+    rawNorm[14] = normalizeDate(v[14]||'') || v[14]||'';
+    rawNorm[15] = normalizeDate(v[15]||'') || v[15]||'';
+    row._raw = rawNorm;
     row._idx = allInventory.length;
     allInventory.push(row);
   }
