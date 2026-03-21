@@ -370,22 +370,10 @@ async function loadInventory(){
       throw new Error(data.error || 'Pas de données');
     }
   }catch(e){
-    // CORS blocked — fallback: open in popup and ask user to wait
     document.getElementById('inv-spinner').style.display='none';
     document.getElementById('inv-empty').style.display='block';
-    document.getElementById('inv-empty').innerHTML = `
-      <div style="margin-bottom:12px;color:var(--amber);font-weight:600;">⚠ Accès direct bloqué (CORS)</div>
-      <div style="margin-bottom:16px;font-size:.8rem;">Le navigateur bloque la requête directe vers GH. 
-      Cliquez ci-dessous pour ouvrir l'inventaire dans une fenêtre séparée — 
-      copiez ensuite le contenu HTML et collez-le ci-dessous.</div>
-      <button onclick="openInventoryPopup('${url}')" style="padding:8px 16px;background:var(--sapphire);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:600;margin-bottom:12px;">
-        Ouvrir l'inventaire GH →
-      </button>
-      <br><textarea id="html-paste" placeholder="Collez le HTML ici si nécessaire…" 
-        style="width:100%;height:80px;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:8px;padding:8px;color:var(--text-primary);font-size:.76rem;margin-top:8px;font-family:monospace;"></textarea>
-      <br><button onclick="parseFromPaste()" style="padding:7px 14px;background:var(--emerald-bg);border:1px solid rgba(45,212,160,.3);color:var(--emerald);border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:600;margin-top:6px;">Analyser le HTML collé</button>
-    `;
-    toast('CORS bloqué — voir instructions dans le tableau','info');
+    document.getElementById('inv-empty').textContent = 'Erreur chargement inventaire : ' + e.message;
+    toast('Erreur : ' + e.message, 'err');
   }
   document.getElementById('btn-refresh').disabled=false;
 }
