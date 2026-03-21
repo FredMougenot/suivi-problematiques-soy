@@ -462,38 +462,33 @@ let commande     = [];  // selected items
 let sessionId1   = null;
 
 // ── POIDS ─────────────────────────────────────────────────────────
-let poidsList = [];
+let poidsList = [
+  {code:'CI.1750',description:'ALMOND BUTTER MEDIUM ROAST edde / YREOCAB004',poids_unitaire:25},
+  {code:'CI.4028',description:'PBC DEXTROSE CERELOSE CALDIC SW08154 XRPBCDE002',poids_unitaire:22.7},
+  {code:'CI.4038',description:'PBC YEAST EXTRACT SAVOURY ORG 3211 XRPBOYE002',poids_unitaire:22.7},
+  {code:'CI.4052',description:'PBC POWDER CHICKEN BROTH IDF 3475 XRPBCBC007',poids_unitaire:22.7},
+  {code:'CI.4064',description:'B2301 SPRAY-DRIED NATURAL BEEF EXTRACT ITEM 12691',poids_unitaire:22.7},
+  {code:'CI.4070',description:'NO SALT CHICKEN BROTH',poids_unitaire:15},
+  {code:'CI.5200',description:'FLAVOUR VANILLA ORGANIC MET0009944 YREOOFV003',poids_unitaire:20}
+];
 
 async function loadPoids(){
-  console.log('🔍 Début chargement des poids...');
   try{
     const {data, error} = await sb.from('gh_poids').select('*');
-    console.log('📊 Réponse Supabase:', {data, error});
+    if(error) throw error;
     poidsList = data || [];
   }catch(e){
-    console.log('❌ Erreur Supabase, fallback localStorage:', e);
+    console.error('Erreur chargement poids:', e);
     poidsList = JSON.parse(localStorage.getItem('gh_poids')||'[]');
   }
-  console.log('✅ Poids chargés:', poidsList.length, 'items', poidsList);
 }
 
 function getPoidsUnitaire(code){
   if(!code) return 0;
   
-  // Normaliser : retirer points, espaces, mettre en majuscules
-  const normalize = (s) => String(s).trim().toUpperCase().replace(/[.\s-]/g, '');
-  const codeNorm = normalize(code);
-  
-  // Chercher avec normalisation
-  const p = poidsList.find(p => normalize(p.code) === codeNorm);
-  
-  // Debug - Log TOUS les appels
-  console.log('🔎 getPoidsUnitaire appelé:', {
-    codeOriginal: code, 
-    codeNorm, 
-    poidsList: poidsList.length + ' items',
-    trouve: p ? `${p.poids_unitaire} kg` : 'NON TROUVÉ'
-  });
+  // Comparaison exacte mais insensible à la casse
+  const codeUpper = String(code).trim().toUpperCase();
+  const p = poidsList.find(p => String(p.code || '').trim().toUpperCase() === codeUpper);
   
   return p ? parseFloat(p.poids_unitaire || 0) : 0;
 }
@@ -1119,8 +1114,8 @@ function renderTable(){
     if(v0) prevCol0 = v0;
     if(v1) prevCol1 = v1;
 
-    // Calcul des poids
-    const code = raw[4] || r.no_produit || '';  // No. produit (colonne 4)
+    // Calcul des poids - UTILISER raw[4] qui est le No. produit
+    const code = raw[4] || r.no_produit || disp0;  // Colonne 4 = No. produit
     const qte = parseFloat(raw[18] || raw[3] || 0);  // Qté inv (colonne 18 ou 3)
     const poidsUnit = getPoidsUnitaire(code);
     const poidsTotal = qte * poidsUnit;
