@@ -883,10 +883,19 @@ function parseInventory(html){
   const fmtDate = (s) => {
     if(!s) return '';
     s = s.trim();
+    
+    // Nettoyer les caractères mal encodés AVANT le matching
+    s = s
+      .replace(/F[^\w-]+VR/gi, 'FEVR')
+      .replace(/F[^\w-]+V(?!R)/gi, 'FEV')
+      .replace(/AO[^\w-]+T/gi, 'AOUT')
+      .replace(/A[^\w-]+T(?!O)/gi, 'AOU')
+      .replace(/D[^\w-]+C/gi, 'DEC');
+    
     let j, m, a;
     
-    // Format: DD-MMM-YY ou DD-MMM-YYYY (ex: 30-DÉC-20 ou 15-août-2024)
-    const m1 = s.match(/^(\d{1,2})[\-\/]([a-zàâäéèêëïîôùûüÿçœæ]+)[\-\/](\d{2,4})$/i);
+    // Format: DD-MMM-YY ou DD-MMM-YYYY (ex: 30-DEC-20 ou 15-AOUT-2024)
+    const m1 = s.match(/^(\d{1,2})[\-\/]([a-zA-Z]+)[\-\/](\d{2,4})$/i);
     if(m1){
       j = m1[1];
       const moisStr = m1[2].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Retire accents
@@ -985,8 +994,9 @@ function parseInventory(html){
     if(allEmpty) continue;
 
     v = [...v];
-    if(v[13]) v[13] = fmtDate(v[13]);
-    if(v[14]) v[14] = fmtDate(v[14]);
+    if(v[13]) v[13] = fmtDate(v[13]);  // Date lot
+    if(v[14]) v[14] = fmtDate(v[14]);  // Expiration
+    if(v[15]) v[15] = fmtDate(v[15]);  // Réception originale
 
     row._raw = v;
     row._idx = allInventory.length;
