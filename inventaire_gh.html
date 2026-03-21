@@ -389,6 +389,31 @@ function parseFromPaste(){
 }
 
 // ── PARSE HTML TABLE ──────────────────────────────────────────────
+function loadFromItems(items){
+  allInventory = items;
+
+  document.getElementById('inv-spinner').style.display='none';
+
+  if(allInventory.length === 0){
+    document.getElementById('inv-empty').style.display='block';
+    document.getElementById('inv-empty').textContent = 'Aucune donnée trouvée.';
+    return;
+  }
+
+  const divisions = [...new Set(allInventory.map(r=>r.division).filter(Boolean))].sort();
+  const produits = [...new Set(allInventory.map(r=>r.no_produit).filter(Boolean))].sort();
+  const tSel = document.getElementById('filter-type');
+  const fSel = document.getElementById('filter-fourn');
+  tSel.innerHTML = '<option value="">Toutes les divisions</option>' + divisions.map(t=>`<option value="${esc(t)}">${t}</option>`).join('');
+  fSel.innerHTML = '<option value="">Tous les produits</option>' + produits.map(f=>`<option value="${esc(f)}">${f}</option>`).join('');
+
+  filterInventory();
+  const c = document.getElementById('inv-count');
+  c.textContent = allInventory.length + ' items';
+  c.style.display = 'block';
+  toast(allInventory.length + ' items chargés ✓', 'ok');
+}
+
 function parseInventory(html){
   allInventory = [];
 
