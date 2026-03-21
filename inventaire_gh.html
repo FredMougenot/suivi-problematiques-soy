@@ -561,7 +561,6 @@ function filterByCategory(catId){
   renderCatSidebar();
 
   if(catId === null){
-    // Show all
     filterInventory();
     return;
   }
@@ -570,19 +569,29 @@ function filterByCategory(catId){
   if(!cat) return;
 
   filtered = allInventory.filter(r => matchesCategory(r, cat));
+  // Trier du plus ancien au plus récent (colonne date_lot = raw[13])
+  filtered.sort((a,b)=>{
+    const da = a._raw?.[13]||'';
+    const db = b._raw?.[13]||'';
+    return da.localeCompare(db);
+  });
   renderTable();
   document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
 }
 
 function filterByProduct(produit){
   closeFlyout();
-  // Fill-down : recalculer la valeur effective de la colonne 1 pour chaque ligne
   let prev1 = '';
   filtered = allInventory.filter(r => {
     const v1 = r._raw?.[1] || '';
     if(v1) prev1 = v1;
-    const effective = v1 || prev1;
-    return effective === produit;
+    return (v1 || prev1) === produit;
+  });
+  // Trier du plus ancien au plus récent
+  filtered.sort((a,b)=>{
+    const da = a._raw?.[13]||'';
+    const db = b._raw?.[13]||'';
+    return da.localeCompare(db);
   });
   renderTable();
   document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
@@ -640,6 +649,23 @@ window.addEventListener('load', waitSB);
 async function init(){
   await loadSession();
   await loadGhCategories();
+  // Restaurer inventaire depuis localStorage si disponible
+  try{
+    const saved = localStorage.getItem('gh_inventory');
+    if(saved){
+      const items = JSON.parse(saved);
+      if(items && items.length > 0){
+        allInventory = items;
+        filtered = allInventory;
+        renderTable();
+        renderCatSidebar();
+        document.getElementById('inv-count').textContent = allInventory.length + ' items';
+        document.getElementById('inv-count').style.display = 'block';
+        document.getElementById('inv-empty').style.display = 'none';
+        document.getElementById('btn-refresh').disabled = false;
+      }
+    }
+  }catch(e){}
 }
 
 // ── SESSION (Supabase) ─────────────────────────────────────────────
@@ -790,6 +816,8 @@ function loadFromItems(items){
   c.style.display = 'block';
   toast(allInventory.length + ' items chargés ✓', 'ok');
   renderCatSidebar();
+  // Persister l'inventaire pour éviter de recharger à chaque visite
+  try{ localStorage.setItem('gh_inventory', JSON.stringify(allInventory)); }catch(e){}
 }
 
 function parseInventory(html){
@@ -881,6 +909,7 @@ function parseInventory(html){
     if(allEmpty) continue;
 
     row._raw = v;
+    row._idx = allInventory.length;
     allInventory.push(row);
   }
 
@@ -906,6 +935,8 @@ function parseInventory(html){
   c.style.display = 'block';
   toast(allInventory.length + ' items chargés ✓', 'ok');
   renderCatSidebar();
+  // Persister l'inventaire pour éviter de recharger à chaque visite
+  try{ localStorage.setItem('gh_inventory', JSON.stringify(allInventory)); }catch(e){}
 }
 
 // ── FILTER & RENDER ───────────────────────────────────────────────
@@ -945,7 +976,7 @@ function renderTable(){
   // Fill-down pour colonnes 0 et 1 (No. produit et Description)
   let prevCol0 = '', prevCol1 = '';
   tbody.innerHTML = filtered.map((r,i)=>{
-    const key = r.no_lot || r.no_produit+i;
+    const key = r._idx !== undefined ? 'row_'+r._idx : (r.no_lot || r.no_produit+i);
     const sel = selectedKeys.has(key) ? 'selected' : '';
     const raw = r._raw || [];
     const keep = [1, 2, 3, 8, 13, 15, 16, 17, 18, 19, 20];
@@ -981,6 +1012,9 @@ function escAttr(s){ return String(s||'').replace(/'/g,"\\'"); }
 function toggleItem(filteredIdx, key){
   const item = filtered[filteredIdx];
   if(!item) return;
+  // Use stable key based on _idx
+  const stableKey = item._idx !== undefined ? 'row_'+item._idx : key;
+  key = stableKey;
   const existIdx = commande.findIndex(c=>c._key===key);
   if(existIdx >= 0){
     commande.splice(existIdx, 1);
