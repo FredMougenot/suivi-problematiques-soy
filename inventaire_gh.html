@@ -293,6 +293,39 @@
 .fg{margin-bottom:14px;}
 .btn-cancel{padding:9px 18px;border-radius:var(--r-md);background:transparent;border:1px solid var(--text-faint);color:var(--text-secondary);font-size:.84rem;cursor:pointer;}
 .btn-ok{padding:9px 22px;border-radius:var(--r-md);background:var(--sapphire);border:none;color:#fff;font-size:.84rem;font-weight:700;cursor:pointer;}
+
+/* ── Selection bar ── */
+.selection-bar{
+  position:sticky;bottom:0;z-index:100;
+  background:linear-gradient(135deg,var(--sapphire),#1a6bff);
+  padding:14px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-top:1px solid rgba(255,255,255,.15);
+  box-shadow:0 -4px 20px rgba(0,0,0,.3);
+}
+.selection-info{display:flex;align-items:center;gap:24px;}
+.selection-count{font-size:.85rem;font-weight:700;color:#fff;}
+.selection-stats{display:flex;gap:16px;}
+.sel-stat{font-size:.8rem;color:rgba(255,255,255,.85);}
+.sel-stat strong{font-weight:800;color:#fff;font-size:.95rem;}
+.btn-add-to-truck{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 18px;
+  background:#fff;
+  border:none;border-radius:var(--r-md);
+  color:var(--sapphire);
+  font-size:.85rem;font-weight:700;
+  cursor:pointer;
+  transition:all .15s;
+}
+.btn-add-to-truck:hover{transform:scale(1.04);box-shadow:0 4px 12px rgba(0,0,0,.2);}
+
+/* ── Table row selection ── */
+.inv-tbl tbody tr{cursor:pointer;user-select:none;}
+.inv-tbl tbody tr.selected{background:rgba(74,158,232,.15);border-left:3px solid var(--sapphire);}
+.inv-tbl tbody tr:hover{background:rgba(255,255,255,.03);}
+.inv-tbl tbody tr.selected:hover{background:rgba(74,158,232,.2);}
+
 </style>
 </head>
 <body>
@@ -401,6 +434,21 @@
             <tbody id="inv-tbody"></tbody>
           </table>
         </div>
+      </div>
+
+      <!-- SELECTION SUMMARY BAR -->
+      <div class="selection-bar" id="selection-bar" style="display:none">
+        <div class="selection-info">
+          <div class="selection-count"><span id="sel-count">0</span> ligne(s) sélectionnée(s)</div>
+          <div class="selection-stats">
+            <span class="sel-stat"><strong id="sel-qty">0</strong> unités</span>
+            <span class="sel-stat"><strong id="sel-weight">0</strong> kg</span>
+          </div>
+        </div>
+        <button class="btn-add-to-truck" onclick="addSelectionToTruck()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          Ajouter au camion
+        </button>
       </div>
 
       <!-- RIGHT — Commande panel -->
@@ -1096,13 +1144,11 @@ function renderTable(){
   document.getElementById('inv-empty').style.display='none';
   document.getElementById('inv-tbl').style.display='table';
 
-  const selectedKeys = new Set(commande.map(c=>c._key));
-
   // Fill-down pour colonnes 0 et 1 (No. produit et Description)
   let prevCol0 = '', prevCol1 = '';
   tbody.innerHTML = filtered.map((r,i)=>{
     const key = r._idx !== undefined ? 'row_'+r._idx : (r.no_lot || r.no_produit+i);
-    const sel = selectedKeys.has(key) ? 'selected' : '';
+    const sel = selectedRows.has(key) ? 'selected' : '';
     const raw = r._raw || [];
     const keep = [1, 2, 3, 8, 13, 15, 16, 17, 18, 19, 20];
 
@@ -1120,7 +1166,7 @@ function renderTable(){
     const poidsUnit = getPoidsUnitaire(code);
     const poidsTotal = qte * poidsUnit;
 
-    return `<tr class="${sel}" onclick="toggleItem(${i}, '${escAttr(key)}')">
+    return `<tr class="${sel}" onclick="toggleItem(event, ${i}, '${escAttr(key)}')">
       <td style="font-size:.72rem">${escH(disp0)}</td>
       <td style="font-size:.72rem">${escH(disp1)}</td>
       ${keep.slice(2).map(idx=>{
@@ -1157,20 +1203,104 @@ function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'
 function escAttr(s){ return String(s||'').replace(/'/g,"\\'"); }
 
 // ── COMMANDE ──────────────────────────────────────────────────────
-function toggleItem(filteredIdx, key){
+// ── SELECTION (multi-select avec Shift) ──────────────────────────
+let selectedRows = new Set();
+let lastSelectedIdx = null;
+
+function toggleItem(event, filteredIdx, key){
+  event.stopPropagation();
   const item = filtered[filteredIdx];
   if(!item) return;
-  // Use stable key based on _idx
+  
   const stableKey = item._idx !== undefined ? 'row_'+item._idx : key;
-  key = stableKey;
-  const existIdx = commande.findIndex(c=>c._key===key);
-  if(existIdx >= 0){
-    commande.splice(existIdx, 1);
+  
+  if(event.shiftKey && lastSelectedIdx !== null){
+    // Sélection en bloc (Shift)
+    const start = Math.min(lastSelectedIdx, filteredIdx);
+    const end = Math.max(lastSelectedIdx, filteredIdx);
+    
+    for(let i = start; i <= end; i++){
+      const rowItem = filtered[i];
+      if(rowItem){
+        const rowKey = rowItem._idx !== undefined ? 'row_'+rowItem._idx : (rowItem.no_lot || rowItem.no_produit+i);
+        selectedRows.add(rowKey);
+      }
+    }
+  } else if(event.ctrlKey || event.metaKey){
+    // Sélection individuelle (Ctrl/Cmd)
+    if(selectedRows.has(stableKey)){
+      selectedRows.delete(stableKey);
+    } else {
+      selectedRows.add(stableKey);
+    }
+    lastSelectedIdx = filteredIdx;
   } else {
-    commande.push({...item, _key: key});
+    // Clic simple : toggle cette ligne seulement
+    if(selectedRows.has(stableKey)){
+      selectedRows.delete(stableKey);
+    } else {
+      selectedRows.add(stableKey);
+    }
+    lastSelectedIdx = filteredIdx;
   }
+  
+  updateSelectionSummary();
+  renderTable();
+}
+
+function updateSelectionSummary(){
+  const bar = document.getElementById('selection-bar');
+  const count = selectedRows.size;
+  
+  if(count === 0){
+    bar.style.display = 'none';
+    return;
+  }
+  
+  bar.style.display = 'flex';
+  document.getElementById('sel-count').textContent = count;
+  
+  // Calculer totaux
+  let totalQty = 0;
+  let totalWeight = 0;
+  const keep = [1, 2, 3, 8, 13, 15, 16, 17, 18, 19, 20];
+  
+  selectedRows.forEach(key => {
+    const item = filtered.find(f => {
+      const fKey = f._idx !== undefined ? 'row_'+f._idx : (f.no_lot || f.no_produit);
+      return fKey === key;
+    });
+    if(item){
+      const raw = item._raw || [];
+      const qte = parseFloat(raw[18] || raw[3] || 0);
+      const code = raw[keep[0]] || '';  // Première colonne affichée
+      const poidsUnit = getPoidsUnitaire(code);
+      totalQty += qte;
+      totalWeight += qte * poidsUnit;
+    }
+  });
+  
+  document.getElementById('sel-qty').textContent = Math.round(totalQty);
+  document.getElementById('sel-weight').textContent = totalWeight.toFixed(1);
+}
+
+function addSelectionToTruck(){
+  selectedRows.forEach(key => {
+    const item = filtered.find(f => {
+      const fKey = f._idx !== undefined ? 'row_'+f._idx : (f.no_lot || f.no_produit);
+      return fKey === key;
+    });
+    if(item && !commande.find(c => c._key === key)){
+      commande.push({...item, _key: key});
+    }
+  });
+  
+  selectedRows.clear();
+  lastSelectedIdx = null;
+  updateSelectionSummary();
   renderTable();
   renderCommande();
+  toast('Ajouté au camion ✓', 'ok');
 }
 
 function removeFromCommande(key){
@@ -1191,7 +1321,7 @@ function renderCommande(){
   const btnExport = document.getElementById('btn-export');
 
   if(commande.length === 0){
-    if(!empty){ body.innerHTML='<div class="cmd-empty" id="cmd-empty">Cliquez sur une ligne de l\'inventaire pour l\'ajouter à la commande.</div>'; }
+    if(!empty){ body.innerHTML='<div class="cmd-empty" id="cmd-empty">Sélectionnez des lignes et cliquez sur "Ajouter au camion".</div>'; }
     else empty.style.display='block';
     body.querySelectorAll('.cmd-row').forEach(r=>r.remove());
     document.getElementById('cmd-total').textContent = '0 kg';
@@ -1202,23 +1332,43 @@ function renderCommande(){
   if(empty) empty.style.display='none';
   btnExport.disabled = false;
 
-  body.innerHTML = commande.map(item=>`
+  // Colonnes affichées : indices dans keep = [1, 2, 3, 8, 13, 15, 16, 17, 18, 19, 20]
+  const keep = [1, 2, 3, 8, 13, 15, 16, 17, 18, 19, 20];
+  
+  body.innerHTML = commande.map(item=>{
+    const raw = item._raw || [];
+    
+    // Fill-down pour colonnes 1 et 2
+    const col0 = raw[keep[0]] || '';  // No. produit
+    const col1 = raw[keep[1]] || '';  // Description
+    const col2 = raw[keep[2]] || '';  // Qté inv
+    
+    // Calcul poids
+    const code = col0;
+    const qte = parseFloat(raw[18] || raw[3] || 0);
+    const poidsUnit = getPoidsUnitaire(code);
+    const poidsTotal = qte * poidsUnit;
+    
+    return `
     <div class="cmd-row">
       <div>
-        <div class="cmd-item-code">${escH(item.code)} ${item.no_pal?`<span style="color:var(--text-muted);font-weight:400">| Pal. ${escH(item.no_pal)}</span>`:''}
-        </div>
-        <div class="cmd-item-desc">${escH(item.description)}</div>
-        <div class="cmd-item-meta">Lot: ${escH(item.no_lot)||'—'} · Qté: ${escH(item.qte)} · ${escH(item.poids_total)||'—'} kg</div>
+        <div class="cmd-item-code">${escH(col0)}</div>
+        <div class="cmd-item-desc">${escH(col1)}</div>
+        <div class="cmd-item-meta">Qté: ${col2} · ${poidsUnit > 0 ? poidsUnit.toFixed(1) : '—'} kg/unité · <strong>${poidsTotal > 0 ? poidsTotal.toFixed(1) : '—'} kg total</strong></div>
       </div>
       <button class="cmd-rm" onclick="removeFromCommande('${escAttr(item._key)}')" title="Retirer">✕</button>
     </div>
-  `).join('');
+  `;
+  }).join('');
 
   // Total weight
   let total = 0;
   commande.forEach(item=>{
-    const p = parseFloat(item.poids_total) || parseFloat((parseFloat(item.poids_unit)||0) * (parseFloat(item.qte)||0));
-    if(!isNaN(p)) total += p;
+    const raw = item._raw || [];
+    const code = raw[keep[0]] || '';
+    const qte = parseFloat(raw[18] || raw[3] || 0);
+    const poidsUnit = getPoidsUnitaire(code);
+    total += qte * poidsUnit;
   });
   document.getElementById('cmd-total').textContent = total.toLocaleString('fr-CA',{maximumFractionDigits:1}) + ' kg';
 }
