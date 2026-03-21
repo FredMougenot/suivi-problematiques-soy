@@ -544,13 +544,26 @@ function renderTable(){
 
   const selectedKeys = new Set(commande.map(c=>c._key));
 
+  // Fill-down pour colonnes 0 et 1 (No. produit et Description)
+  let prevCol0 = '', prevCol1 = '';
   tbody.innerHTML = filtered.map((r,i)=>{
     const key = r.no_lot || r.no_produit+i;
     const sel = selectedKeys.has(key) ? 'selected' : '';
     const raw = r._raw || [];
     const keep = [1, 2, 3, 8, 13, 15, 16, 17, 18, 19, 20];
+
+    // Fill-down sur les 2 premières colonnes affichées (indices keep[0] et keep[1])
+    const v0 = raw[keep[0]] || '';
+    const v1 = raw[keep[1]] || '';
+    const disp0 = v0 || prevCol0;
+    const disp1 = v1 || prevCol1;
+    if(v0) prevCol0 = v0;
+    if(v1) prevCol1 = v1;
+
     return `<tr class="${sel}" onclick="toggleItem(${i}, '${escAttr(key)}')">
-      ${keep.map(idx=>`<td style="font-size:.72rem">${escH(raw[idx]||'')}</td>`).join('')}
+      <td style="font-size:.72rem">${escH(disp0)}</td>
+      <td style="font-size:.72rem">${escH(disp1)}</td>
+      ${keep.slice(2).map(idx=>`<td style="font-size:.72rem">${escH(raw[idx]||'')}</td>`).join('')}
     </tr>`;
   }).join('');
 }
