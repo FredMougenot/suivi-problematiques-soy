@@ -569,12 +569,8 @@ function filterByCategory(catId){
   if(!cat) return;
 
   filtered = allInventory.filter(r => matchesCategory(r, cat));
-  // Trier du plus ancien au plus récent (colonne date_lot = raw[13])
-  filtered.sort((a,b)=>{
-    const da = a._raw?.[13]||'';
-    const db = b._raw?.[13]||'';
-    return da.localeCompare(db);
-  });
+  // Trier du plus ancien au plus récent
+  filtered.sort((a,b) => parseDate(a._raw?.[13]) - parseDate(b._raw?.[13]));
   renderTable();
   document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
 }
@@ -587,12 +583,28 @@ function filterByProduct(produit){
     if(v1) prev1 = v1;
     return (v1 || prev1) === produit;
   });
-  // Trier du plus ancien au plus récent
-  filtered.sort((a,b)=>{
-    const da = a._raw?.[13]||'';
-    const db = b._raw?.[13]||'';
-    return da.localeCompare(db);
-  });
+  // Trier du plus ancien au plus récent — supporte DD/MM/YYYY et YYYY-MM-DD
+  const fmtDate = s => {
+    if(!s) return '';
+    s = s.trim();
+    const m1 = s.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/);
+    if(m1) return m1[1]+'/'+m1[2]+'/'+m1[3];
+    const m2 = s.match(/^(\d{4})[\/\-](\d{2})[\/\-](\d{2})$/);
+    if(m2) return m2[3]+'/'+m2[2]+'/'+m2[1];
+    return s;
+  };
+  const parseDate = s => {
+    if(!s) return 0;
+    s = s.trim();
+    // Format DD/MM/YYYY
+    const m1 = s.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/);
+    if(m1) return new Date(m1[3], m1[2]-1, m1[1]).getTime();
+    // Format YYYY-MM-DD
+    const m2 = s.match(/^(\d{4})[\/\-](\d{2})[\/\-](\d{2})$/);
+    if(m2) return new Date(m2[1], m2[2]-1, m2[3]).getTime();
+    return 0;
+  };
+  filtered.sort((a,b) => parseDate(a._raw?.[13]) - parseDate(b._raw?.[13]));
   renderTable();
   document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
 }
@@ -833,6 +845,23 @@ function parseInventory(html){
     .trim();
 
   // GH utilise TR/TD en MAJUSCULES — regex insensible à la casse
+  // Formater les dates — format: J mois AAAA
+  const MOIS_FMT = ['','janv','févr','mars','avr','mai','juin','juil','août','sept','oct','nov','déc'];
+  const fmtDate = (s) => {
+    if(!s) return '';
+    s = s.trim();
+    let j, m, a;
+    const m1 = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if(m1){ j=parseInt(m1[1]); m=parseInt(m1[2]); a=m1[3]; }
+    else {
+      const m2 = s.match(/^(\d{4})[\/\-](\d{2})[\/\-](\d{2})$/);
+      if(m2){ j=parseInt(m2[3]); m=parseInt(m2[2]); a=m2[1]; }
+      else return s;
+    }
+    if(m < 1 || m > 12) return s;
+    return j + ' ' + MOIS_FMT[m] + ' ' + a;
+  };
+
   const allRows = [];
   const trRegex = /<TR[^>]*>([\s\S]*?)<\/TR>/gi;
   let trMatch;
@@ -907,6 +936,10 @@ function parseInventory(html){
     const displayCols = [1, 2, 3, 8, 13, 15, 16, 17, 18, 19, 20];
     const allEmpty = displayCols.every(idx => !(v[idx]||'').trim());
     if(allEmpty) continue;
+
+    v = [...v];
+    if(v[13]) v[13] = fmtDate(v[13]);
+    if(v[14]) v[14] = fmtDate(v[14]);
 
     row._raw = v;
     row._idx = allInventory.length;
@@ -992,7 +1025,12 @@ function renderTable(){
     return `<tr class="${sel}" onclick="toggleItem(${i}, '${escAttr(key)}')">
       <td style="font-size:.72rem">${escH(disp0)}</td>
       <td style="font-size:.72rem">${escH(disp1)}</td>
-      ${keep.slice(2).map(idx=>`<td style="font-size:.72rem">${escH(raw[idx]||'')}</td>`).join('')}
+      ${keep.slice(2).map(idx=>{
+        let val = raw[idx]||'';
+        // Formater les colonnes de date (13=Date lot, 14=Expiration, 15=Réception)
+        if(idx===13||idx===14||idx===15) val = fmtDate(val);
+        return `<td style="font-size:.72rem">${escH(val)}</td>`;
+      }).join('')}
     </tr>`;
   }).join('');
 }
@@ -1003,6 +1041,16 @@ function isExpired(dateStr){
     const d = new Date(dateStr);
     return d < new Date();
   }catch(e){ return false; }
+}
+
+function fmtDate(s){
+  if(!s) return '';
+  s = s.trim();
+  const m1 = s.match(/^(\d{2})[\/-](\d{2})[\/-](\d{4})$/);
+  if(m1) return m1[1]+'/'+m1[2]+'/'+m1[3];
+  const m2 = s.match(/^(\d{4})[\/-](\d{2})[\/-](\d{2})$/);
+  if(m2) return m2[3]+'/'+m2[2]+'/'+m2[1];
+  return s;
 }
 
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
