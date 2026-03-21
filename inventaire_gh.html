@@ -465,30 +465,35 @@ let sessionId1   = null;
 let poidsList = [];
 
 async function loadPoids(){
+  console.log('🔍 Début chargement des poids...');
   try{
-    const {data} = await sb.from('gh_poids').select('*');
+    const {data, error} = await sb.from('gh_poids').select('*');
+    console.log('📊 Réponse Supabase:', {data, error});
     poidsList = data || [];
   }catch(e){
+    console.log('❌ Erreur Supabase, fallback localStorage:', e);
     poidsList = JSON.parse(localStorage.getItem('gh_poids')||'[]');
   }
+  console.log('✅ Poids chargés:', poidsList.length, 'items', poidsList);
 }
 
 function getPoidsUnitaire(code){
   if(!code) return 0;
-  code = String(code).trim().toUpperCase();
   
-  // Chercher d'abord une correspondance exacte
-  let p = poidsList.find(p => String(p.code).trim().toUpperCase() === code);
+  // Normaliser : retirer points, espaces, mettre en majuscules
+  const normalize = (s) => String(s).trim().toUpperCase().replace(/[.\s-]/g, '');
+  const codeNorm = normalize(code);
   
-  // Si pas trouvé, chercher si le code commence par
-  if(!p){
-    p = poidsList.find(p => code.startsWith(String(p.code).trim().toUpperCase()));
-  }
+  // Chercher avec normalisation
+  const p = poidsList.find(p => normalize(p.code) === codeNorm);
   
-  // Debug: afficher dans la console
-  if(code.includes('CI.1750')){
-    console.log('Recherche poids pour:', code, 'Trouvé:', p, 'Liste complète:', poidsList);
-  }
+  // Debug - Log TOUS les appels
+  console.log('🔎 getPoidsUnitaire appelé:', {
+    codeOriginal: code, 
+    codeNorm, 
+    poidsList: poidsList.length + ' items',
+    trouve: p ? `${p.poids_unitaire} kg` : 'NON TROUVÉ'
+  });
   
   return p ? parseFloat(p.poids_unitaire || 0) : 0;
 }
