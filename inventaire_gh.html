@@ -419,7 +419,6 @@
                 <th>No. produit</th>
                 <th>Description</th>
                 <th>Qté inv.</th>
-                <th>Qté inv.</th>
                 <th>No. comm client</th>
                 <th>Étiquette</th>
                 <th>No. lot</th>
@@ -1150,7 +1149,7 @@ function renderTable(){
     const key = r._idx !== undefined ? 'row_'+r._idx : (r.no_lot || r.no_produit+i);
     const sel = selectedRows.has(key) ? 'selected' : '';
     const raw = r._raw || [];
-    const keep = [1, 2, 3, 8, 13, 15, 16, 17, 18, 19, 20];
+    const keep = [1, 2, 8, 13, 15, 16, 17, 18, 19, 20];
 
     // Fill-down sur les 2 premières colonnes affichées (indices keep[0] et keep[1])
     const v0 = raw[keep[0]] || '';
@@ -1162,7 +1161,7 @@ function renderTable(){
 
     // Calcul des poids - UTILISER disp0 = première colonne AFFICHÉE
     const code = disp0;  // Première colonne affichée dans le tableau
-    const qte = parseFloat(raw[18] || raw[3] || 0);  // Qté inv (colonne 18 ou 3)
+    const qte = parseFloat(raw[18] || 0);  // Qté inv (colonne 18 ou 3)
     const poidsUnit = getPoidsUnitaire(code);
     const poidsTotal = qte * poidsUnit;
 
@@ -1263,7 +1262,7 @@ function updateSelectionSummary(){
   // Calculer totaux
   let totalQty = 0;
   let totalWeight = 0;
-  const keep = [1, 2, 3, 8, 13, 15, 16, 17, 18, 19, 20];
+  const keep = [1, 2, 8, 13, 15, 16, 17, 18, 19, 20];
   
   selectedRows.forEach(key => {
     const item = filtered.find(f => {
@@ -1272,7 +1271,7 @@ function updateSelectionSummary(){
     });
     if(item){
       const raw = item._raw || [];
-      const qte = parseFloat(raw[18] || raw[3] || 0);
+      const qte = parseFloat(raw[18] || 0);
       const code = raw[keep[0]] || '';  // Première colonne affichée
       const poidsUnit = getPoidsUnitaire(code);
       totalQty += qte;
@@ -1333,7 +1332,7 @@ function renderCommande(){
   btnExport.disabled = false;
 
   // Colonnes affichées : indices dans keep = [1, 2, 3, 8, 13, 15, 16, 17, 18, 19, 20]
-  const keep = [1, 2, 3, 8, 13, 15, 16, 17, 18, 19, 20];
+  const keep = [1, 2, 8, 13, 15, 16, 17, 18, 19, 20];
   
   body.innerHTML = commande.map(item=>{
     const raw = item._raw || [];
@@ -1341,11 +1340,10 @@ function renderCommande(){
     // Fill-down pour colonnes 1 et 2
     const col0 = raw[keep[0]] || '';  // No. produit
     const col1 = raw[keep[1]] || '';  // Description
-    const col2 = raw[keep[2]] || '';  // Qté inv
     
     // Calcul poids
     const code = col0;
-    const qte = parseFloat(raw[18] || raw[3] || 0);
+    const qte = parseFloat(raw[18] || 0);
     const poidsUnit = getPoidsUnitaire(code);
     const poidsTotal = qte * poidsUnit;
     
@@ -1354,7 +1352,7 @@ function renderCommande(){
       <div>
         <div class="cmd-item-code">${escH(col0)}</div>
         <div class="cmd-item-desc">${escH(col1)}</div>
-        <div class="cmd-item-meta">Qté: ${col2} · ${poidsUnit > 0 ? poidsUnit.toFixed(1) : '—'} kg/unité · <strong>${poidsTotal > 0 ? poidsTotal.toFixed(1) : '—'} kg total</strong></div>
+        <div class="cmd-item-meta">Qté: ${qte} · ${poidsUnit > 0 ? poidsUnit.toFixed(1) : '—'} kg/unité · <strong>${poidsTotal > 0 ? poidsTotal.toFixed(1) : '—'} kg total</strong></div>
       </div>
       <button class="cmd-rm" onclick="removeFromCommande('${escAttr(item._key)}')" title="Retirer">✕</button>
     </div>
@@ -1366,7 +1364,7 @@ function renderCommande(){
   commande.forEach(item=>{
     const raw = item._raw || [];
     const code = raw[keep[0]] || '';
-    const qte = parseFloat(raw[18] || raw[3] || 0);
+    const qte = parseFloat(raw[18] || 0);
     const poidsUnit = getPoidsUnitaire(code);
     total += qte * poidsUnit;
   });
