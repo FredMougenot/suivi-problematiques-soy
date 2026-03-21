@@ -440,7 +440,7 @@ function openFlyout(catId){
   const produits = [...new Set(matches.map(r => r._raw?.[1]||'').filter(Boolean))];
   const flyoutItems = document.getElementById('flyout-items');
   flyoutItems.innerHTML = produits.length === 0
-    ? '<div style="padding:16px;font-size:.78rem;color:var(--text-faint);text-align:center;">Aucun item dans l'inventaire actuel</div>'
+    ? '<div style="padding:16px;font-size:.78rem;color:var(--text-faint);text-align:center;">Aucun item dans l\'inventaire actuel</div>'
     : produits.map(p => `
         <div class="cat-flyout-item" onclick="filterByProduct('${p.replace(/'/g,"\'")}')">
           <div class="cat-flyout-item-dot"></div>
