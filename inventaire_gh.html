@@ -163,21 +163,29 @@
           <table class="inv-tbl" id="inv-tbl" style="display:none">
             <thead>
               <tr>
-                <th>Code</th>
-                <th>Code TRAX</th>
+                <th>Division</th>
+                <th>No. produit</th>
                 <th>Description</th>
+                <th>Unité 1</th>
+                <th>Unité 2</th>
+                <th>No. comm. client</th>
+                <th>Ent.</th>
+                <th>Étiquette</th>
                 <th>No. lot</th>
-                <th>Qté Inv</th>
-                <th>Poids unit.</th>
-                <th>Poids total</th>
-                <th>No. palette</th>
+                <th>No. sous-lot</th>
                 <th>Date lot</th>
                 <th>Expiration</th>
-                <th>No. comm.</th>
-                <th>Réception</th>
-                <th>Type</th>
-                <th>Fournisseur</th>
-                <th>Localisation</th>
+                <th>Réception originale</th>
+                <th>Bloquer</th>
+                <th>Raison</th>
+                <th>Qté inv.</th>
+                <th>Expéd. att.</th>
+                <th>Bloqués</th>
+                <th>Disponibles</th>
+                <th>Qté inv. (poids)</th>
+                <th>Expéd. att. (poids)</th>
+                <th>Bloqués (poids)</th>
+                <th>Disponibles (poids)</th>
               </tr>
             </thead>
             <tbody id="inv-tbody"></tbody>
@@ -403,14 +411,13 @@ function parseInventory(html){
     const rows = t.querySelectorAll('tr');
     if(rows.length > 5){
       const headers = [...rows[0].querySelectorAll('th,td')].map(c=>c.textContent.trim().toLowerCase());
-      if(headers.some(h=>h.includes('code') || h.includes('lot') || h.includes('qté') || h.includes('qty'))){
+      if(headers.some(h=>h.includes('produit') || h.includes('lot') || h.includes('division'))){
         dataTable = t; break;
       }
     }
   }
 
   if(!dataTable){
-    // Try any table with enough rows
     for(const t of tables){
       if(t.querySelectorAll('tr').length > 10){ dataTable = t; break; }
     }
@@ -427,34 +434,64 @@ function parseInventory(html){
   const rows = [...dataTable.querySelectorAll('tr')];
   allInventory = [];
 
-  // Detect header row
-  let headerIdx = 0;
-  const headers = [...rows[headerIdx].querySelectorAll('th,td')].map(c=>c.textContent.trim());
+  // Colonnes GH exactes (indices 3 à 25 dans le tableau source)
+  // 0=vide, 1=voir liste, 2=tri, 3=Division, 4=No.produit, 5=Description,
+  // 6=Unité1, 7=Unité2, 8=No.comm client, 9=Ent., 10=Étiquette,
+  // 11=No.lot, 12=No.sous-lot, 13=Date lot, 14=Expiration,
+  // 15=Réception originale, 16=Bloquer, 17=Raison,
+  // 18=Qté inv, 19=Expéd.att, 20=Bloqués, 21=Disponibles (unités)
+  // 22=Qté inv, 23=Expéd.att, 24=Bloqués, 25=Disponibles (poids)
 
-  for(let i=headerIdx+1; i<rows.length; i++){
+  // Valeurs précédentes pour fill-down
+  let prev = {};
+
+  for(let i=1; i<rows.length; i++){
     const cells = [...rows[i].querySelectorAll('td')];
-    if(cells.length < 3) continue;
-    const vals = cells.map(c=>c.textContent.trim());
-    // Map to our structure — GH table columns based on known structure
-    // CODE, DESCRIPTION, No.lot, Qté, Poids unit, Poids total, No.PAL, Date lot, Expiration, No.comm, Réception, TYPE, FOURNISSEUR, LOCALISATION
-    allInventory.push({
-      code:       vals[0]||'',
-      code_trax:  vals[1]||'',
-      description:vals[2]||'',
-      no_lot:     vals[3]||'',
-      qte:        vals[4]||'',
-      poids_unit: vals[5]||'',
-      poids_total:vals[6]||'',
-      no_pal:     vals[7]||'',
-      date_lot:   vals[8]||'',
-      expiration: vals[9]||'',
-      no_comm:    vals[10]||'',
-      reception:  vals[11]||'',
-      type:       vals[12]||'',
-      fournisseur:vals[13]||'',
-      localisation:vals[14]||'',
-      _raw: vals,
-    });
+    if(cells.length < 10) continue;
+
+    // Ignorer lignes de total/réservé
+    const rowText = rows[i].textContent.trim();
+    if(rowText.includes('Total du produit') || rowText.includes('RÉSERVÉE') || rowText.includes('GRAND TOTAL')) continue;
+
+    const v = cells.map(c=>c.textContent.replace(/\s+/g,' ').trim());
+
+    // Fill-down : si champ vide, reprendre valeur précédente
+    const get = (idx, key) => {
+      const val = v[idx] || '';
+      if(val && val !== '\u00a0' && val !== '&nbsp;') { prev[key] = val; return val; }
+      return prev[key] || '';
+    };
+
+    const row = {
+      division:     get(3,  'division'),
+      no_produit:   get(4,  'no_produit'),
+      description:  get(5,  'description'),
+      unite1:       get(6,  'unite1'),
+      unite2:       get(7,  'unite2'),
+      no_comm:      get(8,  'no_comm'),
+      entrepot:     get(9,  'entrepot'),
+      etiquette:    get(10, 'etiquette'),
+      no_lot:       get(11, 'no_lot'),
+      no_sous_lot:  get(12, 'no_sous_lot'),
+      date_lot:     get(13, 'date_lot'),
+      expiration:   get(14, 'expiration'),
+      reception:    get(15, 'reception'),
+      bloquer:      get(16, 'bloquer'),
+      raison:       get(17, 'raison'),
+      qte_inv:      get(18, 'qte_inv'),
+      exped_att:    get(19, 'exped_att'),
+      bloques:      get(20, 'bloques'),
+      disponibles:  get(21, 'disponibles'),
+      qte_inv_p:    get(22, 'qte_inv_p'),
+      exped_att_p:  get(23, 'exped_att_p'),
+      bloques_p:    get(24, 'bloques_p'),
+      disponibles_p:get(25, 'disponibles_p'),
+    };
+
+    // Ignorer lignes complètement vides
+    if(!row.no_produit && !row.no_lot) continue;
+
+    allInventory.push(row);
   }
 
   document.getElementById('inv-spinner').style.display='none';
@@ -466,12 +503,12 @@ function parseInventory(html){
   }
 
   // Populate filters
-  const types = [...new Set(allInventory.map(r=>r.type).filter(Boolean))].sort();
-  const fourns = [...new Set(allInventory.map(r=>r.fournisseur).filter(Boolean))].sort();
+  const types = [...new Set(allInventory.map(r=>r.division).filter(Boolean))].sort();
+  const fourns = [...new Set(allInventory.map(r=>r.no_produit).filter(Boolean))].sort();
   const tSel = document.getElementById('filter-type');
   const fSel = document.getElementById('filter-fourn');
-  tSel.innerHTML = '<option value="">Tous les types</option>' + types.map(t=>`<option value="${esc(t)}">${t}</option>`).join('');
-  fSel.innerHTML = '<option value="">Tous les fournisseurs</option>' + fourns.map(f=>`<option value="${esc(f)}">${f}</option>`).join('');
+  tSel.innerHTML = '<option value="">Toutes les divisions</option>' + types.map(t=>`<option value="${esc(t)}">${t}</option>`).join('');
+  fSel.innerHTML = '<option value="">Tous les produits</option>' + fourns.map(f=>`<option value="${esc(f)}">${f}</option>`).join('');
 
   filterInventory();
   const c = document.getElementById('inv-count');
@@ -487,9 +524,9 @@ function filterInventory(){
   const fourn = document.getElementById('filter-fourn').value;
 
   filtered = allInventory.filter(r=>{
-    if(type && r.type !== type) return false;
-    if(fourn && r.fournisseur !== fourn) return false;
-    if(q && !`${r.code} ${r.description} ${r.no_lot} ${r.fournisseur}`.toLowerCase().includes(q)) return false;
+    if(type && r.division !== type) return false;
+    if(fourn && r.no_produit !== fourn) return false;
+    if(q && !`${r.no_produit} ${r.description} ${r.no_lot} ${r.no_comm}`.toLowerCase().includes(q)) return false;
     return true;
   });
 
@@ -511,24 +548,32 @@ function renderTable(){
   const selectedKeys = new Set(commande.map(c=>c._key));
 
   tbody.innerHTML = filtered.map((r,i)=>{
-    const key = r.no_pal || r.no_lot || r.code+i;
+    const key = r.no_lot || r.no_produit+i;
     const sel = selectedKeys.has(key) ? 'selected' : '';
     return `<tr class="${sel}" onclick="toggleItem(${i}, '${escAttr(key)}')">
-      <td>${escH(r.code)}</td>
-      <td style="font-size:.72rem">${escH(r.code_trax)}</td>
+      <td>${escH(r.division)}</td>
+      <td style="color:var(--text-primary);font-weight:700">${escH(r.no_produit)}</td>
       <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;color:var(--text-primary);font-weight:500">${escH(r.description)}</td>
-      <td>${escH(r.no_lot)}</td>
-      <td style="text-align:right;color:var(--emerald);font-weight:700">${escH(r.qte)}</td>
-      <td style="text-align:right">${escH(r.poids_unit)}</td>
-      <td style="text-align:right;color:var(--amber);font-weight:700">${escH(r.poids_total)}</td>
-      <td style="font-size:.72rem">${escH(r.no_pal)}</td>
+      <td style="font-size:.72rem">${escH(r.unite1)}</td>
+      <td style="font-size:.72rem">${escH(r.unite2)}</td>
+      <td style="font-size:.72rem">${escH(r.no_comm)}</td>
+      <td style="font-size:.72rem">${escH(r.entrepot)}</td>
+      <td style="font-size:.72rem">${escH(r.etiquette)}</td>
+      <td style="font-size:.72rem">${escH(r.no_lot)}</td>
+      <td style="font-size:.72rem">${escH(r.no_sous_lot)}</td>
       <td style="font-size:.72rem">${escH(r.date_lot)}</td>
       <td style="font-size:.72rem;color:${isExpired(r.expiration)?'var(--ruby)':'inherit'}">${escH(r.expiration)}</td>
-      <td style="font-size:.72rem">${escH(r.no_comm)}</td>
       <td style="font-size:.72rem">${escH(r.reception)}</td>
-      <td><span style="font-size:.68rem;padding:2px 7px;border-radius:10px;background:rgba(74,158,232,.1);color:var(--sapphire)">${escH(r.type)}</span></td>
-      <td style="font-size:.72rem">${escH(r.fournisseur)}</td>
-      <td style="font-size:.72rem">${escH(r.localisation)}</td>
+      <td style="font-size:.72rem">${escH(r.bloquer)}</td>
+      <td style="font-size:.72rem">${escH(r.raison)}</td>
+      <td style="text-align:right;color:var(--emerald);font-weight:700">${escH(r.qte_inv)}</td>
+      <td style="text-align:right">${escH(r.exped_att)}</td>
+      <td style="text-align:right">${escH(r.bloques)}</td>
+      <td style="text-align:right;color:var(--amber);font-weight:700">${escH(r.disponibles)}</td>
+      <td style="text-align:right">${escH(r.qte_inv_p)}</td>
+      <td style="text-align:right">${escH(r.exped_att_p)}</td>
+      <td style="text-align:right">${escH(r.bloques_p)}</td>
+      <td style="text-align:right;color:var(--amber);font-weight:700">${escH(r.disponibles_p)}</td>
     </tr>`;
   }).join('');
 }
