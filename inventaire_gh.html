@@ -163,29 +163,17 @@
           <table class="inv-tbl" id="inv-tbl" style="display:none">
             <thead>
               <tr>
-                <th>Division</th>
                 <th>No. produit</th>
                 <th>Description</th>
                 <th>Qté inv.</th>
-                <th>PAL</th>
-                <th>Expéd. att.</th>
-                <th>Bloqués</th>
-                <th>Disponibles</th>
                 <th>Qté inv.</th>
-                <th>Cs</th>
-                <th>Expéd. att.</th>
-                <th>Bloqués</th>
-                <th>Disponibles</th>
                 <th>No. comm client</th>
-                <th>Ent.</th>
                 <th>Étiquette</th>
                 <th>No. lot</th>
                 <th>No. sous-lot</th>
                 <th>Date lot</th>
                 <th>Expiration</th>
                 <th>Réception originale</th>
-                <th>Bloquer</th>
-                <th>Raison</th>
               </tr>
             </thead>
             <tbody id="inv-tbody"></tbody>
@@ -560,8 +548,9 @@ function renderTable(){
     const key = r.no_lot || r.no_produit+i;
     const sel = selectedKeys.has(key) ? 'selected' : '';
     const raw = r._raw || [];
+    const keep = [1, 2, 3, 8, 13, 15, 16, 17, 18, 19, 20];
     return `<tr class="${sel}" onclick="toggleItem(${i}, '${escAttr(key)}')">
-      ${raw.map(v=>`<td style="font-size:.72rem">${escH(v)}</td>`).join('')}
+      ${keep.map(idx=>`<td style="font-size:.72rem">${escH(raw[idx]||'')}</td>`).join('')}
     </tr>`;
   }).join('');
 }
