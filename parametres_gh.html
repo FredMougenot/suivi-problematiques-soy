@@ -132,7 +132,6 @@
         <thead>
           <tr>
             <th>Code produit</th>
-            <th>Description</th>
             <th>Poids unitaire (kg)</th>
             <th style="width:50px;"></th>
           </tr>
@@ -308,14 +307,13 @@ function backToCategories(){
 function renderPoidsTable(){
   const tbody=document.getElementById('poids-tbody');
   if(poidsList.length===0){
-    tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-faint);">Aucun poids défini. Cliquez sur "Ajouter un produit"</td></tr>';
+    tbody.innerHTML='<tr><td colspan="3" style="text-align:center;padding:40px;color:var(--text-faint);">Aucun poids défini. Cliquez sur "Ajouter un produit"</td></tr>';
     return;
   }
   
   tbody.innerHTML=poidsList.map((p,i)=>`
     <tr>
-      <td><input type="text" class="poids-input" style="width:150px;" value="${escH(p.code)}" onchange="updatePoids(${i},'code',this.value)"></td>
-      <td><input type="text" class="poids-input" style="width:100%;" value="${escH(p.description||'')}" onchange="updatePoids(${i},'description',this.value)"></td>
+      <td><input type="text" class="poids-input" style="width:200px;" value="${escH(p.code)}" onchange="updatePoids(${i},'code',this.value)"></td>
       <td><input type="number" step="0.1" class="poids-input" value="${p.poids_unitaire}" onchange="updatePoids(${i},'poids_unitaire',parseFloat(this.value))"></td>
       <td>
         <button class="rule-del-btn" onclick="deletePoids(${i})" title="Supprimer">
