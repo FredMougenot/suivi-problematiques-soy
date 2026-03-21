@@ -1119,8 +1119,8 @@ function renderTable(){
     if(v0) prevCol0 = v0;
     if(v1) prevCol1 = v1;
 
-    // Calcul des poids - UTILISER raw[4] qui est le No. produit
-    const code = raw[4] || r.no_produit || disp0;  // Colonne 4 = No. produit
+    // Calcul des poids - UTILISER disp0 = première colonne AFFICHÉE
+    const code = disp0;  // Première colonne affichée dans le tableau
     const qte = parseFloat(raw[18] || raw[3] || 0);  // Qté inv (colonne 18 ou 3)
     const poidsUnit = getPoidsUnitaire(code);
     const poidsTotal = qte * poidsUnit;
