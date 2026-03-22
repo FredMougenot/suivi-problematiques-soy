@@ -1348,31 +1348,38 @@ function parseInventory(html){
       .replace(/MARCH[^\w\s\/-]+/gi, 'MARCHE')
       .replace(/GLACI[^\w\s\/-]+RE/gi, 'GLACIERE')
       .replace(/INT[^\w\s\/-]+RIEUR/gi, 'INTERIEUR')
-      .replace(/HABRILL[^\w\s\/-]+/gi, 'HABRILLE');
+      .replace(/HABRILL[^\w\s\/-]+/gi, 'HABRILLE')
+      // Nouveaux mots identifiés
+      .replace(/SOYA-BL[^\w\s\/-]+/gi, 'SOYA-BLE')         // SOYA-BL◆ → SOYA-BLE
+      .replace(/BL[^\w\s\/-]+\s/gi, 'BLE ')                // BL◆ (espace) → BLE
+      .replace(/EARTH[^\w\s\/-]+S/gi, "EARTH'S")           // EARTH◆S → EARTH'S
+      .replace(/PROT[^\w\s\/-]+INE/gi, 'PROTEINE')         // PROT◆INE → PROTEINE
+      // Supprimer les losanges isolés (qui restent après les patterns)
+      .replace(/[◆♦]/g, '');
+
     
-    // PASSE 2 : Remplacement manuel lettre par lettre (ce qui reste après la passe 1)
+    // PASSE 2 : Remplacement manuel - remplacements directs
     cleaned = cleaned
-      // A
+      // Remplacements de mots/groupes avec losanges
+      .replace(/(\d+)\s*◆\s*X/gi, "$1'' X")     // 27 ◆ X → 27'' X
+      .replace(/(\d+)◆/gi, "$1''")              // 13◆ → 13''
+      .replace(/PROT◆INE/gi, 'PROTEINE')        // PROT◆INE → PROTEINE
+      // Lettres accentuées isolées
       .replace(/à/g, 'a').replace(/â/g, 'a').replace(/ä/g, 'a').replace(/æ/g, 'ae')
       .replace(/À/g, 'A').replace(/Â/g, 'A').replace(/Ä/g, 'A').replace(/Æ/g, 'AE')
-      // E
       .replace(/é/g, 'e').replace(/è/g, 'e').replace(/ê/g, 'e').replace(/ë/g, 'e')
       .replace(/É/g, 'E').replace(/È/g, 'E').replace(/Ê/g, 'E').replace(/Ë/g, 'E')
-      // I
       .replace(/î/g, 'i').replace(/ï/g, 'i')
       .replace(/Î/g, 'I').replace(/Ï/g, 'I')
-      // O
       .replace(/ô/g, 'o').replace(/ö/g, 'o').replace(/œ/g, 'oe')
       .replace(/Ô/g, 'O').replace(/Ö/g, 'O').replace(/Œ/g, 'OE')
-      // U
       .replace(/ù/g, 'u').replace(/û/g, 'u').replace(/ü/g, 'u')
       .replace(/Ù/g, 'U').replace(/Û/g, 'U').replace(/Ü/g, 'U')
-      // C
       .replace(/ç/g, 'c')
       .replace(/Ç/g, 'C')
-      // Apostrophes
-      .replace(/'/g, "'")  // Apostrophe courbe → droite
-      .replace(/'/g, "'"); // Autre apostrophe courbe → droite
+      // Apostrophes courbes → droites
+      .replace(/'/g, "'")
+      .replace(/'/g, "'");
     
     return cleaned;
   };
@@ -1513,25 +1520,6 @@ function parseInventory(html){
     if(allEmpty) continue;
 
     v = [...v];
-    
-    // Fonction pour nettoyer les caractères mal encodés UNIQUEMENT pour la colonne Description
-    const cleanText = (s) => {
-      if(!s) return s;
-      
-      // Les caractères accentués arrivent déjà transformés en losanges ◆
-      // Il faut donc les remplacer selon le contexte
-      return String(s)
-        .replace(/Bo◆te/gi, 'Boite')           // Bo◆te → Boite
-        .replace(/H◆licap/gi, 'Helicap')       // H◆licap → Helicap
-        .replace(/March◆/gi, 'Marche')         // March◆ → Marche
-        .replace(/Glaci◆re/gi, 'Glaciere')     // Glaci◆re → Glaciere
-        .replace(/Int◆rieur/gi, 'Interieur')   // Int◆rieur → Interieur
-        .replace(/Habrill◆/gi, 'Habrille')     // Habrill◆ → Habrille
-        .replace(/◆/g, '');                     // Autres losanges → supprimer
-    };
-    
-    // Nettoyer UNIQUEMENT la colonne 2 (Description)
-    if(v[2]) v[2] = cleanText(v[2]);
     
     // Formater les dates (NE PAS TOUCHER - code original)
     if(v[13]) v[13] = fmtDate(v[13]);  // Date lot
