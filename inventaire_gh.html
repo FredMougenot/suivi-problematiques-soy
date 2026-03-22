@@ -691,10 +691,9 @@ function closeFlyout(){
 function filterByCategory(catId){
   closeFlyout();
   
-  // NOUVEAU : Désélectionner tous les items au changement de catégorie
-  commande = [];
-  selectedRows.clear();  // Vider aussi le Set de sélection
-  updateCommandeUI();
+  // NOUVEAU : Désélectionner les lignes visuelles au changement de catégorie
+  // (mais garder commande[] intact pour le camion)
+  selectedRows.clear();
   
   activeCatId = catId;
   renderCatSidebar();
