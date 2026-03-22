@@ -1929,7 +1929,12 @@ function renderCommande() {
 
 // ── EXPORT PDF ────────────────────────────────────────────────────
 async function exportPDF(){
-  if(commande.length === 0){ toast('Aucun item dans la commande','err'); return; }
+  const camion = getCamionActif();
+  if(!camion || camion.items.length === 0){ 
+    toast('Aucun item dans le camion','err'); 
+    return; 
+  }
+  
   try{
     const {jsPDF} = window.jspdf;
     const pdf = new jsPDF({orientation:'landscape', unit:'mm', format:'a4'});
@@ -1943,17 +1948,17 @@ async function exportPDF(){
     pdf.setFontSize(16); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.black);
     pdf.text('Bon de Commande — GH Logistics', M, y+8);
     pdf.setFontSize(9); pdf.setFont('helvetica','normal'); pdf.setTextColor(...C.grey);
-    pdf.text('SOY  ·  Généré le '+new Date().toLocaleString('fr-CA'), W-M, y+8, {align:'right'});
+    pdf.text('SOY  ·  ' + camion.nom + '  ·  Généré le '+new Date().toLocaleString('fr-CA'), W-M, y+8, {align:'right'});
     y+=14;
     pdf.setDrawColor(...C.faint); pdf.setLineWidth(0.2); pdf.line(M,y,W-M,y); y+=5;
 
     // Summary
     let total=0;
-    commande.forEach(item=>{
+    camion.items.forEach(item=>{
       total += item._resolved_poids_total || 0;
     });
     pdf.setFontSize(9); pdf.setFont('helvetica','bold');
-    pdf.setTextColor(...C.sapphire); pdf.text(commande.length+' palettes / items', M, y+5);
+    pdf.setTextColor(...C.sapphire); pdf.text(camion.items.length+' palettes / items', M, y+5);
     pdf.setTextColor(...C.amber); pdf.text('Poids total : '+total.toLocaleString('fr-CA',{maximumFractionDigits:1})+' kg', M+70, y+5);
     y+=12;
 
@@ -1981,38 +1986,52 @@ async function exportPDF(){
     pdf.setFontSize(5.5); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.sapphire);
     cols.forEach(c=>{ pdf.text(c.label.toUpperCase(), x+2, y+5); x+=c.w; }); y+=hH;
 
-    commande.forEach((item,i)=>{
+    camion.items.forEach((item,i)=>{
       if(y>H-12){ pdf.addPage(); y=M; }
-      if(i%2===0){ pdf.setFillColor(252,252,253); pdf.rect(M,y,W-2*M,rH,'F'); }
+      
+      // Fond différent pour les items NEW
+      if(item.isNew){
+        pdf.setFillColor(255,248,220); // Beige clair pour NEW
+        pdf.rect(M,y,W-2*M,rH,'F');
+      } else if(i%2===0){ 
+        pdf.setFillColor(252,252,253); 
+        pdf.rect(M,y,W-2*M,rH,'F'); 
+      }
+      
       pdf.setDrawColor(220,222,228); pdf.setLineWidth(0.15); pdf.line(M,y+rH,W-M,y+rH);
       x=M;
-      
-      // Utiliser EXACTEMENT l'ordre des colonnes affichées
-      // keep = [1, 2, 8, 13, 15, 16, 17, 18, 19, 20]
-      // keep.slice(2) = [8, 13, 15, 16, 17, 18, 19, 20]
-      // Ordre affiché : Qté(8), No.comm(13), Étiquette(15), No.lot(16), No.sous-lot(17), Date lot(18), Expiration(19), Réception(20)
       
       const raw = item._raw || [];
       
       const rowData = {
-        code: item._resolved_code || '—',
+        code: (item.isNew ? '🆕 ' : '') + (item._resolved_code || '—'),
         description: item._resolved_desc || '—',
         qte: item._resolved_qte || '—',
-        no_comm: raw[13] || '—',        // keep.slice(2)[1] = 13
-        etiquette: raw[15] || '—',      // keep.slice(2)[2] = 15
-        no_lot: raw[16] || '—',         // keep.slice(2)[3] = 16
-        no_sous_lot: raw[17] || '—',    // keep.slice(2)[4] = 17
-        date_lot: raw[18] || '—',       // keep.slice(2)[5] = 18
-        expiration: raw[19] || '—',     // keep.slice(2)[6] = 19
-        reception: raw[20] || '—',      // keep.slice(2)[7] = 20
+        no_comm: raw[13] || '—',
+        etiquette: raw[15] || '—',
+        no_lot: raw[16] || '—',
+        no_sous_lot: raw[17] || '—',
+        date_lot: raw[18] || '—',
+        expiration: raw[19] || '—',
+        reception: raw[20] || '—',
         poids_unit: item._resolved_poids_unit ? item._resolved_poids_unit.toFixed(1) : '—',
         poids_total: item._resolved_poids_total ? item._resolved_poids_total.toFixed(1) : '—',
       };
       
       cols.forEach(c=>{
         pdf.setFontSize(5.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(40,42,55);
-        if(c.key==='code'){ pdf.setTextColor(...C.sapphire); pdf.setFont('helvetica','bold'); }
+        
+        // Couleur spéciale pour les items NEW
+        if(item.isNew && c.key==='code'){ 
+          pdf.setTextColor(...C.amber); 
+          pdf.setFont('helvetica','bold'); 
+        } else if(c.key==='code'){ 
+          pdf.setTextColor(...C.sapphire); 
+          pdf.setFont('helvetica','bold'); 
+        }
+        
         if(c.key==='poids_total'){ pdf.setTextColor(...C.amber); pdf.setFont('helvetica','bold'); }
+        
         const maxW=c.w-4;
         let txt = String(rowData[c.key]||'—');
         while(txt.length>1 && pdf.getTextWidth(txt)>maxW) txt=txt.slice(0,-1);
@@ -2028,14 +2047,21 @@ async function exportPDF(){
       pdf.setPage(i);
       pdf.setDrawColor(...C.faint); pdf.setLineWidth(0.2); pdf.line(M,H-7,W-M,H-7);
       pdf.setFontSize(6); pdf.setFont('helvetica','normal'); pdf.setTextColor(...C.grey);
-      pdf.text('SOY — Commande GH Logistics', M, H-3);
+      pdf.text('SOY — ' + camion.nom + ' — GH Logistics', M, H-3);
       pdf.text('Page '+i+' / '+pages, W-M, H-3, {align:'right'});
     }
 
     const d = new Date();
-    pdf.save(`commande_GH_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.pdf`);
+    const nomFichier = `${camion.nom.replace(/\s+/g, '_')}_GH_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.pdf`;
+    pdf.save(nomFichier);
+    
+    debugLog('PDF exporté: ' + nomFichier);
     toast('PDF exporté ✓','ok');
-  }catch(e){ console.error(e); toast('Erreur PDF : '+(e?.message||e),'err'); }
+  }catch(e){ 
+    console.error(e); 
+    debugLog('Erreur PDF: ' + (e?.message || e));
+    toast('Erreur PDF : '+(e?.message||e),'err'); 
+  }
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────
