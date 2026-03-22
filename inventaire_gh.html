@@ -78,11 +78,11 @@
 
 /* ── Category Sidebar ── */
 .cat-sidebar{
-  width:52px;
+  width:180px;
   flex-shrink:0;
   background:var(--bg-raised);
   border-right:1px solid rgba(255,255,255,.06);
-  padding:12px 0;
+  padding:12px 8px;
   display:flex;
   flex-direction:column;
   gap:4px;
@@ -93,8 +93,8 @@
 .cat-btn{
   min-width:36px;
   height:36px;
-  margin:0 8px;
-  padding:0 10px;
+  margin:0;
+  padding:0 8px;
   border-radius:10px;
   display:flex;
   align-items:center;
@@ -127,7 +127,7 @@
   background:rgba(255,255,255,.06);
   transform:scale(1.05);
 }
-}
+.cat-btn.active{border-color:var(--sapphire);background:rgba(74,158,232,.12);}
 .cat-btn.active{
   border-color:var(--sapphire);
   background:rgba(74,158,232,.12);
@@ -144,7 +144,7 @@
 /* ── Flyout panel ── */
 .cat-flyout{
   position:fixed;
-  left:52px;
+  left:180px;
   top:0;
   width:260px;
   height:100vh;
