@@ -1484,6 +1484,32 @@ function parseInventory(html){
     if(allEmpty) continue;
 
     v = [...v];
+    
+    // Fonction pour nettoyer les caractères mal encodés UNIQUEMENT pour la colonne Description
+    const cleanText = (s) => {
+      if(!s) return s;
+      s = String(s);
+      
+      // Même approche que fmtDate : détecter les patterns avec caractères mal encodés
+      // [^\w-]+ = un ou plusieurs caractères qui ne sont PAS alphanumériques ni tirets
+      s = s
+        .replace(/BL[^\w-]+/gi, 'BLE')     // BL◆ → BLE (blé)
+        .replace(/[^\w-]+BIOLOGIQUE/gi, ' BIOLOGIQUE')  // ◆BIOLOGIQUE → BIOLOGIQUE
+        .replace(/BIOLOGIQUE[^\w-]+/gi, 'BIOLOGIQUE ')  // BIOLOGIQUE◆ → BIOLOGIQUE
+        .replace(/ORGANIQUE[^\w-]+/gi, 'ORGANIQUE ')    // ORGANIQUE◆ → ORGANIQUE
+        .replace(/[^\w-]+ORGANIQUE/gi, ' ORGANIQUE')    // ◆ORGANIQUE → ORGANIQUE
+        .replace(/PR[^\w-]+GANIC/gi, 'PRGANIC')         // PR◆GANIC → PRGANIC
+        .replace(/[^\w-]+/g, ' ')  // Tous les autres caractères bizarres → espace
+        .replace(/\s+/g, ' ')      // Nettoyer espaces multiples
+        .trim();
+      
+      return s;
+    };
+    
+    // Nettoyer UNIQUEMENT la colonne 2 (Description)
+    if(v[2]) v[2] = cleanText(v[2]);
+    
+    // Formater les dates (NE PAS TOUCHER - code original)
     if(v[13]) v[13] = fmtDate(v[13]);  // Date lot
     if(v[14]) v[14] = fmtDate(v[14]);  // Expiration
     if(v[15]) v[15] = fmtDate(v[15]);  // Réception originale
