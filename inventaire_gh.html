@@ -694,11 +694,9 @@ function filterByCategory(catId){
 
 function filterByProduct(produit){
   closeFlyout();
-  let prev1 = '';
   filtered = allInventory.filter(r => {
-    const v1 = r._raw?.[1] || '';
-    if(v1) prev1 = v1;
-    return (v1 || prev1) === produit;
+    const v1 = r._raw?.[1] || '';  // Déjà rempli à l'importation
+    return v1 === produit;
   });
   // Trier du plus ancien au plus récent — supporte DD/MM/YYYY et YYYY-MM-DD
   const fmtDate = s => {
@@ -1127,6 +1125,26 @@ function parseInventory(html){
     allInventory.push(row);
   }
 
+  // FILL-DOWN : Remplir colonnes 1 et 2 APRÈS suppression des lignes vides
+  let lastCol1 = '', lastCol2 = '';
+  allInventory.forEach(row => {
+    const raw = row._raw || [];
+    
+    // Fill-down colonne 1 (no_produit)
+    if(raw[1] && raw[1].trim()){
+      lastCol1 = raw[1];
+    } else if(lastCol1){
+      raw[1] = lastCol1;
+    }
+    
+    // Fill-down colonne 2 (description)
+    if(raw[2] && raw[2].trim()){
+      lastCol2 = raw[2];
+    } else if(lastCol2){
+      raw[2] = lastCol2;
+    }
+  });
+
   document.getElementById('inv-spinner').style.display='none';
 
   if(allInventory.length === 0){
@@ -1232,24 +1250,15 @@ function renderTable(){
   document.getElementById('inv-empty').style.display='none';
   document.getElementById('inv-tbl').style.display='table';
 
-  // Fill-down pour colonnes 0 et 1 (No. produit et Description)
-  let prevCol0 = '', prevCol1 = '';
   tbody.innerHTML = filtered.map((r,i)=>{
     const key = r._idx !== undefined ? 'row_'+r._idx : (r.no_lot || r.no_produit+i);
     const sel = selectedRows.has(key) ? 'selected' : '';
     const raw = r._raw || [];
     const keep = [1, 2, 8, 13, 15, 16, 17, 18, 19, 20];
 
-    // Fill-down sur les 2 premières colonnes affichées (indices keep[0] et keep[1])
-    const v0 = raw[keep[0]] || '';
-    const v1 = raw[keep[1]] || '';
-    const disp0 = v0 || prevCol0;
-    const disp1 = v1 || prevCol1;
-    if(v0) prevCol0 = v0;
-    if(v1) prevCol1 = v1;
-
-    // Calcul des poids - UTILISER disp0 = première colonne AFFICHÉE
-    const code = disp0;  // Première colonne affichée dans le tableau
+    // Les colonnes 1 et 2 sont déjà fill-down à l'importation
+    const code = raw[keep[0]] || '';  // No. produit (déjà rempli)
+    const desc = raw[keep[1]] || '';  // Description (déjà remplie)
     
     // Quantité AFFICHÉE = 3ème colonne = keep[2]
     const qteAffichee = raw[keep[2]] || '';
@@ -1259,8 +1268,8 @@ function renderTable(){
     const poidsTotal = qte * poidsUnit;
 
     return `<tr class="${sel}" onclick="toggleItem(event, ${i}, '${escAttr(key)}')">
-      <td style="font-size:.72rem">${escH(disp0)}</td>
-      <td style="font-size:.72rem">${escH(disp1)}</td>
+      <td style="font-size:.72rem">${escH(code)}</td>
+      <td style="font-size:.72rem">${escH(desc)}</td>
       ${keep.slice(2).map(idx=>{
         let val = raw[idx]||'';
         // Formater les colonnes de date (13=Date lot, 14=Expiration, 15=Réception)
@@ -1352,22 +1361,18 @@ function updateSelectionSummary(){
   bar.style.display = 'flex';
   document.getElementById('sel-count').textContent = count;
   
-  // Calculer totaux avec fill-down comme dans renderTable
+  // Calculer totaux - colonnes déjà fill-down à l'importation
   let totalQty = 0;
   let totalWeight = 0;
   const keep = [1, 2, 8, 13, 15, 16, 17, 18, 19, 20];
   
-  // Parcourir filtered avec fill-down pour avoir les bons codes
-  let prevCol0 = '';
+  // Parcourir filtered
   filtered.forEach((r, i) => {
     const key = r._idx !== undefined ? 'row_'+r._idx : (r.no_lot || r.no_produit+i);
     const raw = r._raw || [];
     
     if(selectedRows.has(key)){
-      // Fill-down sur la première colonne
-      const v0 = raw[keep[0]] || '';
-      const code = v0 || prevCol0;
-      if(v0) prevCol0 = v0;
+      const code = raw[keep[0]] || '';  // Déjà rempli à l'importation
       
       // Quantité AFFICHÉE = 3ème colonne = keep[2]
       const qteAffichee = raw[keep[2]] || '';
@@ -1377,10 +1382,6 @@ function updateSelectionSummary(){
       
       totalQty += qte;
       totalWeight += qte * poidsUnit;
-    } else {
-      // Même si non sélectionné, mettre à jour prevCol0 pour le fill-down
-      const v0 = raw[keep[0]] || '';
-      if(v0) prevCol0 = v0;
     }
   });
   
@@ -1391,20 +1392,13 @@ function updateSelectionSummary(){
 function addSelectionToTruck(){
   const keep = [1, 2, 8, 13, 15, 16, 17, 18, 19, 20];
   
-  // Parcourir filtered avec fill-down pour résoudre les codes
-  let prevCol0 = '', prevCol1 = '';
-  
+  // Parcourir filtered - colonnes déjà fill-down à l'importation
   filtered.forEach((r, i) => {
     const key = r._idx !== undefined ? 'row_'+r._idx : (r.no_lot || r.no_produit+i);
     const raw = r._raw || [];
     
-    // Fill-down
-    const v0 = raw[keep[0]] || '';
-    const v1 = raw[keep[1]] || '';
-    const code = v0 || prevCol0;
-    const desc = v1 || prevCol1;
-    if(v0) prevCol0 = v0;
-    if(v1) prevCol1 = v1;
+    const code = raw[keep[0]] || '';  // Déjà rempli
+    const desc = raw[keep[1]] || '';  // Déjà rempli
     
     if(selectedRows.has(key) && !commande.find(c => c._key === key)){
       // Quantité AFFICHÉE = 3ème colonne = keep[2]
