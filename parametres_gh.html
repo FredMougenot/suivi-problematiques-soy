@@ -476,18 +476,32 @@ function toggleEmoji(event){
   if(picker) picker.style.display = emojiOpen ? 'block' : 'none';
   if(overlay) overlay.style.display = emojiOpen ? 'block' : 'none';
   
-  // Bloquer le scroll de la page via l'overlay
-  if(emojiOpen && overlay){
-    // Empêcher le scroll tactile sur l'overlay
-    overlay.addEventListener('touchmove', preventScroll, {passive: false});
-    overlay.addEventListener('wheel', preventScroll, {passive: false});
+  // Bloquer le scroll de la page
+  if(emojiOpen){
+    // Bloquer le scroll du body aussi
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    
+    if(overlay){
+      // Empêcher le scroll tactile sur l'overlay
+      overlay.addEventListener('touchmove', preventScroll, {passive: false});
+      overlay.addEventListener('wheel', preventScroll, {passive: false});
+    }
     
     setTimeout(() => {
       document.addEventListener('click', closeEmojiOnOutsideClick, true);
     }, 300);
-  } else if(overlay) {
-    overlay.removeEventListener('touchmove', preventScroll);
-    overlay.removeEventListener('wheel', preventScroll);
+  } else {
+    // Débloquer le scroll du body
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    
+    if(overlay){
+      overlay.removeEventListener('touchmove', preventScroll);
+      overlay.removeEventListener('wheel', preventScroll);
+    }
     document.removeEventListener('click', closeEmojiOnOutsideClick, true);
   }
 }
@@ -509,6 +523,12 @@ function closeEmojiOnOutsideClick(event){
   // Fermer seulement si vraiment à l'extérieur
   if(picker){
     picker.style.display = 'none';
+    
+    // Débloquer le body
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    
     if(overlay){
       overlay.style.display = 'none';
       overlay.removeEventListener('touchmove', preventScroll);
@@ -540,6 +560,20 @@ function initEmojiPicker(){
       setIcon(event.detail.unicode);
     });
     
+    // CRITIQUE: Empêcher tous les événements tactiles de remonter vers la page
+    picker.addEventListener('touchstart', (e) => {
+      e.stopPropagation();
+    }, {passive: true});
+    
+    picker.addEventListener('touchmove', (e) => {
+      e.stopPropagation();
+      // Ne PAS preventDefault pour permettre le scroll interne
+    }, {passive: true});
+    
+    picker.addEventListener('touchend', (e) => {
+      e.stopPropagation();
+    }, {passive: true});
+    
     // Empêcher la propagation des clics
     picker.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -561,6 +595,12 @@ function setIcon(emoji){
     const picker = document.getElementById('global-emoji-picker');
     const overlay = document.getElementById('emoji-overlay');
     if(picker) picker.style.display='none';
+    
+    // Débloquer le body
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    
     if(overlay){
       overlay.style.display='none';
       overlay.removeEventListener('touchmove', preventScroll);
