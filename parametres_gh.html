@@ -67,7 +67,13 @@ emoji-picker {
   height: 350px;
   border-radius: var(--r-lg);
   display: block;
-  touch-action: manipulation;
+  touch-action: pan-x pan-y;  /* Permettre le scroll dans toutes les directions */
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;  /* Scroll fluide sur iOS */
+}
+
+.emoji-picker-pop {
+  touch-action: pan-x pan-y;  /* Permettre le scroll aussi sur le container */
 }
 
 @media(max-width: 400px){
@@ -467,12 +473,17 @@ function toggleEmoji(event){
   emojiOpen = !emojiOpen;
   container.style.display = emojiOpen ? 'block' : 'none';
   
-  // Fermer si clic extérieur - attendre que le picker soit complètement rendu
+  // Bloquer le scroll de la page sur mobile quand le picker est ouvert
   if(emojiOpen){
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+    
     setTimeout(() => {
       document.addEventListener('click', closeEmojiOnOutsideClick, true);
     }, 300);
   } else {
+    document.body.style.overflow = '';
+    document.body.style.touchAction = '';
     document.removeEventListener('click', closeEmojiOnOutsideClick, true);
   }
 }
@@ -491,6 +502,8 @@ function closeEmojiOnOutsideClick(event){
   if(container){
     container.style.display = 'none';
     emojiOpen = false;
+    document.body.style.overflow = '';
+    document.body.style.touchAction = '';
     document.removeEventListener('click', closeEmojiOnOutsideClick, true);
   }
 }
@@ -529,7 +542,9 @@ function setIcon(emoji){
     if(container) container.style.display='none';
     
     emojiOpen=false;
-    document.removeEventListener('click', closeEmojiOnOutsideClick);
+    document.body.style.overflow = '';
+    document.body.style.touchAction = '';
+    document.removeEventListener('click', closeEmojiOnOutsideClick, true);
     renderCategoriesList();
   }
 }
