@@ -645,6 +645,16 @@ function openFlyout(catId){
 
   activeFlyoutId = catId;
   
+  // NOUVEAU : Vider selectedRows au changement de catégorie via flyout
+  debugLog('=== openFlyout: Vidage selectedRows ===');
+  debugLog('selectedRows.size AVANT clear (flyout): <span style="color:#f59e0b;">' + selectedRows.size + '</span>');
+  selectedRows.clear();
+  debugLog('selectedRows.size APRÈS clear (flyout): <span style="color:#2dd4a0;">' + selectedRows.size + '</span>');
+  
+  // Cacher la barre bleue
+  const bar = document.getElementById('selection-bar');
+  if(bar) bar.style.display = 'none';
+  
   // Activer la catégorie visuellement dans la sidebar
   activeCatId = catId;
   renderCatSidebar();
