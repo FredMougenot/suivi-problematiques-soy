@@ -304,7 +304,11 @@ function renderCategoriesList(){
     list.innerHTML='<div class="empty-pg"><div class="empty-pg-title">Aucune catégorie</div></div>';
     return;
   }
-  list.innerHTML=categories.map(cat=>`
+  
+  // Trier par ordre alphabétique
+  const sortedCats = [...categories].sort((a,b) => a.name.localeCompare(b.name));
+  
+  list.innerHTML=sortedCats.map(cat=>`
     <div class="cat-nav-item" onclick="editCategory('${cat.id}')" style="margin-bottom:8px;">
       <div class="cat-nav-icon" style="background:${cat.color}20;color:${cat.color}">${cat.icon}</div>
       <div class="cat-nav-name">${escH(cat.name)}</div>

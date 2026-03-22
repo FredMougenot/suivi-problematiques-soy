@@ -91,13 +91,15 @@
 }
 
 .cat-btn{
-  width:36px;
+  min-width:36px;
   height:36px;
   margin:0 8px;
+  padding:0 10px;
   border-radius:10px;
   display:flex;
   align-items:center;
-  justify-content:center;
+  justify-content:flex-start;
+  gap:8px;
   font-size:1.1rem;
   cursor:pointer;
   transition:all .18s cubic-bezier(.4,0,.2,1);
@@ -105,9 +107,26 @@
   border:1.5px solid transparent;
   background:transparent;
 }
+.cat-btn-icon{
+  font-size:1.1rem;
+  flex-shrink:0;
+}
+.cat-btn-name{
+  font-size:.75rem;
+  font-weight:600;
+  color:var(--text-secondary);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:120px;
+}
+.cat-btn.active .cat-btn-name{
+  color:var(--text-primary);
+}
 .cat-btn:hover{
   background:rgba(255,255,255,.06);
-  transform:scale(1.1);
+  transform:scale(1.05);
+}
 }
 .cat-btn.active{
   border-color:var(--sapphire);
@@ -579,14 +598,20 @@ function renderCatSidebar(){
   allBtn.onclick = () => filterByCategory(null);
   sidebar.appendChild(allBtn);
 
-  // Category buttons
-  ghCategories.forEach(cat => {
+  // Trier les catégories par ordre alphabétique
+  const sortedCategories = [...ghCategories].sort((a,b) => a.name.localeCompare(b.name));
+
+  // Category buttons avec icône ET nom
+  sortedCategories.forEach(cat => {
     const btn = document.createElement('div');
     btn.className = 'cat-btn' + (activeCatId === cat.id ? ' active' : '');
     btn.title = cat.name;
     btn.style.borderColor = activeCatId === cat.id ? cat.color : 'transparent';
     btn.style.background = activeCatId === cat.id ? cat.color+'22' : '';
-    btn.innerHTML = cat.icon || '📦';
+    btn.innerHTML = `
+      <span class="cat-btn-icon">${cat.icon || '📦'}</span>
+      <span class="cat-btn-name">${escH(cat.name)}</span>
+    `;
     btn.onclick = (e) => { e.stopPropagation(); openFlyout(cat.id); };
     sidebar.appendChild(btn);
   });
