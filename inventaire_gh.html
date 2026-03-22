@@ -1494,7 +1494,9 @@ function parseInventory(html){
     const cleanText = (s) => {
       if(!s) return s;
       
-      debugLog('🔧 cleanText APPELÉ sur: ' + s.substring(0, 50));
+      try {
+        debugLog('cleanText APPELE sur: ' + String(s).substring(0, 30));
+      } catch(e) {}
       
       // Remplacer TOUTES les lettres accentuées (minuscules ET majuscules)
       const result = String(s)
@@ -1517,14 +1519,23 @@ function parseInventory(html){
         .replace(/ç/g, 'c')
         .replace(/Ç/g, 'C');
       
-      debugLog('✅ cleanText RÉSULTAT: ' + result.substring(0, 50));
+      try {
+        debugLog('cleanText RESULTAT: ' + String(result).substring(0, 30));
+      } catch(e) {}
+      
       return result;
     };
     
     // Nettoyer UNIQUEMENT la colonne 2 (Description)
-    debugLog('📍 Avant cleanText - v[2]: ' + (v[2] ? v[2].substring(0, 50) : 'VIDE'));
+    try {
+      debugLog('AVANT cleanText - v[2]: ' + (v[2] ? String(v[2]).substring(0, 30) : 'VIDE'));
+    } catch(e) {}
+    
     if(v[2]) v[2] = cleanText(v[2]);
-    debugLog('📍 Après cleanText - v[2]: ' + (v[2] ? v[2].substring(0, 50) : 'VIDE'));
+    
+    try {
+      debugLog('APRES cleanText - v[2]: ' + (v[2] ? String(v[2]).substring(0, 30) : 'VIDE'));
+    } catch(e) {}
     
     // Formater les dates (NE PAS TOUCHER - code original)
     if(v[13]) v[13] = fmtDate(v[13]);  // Date lot
