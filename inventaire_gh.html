@@ -691,8 +691,8 @@ function closeFlyout(){
 function filterByCategory(catId){
   closeFlyout();
   
-  // NOUVEAU : Désélectionner les lignes visuelles au changement de catégorie
-  selectedRows.clear();
+  // CRITIQUE : Vider complètement selectedRows pour désélectionner toutes les lignes
+  selectedRows = new Set();  // Créer un nouveau Set vide (au lieu de .clear())
   
   activeCatId = catId;
   renderCatSidebar();
@@ -701,26 +701,25 @@ function filterByCategory(catId){
   if(catId === 'EMPTY_TABLE'){
     filtered = [];
     renderTable();
-    updateSelectionSummary();  // Forcer mise à jour après rendu
+    updateSelectionSummary();
     document.getElementById('inv-count').textContent = '0 / ' + allInventory.length + ' items';
     return;
   }
 
   if(catId === null){
     filterInventory();
-    updateSelectionSummary();  // Forcer mise à jour après filtrage
+    updateSelectionSummary();
     return;
   }
   
   // Cas spécial NO_CATEGORY : lignes sans catégorie
   if(catId === 'NO_CATEGORY'){
     filtered = allInventory.filter(r => {
-      // Une ligne n'a pas de catégorie si elle ne match aucune catégorie
       return !ghCategories.some(cat => matchesCategory(r, cat));
     });
     sortByExpiration();
     renderTable();
-    updateSelectionSummary();  // Forcer mise à jour après rendu
+    updateSelectionSummary();
     document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
     return;
   }
@@ -729,10 +728,9 @@ function filterByCategory(catId){
   if(!cat) return;
 
   filtered = allInventory.filter(r => matchesCategory(r, cat));
-  // Trier par date d'expiration (plus ancien au plus récent)
   sortByExpiration();
   renderTable();
-  updateSelectionSummary();  // Forcer mise à jour après rendu
+  updateSelectionSummary();
   document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
 }
 
