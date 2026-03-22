@@ -66,6 +66,20 @@ emoji-picker {
   width: 320px;
   height: 350px;
   border-radius: var(--r-lg);
+  display: block;
+  touch-action: manipulation;
+}
+
+@media(max-width: 400px){
+  emoji-picker {
+    width: 280px;
+    height: 320px;
+    --num-columns: 7;
+  }
+  .emoji-picker-pop {
+    left: 50%;
+    transform: translateX(-50%);
+  }
 }
 
 .save-bar{display:flex;align-items:center;gap:10px;margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.06);}
@@ -323,7 +337,7 @@ function editCategory(id){
   // Éditeur complet avec règles
   document.getElementById('category-editor').innerHTML=`
     <div class="cat-editor-hd">
-      <div class="cat-emoji-btn" style="background:${cat.color}20;color:${cat.color}" onclick="toggleEmoji()">
+      <div class="cat-emoji-btn" style="background:${cat.color}20;color:${cat.color}" onclick="toggleEmoji(event)">
         <div id="cat-icon-display">${cat.icon}</div>
         <div id="emoji-picker" class="emoji-picker-pop" style="display:none;"></div>
       </div>
@@ -444,12 +458,34 @@ function setColor(color){
   }
 }
 
-function toggleEmoji(){
+function toggleEmoji(event){
+  if(event) event.stopPropagation();
+  
   const container = document.getElementById('emoji-picker');
   if(!container) return;
   
   emojiOpen = !emojiOpen;
   container.style.display = emojiOpen ? 'block' : 'none';
+  
+  // Fermer si clic extérieur
+  if(emojiOpen){
+    setTimeout(() => {
+      document.addEventListener('click', closeEmojiOnOutsideClick);
+    }, 100);
+  } else {
+    document.removeEventListener('click', closeEmojiOnOutsideClick);
+  }
+}
+
+function closeEmojiOnOutsideClick(event){
+  const container = document.getElementById('emoji-picker');
+  const btn = document.querySelector('.cat-emoji-btn');
+  
+  if(container && !container.contains(event.target) && !btn.contains(event.target)){
+    container.style.display = 'none';
+    emojiOpen = false;
+    document.removeEventListener('click', closeEmojiOnOutsideClick);
+  }
 }
 
 function initEmojiPicker(){
@@ -481,6 +517,7 @@ function setIcon(emoji){
     if(container) container.style.display='none';
     
     emojiOpen=false;
+    document.removeEventListener('click', closeEmojiOnOutsideClick);
     renderCategoriesList();
   }
 }
