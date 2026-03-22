@@ -22,6 +22,19 @@
   display:flex;flex-direction:column;align-items:center;gap:4px;
   position:relative;z-index:10;
 }
+.cat-btn{
+  width:38px;height:38px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;cursor:pointer;
+  transition:all .18s cubic-bezier(.4,0,.2,1);
+  border:1.5px solid transparent;background:transparent;
+  position:relative;
+}
+.cat-btn:hover{background:rgba(255,255,255,.06);transform:scale(1.08);}
+.cat-btn.active{border-color:var(--sapphire);background:rgba(74,158,232,.12);}
+.cat-btn-all{font-size:.5rem;font-weight:800;color:var(--text-muted);letter-spacing:.04em;line-height:1.2;text-align:center;}
+.cat-btn.active .cat-btn-all{color:var(--sapphire);}
+
 /* ── Flyout ── */
 .cat-flyout{
   position:fixed;
@@ -61,15 +74,15 @@
 .gh-content{flex:1;min-width:0;padding:0 0 0 16px;}
 
 /* ── Page layout with category sidebar ── */
-.gh-page-layout{display:flex;gap:0;margin-top:60px;}
+.gh-page-layout{display:flex;gap:0;}
 
 /* ── Category Sidebar ── */
 .cat-sidebar{
-  width:180px;
+  width:52px;
   flex-shrink:0;
   background:var(--bg-raised);
   border-right:1px solid rgba(255,255,255,.06);
-  padding:12px 8px;
+  padding:12px 0;
   display:flex;
   flex-direction:column;
   gap:4px;
@@ -77,20 +90,11 @@
   z-index:50;
 }
 
-@media(max-width:800px){
-  .cat-sidebar{
-    width:160px;
-  }
-  .cat-flyout{
-    left:160px;
-  }
-}
-
 .cat-btn{
   min-width:36px;
   height:36px;
-  margin:0;
-  padding:0 8px 0 8px;
+  margin:0 8px;
+  padding:0 10px;
   border-radius:10px;
   display:flex;
   align-items:center;
@@ -123,9 +127,11 @@
   background:rgba(255,255,255,.06);
   transform:scale(1.05);
 }
+}
 .cat-btn.active{
   border-color:var(--sapphire);
   background:rgba(74,158,232,.12);
+  box-shadow:0 0 12px rgba(74,158,232,.2);
 }
 .cat-btn-all{
   font-size:.55rem;
@@ -133,19 +139,12 @@
   color:var(--text-muted);
   letter-spacing:.05em;
 }
-.cat-btn.active .cat-btn-all{
-  color:var(--sapphire);
-}
-}
-.cat-btn.active{
-  border-color:var(--sapphire);
-  background:rgba(74,158,232,.12);
-  box-shadow:0 0 12px rgba(74,158,232,.2);
-}
+.cat-btn.active .cat-btn-all{color:var(--sapphire);}
+
 /* ── Flyout panel ── */
 .cat-flyout{
   position:fixed;
-  left:180px;
+  left:52px;
   top:0;
   width:260px;
   height:100vh;
