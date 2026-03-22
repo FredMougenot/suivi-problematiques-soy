@@ -693,6 +693,7 @@ function filterByCategory(catId){
   
   // NOUVEAU : Désélectionner tous les items au changement de catégorie
   commande = [];
+  selectedRows.clear();  // Vider aussi le Set de sélection
   updateCommandeUI();
   
   activeCatId = catId;
