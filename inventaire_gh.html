@@ -1671,6 +1671,19 @@ function fmtDate(s){
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escAttr(s){ return String(s||'').replace(/'/g,"\\'"); }
 
+// Nettoyer les caractères spéciaux pour le PDF
+function cleanForPDF(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/[◆♦]/g, '')  // Retirer les diamants
+    .replace(/['']/g, "'")  // Apostrophes courbes -> droites
+    .replace(/[""]/g, '"')  // Guillemets courbes -> droits
+    .replace(/[–—]/g, '-')  // Tirets longs -> tirets courts
+    .replace(/…/g, '...')   // Points de suspension
+    .replace(/[^\x00-\x7F]/g, '')  // Retirer tous les caractères non-ASCII restants
+    .trim();
+}
+
 // ── COMMANDE ──────────────────────────────────────────────────────
 // ── SELECTION (multi-select avec Shift) ──────────────────────────
 let selectedRows = new Set();
@@ -1827,10 +1840,23 @@ function removeFromCommande(key){
 }
 
 function clearCommande(){
-  commande = [];
+  const camion = getCamionActif();
+  if (!camion) return;
+  
+  if (camion.items.length > 0) {
+    if (!confirm(`Voulez-vous vraiment effacer tous les items du ${camion.nom} ?`)) {
+      return;
+    }
+  }
+  
+  camion.items = [];
   renderTable();
-  renderCommande();
-  saveCommande();  // Sauvegarder
+  updateCommandeUI();
+  saveCamions();
+  renderCatSidebar();  // Mettre à jour le compteur
+  
+  debugLog('Camion vidé: ' + camion.nom);
+  toast('Camion vidé', 'ok');
 }
 
 function saveCommande(){
@@ -2004,16 +2030,16 @@ async function exportPDF(){
       const raw = item._raw || [];
       
       const rowData = {
-        code: (item.isNew ? '🆕 ' : '') + (item._resolved_code || '—'),
-        description: item._resolved_desc || '—',
+        code: (item.isNew ? 'NEW ' : '') + cleanForPDF(item._resolved_code || '—'),
+        description: cleanForPDF(item._resolved_desc || '—'),
         qte: item._resolved_qte || '—',
-        no_comm: raw[13] || '—',
-        etiquette: raw[15] || '—',
-        no_lot: raw[16] || '—',
-        no_sous_lot: raw[17] || '—',
-        date_lot: raw[18] || '—',
-        expiration: raw[19] || '—',
-        reception: raw[20] || '—',
+        no_comm: cleanForPDF(raw[13] || '—'),
+        etiquette: cleanForPDF(raw[15] || '—'),
+        no_lot: cleanForPDF(raw[16] || '—'),
+        no_sous_lot: cleanForPDF(raw[17] || '—'),
+        date_lot: cleanForPDF(raw[18] || '—'),
+        expiration: cleanForPDF(raw[19] || '—'),
+        reception: cleanForPDF(raw[20] || '—'),
         poids_unit: item._resolved_poids_unit ? item._resolved_poids_unit.toFixed(1) : '—',
         poids_total: item._resolved_poids_total ? item._resolved_poids_total.toFixed(1) : '—',
       };
