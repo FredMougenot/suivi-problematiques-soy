@@ -174,6 +174,25 @@
   margin-bottom:6px;
   cursor:pointer;
   transition:all .2s;
+  position:relative;
+}
+.camion-delete{
+  position:absolute;
+  top:6px;
+  right:6px;
+  background:rgba(239,68,68,.15);
+  border:none;
+  border-radius:4px;
+  padding:2px 5px;
+  font-size:.7rem;
+  cursor:pointer;
+  opacity:0.6;
+  transition:all .2s;
+}
+.camion-delete:hover{
+  opacity:1;
+  background:rgba(239,68,68,.25);
+  transform:scale(1.1);
 }
 .camion-card:hover{
   background:rgba(255,255,255,.04);
@@ -362,6 +381,10 @@
 .cmd-body{max-height:420px;overflow-y:auto;}
 .cmd-empty{padding:32px 16px;text-align:center;color:var(--text-muted);font-size:.82rem;}
 .cmd-row{display:grid;grid-template-columns:1fr auto;gap:8px;padding:10px 14px;border-bottom:1px solid rgba(44,51,80,.4);align-items:start;}
+.cmd-row-new{
+  background:rgba(245,158,11,.08);
+  border-left:3px solid var(--amber);
+}
 .cmd-row:last-child{border-bottom:none;}
 .cmd-item-code{font-size:.72rem;color:var(--sapphire);font-weight:700;}
 .cmd-item-desc{font-size:.78rem;color:var(--text-primary);font-weight:500;line-height:1.3;}
@@ -579,6 +602,10 @@
             <span class="cmd-total-val" id="cmd-total">0 kg</span>
           </div>
           <div class="cmd-actions">
+            <button class="btn-export" id="btn-mark-sent" onclick="marquerCommeEnvoye()" style="background:var(--emerald);display:none;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Marquer envoyé
+            </button>
             <button class="btn-export" id="btn-export" onclick="exportPDF()" disabled>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
               Exporter PDF
@@ -784,6 +811,7 @@ function renderCamionsSection(sidebar) {
         ${itemCount} item${itemCount !== 1 ? 's' : ''}
         ${newCount > 0 ? `<span class="camion-badge">🆕 ${newCount}</span>` : ''}
       </div>
+      ${camions.length > 1 ? '<button class="camion-delete" onclick="event.stopPropagation();supprimerCamion(\'' + cam.id + '\')" title="Supprimer ce camion">🗑️</button>' : ''}
     `;
     
     card.onclick = () => {
@@ -827,6 +855,37 @@ function ajouterNouveauCamion() {
   
   debugLog('Nouveau camion créé: ' + nouveauCamion.nom);
   toast('Camion ' + numero + ' créé', 'success');
+}
+
+function supprimerCamion(camionId) {
+  if (camions.length <= 1) {
+    toast('Impossible de supprimer le dernier camion', 'error');
+    return;
+  }
+  
+  const camion = camions.find(c => c.id === camionId);
+  if (!camion) return;
+  
+  if (camion.items.length > 0) {
+    if (!confirm(`Voulez-vous vraiment supprimer "${camion.nom}" ? Il contient ${camion.items.length} item(s).`)) {
+      return;
+    }
+  }
+  
+  // Retirer le camion
+  camions = camions.filter(c => c.id !== camionId);
+  
+  // Si c'était le camion actif, activer le premier
+  if (camionActifId === camionId) {
+    camionActifId = camions[0]?.id || null;
+  }
+  
+  saveCamions();
+  renderCatSidebar();
+  updateCommandeUI();
+  
+  debugLog('Camion supprimé: ' + camion.nom);
+  toast('Camion supprimé', 'ok');
 }
 
 function openCamionModal(camionId) {
@@ -1701,6 +1760,14 @@ function updateSelectionSummary(){
 function addSelectionToTruck(){
   const keep = [1, 2, 8, 13, 15, 16, 17, 18, 19, 20];
   
+  const camion = getCamionActif();
+  if (!camion) {
+    toast('Aucun camion sélectionné', 'error');
+    return;
+  }
+  
+  let ajouteCount = 0;
+  
   // Parcourir filtered - colonnes déjà fill-down à l'importation
   filtered.forEach((r, i) => {
     const key = r._idx !== undefined ? 'row_'+r._idx : (r.no_lot || r.no_produit+i);
@@ -1709,7 +1776,7 @@ function addSelectionToTruck(){
     const code = raw[keep[0]] || '';  // Déjà rempli
     const desc = raw[keep[1]] || '';  // Déjà rempli
     
-    if(selectedRows.has(key) && !commande.find(c => c._key === key)){
+    if(selectedRows.has(key) && !camion.items.find(c => c._key === key)){
       // Quantité AFFICHÉE = 3ème colonne = keep[2]
       const qteAffichee = raw[keep[2]] || '';
       const qte = parseFloat(qteAffichee || 0);
@@ -1717,15 +1784,17 @@ function addSelectionToTruck(){
       const poidsUnit = getPoidsUnitaire(code);
       const poidsTotal = qte * poidsUnit;
       
-      commande.push({
+      camion.items.push({
         ...r, 
         _key: key,
         _resolved_code: code,
         _resolved_desc: desc,
         _resolved_qte: qte,
         _resolved_poids_unit: poidsUnit,
-        _resolved_poids_total: poidsTotal
+        _resolved_poids_total: poidsTotal,
+        isNew: true  // Marquer comme nouveau
       });
+      ajouteCount++;
     }
   });
   
@@ -1733,16 +1802,28 @@ function addSelectionToTruck(){
   lastSelectedIdx = null;
   updateSelectionSummary();
   renderTable();
-  renderCommande();
-  saveCommande();  // Sauvegarder
-  toast('Ajouté au camion ✓', 'ok');
+  updateCommandeUI();  // Mettre à jour l'affichage du camion
+  saveCamions();  // Sauvegarder les camions
+  renderCatSidebar();  // Mettre à jour le compteur dans la sidebar
+  
+  debugLog('Ajouté ' + ajouteCount + ' item(s) au ' + camion.nom);
+  toast('Ajouté ' + ajouteCount + ' item(s) au ' + camion.nom + ' ✓', 'ok');
+}
+
+function removeFromCamion(key){
+  const camion = getCamionActif();
+  if (!camion) return;
+  
+  camion.items = camion.items.filter(c => c._key !== key);
+  renderTable();
+  updateCommandeUI();
+  saveCamions();
+  renderCatSidebar();  // Mettre à jour le compteur
 }
 
 function removeFromCommande(key){
-  commande = commande.filter(c=>c._key!==key);
-  renderTable();
-  renderCommande();
-  saveCommande();  // Sauvegarder
+  // Legacy - redirige vers removeFromCamion
+  removeFromCamion(key);
 }
 
 function clearCommande(){
@@ -1772,48 +1853,78 @@ function loadCommande(){
   }
 }
 
-function renderCommande(){
+function updateCommandeUI(){
   const body = document.getElementById('cmd-body');
   const empty = document.getElementById('cmd-empty');
   const btnExport = document.getElementById('btn-export');
-
-  if(commande.length === 0){
+  const btnMarkSent = document.getElementById('btn-mark-sent');
+  
+  const camion = getCamionActif();
+  if (!camion || camion.items.length === 0){
     if(!empty){ body.innerHTML='<div class="cmd-empty" id="cmd-empty">Sélectionnez des lignes et cliquez sur "Ajouter au camion".</div>'; }
     else empty.style.display='block';
     body.querySelectorAll('.cmd-row').forEach(r=>r.remove());
     document.getElementById('cmd-total').textContent = '0 kg';
     btnExport.disabled = true;
+    if(btnMarkSent) btnMarkSent.style.display = 'none';
     return;
   }
 
   if(empty) empty.style.display='none';
   btnExport.disabled = false;
+  
+  // Afficher le bouton "Marquer envoyé" seulement s'il y a des items nouveaux
+  const hasNew = camion.items.some(item => item.isNew);
+  if(btnMarkSent) btnMarkSent.style.display = hasNew ? 'inline-flex' : 'none';
 
-  body.innerHTML = commande.map(item=>{
+  body.innerHTML = camion.items.map(item=>{
     const code = item._resolved_code || '';
     const desc = item._resolved_desc || '';
     const qte = item._resolved_qte || 0;
     const poidsUnit = item._resolved_poids_unit || 0;
     const poidsTotal = item._resolved_poids_total || 0;
+    const isNew = item.isNew;
     
     return `
-    <div class="cmd-row">
+    <div class="cmd-row${isNew ? ' cmd-row-new' : ''}">
       <div>
-        <div class="cmd-item-code">${escH(code)}</div>
+        <div class="cmd-item-code">${isNew ? '🆕 ' : ''}${escH(code)}</div>
         <div class="cmd-item-desc">${escH(desc)}</div>
         <div class="cmd-item-meta">Qté: ${qte} · ${poidsUnit > 0 ? poidsUnit.toFixed(1) : '—'} kg/unité · <strong>${poidsTotal > 0 ? poidsTotal.toFixed(1) : '—'} kg total</strong></div>
       </div>
-      <button class="cmd-rm" onclick="removeFromCommande('${escAttr(item._key)}')" title="Retirer">✕</button>
+      <button class="cmd-rm" onclick="removeFromCamion('${escAttr(item._key)}')" title="Retirer">✕</button>
     </div>
   `;
   }).join('');
 
   // Total weight
   let total = 0;
-  commande.forEach(item=>{
+  camion.items.forEach(item=>{
     total += item._resolved_poids_total || 0;
   });
   document.getElementById('cmd-total').textContent = total.toLocaleString('fr-CA',{maximumFractionDigits:1}) + ' kg';
+}
+
+function marquerCommeEnvoye() {
+  const camion = getCamionActif();
+  if (!camion) return;
+  
+  // Retirer le flag isNew de tous les items
+  camion.items.forEach(item => {
+    item.isNew = false;
+  });
+  
+  saveCamions();
+  updateCommandeUI();
+  renderCatSidebar();  // Mettre à jour le badge dans la sidebar
+  
+  debugLog('Items marqués comme envoyés pour ' + camion.nom);
+  toast('Items marqués comme envoyés ✓', 'ok');
+}
+
+// Fonction legacy pour compatibilité
+function renderCommande() {
+  updateCommandeUI();
 }
 
 // ── EXPORT PDF ────────────────────────────────────────────────────
