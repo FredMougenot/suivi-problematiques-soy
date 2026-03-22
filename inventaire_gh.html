@@ -559,9 +559,16 @@ function renderCatSidebar(){
   const sidebar = document.getElementById('cat-sidebar');
   if(!sidebar) return;
 
-  // Keep the TOUT button, add category buttons
-  const existing = sidebar.querySelector('#cat-btn-all');
   sidebar.innerHTML = '';
+
+  // NOUVEAU : Bouton tableau vide en haut (actif par défaut)
+  const emptyBtn = document.createElement('div');
+  emptyBtn.className = 'cat-btn cat-btn-all' + (activeCatId === 'EMPTY_TABLE' ? ' active' : '');
+  emptyBtn.id = 'cat-btn-empty';
+  emptyBtn.title = 'Tableau vide (aucune ligne affichée)';
+  emptyBtn.innerHTML = '∅';  // Symbole ensemble vide
+  emptyBtn.onclick = () => filterByCategory('EMPTY_TABLE');
+  sidebar.appendChild(emptyBtn);
 
   // TOUT button
   const allBtn = document.createElement('div');
@@ -584,14 +591,14 @@ function renderCatSidebar(){
     sidebar.appendChild(btn);
   });
   
-  // VIDE button (at the bottom)
-  const videBtn = document.createElement('div');
-  videBtn.className = 'cat-btn cat-btn-all' + (activeCatId === 'VIDE' ? ' active' : '');
-  videBtn.id = 'cat-btn-vide';
-  videBtn.title = 'Afficher les lignes vides';
-  videBtn.innerHTML = 'VIDE';
-  videBtn.onclick = () => filterByCategory('VIDE');
-  sidebar.appendChild(videBtn);
+  // SANS CAT. button (lignes sans catégorie)
+  const noCatBtn = document.createElement('div');
+  noCatBtn.className = 'cat-btn cat-btn-all' + (activeCatId === 'NO_CATEGORY' ? ' active' : '');
+  noCatBtn.id = 'cat-btn-nocat';
+  noCatBtn.title = 'Lignes sans catégorie';
+  noCatBtn.innerHTML = 'SANS<br>CAT.';
+  noCatBtn.onclick = () => filterByCategory('NO_CATEGORY');
+  sidebar.appendChild(noCatBtn);
 }
 
 function openFlyout(catId){
@@ -650,20 +657,25 @@ function filterByCategory(catId){
   activeCatId = catId;
   renderCatSidebar();
 
+  // Cas spécial EMPTY_TABLE : afficher un tableau vide (0 lignes)
+  if(catId === 'EMPTY_TABLE'){
+    filtered = [];
+    renderTable();
+    document.getElementById('inv-count').textContent = '0 / ' + allInventory.length + ' items';
+    return;
+  }
+
   if(catId === null){
     filterInventory();
     return;
   }
   
-  // Cas spécial VIDE : filtrer les lignes où keep[2] (quantité) est vide
-  if(catId === 'VIDE'){
-    const keep = [1, 2, 8, 13, 15, 16, 17, 18, 19, 20];
+  // Cas spécial NO_CATEGORY : lignes sans catégorie
+  if(catId === 'NO_CATEGORY'){
     filtered = allInventory.filter(r => {
-      const raw = r._raw || [];
-      const qteAffichee = raw[keep[2]] || '';
-      return !qteAffichee || qteAffichee.toString().trim() === '';
+      // Une ligne n'a pas de catégorie si elle ne match aucune catégorie
+      return !ghCategories.some(cat => matchesCategory(r, cat));
     });
-    // Trier par date d'expiration (plus ancien au plus récent)
     sortByExpiration();
     renderTable();
     document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
@@ -777,9 +789,9 @@ async function init(){
       if(items && items.length > 0){
         allInventory = items;
         
-        // Par défaut : activer le filtre VIDE
-        activeCatId = 'VIDE';
-        filterByCategory('VIDE');
+        // Par défaut : activer le tableau vide (EMPTY_TABLE)
+        activeCatId = 'EMPTY_TABLE';
+        filterByCategory('EMPTY_TABLE');
         
         renderCatSidebar();
         document.getElementById('inv-count').style.display = 'block';
@@ -932,9 +944,9 @@ function loadFromItems(items){
   tSel.innerHTML = '<option value="">Toutes les divisions</option>' + divisions.map(t=>`<option value="${esc(t)}">${t}</option>`).join('');
   fSel.innerHTML = '<option value="">Tous les produits</option>' + produits.map(f=>`<option value="${esc(f)}">${f}</option>`).join('');
 
-  // Par défaut : activer le filtre VIDE
-  activeCatId = 'VIDE';
-  filterByCategory('VIDE');
+  // Par défaut : activer le tableau vide (EMPTY_TABLE)
+  activeCatId = 'EMPTY_TABLE';
+  filterByCategory('EMPTY_TABLE');
   
   const c = document.getElementById('inv-count');
   c.style.display = 'block';
