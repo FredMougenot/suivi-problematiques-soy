@@ -1332,20 +1332,19 @@ function parseInventory(html){
       .replace(/&amp;/g, '&')
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
-      .replace(/\s+/g, ' ')
       .trim();
     
     // Corriger les caractères mal encodés dans les noms de mois
     // Appliqué sur TOUTES les colonnes (y compris la Description)
     cleaned = cleaned
       // Février : F�V, F�VR → FEV, FEVR
-      .replace(/F[^\w\/-]+VR/gi, 'FEVR')
-      .replace(/F[^\w\/-]+V(?!R)/gi, 'FEV')
+      .replace(/F[^\w\s\/-]+VR/gi, 'FEVR')
+      .replace(/F[^\w\s\/-]+V(?!R)/gi, 'FEV')
       // Août : AO�T, A�T → AOUT, AOU  
-      .replace(/AO[^\w\/-]+T/gi, 'AOUT')
-      .replace(/A[^\w\/-]+T(?!O)/gi, 'AOU')
+      .replace(/AO[^\w\s\/-]+T/gi, 'AOUT')
+      .replace(/A[^\w\s\/-]+T(?!O)/gi, 'AOU')
       // Décembre : D�C → DEC
-      .replace(/D[^\w\/-]+C/gi, 'DEC');
+      .replace(/D[^\w\s\/-]+C/gi, 'DEC');
     
     // Remplacer TOUTES les lettres accentuées par des lettres sans accent
     cleaned = cleaned
