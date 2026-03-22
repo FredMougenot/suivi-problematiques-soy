@@ -1494,10 +1494,10 @@ function parseInventory(html){
     const cleanText = (s) => {
       if(!s) return s;
       
-      // Remplacer UNIQUEMENT les 2 caractères identifiés
+      // Remplacer les MAJUSCULES accentuées
       return String(s)
-        .replace(/î/g, 'i')  // î → i
-        .replace(/é/g, 'e'); // é → e
+        .replace(/Î/g, 'I')  // Î → I (Boîte → BoIte)
+        .replace(/É/g, 'E'); // É → E (Hélicap → HElicap)
     };
     
     // Nettoyer UNIQUEMENT la colonne 2 (Description)
