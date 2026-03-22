@@ -1334,38 +1334,22 @@ function parseInventory(html){
       .replace(/&gt;/g, '>')
       .trim();
     
-    // Corriger les caractères mal encodés dans les noms de mois
-    // Appliqué sur TOUTES les colonnes (y compris la Description)
+    // Corriger les caractères mal encodés - patterns intelligents
+    // Appliqué sur TOUTES les colonnes
     cleaned = cleaned
-      // Février : F�V, F�VR → FEV, FEVR
+      // Mois
       .replace(/F[^\w\s\/-]+VR/gi, 'FEVR')
       .replace(/F[^\w\s\/-]+V(?!R)/gi, 'FEV')
-      // Août : AO�T, A�T → AOUT, AOU  
       .replace(/AO[^\w\s\/-]+T/gi, 'AOUT')
       .replace(/A[^\w\s\/-]+T(?!O)/gi, 'AOU')
-      // Décembre : D�C → DEC
-      .replace(/D[^\w\s\/-]+C/gi, 'DEC');
-    
-    // Remplacer TOUTES les lettres accentuées par des lettres sans accent
-    cleaned = cleaned
-      // A
-      .replace(/à/g, 'a').replace(/â/g, 'a').replace(/ä/g, 'a').replace(/æ/g, 'ae')
-      .replace(/À/g, 'A').replace(/Â/g, 'A').replace(/Ä/g, 'A').replace(/Æ/g, 'AE')
-      // E
-      .replace(/é/g, 'e').replace(/è/g, 'e').replace(/ê/g, 'e').replace(/ë/g, 'e')
-      .replace(/É/g, 'E').replace(/È/g, 'E').replace(/Ê/g, 'E').replace(/Ë/g, 'E')
-      // I
-      .replace(/î/g, 'i').replace(/ï/g, 'i')
-      .replace(/Î/g, 'I').replace(/Ï/g, 'I')
-      // O
-      .replace(/ô/g, 'o').replace(/ö/g, 'o').replace(/œ/g, 'oe')
-      .replace(/Ô/g, 'O').replace(/Ö/g, 'O').replace(/Œ/g, 'OE')
-      // U
-      .replace(/ù/g, 'u').replace(/û/g, 'u').replace(/ü/g, 'u')
-      .replace(/Ù/g, 'U').replace(/Û/g, 'U').replace(/Ü/g, 'U')
-      // C
-      .replace(/ç/g, 'c')
-      .replace(/Ç/g, 'C');
+      .replace(/D[^\w\s\/-]+C/gi, 'DEC')
+      // Mots communs dans les descriptions
+      .replace(/BO[^\w\s\/-]+TE/gi, 'BOITE')
+      .replace(/H[^\w\s\/-]+LICAP/gi, 'HELICAP')
+      .replace(/MARCH[^\w\s\/-]+/gi, 'MARCHE')
+      .replace(/GLACI[^\w\s\/-]+RE/gi, 'GLACIERE')
+      .replace(/INT[^\w\s\/-]+RIEUR/gi, 'INTERIEUR')
+      .replace(/HABRILL[^\w\s\/-]+/gi, 'HABRILLE');
     
     return cleaned;
   };
