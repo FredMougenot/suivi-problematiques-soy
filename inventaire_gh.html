@@ -1494,10 +1494,14 @@ function parseInventory(html){
     const cleanText = (s) => {
       if(!s) return s;
       
-      // Remplacer les caractères accentués par leur équivalent sans accent (minuscules ET majuscules)
+      // Remplacer TOUS les caractères accentués par leur équivalent sans accent
       return String(s)
-        .replace(/[ïÏ]/g, 'i')  // ï Ï → i
-        .replace(/[éèêëÉÈÊË]/g, 'e');  // é è ê ë É È Ê Ë → e
+        .replace(/[àâäÀÂÄ]/g, 'a')
+        .replace(/[éèêëÉÈÊË]/g, 'e')
+        .replace(/[îïÎÏ]/g, 'i')
+        .replace(/[ôöÔÖ]/g, 'o')
+        .replace(/[ùûüÙÛÜ]/g, 'u')
+        .replace(/[çÇ]/g, 'c');
     };
     
     // Nettoyer UNIQUEMENT la colonne 2 (Description)
