@@ -46,10 +46,28 @@
 .add-rule-btn:hover{border-color:var(--sapphire);color:var(--sapphire);}
 .preview-section{background:var(--bg-raised);border:1px solid rgba(255,255,255,.07);border-radius:var(--r-lg);padding:16px;margin-top:20px;}
 .preview-title{font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
-.emoji-picker-pop{position:absolute;top:56px;left:0;background:var(--bg-raised);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-lg);padding:10px;display:flex;flex-wrap:wrap;gap:4px;width:220px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:popIn .15s cubic-bezier(.4,0,.2,1);}
+.emoji-picker-pop{position:absolute;top:56px;left:0;background:var(--bg-raised);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-lg);z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:popIn .15s cubic-bezier(.4,0,.2,1);overflow:hidden;}
 @keyframes popIn{from{opacity:0;transform:scale(.92) translateY(-4px);}to{opacity:1;transform:scale(1) translateY(0);}}
 .emoji-opt{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;cursor:pointer;transition:background .1s;}
 .emoji-opt:hover{background:rgba(255,255,255,.1);}
+
+/* Styles pour emoji-picker-element */
+emoji-picker {
+  --background: var(--bg-raised);
+  --border-color: rgba(255,255,255,.07);
+  --indicator-color: var(--sapphire);
+  --input-border-color: rgba(255,255,255,.08);
+  --input-font-color: var(--text-primary);
+  --input-placeholder-color: var(--text-faint);
+  --outline-color: var(--sapphire);
+  --category-emoji-size: 1.375rem;
+  --emoji-size: 1.375rem;
+  --num-columns: 8;
+  width: 320px;
+  height: 350px;
+  border-radius: var(--r-lg);
+}
+
 .save-bar{display:flex;align-items:center;gap:10px;margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.06);}
 .btn-save{display:inline-flex;align-items:center;gap:7px;padding:9px 22px;background:linear-gradient(135deg,var(--sapphire),#1a6bff);border:none;border-radius:var(--r-md);color:#fff;font-size:.84rem;font-weight:700;cursor:pointer;transition:opacity .15s;}
 .btn-save:hover{opacity:.88;}
@@ -164,6 +182,9 @@
   </div>
 </div>
 
+<script type="module">
+  import 'https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js';
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 const SB_URL='https://xppzmdmnuztozgukrcta.supabase.co';
@@ -304,9 +325,7 @@ function editCategory(id){
     <div class="cat-editor-hd">
       <div class="cat-emoji-btn" style="background:${cat.color}20;color:${cat.color}" onclick="toggleEmoji()">
         <div id="cat-icon-display">${cat.icon}</div>
-        <div id="emoji-picker" class="emoji-picker-pop" style="display:none;">
-          ${EMOJIS.map(e=>`<div class="emoji-opt" onclick="setIcon('${e}')">${e}</div>`).join('')}
-        </div>
+        <div id="emoji-picker" class="emoji-picker-pop" style="display:none;"></div>
       </div>
       <input type="text" id="cat-name-input" class="cat-name-input" value="${escH(cat.name)}" placeholder="Nom de la catégorie…" oninput="updateName(this.value)">
     </div>
@@ -362,6 +381,9 @@ function editCategory(id){
       </button>
     </div>
   `;
+  
+  // Initialiser le picker emoji-picker-element
+  initEmojiPicker();
 }
 
 function backToCategories(){
@@ -413,17 +435,6 @@ function updateName(val){
   }
 }
 
-function setIcon(emoji){
-  const cat=categories.find(c=>c.id===activeCatId);
-  if(cat){
-    cat.icon=emoji;
-    document.getElementById('cat-icon-display').textContent=emoji;
-    document.getElementById('emoji-picker').style.display='none';
-    emojiOpen=false;
-    renderCategoriesList();
-  }
-}
-
 function setColor(color){
   const cat=categories.find(c=>c.id===activeCatId);
   if(cat){
@@ -434,11 +445,44 @@ function setColor(color){
 }
 
 function toggleEmoji(){
-  const p=document.getElementById('emoji-picker');
-  if(!p) return;
-  emojiOpen=!emojiOpen;
-  p.style.display=emojiOpen?'flex':'none';
-  if(emojiOpen) p.style.flexWrap='wrap';
+  const container = document.getElementById('emoji-picker');
+  if(!container) return;
+  
+  emojiOpen = !emojiOpen;
+  container.style.display = emojiOpen ? 'block' : 'none';
+}
+
+function initEmojiPicker(){
+  const container = document.getElementById('emoji-picker');
+  if(!container) return;
+  
+  // Créer le picker si pas déjà créé
+  if(!container.querySelector('emoji-picker')){
+    const picker = document.createElement('emoji-picker');
+    picker.setAttribute('locale', 'fr');
+    
+    // Écouter la sélection d'emoji
+    picker.addEventListener('emoji-click', event => {
+      setIcon(event.detail.unicode);
+    });
+    
+    container.appendChild(picker);
+  }
+}
+
+function setIcon(emoji){
+  const cat=categories.find(c=>c.id===activeCatId);
+  if(cat){
+    cat.icon=emoji;
+    const display = document.getElementById('cat-icon-display');
+    if(display) display.textContent=emoji;
+    
+    const container = document.getElementById('emoji-picker');
+    if(container) container.style.display='none';
+    
+    emojiOpen=false;
+    renderCategoriesList();
+  }
 }
 
 function addRule(){
