@@ -690,6 +690,11 @@ function closeFlyout(){
 
 function filterByCategory(catId){
   closeFlyout();
+  
+  // NOUVEAU : Désélectionner tous les items au changement de catégorie
+  commande = [];
+  updateCommandeUI();
+  
   activeCatId = catId;
   renderCatSidebar();
 
