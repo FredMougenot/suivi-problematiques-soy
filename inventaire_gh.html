@@ -1493,14 +1493,12 @@ function parseInventory(html){
       // Même approche que fmtDate : détecter les patterns avec caractères mal encodés
       // [^\w-]+ = un ou plusieurs caractères qui ne sont PAS alphanumériques ni tirets
       s = s
-        .replace(/BL[^\w-]+/gi, 'BLE')     // BL◆ → BLE (blé)
-        .replace(/[^\w-]+BIOLOGIQUE/gi, ' BIOLOGIQUE')  // ◆BIOLOGIQUE → BIOLOGIQUE
-        .replace(/BIOLOGIQUE[^\w-]+/gi, 'BIOLOGIQUE ')  // BIOLOGIQUE◆ → BIOLOGIQUE
-        .replace(/ORGANIQUE[^\w-]+/gi, 'ORGANIQUE ')    // ORGANIQUE◆ → ORGANIQUE
-        .replace(/[^\w-]+ORGANIQUE/gi, ' ORGANIQUE')    // ◆ORGANIQUE → ORGANIQUE
-        .replace(/PR[^\w-]+GANIC/gi, 'PRGANIC')         // PR◆GANIC → PRGANIC
-        .replace(/[^\w-]+/g, ' ')  // Tous les autres caractères bizarres → espace
-        .replace(/\s+/g, ' ')      // Nettoyer espaces multiples
+        .replace(/BL[^\w-]+\s/gi, 'BLE ')      // BL◆ (avec espace après) → BLE 
+        .replace(/BO[^\w-]+TE/gi, 'BOITE')     // BO◆TE → BOITE
+        .replace(/[^\w-]+\s+/g, ' ')           // Caractère bizarre + espaces → un seul espace
+        .replace(/\s+[^\w-]+/g, ' ')           // Espaces + caractère bizarre → un seul espace
+        .replace(/[^\w-]+/g, '')               // Tous autres caractères bizarres seuls → supprimer
+        .replace(/\s+/g, ' ')                  // Nettoyer espaces multiples
         .trim();
       
       return s;
