@@ -692,9 +692,7 @@ function filterByCategory(catId){
   closeFlyout();
   
   // NOUVEAU : Désélectionner les lignes visuelles au changement de catégorie
-  // (mais garder commande[] intact pour le camion)
   selectedRows.clear();
-  updateSelectionSummary();  // Rafraîchir la barre bleue
   
   activeCatId = catId;
   renderCatSidebar();
@@ -703,12 +701,14 @@ function filterByCategory(catId){
   if(catId === 'EMPTY_TABLE'){
     filtered = [];
     renderTable();
+    updateSelectionSummary();  // Forcer mise à jour après rendu
     document.getElementById('inv-count').textContent = '0 / ' + allInventory.length + ' items';
     return;
   }
 
   if(catId === null){
     filterInventory();
+    updateSelectionSummary();  // Forcer mise à jour après filtrage
     return;
   }
   
@@ -720,6 +720,7 @@ function filterByCategory(catId){
     });
     sortByExpiration();
     renderTable();
+    updateSelectionSummary();  // Forcer mise à jour après rendu
     document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
     return;
   }
@@ -731,6 +732,7 @@ function filterByCategory(catId){
   // Trier par date d'expiration (plus ancien au plus récent)
   sortByExpiration();
   renderTable();
+  updateSelectionSummary();  // Forcer mise à jour après rendu
   document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
 }
 
