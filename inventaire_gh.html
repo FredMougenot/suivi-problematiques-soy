@@ -691,11 +691,15 @@ function closeFlyout(){
 function filterByCategory(catId){
   closeFlyout();
   
+  debugLog('=== DÉBUT filterByCategory ===');
+  debugLog('selectedRows.size AVANT clear: <span style="color:#f59e0b;font-weight:bold;">' + selectedRows.size + '</span>');
+  
   activeCatId = catId;
   renderCatSidebar();
 
-  // VIDER selectedRows - sera appliqué par renderTable() ci-dessous
+  // VIDER selectedRows
   selectedRows.clear();
+  debugLog('selectedRows.size APRÈS clear: <span style="color:#2dd4a0;font-weight:bold;">' + selectedRows.size + '</span>');
   
   // Cacher la barre bleue immédiatement
   const bar = document.getElementById('selection-bar');
@@ -704,14 +708,16 @@ function filterByCategory(catId){
   // Cas spécial EMPTY_TABLE : afficher un tableau vide (0 lignes)
   if(catId === 'EMPTY_TABLE'){
     filtered = [];
-    selectedRows.clear();  // Force vide
+    selectedRows.clear();
+    debugLog('selectedRows.size JUSTE AVANT renderTable (EMPTY): <span style="color:#2dd4a0;">' + selectedRows.size + '</span>');
     renderTable();
     document.getElementById('inv-count').textContent = '0 / ' + allInventory.length + ' items';
     return;
   }
 
   if(catId === null){
-    selectedRows.clear();  // Force vide
+    selectedRows.clear();
+    debugLog('selectedRows.size JUSTE AVANT filterInventory: <span style="color:#2dd4a0;">' + selectedRows.size + '</span>');
     filterInventory();
     return;
   }
@@ -722,7 +728,8 @@ function filterByCategory(catId){
       return !ghCategories.some(cat => matchesCategory(r, cat));
     });
     sortByExpiration();
-    selectedRows.clear();  // Force vide
+    selectedRows.clear();
+    debugLog('selectedRows.size JUSTE AVANT renderTable (NO_CAT): <span style="color:#2dd4a0;">' + selectedRows.size + '</span>');
     renderTable();
     document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
     return;
@@ -733,8 +740,10 @@ function filterByCategory(catId){
 
   filtered = allInventory.filter(r => matchesCategory(r, cat));
   sortByExpiration();
-  selectedRows.clear();  // Force vide
+  selectedRows.clear();
+  debugLog('selectedRows.size JUSTE AVANT renderTable (catégorie): <span style="color:#2dd4a0;">' + selectedRows.size + '</span>');
   renderTable();
+  debugLog('selectedRows.size APRÈS renderTable: <span style="color:' + (selectedRows.size > 0 ? '#ef4444' : '#2dd4a0') + ';font-weight:bold;">' + selectedRows.size + '</span>');
   document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
 }
 
@@ -1712,6 +1721,22 @@ function toast(msg, type='ok'){
   document.getElementById('toasts').appendChild(el);
   setTimeout(()=>el.remove(), 4000);
 }
+
+// Fonction de debug visible
+function debugLog(msg) {
+  const log = document.getElementById('debug-log');
+  if(!log) return;
+  const time = new Date().toLocaleTimeString();
+  log.innerHTML += `<div style="margin:2px 0;"><span style="color:#4a9ee8;">[${time}]</span> ${msg}</div>`;
+  log.scrollTop = log.scrollHeight;
+}
 </script>
+
+<!-- Panneau de DEBUG visible en bas de page -->
+<div id="debug-panel" style="position:fixed;bottom:0;left:0;right:0;background:#1a1a2e;border-top:2px solid #4a9ee8;padding:8px;font-size:11px;font-family:monospace;color:#2dd4a0;z-index:9999;max-height:120px;overflow-y:auto;">
+  <div style="font-weight:bold;margin-bottom:4px;color:#f59e0b;">🐛 DEBUG PANEL</div>
+  <div id="debug-log"></div>
+</div>
+
 </body>
 </html>
