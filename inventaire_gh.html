@@ -1347,6 +1347,27 @@ function parseInventory(html){
       // Décembre : D�C → DEC
       .replace(/D[^\w\/-]+C/gi, 'DEC');
     
+    // Remplacer TOUTES les lettres accentuées par des lettres sans accent
+    cleaned = cleaned
+      // A
+      .replace(/à/g, 'a').replace(/â/g, 'a').replace(/ä/g, 'a').replace(/æ/g, 'ae')
+      .replace(/À/g, 'A').replace(/Â/g, 'A').replace(/Ä/g, 'A').replace(/Æ/g, 'AE')
+      // E
+      .replace(/é/g, 'e').replace(/è/g, 'e').replace(/ê/g, 'e').replace(/ë/g, 'e')
+      .replace(/É/g, 'E').replace(/È/g, 'E').replace(/Ê/g, 'E').replace(/Ë/g, 'E')
+      // I
+      .replace(/î/g, 'i').replace(/ï/g, 'i')
+      .replace(/Î/g, 'I').replace(/Ï/g, 'I')
+      // O
+      .replace(/ô/g, 'o').replace(/ö/g, 'o').replace(/œ/g, 'oe')
+      .replace(/Ô/g, 'O').replace(/Ö/g, 'O').replace(/Œ/g, 'OE')
+      // U
+      .replace(/ù/g, 'u').replace(/û/g, 'u').replace(/ü/g, 'u')
+      .replace(/Ù/g, 'U').replace(/Û/g, 'U').replace(/Ü/g, 'U')
+      // C
+      .replace(/ç/g, 'c')
+      .replace(/Ç/g, 'C');
+    
     return cleaned;
   };
 
