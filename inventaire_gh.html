@@ -80,9 +80,9 @@
 .cat-sidebar{
   position: fixed;
   left: 0;
-  top: 140px;
+  /* top sera défini par JavaScript */
   width:180px;
-  height: calc(100vh - 140px);
+  /* height sera défini par JavaScript */
   flex-shrink:0;
   background:var(--bg-raised);
   border-right:1px solid rgba(255,255,255,.06);
@@ -91,13 +91,6 @@
   flex-direction:column;
   gap:4px;
   z-index:50;
-}
-
-@media(max-width:800px){
-  .cat-sidebar{
-    top: 160px;
-    height: calc(100vh - 160px);
-  }
 }
 
 .cat-btn{
@@ -519,6 +512,31 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
+// Fonction pour positionner la sidebar correctement
+function positionSidebar() {
+  const topbar = document.querySelector('.tool-topbar');
+  const status = document.querySelector('.gh-status');
+  const searchBar = document.querySelector('.gh-search-bar');
+  const sidebar = document.getElementById('cat-sidebar');
+  
+  if (!sidebar) return;
+  
+  // Calculer la hauteur totale des éléments au-dessus de la sidebar
+  let totalTop = 0;
+  
+  if (topbar) totalTop += topbar.offsetHeight;
+  if (status) totalTop += status.offsetHeight;
+  if (searchBar) totalTop += searchBar.offsetHeight;
+  
+  // Appliquer la position
+  sidebar.style.top = totalTop + 'px';
+  sidebar.style.height = `calc(100vh - ${totalTop}px)`;
+}
+
+// Appeler au chargement et au resize
+window.addEventListener('load', positionSidebar);
+window.addEventListener('resize', positionSidebar);
+
 const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 
