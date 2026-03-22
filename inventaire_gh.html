@@ -694,6 +694,7 @@ function filterByCategory(catId){
   // NOUVEAU : Désélectionner les lignes visuelles au changement de catégorie
   // (mais garder commande[] intact pour le camion)
   selectedRows.clear();
+  updateSelectionSummary();  // Rafraîchir la barre bleue
   
   activeCatId = catId;
   renderCatSidebar();
