@@ -1325,7 +1325,7 @@ function loadFromItems(items){
 function parseInventory(html){
   allInventory = [];
 
-  const cleanCell = (s) => {
+  const cleanCell = (s, colIndex) => {
     let cleaned = s
       .replace(/<[^>]+>/g, '')
       .replace(/&nbsp;/gi, '')
@@ -1335,17 +1335,20 @@ function parseInventory(html){
       .replace(/\s+/g, ' ')
       .trim();
     
-    // Corriger les caractères mal encodés dans les noms de mois
-    // Cibler spécifiquement les mois avec accents : Février (É), Août (Û), Décembre (É)
-    cleaned = cleaned
-      // Février : F�V, F�VR → FEV, FEVR
-      .replace(/F[^\w-]+VR/gi, 'FEVR')
-      .replace(/F[^\w-]+V(?!R)/gi, 'FEV')
-      // Août : AO�T, A�T → AOUT, AOU  
-      .replace(/AO[^\w-]+T/gi, 'AOUT')
-      .replace(/A[^\w-]+T(?!O)/gi, 'AOU')
-      // Décembre : D�C → DEC
-      .replace(/D[^\w-]+C/gi, 'DEC');
+    // Ne PAS appliquer le nettoyage des mois sur la colonne 5 (Description)
+    if (colIndex !== 5) {
+      // Corriger les caractères mal encodés dans les noms de mois
+      // Cibler spécifiquement les mois avec accents : Février (É), Août (Û), Décembre (É)
+      cleaned = cleaned
+        // Février : F�V, F�VR → FEV, FEVR
+        .replace(/F[^\w-]+VR/gi, 'FEVR')
+        .replace(/F[^\w-]+V(?!R)/gi, 'FEV')
+        // Août : AO�T, A�T → AOUT, AOU  
+        .replace(/AO[^\w-]+T/gi, 'AOUT')
+        .replace(/A[^\w-]+T(?!O)/gi, 'AOU')
+        // Décembre : D�C → DEC
+        .replace(/D[^\w-]+C/gi, 'DEC');
+    }
     
     return cleaned;
   };
@@ -1416,8 +1419,10 @@ function parseInventory(html){
     const cells = [];
     const tdReg = /<TD[^>]*>([\s\S]*?)<\/TD>/gi;
     let tdMatch;
+    let colIndex = 0;
     while((tdMatch = tdReg.exec(rowHtml)) !== null){
-      cells.push(cleanCell(tdMatch[1]));
+      cells.push(cleanCell(tdMatch[1], colIndex));
+      colIndex++;
     }
     if(cells.length >= 3) allRows.push(cells);
   }
@@ -1489,10 +1494,10 @@ function parseInventory(html){
     const cleanText = (s) => {
       if(!s) return s;
       
-      // UNIQUEMENT 2 règles : remplacer les caractères problématiques identifiés
+      // Remplacer les caractères accentués par leur équivalent sans accent (minuscules ET majuscules)
       return String(s)
-        .replace(/ï/g, 'i')  // ï (i tréma) → i
-        .replace(/é/g, 'e'); // é (e accent aigu) → e
+        .replace(/[ïÏ]/g, 'i')  // ï Ï → i
+        .replace(/[éèêëÉÈÊË]/g, 'e');  // é è ê ë É È Ê Ë → e
     };
     
     // Nettoyer UNIQUEMENT la colonne 2 (Description)
