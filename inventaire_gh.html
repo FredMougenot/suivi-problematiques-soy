@@ -1489,13 +1489,10 @@ function parseInventory(html){
     const cleanText = (s) => {
       if(!s) return s;
       
-      // RÈGLE ABSOLUE : Ne JAMAIS supprimer de caractères, seulement les REMPLACER
-      // Même approche que fmtDate : remplacer les caractères mal encodés par leur équivalent
+      // UNIQUEMENT 2 règles : remplacer les caractères problématiques identifiés
       return String(s)
-        .replace(/BL[^\w\s-]+(?=\s)/gi, 'BLE')    // BL◆ (avant espace) → BLE
-        .replace(/BO[^\w\s-]+TE/gi, 'BOITE')      // BO◆TE → BOITE
-        .replace(/[^\w\s-]+/g, '')                // Caractères bizarres seuls → vide (mais garde les espaces grâce à \s)
-        .trim();
+        .replace(/ï/g, 'i')  // ï (i tréma) → i
+        .replace(/é/g, 'e'); // é (e accent aigu) → e
     };
     
     // Nettoyer UNIQUEMENT la colonne 2 (Description)
