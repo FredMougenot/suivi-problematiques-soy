@@ -46,8 +46,6 @@
 .add-rule-btn:hover{border-color:var(--sapphire);color:var(--sapphire);}
 .preview-section{background:var(--bg-raised);border:1px solid rgba(255,255,255,.07);border-radius:var(--r-lg);padding:16px;margin-top:20px;}
 .preview-title{font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
-.emoji-picker-pop{position:absolute;top:56px;left:0;background:var(--bg-raised);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-lg);z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:popIn .15s cubic-bezier(.4,0,.2,1);overflow:hidden;}
-@keyframes popIn{from{opacity:0;transform:scale(.92) translateY(-4px);}to{opacity:1;transform:scale(1) translateY(0);}}
 .emoji-opt{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;cursor:pointer;transition:background .1s;}
 .emoji-opt:hover{background:rgba(255,255,255,.1);}
 
@@ -79,17 +77,7 @@ emoji-picker {
   width: 320px;
   height: 350px;
   border-radius: var(--r-lg);
-  display: block;
-  position: relative;
-  z-index: 201;
-}
-
-.emoji-picker-pop {
-  position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  z-index: 201;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5);
 }
 
 @media(max-width: 400px){
@@ -357,7 +345,6 @@ function editCategory(id){
     <div class="cat-editor-hd">
       <div class="cat-emoji-btn" style="background:${cat.color}20;color:${cat.color}" onclick="toggleEmoji(event)">
         <div id="cat-icon-display">${cat.icon}</div>
-        <div id="emoji-picker" class="emoji-picker-pop" style="display:none;"></div>
       </div>
       <input type="text" id="cat-name-input" class="cat-name-input" value="${escH(cat.name)}" placeholder="Nom de la catégorie…" oninput="updateName(this.value)">
     </div>
@@ -413,9 +400,6 @@ function editCategory(id){
       </button>
     </div>
   `;
-  
-  // Initialiser le picker emoji-picker-element
-  initEmojiPicker();
 }
 
 function backToCategories(){
@@ -479,17 +463,15 @@ function setColor(color){
 function toggleEmoji(event){
   if(event) event.stopPropagation();
   
-  const container = document.getElementById('emoji-picker');
   const overlay = document.getElementById('emoji-overlay');
-  if(!container) return;
+  const picker = initEmojiPicker(); // Récupérer ou créer le picker global
   
   emojiOpen = !emojiOpen;
-  container.style.display = emojiOpen ? 'block' : 'none';
   
-  // Afficher/masquer l'overlay au lieu de bloquer le body
+  if(picker) picker.style.display = emojiOpen ? 'block' : 'none';
   if(overlay) overlay.style.display = emojiOpen ? 'block' : 'none';
   
-  // Fermer si clic extérieur - attendre que le picker soit complètement rendu
+  // Fermer si clic extérieur
   if(emojiOpen){
     setTimeout(() => {
       document.addEventListener('click', closeEmojiOnOutsideClick, true);
@@ -500,19 +482,17 @@ function toggleEmoji(event){
 }
 
 function closeEmojiOnOutsideClick(event){
-  const container = document.getElementById('emoji-picker');
   const overlay = document.getElementById('emoji-overlay');
+  const picker = document.getElementById('global-emoji-picker');
   const btn = document.querySelector('.cat-emoji-btn');
-  const picker = container?.querySelector('emoji-picker');
   
   // Ne rien faire si le clic est à l'intérieur du picker ou du bouton
   if(picker && picker.contains(event.target)) return;
-  if(container && container.contains(event.target)) return;
   if(btn && btn.contains(event.target)) return;
   
   // Fermer seulement si vraiment à l'extérieur
-  if(container){
-    container.style.display = 'none';
+  if(picker){
+    picker.style.display = 'none';
     if(overlay) overlay.style.display = 'none';
     emojiOpen = false;
     document.removeEventListener('click', closeEmojiOnOutsideClick, true);
@@ -520,26 +500,35 @@ function closeEmojiOnOutsideClick(event){
 }
 
 function initEmojiPicker(){
-  const container = document.getElementById('emoji-picker');
-  if(!container) return;
+  // Vérifier si le picker existe déjà globalement
+  let picker = document.getElementById('global-emoji-picker');
   
-  // Empêcher la propagation des clics à l'intérieur du picker
-  container.addEventListener('click', (e) => {
-    e.stopPropagation();
-  });
-  
-  // Créer le picker si pas déjà créé
-  if(!container.querySelector('emoji-picker')){
-    const picker = document.createElement('emoji-picker');
+  if(!picker){
+    // Créer le picker une seule fois, directement dans le body
+    picker = document.createElement('emoji-picker');
+    picker.id = 'global-emoji-picker';
     picker.setAttribute('locale', 'fr');
+    picker.style.display = 'none';
+    picker.style.position = 'fixed';
+    picker.style.top = '50%';
+    picker.style.left = '50%';
+    picker.style.transform = 'translate(-50%, -50%)';
+    picker.style.zIndex = '201';
     
     // Écouter la sélection d'emoji
     picker.addEventListener('emoji-click', event => {
       setIcon(event.detail.unicode);
     });
     
-    container.appendChild(picker);
+    // Empêcher la propagation des clics
+    picker.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+    
+    document.body.appendChild(picker);
   }
+  
+  return picker;
 }
 
 function setIcon(emoji){
@@ -549,9 +538,9 @@ function setIcon(emoji){
     const display = document.getElementById('cat-icon-display');
     if(display) display.textContent=emoji;
     
-    const container = document.getElementById('emoji-picker');
+    const picker = document.getElementById('global-emoji-picker');
     const overlay = document.getElementById('emoji-overlay');
-    if(container) container.style.display='none';
+    if(picker) picker.style.display='none';
     if(overlay) overlay.style.display='none';
     
     emojiOpen=false;
