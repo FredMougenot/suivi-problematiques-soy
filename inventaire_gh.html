@@ -1488,20 +1488,14 @@ function parseInventory(html){
     // Fonction pour nettoyer les caractères mal encodés UNIQUEMENT pour la colonne Description
     const cleanText = (s) => {
       if(!s) return s;
-      s = String(s);
       
-      // Même approche que fmtDate : détecter les patterns avec caractères mal encodés
-      // [^\w-]+ = un ou plusieurs caractères qui ne sont PAS alphanumériques ni tirets
-      s = s
-        .replace(/BL[^\w-]+\s/gi, 'BLE ')      // BL◆ (avec espace après) → BLE 
-        .replace(/BO[^\w-]+TE/gi, 'BOITE')     // BO◆TE → BOITE
-        .replace(/[^\w-]+\s+/g, ' ')           // Caractère bizarre + espaces → un seul espace
-        .replace(/\s+[^\w-]+/g, ' ')           // Espaces + caractère bizarre → un seul espace
-        .replace(/[^\w-]+/g, '')               // Tous autres caractères bizarres seuls → supprimer
-        .replace(/\s+/g, ' ')                  // Nettoyer espaces multiples
+      // RÈGLE ABSOLUE : Ne JAMAIS supprimer de caractères, seulement les REMPLACER
+      // Même approche que fmtDate : remplacer les caractères mal encodés par leur équivalent
+      return String(s)
+        .replace(/BL[^\w\s-]+(?=\s)/gi, 'BLE')    // BL◆ (avant espace) → BLE
+        .replace(/BO[^\w\s-]+TE/gi, 'BOITE')      // BO◆TE → BOITE
+        .replace(/[^\w\s-]+/g, '')                // Caractères bizarres seuls → vide (mais garde les espaces grâce à \s)
         .trim();
-      
-      return s;
     };
     
     // Nettoyer UNIQUEMENT la colonne 2 (Description)
