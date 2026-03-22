@@ -1494,10 +1494,26 @@ function parseInventory(html){
     const cleanText = (s) => {
       if(!s) return s;
       
-      // Remplacer les MAJUSCULES accentuées
+      // Remplacer TOUTES les lettres accentuées (minuscules ET majuscules)
       return String(s)
-        .replace(/Î/g, 'I')  // Î → I (Boîte → BoIte)
-        .replace(/É/g, 'E'); // É → E (Hélicap → HElicap)
+        // A
+        .replace(/à/g, 'a').replace(/â/g, 'a').replace(/ä/g, 'a').replace(/æ/g, 'ae')
+        .replace(/À/g, 'A').replace(/Â/g, 'A').replace(/Ä/g, 'A').replace(/Æ/g, 'AE')
+        // E
+        .replace(/é/g, 'e').replace(/è/g, 'e').replace(/ê/g, 'e').replace(/ë/g, 'e')
+        .replace(/É/g, 'E').replace(/È/g, 'E').replace(/Ê/g, 'E').replace(/Ë/g, 'E')
+        // I
+        .replace(/î/g, 'i').replace(/ï/g, 'i')
+        .replace(/Î/g, 'I').replace(/Ï/g, 'I')
+        // O
+        .replace(/ô/g, 'o').replace(/ö/g, 'o').replace(/œ/g, 'oe')
+        .replace(/Ô/g, 'O').replace(/Ö/g, 'O').replace(/Œ/g, 'OE')
+        // U
+        .replace(/ù/g, 'u').replace(/û/g, 'u').replace(/ü/g, 'u')
+        .replace(/Ù/g, 'U').replace(/Û/g, 'U').replace(/Ü/g, 'U')
+        // C
+        .replace(/ç/g, 'c')
+        .replace(/Ç/g, 'C');
     };
     
     // Nettoyer UNIQUEMENT la colonne 2 (Description)
