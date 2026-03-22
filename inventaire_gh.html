@@ -1334,8 +1334,7 @@ function parseInventory(html){
       .replace(/&gt;/g, '>')
       .trim();
     
-    // Corriger les caractères mal encodés - patterns intelligents
-    // Appliqué sur TOUTES les colonnes
+    // PASSE 1 : Patterns intelligents - détection contextuelle
     cleaned = cleaned
       // Mois
       .replace(/F[^\w\s\/-]+VR/gi, 'FEVR')
@@ -1350,6 +1349,30 @@ function parseInventory(html){
       .replace(/GLACI[^\w\s\/-]+RE/gi, 'GLACIERE')
       .replace(/INT[^\w\s\/-]+RIEUR/gi, 'INTERIEUR')
       .replace(/HABRILL[^\w\s\/-]+/gi, 'HABRILLE');
+    
+    // PASSE 2 : Remplacement manuel lettre par lettre (ce qui reste après la passe 1)
+    cleaned = cleaned
+      // A
+      .replace(/à/g, 'a').replace(/â/g, 'a').replace(/ä/g, 'a').replace(/æ/g, 'ae')
+      .replace(/À/g, 'A').replace(/Â/g, 'A').replace(/Ä/g, 'A').replace(/Æ/g, 'AE')
+      // E
+      .replace(/é/g, 'e').replace(/è/g, 'e').replace(/ê/g, 'e').replace(/ë/g, 'e')
+      .replace(/É/g, 'E').replace(/È/g, 'E').replace(/Ê/g, 'E').replace(/Ë/g, 'E')
+      // I
+      .replace(/î/g, 'i').replace(/ï/g, 'i')
+      .replace(/Î/g, 'I').replace(/Ï/g, 'I')
+      // O
+      .replace(/ô/g, 'o').replace(/ö/g, 'o').replace(/œ/g, 'oe')
+      .replace(/Ô/g, 'O').replace(/Ö/g, 'O').replace(/Œ/g, 'OE')
+      // U
+      .replace(/ù/g, 'u').replace(/û/g, 'u').replace(/ü/g, 'u')
+      .replace(/Ù/g, 'U').replace(/Û/g, 'U').replace(/Ü/g, 'U')
+      // C
+      .replace(/ç/g, 'c')
+      .replace(/Ç/g, 'C')
+      // Apostrophes
+      .replace(/'/g, "'")  // Apostrophe courbe → droite
+      .replace(/'/g, "'"); // Autre apostrophe courbe → droite
     
     return cleaned;
   };
