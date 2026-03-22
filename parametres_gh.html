@@ -72,6 +72,12 @@
 .poids-input:focus{border-color:var(--sapphire);}
 .add-poids-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r-md);background:rgba(45,212,160,.05);border:1px dashed rgba(45,212,160,.2);color:var(--emerald);font-size:.8rem;font-weight:600;cursor:pointer;transition:all .15s;margin-top:12px;}
 .add-poids-btn:hover{background:rgba(45,212,160,.1);border-color:rgba(45,212,160,.35);}
+.btn-primary{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:linear-gradient(135deg,var(--sapphire),#1a6bff);border:none;border-radius:var(--r-md);color:#fff;font-size:.82rem;font-weight:700;cursor:pointer;transition:opacity .15s;}
+.btn-primary:hover{opacity:.88;}
+.btn-secondary{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:var(--bg-raised);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-md);color:var(--text-secondary);font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s;}
+.btn-secondary:hover{border-color:var(--sapphire);color:var(--sapphire);}
+.btn-danger{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:rgba(255,82,82,.07);border:1px solid rgba(255,82,82,.18);border-radius:var(--r-md);color:var(--ruby);font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s;}
+.btn-danger:hover{background:rgba(255,82,82,.13);border-color:rgba(255,82,82,.3);}
 </style>
 </head>
 <body>
@@ -289,11 +295,72 @@ function editCategory(id){
   activeCatId=id;
   document.getElementById('categories-list').style.display='none';
   document.getElementById('category-editor').style.display='block';
-  // Afficher l'éditeur complet ici (code simplifié pour la démo)
+  
   const cat=categories.find(c=>c.id===id);
+  if(!cat) return;
+  
+  // Éditeur complet avec règles
   document.getElementById('category-editor').innerHTML=`
-    <h3>Édition: ${cat.name}</h3>
-    <button onclick="backToCategories()">← Retour</button>
+    <div class="cat-editor-hd">
+      <div class="cat-emoji-btn" style="background:${cat.color}20;color:${cat.color}" onclick="toggleEmoji()">
+        <div id="cat-icon-display">${cat.icon}</div>
+        <div id="emoji-picker" class="emoji-picker-pop" style="display:none;">
+          ${EMOJIS.map(e=>`<div class="emoji-opt" onclick="setIcon('${e}')">${e}</div>`).join('')}
+        </div>
+      </div>
+      <input type="text" id="cat-name-input" class="cat-name-input" value="${escH(cat.name)}" placeholder="Nom de la catégorie…" oninput="updateName(this.value)">
+    </div>
+    
+    <div class="color-row">
+      ${COLORS.map(c=>`<div class="color-swatch ${cat.color===c?'active':''}" style="background:${c}" onclick="setColor('${c}')"></div>`).join('')}
+    </div>
+    
+    <div class="rules-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Règles de catégorisation
+    </div>
+    
+    <div class="rules-table">
+      <div class="rules-table-header">
+        <div>Logique</div>
+        <div>Colonne</div>
+        <div>Opérateur</div>
+        <div>Valeur</div>
+        <div></div>
+      </div>
+      <div id="rules-body">
+        ${renderRules(cat)}
+      </div>
+    </div>
+    
+    <button class="add-rule-btn" onclick="addRule()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Ajouter une règle
+    </button>
+    
+    <div class="preview-section">
+      <div class="preview-title">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        Aperçu de la règle
+      </div>
+      <div id="preview-text" style="font-size:.8rem;line-height:1.7;color:var(--text-primary);">
+        ${buildPreviewText(cat)}
+      </div>
+    </div>
+    
+    <div style="display:flex;gap:12px;margin-top:24px;">
+      <button class="btn-secondary" onclick="backToCategories()">
+        ← Retour
+      </button>
+      <button class="btn-primary" onclick="saveCategory()" style="margin-left:auto;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Sauvegarder
+      </button>
+      <button class="btn-danger" onclick="deleteCategory()" title="Supprimer cette catégorie">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        Supprimer
+      </button>
+    </div>
   `;
 }
 
@@ -301,6 +368,154 @@ function backToCategories(){
   document.getElementById('categories-list').style.display='block';
   document.getElementById('category-editor').style.display='none';
   activeCatId=null;
+}
+
+// ── GESTION DES RÈGLES ──
+function renderRules(cat){
+  if(!cat.rules||cat.rules.length===0)
+    return '<div style="padding:16px;text-align:center;font-size:.78rem;color:var(--text-faint);">Aucune règle — cliquez sur Ajouter une règle</div>';
+  return cat.rules.map((rule,i)=>`
+    <div class="rule-row">
+      <div>${i===0
+        ?'<span style="font-size:.72rem;color:var(--text-faint);font-weight:700;">SI</span>'
+        :`<span class="rule-logic-badge ${rule.logic||'AND'}" onclick="toggleLogic(${i})">${rule.logic||'AND'}</span>`
+      }</div>
+      <div><select class="rule-select" onchange="updateRule(${i},'col',this.value)">
+        ${COLUMNS.map(c=>`<option value="${c.key}" ${rule.col===c.key?'selected':''}>${c.label}</option>`).join('')}
+      </select></div>
+      <div><select class="rule-select" onchange="updateRule(${i},'operator',this.value)">
+        ${OPERATORS.map(o=>`<option value="${o.key}" ${rule.operator===o.key?'selected':''}>${o.label}</option>`).join('')}
+      </select></div>
+      <div><input class="rule-input" value="${escH(rule.value||'')}" placeholder="valeur…" oninput="updateRule(${i},'value',this.value)"></div>
+      <div><button class="rule-del-btn" onclick="deleteRule(${i})">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button></div>
+    </div>`).join('');
+}
+
+function buildPreviewText(cat){
+  if(!cat.rules||cat.rules.length===0) return 'Aucune règle définie.';
+  return cat.rules.map((rule,i)=>{
+    const col=COLUMNS.find(c=>c.key===rule.col)?.label||rule.col;
+    const op=OPERATORS.find(o=>o.key===rule.operator)?.label||rule.operator;
+    const val=rule.value?`"<strong>${escH(rule.value)}</strong>"`:'<em style="color:var(--ruby)">valeur manquante</em>';
+    const logic=i===0?'<span style="color:var(--sapphire);font-weight:700">SI</span>'
+      :`<span style="color:${rule.logic==='OR'?'var(--amber)':'var(--sapphire)'};font-weight:700">${rule.logic||'AND'}</span>`;
+    return `${logic} <span style="color:var(--text-secondary)">${col}</span> <span style="color:var(--emerald)">${op}</span> ${val}`;
+  }).join('<br>');
+}
+
+function updateName(val){
+  const cat=categories.find(c=>c.id===activeCatId);
+  if(cat){
+    cat.name=val;
+    renderCategoriesList();
+  }
+}
+
+function setIcon(emoji){
+  const cat=categories.find(c=>c.id===activeCatId);
+  if(cat){
+    cat.icon=emoji;
+    document.getElementById('cat-icon-display').textContent=emoji;
+    document.getElementById('emoji-picker').style.display='none';
+    emojiOpen=false;
+    renderCategoriesList();
+  }
+}
+
+function setColor(color){
+  const cat=categories.find(c=>c.id===activeCatId);
+  if(cat){
+    cat.color=color;
+    editCategory(activeCatId); // Re-render pour mettre à jour les couleurs
+    renderCategoriesList();
+  }
+}
+
+function toggleEmoji(){
+  const p=document.getElementById('emoji-picker');
+  if(!p) return;
+  emojiOpen=!emojiOpen;
+  p.style.display=emojiOpen?'flex':'none';
+  if(emojiOpen) p.style.flexWrap='wrap';
+}
+
+function addRule(){
+  const cat=categories.find(c=>c.id===activeCatId);
+  if(!cat) return;
+  if(!cat.rules) cat.rules=[];
+  cat.rules.push({col:'1',operator:'contains',value:'',logic:'AND'});
+  document.getElementById('rules-body').innerHTML=renderRules(cat);
+  updatePreview();
+}
+
+function updateRule(idx,field,val){
+  const cat=categories.find(c=>c.id===activeCatId);
+  if(!cat||!cat.rules[idx]) return;
+  cat.rules[idx][field]=val;
+  updatePreview();
+}
+
+function toggleLogic(idx){
+  const cat=categories.find(c=>c.id===activeCatId);
+  if(!cat||!cat.rules[idx]) return;
+  cat.rules[idx].logic=cat.rules[idx].logic==='OR'?'AND':'OR';
+  document.getElementById('rules-body').innerHTML=renderRules(cat);
+  updatePreview();
+}
+
+function deleteRule(idx){
+  const cat=categories.find(c=>c.id===activeCatId);
+  if(!cat) return;
+  cat.rules.splice(idx,1);
+  document.getElementById('rules-body').innerHTML=renderRules(cat);
+  updatePreview();
+}
+
+function updatePreview(){
+  const cat=categories.find(c=>c.id===activeCatId);
+  if(!cat) return;
+  document.getElementById('preview-text').innerHTML=buildPreviewText(cat);
+}
+
+async function saveCategory(){
+  const cat=categories.find(c=>c.id===activeCatId);
+  if(!cat) return;
+  
+  try{
+    const {error}=await sb.from('gh_categories').upsert({
+      id:cat.id,
+      name:cat.name,
+      icon:cat.icon,
+      color:cat.color,
+      cat_rules:cat.rules,
+      updated_at:new Date().toISOString()
+    });
+    if(error) throw error;
+    toast('Catégorie sauvegardée ✓','ok');
+  }catch(e){
+    console.error(e);
+    localStorage.setItem('gh_categories',JSON.stringify(categories));
+    toast('Sauvegarde locale (pas de connexion)','warning');
+  }
+}
+
+function deleteCategory(){
+  if(!confirm('Supprimer cette catégorie ?')) return;
+  const cat=categories.find(c=>c.id===activeCatId);
+  if(!cat) return;
+  
+  categories=categories.filter(c=>c.id!==activeCatId);
+  
+  try{
+    sb.from('gh_categories').delete().eq('id',activeCatId);
+  }catch(e){}
+  
+  localStorage.setItem('gh_categories',JSON.stringify(categories));
+  backToCategories();
+  renderCategoriesList();
+  toast('Catégorie supprimée','ok');
 }
 
 // ── POIDS ──
