@@ -51,6 +51,19 @@
 .emoji-opt{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;cursor:pointer;transition:background .1s;}
 .emoji-opt:hover{background:rgba(255,255,255,.1);}
 
+/* Overlay pour bloquer le scroll de la page */
+.emoji-overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:199;
+  background:rgba(0,0,0,.3);
+  display:none;
+  backdrop-filter:blur(2px);
+}
+
 /* Styles pour emoji-picker-element */
 emoji-picker {
   --background: var(--bg-raised);
@@ -67,13 +80,16 @@ emoji-picker {
   height: 350px;
   border-radius: var(--r-lg);
   display: block;
-  touch-action: pan-x pan-y;  /* Permettre le scroll dans toutes les directions */
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;  /* Scroll fluide sur iOS */
+  position: relative;
+  z-index: 201;
 }
 
 .emoji-picker-pop {
-  touch-action: pan-x pan-y;  /* Permettre le scroll aussi sur le container */
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 201;
 }
 
 @media(max-width: 400px){
@@ -81,10 +97,6 @@ emoji-picker {
     width: 280px;
     height: 320px;
     --num-columns: 7;
-  }
-  .emoji-picker-pop {
-    left: 50%;
-    transform: translateX(-50%);
   }
 }
 
@@ -468,28 +480,28 @@ function toggleEmoji(event){
   if(event) event.stopPropagation();
   
   const container = document.getElementById('emoji-picker');
+  const overlay = document.getElementById('emoji-overlay');
   if(!container) return;
   
   emojiOpen = !emojiOpen;
   container.style.display = emojiOpen ? 'block' : 'none';
   
-  // Bloquer le scroll de la page sur mobile quand le picker est ouvert
+  // Afficher/masquer l'overlay au lieu de bloquer le body
+  if(overlay) overlay.style.display = emojiOpen ? 'block' : 'none';
+  
+  // Fermer si clic extérieur - attendre que le picker soit complètement rendu
   if(emojiOpen){
-    document.body.style.overflow = 'hidden';
-    document.body.style.touchAction = 'none';
-    
     setTimeout(() => {
       document.addEventListener('click', closeEmojiOnOutsideClick, true);
     }, 300);
   } else {
-    document.body.style.overflow = '';
-    document.body.style.touchAction = '';
     document.removeEventListener('click', closeEmojiOnOutsideClick, true);
   }
 }
 
 function closeEmojiOnOutsideClick(event){
   const container = document.getElementById('emoji-picker');
+  const overlay = document.getElementById('emoji-overlay');
   const btn = document.querySelector('.cat-emoji-btn');
   const picker = container?.querySelector('emoji-picker');
   
@@ -501,9 +513,8 @@ function closeEmojiOnOutsideClick(event){
   // Fermer seulement si vraiment à l'extérieur
   if(container){
     container.style.display = 'none';
+    if(overlay) overlay.style.display = 'none';
     emojiOpen = false;
-    document.body.style.overflow = '';
-    document.body.style.touchAction = '';
     document.removeEventListener('click', closeEmojiOnOutsideClick, true);
   }
 }
@@ -539,11 +550,11 @@ function setIcon(emoji){
     if(display) display.textContent=emoji;
     
     const container = document.getElementById('emoji-picker');
+    const overlay = document.getElementById('emoji-overlay');
     if(container) container.style.display='none';
+    if(overlay) overlay.style.display='none';
     
     emojiOpen=false;
-    document.body.style.overflow = '';
-    document.body.style.touchAction = '';
     document.removeEventListener('click', closeEmojiOnOutsideClick, true);
     renderCategoriesList();
   }
@@ -691,5 +702,8 @@ function toast(msg,type='info'){
   t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3000);
 }
 </script>
+<!-- Overlay pour bloquer le scroll quand le picker est ouvert -->
+<div id="emoji-overlay" class="emoji-overlay" onclick="toggleEmoji(event)"></div>
+
 </body>
 </html>
