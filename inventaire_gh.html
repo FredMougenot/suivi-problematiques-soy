@@ -1529,15 +1529,6 @@ function parseInventory(html){
     allInventory.push(row);
   }
 
-  // DEBUG : Afficher les 3 premières descriptions pour voir si cleanText a fonctionné
-  if(allInventory.length > 0) {
-    debugLog('--- EXEMPLE DESCRIPTIONS APRES NETTOYAGE ---');
-    for(let i = 0; i < Math.min(3, allInventory.length); i++) {
-      const desc = allInventory[i]._raw[2] || '';
-      debugLog('Description ' + i + ': ' + desc.substring(0, 40));
-    }
-  }
-
   // FILL-DOWN : Remplir colonnes 1 et 2 APRÈS suppression des lignes vides
   let lastCol1 = '', lastCol2 = '';
   allInventory.forEach(row => {
