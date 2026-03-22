@@ -149,6 +149,89 @@
 }
 .cat-btn.active .cat-btn-all{color:var(--sapphire);}
 
+/* ── Section Camions ── */
+.camions-section{
+  margin-top:16px;
+  padding-top:12px;
+  border-top:1px solid rgba(255,255,255,.08);
+}
+.camions-header{
+  font-size:.65rem;
+  font-weight:800;
+  color:var(--text-muted);
+  letter-spacing:.05em;
+  margin-bottom:8px;
+  padding:0 4px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.camion-card{
+  background:var(--bg-base);
+  border:1.5px solid rgba(255,255,255,.1);
+  border-radius:8px;
+  padding:8px 10px;
+  margin-bottom:6px;
+  cursor:pointer;
+  transition:all .2s;
+}
+.camion-card:hover{
+  background:rgba(255,255,255,.04);
+  border-color:rgba(255,255,255,.2);
+  transform:translateX(2px);
+}
+.camion-card.active{
+  border-color:var(--emerald);
+  background:rgba(45,212,160,.08);
+  box-shadow:0 0 8px rgba(45,212,160,.15);
+}
+.camion-nom{
+  font-size:.75rem;
+  font-weight:700;
+  color:var(--text-primary);
+  margin-bottom:3px;
+}
+.camion-card.active .camion-nom{
+  color:var(--emerald);
+}
+.camion-count{
+  font-size:.65rem;
+  color:var(--text-muted);
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+.camion-badge{
+  background:var(--amber);
+  color:var(--bg-base);
+  font-size:.55rem;
+  font-weight:700;
+  padding:2px 5px;
+  border-radius:4px;
+  margin-left:auto;
+}
+.btn-add-camion{
+  width:100%;
+  background:rgba(74,158,232,.1);
+  border:1.5px dashed rgba(74,158,232,.4);
+  border-radius:6px;
+  padding:8px;
+  font-size:.7rem;
+  font-weight:600;
+  color:var(--sapphire);
+  cursor:pointer;
+  transition:all .2s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  margin-top:6px;
+}
+.btn-add-camion:hover{
+  background:rgba(74,158,232,.15);
+  border-color:var(--sapphire);
+}
+
 /* ── Flyout panel ── */
 .cat-flyout{
   position:fixed;
@@ -531,8 +614,49 @@ const GH_PASSE    = 'fred';
 let sb;
 let allInventory = [];  // raw rows
 let filtered     = [];  // after search/filter
-let commande     = [];  // selected items
+let commande     = [];  // selected items (DEPRECATED - sera migré vers camions)
 let sessionId1   = null;
+
+// ── MULTI-CAMIONS ──────────────────────────────────────────────────
+let camions = [];       // Liste des camions
+let camionActifId = null; // ID du camion actuellement sélectionné
+
+function initCamions() {
+  // Charger depuis localStorage ou créer 2 camions par défaut
+  const saved = localStorage.getItem('gh_camions');
+  if (saved) {
+    camions = JSON.parse(saved);
+    camionActifId = camions[0]?.id || null;
+  } else {
+    // Créer 2 camions par défaut
+    camions = [
+      {
+        id: 'cam_' + Date.now(),
+        nom: 'Camion 1',
+        items: [],
+        dateCreation: new Date().toISOString()
+      },
+      {
+        id: 'cam_' + (Date.now() + 1),
+        nom: 'Camion 2',
+        items: [],
+        dateCreation: new Date().toISOString()
+      }
+    ];
+    camionActifId = camions[0].id;
+    saveCamions();
+  }
+  debugLog('Camions initialisés: ' + camions.length + ' camion(s)');
+}
+
+function saveCamions() {
+  localStorage.setItem('gh_camions', JSON.stringify(camions));
+  debugLog('Camions sauvegardés: ' + camions.length);
+}
+
+function getCamionActif() {
+  return camions.find(c => c.id === camionActifId);
+}
 
 // ── POIDS ─────────────────────────────────────────────────────────
 let poidsList = [
@@ -631,6 +755,84 @@ function renderCatSidebar(){
   noCatBtn.innerHTML = 'SANS<br>CAT.';
   noCatBtn.onclick = () => filterByCategory('NO_CATEGORY');
   sidebar.appendChild(noCatBtn);
+  
+  // ── SECTION CAMIONS ──
+  renderCamionsSection(sidebar);
+}
+
+function renderCamionsSection(sidebar) {
+  const section = document.createElement('div');
+  section.className = 'camions-section';
+  
+  // Header
+  const header = document.createElement('div');
+  header.className = 'camions-header';
+  header.innerHTML = '🚛 CAMIONS';
+  section.appendChild(header);
+  
+  // Cards pour chaque camion
+  camions.forEach(cam => {
+    const card = document.createElement('div');
+    card.className = 'camion-card' + (cam.id === camionActifId ? ' active' : '');
+    
+    const itemCount = cam.items.length;
+    const newCount = cam.items.filter(it => it.isNew).length;
+    
+    card.innerHTML = `
+      <div class="camion-nom">${escH(cam.nom)}</div>
+      <div class="camion-count">
+        ${itemCount} item${itemCount !== 1 ? 's' : ''}
+        ${newCount > 0 ? `<span class="camion-badge">🆕 ${newCount}</span>` : ''}
+      </div>
+    `;
+    
+    card.onclick = () => {
+      if (cam.id === camionActifId) {
+        // Clic sur le camion actif → Ouvrir modal de révision
+        openCamionModal(cam.id);
+      } else {
+        // Clic sur un autre camion → Le rendre actif
+        camionActifId = cam.id;
+        renderCatSidebar();
+        updateCommandeUI();
+        debugLog('Camion actif changé: ' + cam.nom);
+      }
+    };
+    
+    section.appendChild(card);
+  });
+  
+  // Bouton "+ Ajouter un camion"
+  const btnAdd = document.createElement('div');
+  btnAdd.className = 'btn-add-camion';
+  btnAdd.innerHTML = '➕ Ajouter un camion';
+  btnAdd.onclick = ajouterNouveauCamion;
+  section.appendChild(btnAdd);
+  
+  sidebar.appendChild(section);
+}
+
+function ajouterNouveauCamion() {
+  const numero = camions.length + 1;
+  const nouveauCamion = {
+    id: 'cam_' + Date.now(),
+    nom: 'Camion ' + numero,
+    items: [],
+    dateCreation: new Date().toISOString()
+  };
+  
+  camions.push(nouveauCamion);
+  saveCamions();
+  renderCatSidebar();
+  
+  debugLog('Nouveau camion créé: ' + nouveauCamion.nom);
+  toast('Camion ' + numero + ' créé', 'success');
+}
+
+function openCamionModal(camionId) {
+  debugLog('Ouverture modal camion: ' + camionId);
+  // TODO: Implémenter le modal de révision
+  toast('Modal de révision - À implémenter', 'info');
 }
 
 function openFlyout(catId){
@@ -842,7 +1044,8 @@ async function init(){
   await loadSession();
   await loadGhCategories();
   await loadPoids();  // Charger les poids
-  loadCommande();  // Charger la commande sauvegardée
+  initCamions();  // Initialiser les camions
+  loadCommande();  // Charger la commande sauvegardée (legacy)
   
   // Restaurer inventaire depuis localStorage si disponible
   try{
