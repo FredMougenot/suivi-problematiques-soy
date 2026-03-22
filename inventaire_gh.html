@@ -691,30 +691,27 @@ function closeFlyout(){
 function filterByCategory(catId){
   closeFlyout();
   
-  // DÉSÉLECTION FORCÉE : Retirer visuellement la classe 'selected' de TOUTES les lignes
-  document.querySelectorAll('#inv-tbody tr.selected').forEach(tr => {
-    tr.classList.remove('selected');
-  });
-  
-  // Vider le Set de sélection
+  activeCatId = catId;
+  renderCatSidebar();
+
+  // VIDER selectedRows - sera appliqué par renderTable() ci-dessous
   selectedRows.clear();
   
   // Cacher la barre bleue immédiatement
-  document.getElementById('selection-bar').style.display = 'none';
-  document.getElementById('sel-count').textContent = '0';
-  
-  activeCatId = catId;
-  renderCatSidebar();
+  const bar = document.getElementById('selection-bar');
+  if(bar) bar.style.display = 'none';
 
   // Cas spécial EMPTY_TABLE : afficher un tableau vide (0 lignes)
   if(catId === 'EMPTY_TABLE'){
     filtered = [];
+    selectedRows.clear();  // Force vide
     renderTable();
     document.getElementById('inv-count').textContent = '0 / ' + allInventory.length + ' items';
     return;
   }
 
   if(catId === null){
+    selectedRows.clear();  // Force vide
     filterInventory();
     return;
   }
@@ -725,6 +722,7 @@ function filterByCategory(catId){
       return !ghCategories.some(cat => matchesCategory(r, cat));
     });
     sortByExpiration();
+    selectedRows.clear();  // Force vide
     renderTable();
     document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
     return;
@@ -735,6 +733,7 @@ function filterByCategory(catId){
 
   filtered = allInventory.filter(r => matchesCategory(r, cat));
   sortByExpiration();
+  selectedRows.clear();  // Force vide
   renderTable();
   document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
 }
