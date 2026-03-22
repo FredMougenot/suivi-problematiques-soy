@@ -74,15 +74,16 @@
 .gh-content{flex:1;min-width:0;padding:0 0 0 16px;}
 
 /* ── Page layout with category sidebar ── */
-.gh-page-layout{display:flex;gap:0;}
+.gh-page-layout{
+  display:grid;
+  grid-template-columns:180px 1fr;
+  gap:0;
+  min-height:calc(100vh - 200px);
+}
 
 /* ── Category Sidebar ── */
 .cat-sidebar{
-  position: fixed;
-  left: 0;
-  /* top sera défini par JavaScript */
   width:180px;
-  /* height sera défini par JavaScript */
   flex-shrink:0;
   background:var(--bg-raised);
   border-right:1px solid rgba(255,255,255,.06);
@@ -90,6 +91,10 @@
   display:flex;
   flex-direction:column;
   gap:4px;
+  position:sticky;
+  top:0;
+  max-height:100vh;
+  overflow-y:auto;
   z-index:50;
 }
 
@@ -224,10 +229,10 @@
 .cat-overlay.open{display:block;}
 
 /* ── Content area ── */
-.gh-content{flex:1;padding:16px 20px 16px 200px;overflow-x:auto;overflow-y:visible;min-width:0;}
+.gh-content{flex:1;padding:0 20px 16px 20px;overflow-x:auto;overflow-y:visible;min-width:0;}
 
 /* ── Status bar ── */
-.gh-status{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+.gh-status{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:16px 20px 0;background:var(--bg-base);}
 .gh-dot{width:10px;height:10px;border-radius:50%;background:var(--text-faint);flex-shrink:0;transition:background .3s;}
 .gh-dot.connected{background:var(--emerald);box-shadow:0 0 6px rgba(45,212,160,.5);}
 .gh-dot.error{background:var(--ruby);}
@@ -243,7 +248,7 @@
 .btn-refresh:disabled{opacity:.4;cursor:default;}
 
 /* ── Search bar ── */
-.gh-search-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.gh-search-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;padding:0 20px 16px;background:var(--bg-base);}
 .gh-search{flex:1;min-width:200px;padding:8px 12px 8px 34px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);font-size:.84rem;color:var(--text-primary);font-family:'Outfit',sans-serif;outline:none;transition:border-color .15s;position:relative;}
 .gh-search:focus{border-color:var(--copper);}
 .search-wrap{position:relative;flex:1;min-width:200px;}
@@ -385,17 +390,7 @@
       <div id="flyout-items"></div>
     </div>
 
-    <div class="gh-page-layout">
-      <!-- Sidebar -->
-      <div class="cat-sidebar" id="cat-sidebar">
-        <div class="cat-btn cat-btn-all active" id="cat-btn-all"
-             onclick="filterByCategory(null)" title="Tout afficher">TOUT</div>
-      </div>
-
-      <!-- Content -->
-      <div class="gh-content">
-
-    <!-- Status + Actions -->
+    <!-- Status + Actions (pleine largeur) -->
     <div class="gh-status">
       <div class="gh-dot" id="gh-dot"></div>
       <span class="gh-status-text" id="gh-status-text">Non connecté</span>
@@ -411,24 +406,33 @@
       <span class="count-badge" id="inv-count" style="display:none"></span>
     </div>
 
-    <div class="gh-layout">
-      <!-- LEFT — Inventory -->
-      <div>
-        <!-- Search -->
-        <div class="gh-search-bar">
-          <div class="search-wrap" style="flex:2">
-            <input type="text" class="gh-search" id="gh-search" placeholder="Rechercher par code, description, lot…" oninput="filterInventory()">
-          </div>
-          <select class="fsel-sm" id="filter-type" onchange="filterInventory()">
-            <option value="">Tous les types</option>
-          </select>
-          <select class="fsel-sm" id="filter-fourn" onchange="filterInventory()">
-            <option value="">Tous les fournisseurs</option>
-          </select>
-        </div>
+    <!-- Search (pleine largeur) -->
+    <div class="gh-search-bar">
+      <div class="search-wrap" style="flex:2">
+        <input type="text" class="gh-search" id="gh-search" placeholder="Rechercher par code, description, lot…" oninput="filterInventory()">
+      </div>
+      <select class="fsel-sm" id="filter-type" onchange="filterInventory()">
+        <option value="">Tous les types</option>
+      </select>
+      <select class="fsel-sm" id="filter-fourn" onchange="filterInventory()">
+        <option value="">Tous les fournisseurs</option>
+      </select>
+    </div>
 
-        <!-- Table -->
-        <div class="inv-tbl-wrap">
+    <!-- Layout avec Sidebar + Content -->
+    <div class="gh-page-layout">
+      <!-- Sidebar -->
+      <div class="cat-sidebar" id="cat-sidebar">
+        <div class="cat-btn cat-btn-all active" id="cat-btn-all"
+             onclick="filterByCategory(null)" title="Tout afficher">TOUT</div>
+      </div>
+
+      <!-- Content -->
+      <div class="gh-content">
+        <!-- LEFT — Inventory -->
+        <div>
+          <!-- Table -->
+          <div class="inv-tbl-wrap">
           <div id="inv-spinner" style="display:none;padding:40px;text-align:center;">
             <span class="spinner-sm"><div class="sp-ring-sm"></div> Chargement de l'inventaire…</span>
           </div>
@@ -512,31 +516,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-// Fonction pour positionner la sidebar correctement
-function positionSidebar() {
-  const topbar = document.querySelector('.tool-topbar');
-  const status = document.querySelector('.gh-status');
-  const searchBar = document.querySelector('.gh-search-bar');
-  const sidebar = document.getElementById('cat-sidebar');
-  
-  if (!sidebar) return;
-  
-  // Calculer la hauteur totale des éléments au-dessus de la sidebar
-  let totalTop = 0;
-  
-  if (topbar) totalTop += topbar.offsetHeight;
-  if (status) totalTop += status.offsetHeight;
-  if (searchBar) totalTop += searchBar.offsetHeight;
-  
-  // Appliquer la position
-  sidebar.style.top = totalTop + 'px';
-  sidebar.style.height = `calc(100vh - ${totalTop}px)`;
-}
-
-// Appeler au chargement et au resize
-window.addEventListener('load', positionSidebar);
-window.addEventListener('resize', positionSidebar);
-
 const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 
