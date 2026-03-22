@@ -612,6 +612,10 @@ function openFlyout(catId){
   }
 
   activeFlyoutId = catId;
+  
+  // Activer la catégorie visuellement dans la sidebar
+  activeCatId = catId;
+  renderCatSidebar();
 
   // Get matching items from current inventory
   const matches = allInventory.filter(r => matchesCategory(r, cat));
@@ -787,6 +791,26 @@ async function init(){
       if(items && items.length > 0){
         allInventory = items;
         
+        // FILL-DOWN : S'assurer que les colonnes 1 et 2 sont remplies
+        let lastCol1 = '', lastCol2 = '';
+        allInventory.forEach(row => {
+          const raw = row._raw || [];
+          
+          // Fill-down colonne 1 (no_produit)
+          if(raw[1] && raw[1].trim()){
+            lastCol1 = raw[1];
+          } else if(lastCol1){
+            raw[1] = lastCol1;
+          }
+          
+          // Fill-down colonne 2 (description)
+          if(raw[2] && raw[2].trim()){
+            lastCol2 = raw[2];
+          } else if(lastCol2){
+            raw[2] = lastCol2;
+          }
+        });
+        
         // Par défaut : activer le tableau vide (EMPTY_TABLE)
         activeCatId = 'EMPTY_TABLE';
         filterByCategory('EMPTY_TABLE');
@@ -926,6 +950,27 @@ function parseFromPaste(){
 // ── PARSE HTML TABLE ──────────────────────────────────────────────
 function loadFromItems(items){
   allInventory = items;
+
+  // FILL-DOWN : S'assurer que les colonnes 1 et 2 sont remplies
+  // (au cas où on charge depuis un localStorage ancien)
+  let lastCol1 = '', lastCol2 = '';
+  allInventory.forEach(row => {
+    const raw = row._raw || [];
+    
+    // Fill-down colonne 1 (no_produit)
+    if(raw[1] && raw[1].trim()){
+      lastCol1 = raw[1];
+    } else if(lastCol1){
+      raw[1] = lastCol1;
+    }
+    
+    // Fill-down colonne 2 (description)
+    if(raw[2] && raw[2].trim()){
+      lastCol2 = raw[2];
+    } else if(lastCol2){
+      raw[2] = lastCol2;
+    }
+  });
 
   document.getElementById('inv-spinner').style.display='none';
 
