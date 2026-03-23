@@ -722,6 +722,34 @@ function getPoidsUnitaire(code){
   return 0;
 }
 
+function isItemManuel(code){
+  if(!code) return false;
+  
+  const codeUpper = String(code).trim().toUpperCase();
+  
+  // Chercher un match EXACT d'abord
+  const exactMatch = poidsList.find(p => {
+    const matchType = p.matchType || 'exact';
+    if(matchType !== 'exact') return false;
+    return String(p.code || '').trim().toUpperCase() === codeUpper;
+  });
+  
+  if(exactMatch) return exactMatch.ajout_manuel || false;
+  
+  // Chercher un match CONTAINS
+  const containsMatch = poidsList.find(p => {
+    const matchType = p.matchType || 'exact';
+    if(matchType !== 'contains') return false;
+    const searchTerm = String(p.code || '').trim().toUpperCase();
+    if(!searchTerm) return false;
+    return codeUpper.includes(searchTerm);
+  });
+  
+  if(containsMatch) return containsMatch.ajout_manuel || false;
+  
+  return false;
+}
+
 // ── CATEGORIES ────────────────────────────────────────────────────
 let ghCategories = [];
 let activeCatId = null;
@@ -1839,6 +1867,7 @@ function addSelectionToTruck(){
       
       const poidsUnit = getPoidsUnitaire(code);
       const poidsTotal = qte * poidsUnit;
+      const isManual = isItemManuel(code);
       
       camion.items.push({
         ...r, 
@@ -1848,6 +1877,7 @@ function addSelectionToTruck(){
         _resolved_qte: qte,
         _resolved_poids_unit: poidsUnit,
         _resolved_poids_total: poidsTotal,
+        _is_manual: isManual,  // Nouveau champ
         isNew: true  // Marquer comme nouveau
       });
       ajouteCount++;
@@ -1902,6 +1932,31 @@ function clearCommande(){
   toast('Camion vidé', 'ok');
 }
 
+function adjustItemQty(key, delta){
+  const camion = getCamionActif();
+  if (!camion) return;
+  
+  const item = camion.items.find(c => c._key === key);
+  if (!item) return;
+  
+  // Ajuster la quantité
+  let newQty = (item._resolved_qte || 0) + delta;
+  
+  // Ne pas descendre en dessous de 1
+  if (newQty < 1) newQty = 1;
+  
+  // Mettre à jour la quantité
+  item._resolved_qte = newQty;
+  
+  // Recalculer le poids total
+  const poidsUnit = item._resolved_poids_unit || 0;
+  item._resolved_poids_total = newQty * poidsUnit;
+  
+  // Mettre à jour l'UI
+  updateCommandeUI();
+  saveCamions();
+}
+
 function saveCommande(){
   try{
     localStorage.setItem('gh_commande', JSON.stringify(commande));
@@ -1954,13 +2009,21 @@ function updateCommandeUI(){
     const poidsUnit = item._resolved_poids_unit || 0;
     const poidsTotal = item._resolved_poids_total || 0;
     const isNew = item.isNew;
+    const isManual = item._is_manual || false;
     
     return `
     <div class="cmd-row${isNew ? ' cmd-row-new' : ''}">
-      <div>
+      <div style="flex:1;">
         <div class="cmd-item-code">${isNew ? '🆕 ' : ''}${escH(code)}</div>
         <div class="cmd-item-desc">${escH(desc)}</div>
-        <div class="cmd-item-meta">Qté: ${qte} · ${poidsUnit > 0 ? poidsUnit.toFixed(1) : '—'} kg/unité · <strong>${poidsTotal > 0 ? poidsTotal.toFixed(1) : '—'} kg total</strong></div>
+        <div class="cmd-item-meta">
+          Qté: ${qte}
+          ${isManual ? `
+            <button onclick="adjustItemQty('${escAttr(item._key)}', -1)" style="margin-left:8px;padding:2px 8px;background:var(--bg-raised);border:1px solid rgba(255,255,255,.1);border-radius:4px;color:var(--text-secondary);cursor:pointer;font-size:.75rem;font-weight:700;">−</button>
+            <button onclick="adjustItemQty('${escAttr(item._key)}', 1)" style="padding:2px 8px;background:var(--bg-raised);border:1px solid rgba(255,255,255,.1);border-radius:4px;color:var(--text-secondary);cursor:pointer;font-size:.75rem;font-weight:700;">+</button>
+          ` : ''}
+          · ${poidsUnit > 0 ? poidsUnit.toFixed(1) : '—'} kg/unité · <strong>${poidsTotal > 0 ? poidsTotal.toFixed(1) : '—'} kg total</strong>
+        </div>
       </div>
       <button class="cmd-rm" onclick="removeFromCamion('${escAttr(item._key)}')" title="Retirer">✕</button>
     </div>
