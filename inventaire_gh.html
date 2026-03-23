@@ -711,11 +711,30 @@ async function loadPoids(){
 function getPoidsUnitaire(code){
   if(!code) return 0;
   
-  // Comparaison exacte mais insensible à la casse
   const codeUpper = String(code).trim().toUpperCase();
-  const p = poidsList.find(p => String(p.code || '').trim().toUpperCase() === codeUpper);
   
-  return p ? parseFloat(p.poids_unitaire || 0) : 0;
+  // PRIORITÉ 1 : Chercher un match EXACT d'abord
+  const exactMatch = poidsList.find(p => {
+    const matchType = p.matchType || 'exact';
+    if(matchType !== 'exact') return false;
+    return String(p.code || '').trim().toUpperCase() === codeUpper;
+  });
+  
+  if(exactMatch) return parseFloat(exactMatch.poids_unitaire || 0);
+  
+  // PRIORITÉ 2 : Chercher un match CONTAINS
+  const containsMatch = poidsList.find(p => {
+    const matchType = p.matchType || 'exact';
+    if(matchType !== 'contains') return false;
+    const searchTerm = String(p.code || '').trim().toUpperCase();
+    if(!searchTerm) return false;
+    return codeUpper.includes(searchTerm);
+  });
+  
+  if(containsMatch) return parseFloat(containsMatch.poids_unitaire || 0);
+  
+  // PRIORITÉ 3 : Aucun match
+  return 0;
 }
 
 // ── CATEGORIES ────────────────────────────────────────────────────

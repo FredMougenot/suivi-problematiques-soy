@@ -142,6 +142,7 @@
       <table class="poids-table">
         <thead>
           <tr>
+            <th style="width:120px;">Type</th>
             <th>Code produit</th>
             <th>Poids unitaire (kg)</th>
             <th style="width:50px;"></th>
@@ -565,13 +566,29 @@ function deleteCategory(){
 function renderPoidsTable(){
   const tbody=document.getElementById('poids-tbody');
   if(poidsList.length===0){
-    tbody.innerHTML='<tr><td colspan="3" style="text-align:center;padding:40px;color:var(--text-faint);">Aucun poids défini. Cliquez sur "Ajouter un produit"</td></tr>';
+    tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-faint);">Aucun poids défini. Cliquez sur "Ajouter un produit"</td></tr>';
     return;
   }
   
-  tbody.innerHTML=poidsList.map((p,i)=>`
+  tbody.innerHTML=poidsList.map((p,i)=>{
+    const matchType = p.matchType || 'exact'; // Par défaut : exact
+    return `
     <tr>
-      <td><input type="text" class="poids-input" style="width:200px;" value="${escH(p.code)}" onchange="updatePoids(${i},'code',this.value)"></td>
+      <td>
+        <div style="display:flex;gap:4px;">
+          <button 
+            onclick="updatePoids(${i},'matchType','exact')" 
+            style="flex:1;padding:5px 8px;border:1px solid ${matchType==='exact'?'var(--sapphire)':'rgba(255,255,255,.08)'};background:${matchType==='exact'?'rgba(74,158,232,.15)':'var(--bg-float)'};color:${matchType==='exact'?'var(--sapphire)':'var(--text-muted)'};border-radius:5px;font-size:.7rem;font-weight:700;cursor:pointer;transition:all .15s;">
+            EXACT
+          </button>
+          <button 
+            onclick="updatePoids(${i},'matchType','contains')" 
+            style="flex:1;padding:5px 8px;border:1px solid ${matchType==='contains'?'var(--amber)':'rgba(255,255,255,.08)'};background:${matchType==='contains'?'rgba(245,158,11,.15)':'var(--bg-float)'};color:${matchType==='contains'?'var(--amber)':'var(--text-muted)'};border-radius:5px;font-size:.7rem;font-weight:700;cursor:pointer;transition:all .15s;">
+            CONTIENT
+          </button>
+        </div>
+      </td>
+      <td><input type="text" class="poids-input" style="width:200px;" value="${escH(p.code)}" onchange="updatePoids(${i},'code',this.value)" placeholder="${matchType==='exact'?'Ex: ABCD123':'Ex: BOITE'}"></td>
       <td><input type="number" step="0.1" class="poids-input" value="${p.poids_unitaire}" onchange="updatePoids(${i},'poids_unitaire',parseFloat(this.value))"></td>
       <td>
         <button class="rule-del-btn" onclick="deletePoids(${i})" title="Supprimer">
@@ -579,11 +596,17 @@ function renderPoidsTable(){
         </button>
       </td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function updatePoids(idx,field,value){
-  if(poidsList[idx]) poidsList[idx][field]=value;
+  if(poidsList[idx]) {
+    poidsList[idx][field]=value;
+    if(field === 'matchType') {
+      renderPoidsTable(); // Re-render pour mettre à jour l'UI
+    }
+  }
 }
 
 function addPoidsRow(){
@@ -591,7 +614,8 @@ function addPoidsRow(){
     id:'poids_'+Date.now(),
     code:'',
     description:'',
-    poids_unitaire:0
+    poids_unitaire:0,
+    matchType:'exact'  // Par défaut: exact
   });
   renderPoidsTable();
 }
