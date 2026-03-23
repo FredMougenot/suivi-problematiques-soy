@@ -701,7 +701,11 @@ async function loadPoids(){
   try{
     const {data, error} = await sb.from('gh_poids').select('*');
     if(error) throw error;
-    poidsList = data || [];
+    // Mapper match_type (Supabase) → matchType (code)
+    poidsList = (data || []).map(p => ({
+      ...p,
+      matchType: p.match_type || 'exact'
+    }));
   }catch(e){
     console.error('Erreur chargement poids:', e);
     poidsList = JSON.parse(localStorage.getItem('gh_poids')||'[]');
