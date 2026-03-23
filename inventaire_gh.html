@@ -22,18 +22,6 @@
   display:flex;flex-direction:column;align-items:center;gap:4px;
   position:relative;z-index:10;
 }
-.cat-btn{
-  width:38px;height:38px;border-radius:10px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:1.1rem;cursor:pointer;
-  transition:all .18s cubic-bezier(.4,0,.2,1);
-  border:1.5px solid transparent;background:transparent;
-  position:relative;
-}
-.cat-btn:hover{background:rgba(255,255,255,.06);transform:scale(1.08);}
-.cat-btn.active{border-color:var(--sapphire);background:rgba(74,158,232,.12);}
-.cat-btn-all{font-size:.5rem;font-weight:800;color:var(--text-muted);letter-spacing:.04em;line-height:1.2;text-align:center;}
-.cat-btn.active .cat-btn-all{color:var(--sapphire);}
 
 /* ── Flyout ── */
 .cat-flyout{
@@ -141,13 +129,6 @@
   background:rgba(74,158,232,.12);
   box-shadow:0 0 12px rgba(74,158,232,.2);
 }
-.cat-btn-all{
-  font-size:.55rem;
-  font-weight:800;
-  color:var(--text-muted);
-  letter-spacing:.05em;
-}
-.cat-btn.active .cat-btn-all{color:var(--sapphire);}
 
 /* ── Section Camions ── */
 .camions-section{
@@ -764,19 +745,25 @@ function renderCatSidebar(){
 
   // NOUVEAU : Bouton tableau vide en haut (actif par défaut)
   const emptyBtn = document.createElement('div');
-  emptyBtn.className = 'cat-btn cat-btn-all' + (activeCatId === 'EMPTY_TABLE' ? ' active' : '');
+  emptyBtn.className = 'cat-btn' + (activeCatId === 'EMPTY_TABLE' ? ' active' : '');
   emptyBtn.id = 'cat-btn-empty';
   emptyBtn.title = 'Tableau vide (aucune ligne affichée)';
-  emptyBtn.innerHTML = '∅';  // Symbole ensemble vide
+  emptyBtn.innerHTML = `
+    <span class="cat-btn-icon">∅</span>
+    <span class="cat-btn-name">VIDE</span>
+  `;
   emptyBtn.onclick = () => filterByCategory('EMPTY_TABLE');
   sidebar.appendChild(emptyBtn);
 
   // TOUT button
   const allBtn = document.createElement('div');
-  allBtn.className = 'cat-btn cat-btn-all' + (activeCatId === null ? ' active' : '');
+  allBtn.className = 'cat-btn' + (activeCatId === null ? ' active' : '');
   allBtn.id = 'cat-btn-all';
   allBtn.title = 'Tout afficher';
-  allBtn.innerHTML = 'TOUT';
+  allBtn.innerHTML = `
+    <span class="cat-btn-icon">📦</span>
+    <span class="cat-btn-name">TOUT</span>
+  `;
   allBtn.onclick = () => filterByCategory(null);
   sidebar.appendChild(allBtn);
 
@@ -800,10 +787,13 @@ function renderCatSidebar(){
   
   // SANS CAT. button (lignes sans catégorie)
   const noCatBtn = document.createElement('div');
-  noCatBtn.className = 'cat-btn cat-btn-all' + (activeCatId === 'NO_CATEGORY' ? ' active' : '');
+  noCatBtn.className = 'cat-btn' + (activeCatId === 'NO_CATEGORY' ? ' active' : '');
   noCatBtn.id = 'cat-btn-nocat';
   noCatBtn.title = 'Lignes sans catégorie';
-  noCatBtn.innerHTML = 'SANS<br>CAT.';
+  noCatBtn.innerHTML = `
+    <span class="cat-btn-icon">📋</span>
+    <span class="cat-btn-name">SANS CAT.</span>
+  `;
   noCatBtn.onclick = () => filterByCategory('NO_CATEGORY');
   sidebar.appendChild(noCatBtn);
   
