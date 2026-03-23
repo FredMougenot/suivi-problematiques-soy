@@ -265,7 +265,13 @@ async function loadCategories(){
 async function loadPoids(){
   try{
     const {data,error}=await sb.from('gh_poids').select('*').order('code');
-    if(!error&&data) poidsList=data;
+    if(!error&&data) {
+      // Mapper match_type (Supabase) → matchType (code)
+      poidsList = data.map(p => ({
+        ...p,
+        matchType: p.match_type || 'exact'
+      }));
+    }
   }catch(e){}
   if(poidsList.length===0){
     const local=localStorage.getItem('gh_poids');
@@ -632,7 +638,14 @@ async function savePoids(){
   try{
     // Sauvegarder dans Supabase
     for(const p of poidsList){
-      await sb.from('gh_poids').upsert({id:p.id,code:p.code,description:p.description,poids_unitaire:p.poids_unitaire,updated_at:new Date().toISOString()});
+      await sb.from('gh_poids').upsert({
+        id:p.id,
+        code:p.code,
+        description:p.description,
+        poids_unitaire:p.poids_unitaire,
+        match_type:p.matchType || 'exact',  // Nouveau champ
+        updated_at:new Date().toISOString()
+      });
     }
     toast('Poids sauvegardés ✓','ok');
   }catch(e){
