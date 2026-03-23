@@ -844,7 +844,19 @@ function renderCamionsSection(sidebar) {
     const card = document.createElement('div');
     card.className = 'camion-card' + (cam.id === camionActifId ? ' active' : '');
     
-    const itemCount = cam.items.length;
+    // Calculer le nombre d'items (avec logique spéciale pour items manuels)
+    let itemCount = 0;
+    cam.items.forEach(item => {
+      if (item._is_manual) {
+        // Items manuels : 1 série de 15 = 1 item
+        const qte = item._resolved_qte || 0;
+        itemCount += Math.ceil(qte / 15);
+      } else {
+        // Items normaux : 1 ligne = 1 item
+        itemCount += 1;
+      }
+    });
+    
     const newCount = cam.items.filter(it => it.isNew).length;
     
     card.innerHTML = `
@@ -1939,11 +1951,12 @@ function adjustItemQty(key, delta){
   const item = camion.items.find(c => c._key === key);
   if (!item) return;
   
-  // Ajuster la quantité
-  let newQty = (item._resolved_qte || 0) + delta;
+  // Pour les items manuels : ajuster par pas de 15
+  const step = 15;
+  let newQty = (item._resolved_qte || 0) + (delta * step);
   
-  // Ne pas descendre en dessous de 1
-  if (newQty < 1) newQty = 1;
+  // Ne pas descendre en dessous de 15 (1 série)
+  if (newQty < step) newQty = step;
   
   // Mettre à jour la quantité
   item._resolved_qte = newQty;
@@ -2030,8 +2043,18 @@ function updateCommandeUI(){
   `;
   }).join('');
 
-  // Nombre d'items
-  const itemCount = camion.items.length;
+  // Nombre d'items (avec calcul spécial pour items manuels)
+  let itemCount = 0;
+  camion.items.forEach(item => {
+    if (item._is_manual) {
+      // Items manuels : 1 série de 15 = 1 item
+      const qte = item._resolved_qte || 0;
+      itemCount += Math.ceil(qte / 15);
+    } else {
+      // Items normaux : 1 ligne = 1 item
+      itemCount += 1;
+    }
+  });
   document.getElementById('cmd-item-count').textContent = `${itemCount} item${itemCount > 1 ? 's' : ''}`;
   
   // Total weight
