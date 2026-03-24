@@ -1291,6 +1291,28 @@ function alignFlyoutsWithSidebar() {
     if (flyout2) {
       flyout2.style.top = sidebarTop + 'px';
     }
+    
+    // DEBUG COMPLET
+    debugLog('🔍 === ALIGNEMENT FLYOUTS DEBUG ===');
+    debugLog('Sidebar top: <span style="color:#f59e0b;">' + sidebarTop + 'px</span>');
+    
+    const computed1 = window.getComputedStyle(flyout1);
+    debugLog('Flyout1 computed left: <span style="color:#4a9ee8;">' + computed1.left + '</span>');
+    debugLog('Flyout1 computed width: <span style="color:#4a9ee8;">' + computed1.width + '</span>');
+    debugLog('Flyout1 computed position: <span style="color:#4a9ee8;">' + computed1.position + '</span>');
+    debugLog('Flyout1 computed padding: <span style="color:#4a9ee8;">' + computed1.padding + '</span>');
+    debugLog('Flyout1 style.top appliqué: <span style="color:#2dd4a0;">' + flyout1.style.top + '</span>');
+    debugLog('Flyout1 style.left: <span style="color:#2dd4a0;">' + flyout1.style.left + '</span>');
+    
+    // Vérifier si le CSS est bien chargé
+    debugLog('Sidebar width: <span style="color:#a78bfa;">' + window.getComputedStyle(sidebar).width + '</span>');
+    
+    if (flyout2) {
+      const computed2 = window.getComputedStyle(flyout2);
+      debugLog('Flyout2 computed left: <span style="color:#ec4899;">' + computed2.left + '</span>');
+      debugLog('Flyout2 computed width: <span style="color:#ec4899;">' + computed2.width + '</span>');
+    }
+    debugLog('=== FIN DEBUG ===');
   }
 }
 
