@@ -26,7 +26,7 @@
 /* ── Flyout ── */
 .cat-flyout{
   position:fixed;
-  left:56px;top:60px;
+  left:56px;top:120px;
   width:240px;
   background:var(--bg-float);
   border:1px solid rgba(255,255,255,.08);
@@ -38,7 +38,7 @@
   opacity:0;
   pointer-events:none;
   transition:transform .28s cubic-bezier(.4,0,.2,1), opacity .22s ease;
-  overflow-y:auto;max-height:80vh;
+  overflow-y:auto;max-height:calc(100vh - 140px);
 }
 .cat-flyout.open{transform:translateX(0);opacity:1;pointer-events:all;}
 .cat-flyout-header{padding:0 14px 10px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:6px;}
@@ -479,7 +479,7 @@
     </div>
 
     <!-- Deuxième flyout pour les items (cascade) -->
-    <div class="cat-flyout" id="cat-flyout-2" style="left:296px;display:none;">
+    <div class="cat-flyout" id="cat-flyout-2" style="left:296px;display:none;z-index:201;">
       <div class="cat-flyout-header">
         <div class="cat-flyout-icon" id="flyout-2-icon">📦</div>
         <div class="cat-flyout-name" id="flyout-2-name"></div>
@@ -1051,10 +1051,13 @@ function showSecondFlyout(catId){
   if (isMobile) {
     // Mobile : remplacer flyout 1 par flyout 2
     flyout1.style.opacity = '0';
+    flyout1.style.pointerEvents = 'none';
     flyout2.style.left = '56px';
   } else {
-    // Desktop : afficher côte à côte
-    flyout2.style.left = '296px';
+    // Desktop : afficher côte à côte, flyout 2 à droite du flyout 1
+    flyout1.style.opacity = '1';
+    flyout1.style.pointerEvents = 'all';
+    flyout2.style.left = '296px'; // 56px (sidebar) + 240px (flyout 1)
   }
 
   // Show second flyout
@@ -1074,6 +1077,7 @@ function hideSecondFlyout(){
   // Restaurer flyout 1
   if(flyout1) {
     flyout1.style.opacity = '1';
+    flyout1.style.pointerEvents = 'all';
   }
 }
 
