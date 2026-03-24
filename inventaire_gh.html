@@ -26,19 +26,20 @@
 
 /* ── Flyout ── */
 .cat-flyout{
-  position:relative;
-  margin-left:56px;
+  position:absolute;
+  left:56px;
   width:240px;
   background:var(--bg-float);
   border:1px solid rgba(255,255,255,.08);
   border-radius:0 var(--r-lg) var(--r-lg) 0;
   box-shadow:8px 0 32px rgba(0,0,0,.45);
+  z-index:200;
   padding:12px 0;
   transform:translateX(-110%);
   opacity:0;
   pointer-events:none;
   transition:transform .28s cubic-bezier(.4,0,.2,1), opacity .22s ease;
-  overflow-y:auto;max-height:80vh;
+  overflow-y:auto;max-height:calc(100vh - 20px);
 }
 .cat-flyout.open{transform:translateX(0);opacity:1;pointer-events:all;}
 .cat-flyout-header{padding:0 14px 10px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:6px;}
@@ -1278,6 +1279,21 @@ function matchesCategory(row, cat){
   return result;
 }
 
+// ── ALIGNEMENT FLYOUTS AVEC SIDEBAR ───────────────────────────────
+function alignFlyoutsWithSidebar() {
+  const sidebar = document.getElementById('cat-sidebar');
+  const flyout1 = document.getElementById('cat-flyout');
+  const flyout2 = document.getElementById('cat-flyout-2');
+  
+  if (sidebar && flyout1) {
+    const sidebarTop = sidebar.getBoundingClientRect().top;
+    flyout1.style.top = sidebarTop + 'px';
+    if (flyout2) {
+      flyout2.style.top = sidebarTop + 'px';
+    }
+  }
+}
+
 // ── INIT ──────────────────────────────────────────────────────────
 function waitSB(){
   if(typeof supabase !== 'undefined' && supabase.createClient){
@@ -1286,6 +1302,8 @@ function waitSB(){
   } else { setTimeout(waitSB, 50); }
 }
 window.addEventListener('load', waitSB);
+window.addEventListener('load', alignFlyoutsWithSidebar);
+window.addEventListener('resize', alignFlyoutsWithSidebar);
 
 async function init(){
   await loadSession();
