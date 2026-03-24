@@ -1040,17 +1040,40 @@ function showSecondFlyout(catId){
           ${escH(p)}
         </div>`).join('');
 
-  // Show second flyout
+  // Sur mobile : cacher le flyout 1 et mettre le flyout 2 à sa place
+  // Sur desktop : afficher les deux côte à côte
+  const flyout1 = document.getElementById('cat-flyout');
   const flyout2 = document.getElementById('cat-flyout-2');
+  
+  // Détecter si mobile (largeur < 768px)
+  const isMobile = window.innerWidth < 768;
+  
+  if (isMobile) {
+    // Mobile : remplacer flyout 1 par flyout 2
+    flyout1.style.opacity = '0';
+    flyout2.style.left = '56px';
+  } else {
+    // Desktop : afficher côte à côte
+    flyout2.style.left = '296px';
+  }
+
+  // Show second flyout
   flyout2.style.display = 'block';
   setTimeout(() => flyout2.classList.add('open'), 10);
 }
 
 function hideSecondFlyout(){
+  const flyout1 = document.getElementById('cat-flyout');
   const flyout2 = document.getElementById('cat-flyout-2');
+  
   if(flyout2) {
     flyout2.classList.remove('open');
     setTimeout(() => flyout2.style.display = 'none', 200);
+  }
+  
+  // Restaurer flyout 1
+  if(flyout1) {
+    flyout1.style.opacity = '1';
   }
 }
 
