@@ -504,26 +504,6 @@
              onclick="filterByCategory(null)" title="Tout afficher">TOUT</div>
       </div>
 
-      <!-- Flyout panel -->
-      <div class="cat-flyout" id="cat-flyout">
-        <div class="cat-flyout-header">
-          <div class="cat-flyout-icon" id="flyout-icon">📦</div>
-          <div class="cat-flyout-name" id="flyout-name"></div>
-          <div class="cat-flyout-count" id="flyout-count"></div>
-        </div>
-        <div id="flyout-items"></div>
-      </div>
-
-      <!-- Deuxième flyout pour les items (cascade) -->
-      <div class="cat-flyout" id="cat-flyout-2" style="left:296px;display:none;z-index:201;">
-        <div class="cat-flyout-header">
-          <div class="cat-flyout-icon" id="flyout-2-icon">📦</div>
-          <div class="cat-flyout-name" id="flyout-2-name"></div>
-          <div class="cat-flyout-count" id="flyout-2-count"></div>
-        </div>
-        <div id="flyout-2-items"></div>
-      </div>
-
       <!-- Content -->
       <div class="gh-content">
         <!-- LEFT — Inventory -->
@@ -608,6 +588,26 @@
 
       </div><!-- /gh-content -->
     </div><!-- /gh-page-layout -->
+
+    <!-- Flyout panel (à côté de gh-page-layout, même niveau vertical) -->
+    <div class="cat-flyout" id="cat-flyout">
+      <div class="cat-flyout-header">
+        <div class="cat-flyout-icon" id="flyout-icon">📦</div>
+        <div class="cat-flyout-name" id="flyout-name"></div>
+        <div class="cat-flyout-count" id="flyout-count"></div>
+      </div>
+      <div id="flyout-items"></div>
+    </div>
+
+    <!-- Deuxième flyout pour les items (cascade) -->
+    <div class="cat-flyout" id="cat-flyout-2" style="left:296px;display:none;z-index:201;">
+      <div class="cat-flyout-header">
+        <div class="cat-flyout-icon" id="flyout-2-icon">📦</div>
+        <div class="cat-flyout-name" id="flyout-2-name"></div>
+        <div class="cat-flyout-count" id="flyout-2-count"></div>
+      </div>
+      <div id="flyout-2-items"></div>
+    </div>
 
   </div>
 </div>
