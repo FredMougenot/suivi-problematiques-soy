@@ -343,6 +343,12 @@ function editCategory(id){
   const cat=categories.find(c=>c.id===id);
   if(!cat) return;
   
+  // Générer la liste des catégories parentes possibles (exclure la catégorie actuelle et ses enfants)
+  const parentOptions = categories
+    .filter(c => c.id !== id) // Pas soi-même
+    .map(c => `<option value="${c.id}" ${cat.parent_id === c.id ? 'selected' : ''}>${c.icon} ${escH(c.name)}</option>`)
+    .join('');
+  
   // Éditeur complet avec règles
   document.getElementById('category-editor').innerHTML=`
     <div class="cat-editor-hd">
@@ -353,6 +359,14 @@ function editCategory(id){
         </div>
       </div>
       <input type="text" id="cat-name-input" class="cat-name-input" value="${escH(cat.name)}" placeholder="Nom de la catégorie…" oninput="updateName(this.value)">
+    </div>
+    
+    <div style="margin:12px 0;">
+      <label style="display:block;font-size:.7rem;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">Catégorie parente (optionnel)</label>
+      <select id="cat-parent-select" onchange="updateParent(this.value)" style="width:100%;padding:8px;background:var(--bg-float);border:1px solid rgba(255,255,255,.08);border-radius:8px;color:var(--text-primary);font-size:.85rem;">
+        <option value="">Aucune (catégorie racine)</option>
+        ${parentOptions}
+      </select>
     </div>
     
     <div class="color-row">
@@ -469,6 +483,14 @@ function setColor(color){
   }
 }
 
+function updateParent(parentId){
+  const cat=categories.find(c=>c.id===activeCatId);
+  if(cat){
+    cat.parent_id = parentId || null;
+    renderCategoriesList();
+  }
+}
+
 function toggleEmoji(){
   const p=document.getElementById('emoji-picker');
   if(!p) return;
@@ -541,6 +563,7 @@ async function saveCategory(){
       icon:cat.icon,
       color:cat.color,
       cat_rules:cat.rules,
+      parent_id:cat.parent_id || null,
       updated_at:new Date().toISOString()
     });
     if(error) throw error;
