@@ -239,10 +239,12 @@
   left:0; /* sera défini dynamiquement par JS */
   top:0;
   width:260px;
-  height:100vh;
+  height:auto;
+  max-height:90vh;
   background:var(--bg-float);
-  border-right:1px solid rgba(255,255,255,.08);
-  box-shadow:8px 0 40px rgba(0,0,0,.5);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:0 12px 12px 0;
+  box-shadow:8px 8px 40px rgba(0,0,0,.5);
   z-index:49;
   padding:16px 0;
   transform:translateX(calc(-100% - 20px));
@@ -985,7 +987,7 @@ function alignFlyouts(){
   if(!sidebar || !flyout1) return;
   
   const rect = sidebar.getBoundingClientRect();
-  const sidebarRight = rect.right; // position droite réelle de la sidebar
+  const sidebarRight = rect.right;
   
   flyout1.style.left = sidebarRight + 'px';
   
