@@ -236,7 +236,7 @@
 /* ── Flyout panel ── */
 .cat-flyout{
   position:fixed;
-  left:180px;
+  left:0; /* sera défini dynamiquement par JS */
   top:0;
   width:260px;
   height:100vh;
@@ -245,7 +245,7 @@
   box-shadow:8px 0 40px rgba(0,0,0,.5);
   z-index:49;
   padding:16px 0;
-  transform:translateX(-100%);
+  transform:translateX(-110%);
   opacity:0;
   pointer-events:none;
   transition:transform .3s cubic-bezier(.4,0,.2,1), opacity .25s ease;
@@ -962,6 +962,36 @@ function supprimerCamion(camionId) {
   toast('Camion supprimé', 'ok');
 }
 
+// ── ALIGNEMENT DYNAMIQUE DES FLYOUTS ──────────────────────────────
+function alignFlyouts(){
+  const sidebar = document.getElementById('cat-sidebar');
+  const flyout1 = document.getElementById('cat-flyout');
+  const flyout2 = document.getElementById('cat-flyout-2');
+  if(!sidebar || !flyout1) return;
+  
+  const rect = sidebar.getBoundingClientRect();
+  const sidebarRight = rect.right; // position droite réelle de la sidebar
+  
+  flyout1.style.left = sidebarRight + 'px';
+  
+  if(flyout2){
+    const isMobile = window.innerWidth < 768;
+    if(isMobile){
+      flyout2.style.left = sidebarRight + 'px';
+    } else {
+      flyout2.style.left = (sidebarRight + 260) + 'px';
+    }
+  }
+}
+
+// Réaligner les flyouts si la fenêtre est redimensionnée pendant qu'ils sont ouverts
+window.addEventListener('resize', () => {
+  const flyout1 = document.getElementById('cat-flyout');
+  if(flyout1 && flyout1.classList.contains('open')){
+    alignFlyouts();
+  }
+});
+
 function openSubcategoriesFlyout(parentId){
   const parent = ghCategories.find(c => c.id === parentId);
   if(!parent) return;
@@ -1008,6 +1038,7 @@ function openSubcategoriesFlyout(parentId){
   // Open flyout
   const flyout = document.getElementById('cat-flyout');
   const overlay = document.getElementById('cat-overlay');
+  alignFlyouts();
   flyout.classList.add('open');
   overlay.classList.add('open');
 
@@ -1046,6 +1077,8 @@ function showSecondFlyout(catId){
   const flyout1 = document.getElementById('cat-flyout');
   const flyout2 = document.getElementById('cat-flyout-2');
   
+  alignFlyouts(); // repositionner les deux flyouts dynamiquement
+  
   // Détecter si mobile (largeur < 768px)
   const isMobile = window.innerWidth < 768;
   
@@ -1053,12 +1086,10 @@ function showSecondFlyout(catId){
     // Mobile : remplacer flyout 1 par flyout 2
     flyout1.style.opacity = '0';
     flyout1.style.pointerEvents = 'none';
-    flyout2.style.left = '56px';
   } else {
-    // Desktop : afficher côte à côte, flyout 2 à droite du flyout 1
+    // Desktop : afficher côte à côte, flyout 2 déjà positionné par alignFlyouts()
     flyout1.style.opacity = '1';
     flyout1.style.pointerEvents = 'all';
-    flyout2.style.left = '296px'; // 56px (sidebar) + 240px (flyout 1)
   }
 
   // Show second flyout
@@ -1129,10 +1160,9 @@ function openFlyout(catId){
   // Open flyout
   const flyout = document.getElementById('cat-flyout');
   const overlay = document.getElementById('cat-overlay');
+  alignFlyouts();
   flyout.classList.add('open');
   overlay.classList.add('open');
-
-  // Auto-close after 4 seconds of inactivity
   clearTimeout(window._flyoutTimer);
   flyout.onmouseenter = () => clearTimeout(window._flyoutTimer);
   flyout.onmouseleave = () => {
@@ -2432,11 +2462,8 @@ function debugLog(msg) {
 
 </script>
 
-<!-- Panneau de DEBUG visible en bas de page -->
-<div id="debug-panel" style="position:fixed;bottom:0;left:0;right:0;background:#1a1a2e;border-top:2px solid #4a9ee8;padding:8px;font-size:11px;font-family:monospace;color:#2dd4a0;z-index:9999;max-height:360px;overflow-y:auto;">
-  <div style="font-weight:bold;margin-bottom:4px;color:#f59e0b;">🐛 DEBUG PANEL</div>
-  <div id="debug-log"></div>
-</div>
+<!-- Panneau de DEBUG désactivé -->
+<!-- <div id="debug-panel" ...></div> -->
 
 </body>
 </html>
