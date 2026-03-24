@@ -1919,35 +1919,48 @@ function sortByExpiration(){
 }
 
 function parseDate(s){
-  if(!s) return Infinity; // dates vides à la fin
+  if(!s) return Infinity;
   s = String(s).trim();
   
-  // Mapping mois (abréviations françaises produites par fmtDate)
+  // Mapping complet : mois anglais ET français, majuscules/minuscules
   const MOIS = {
-    'janv':1,'févr':2,'fevr':2,'mars':3,'avr':4,'mai':5,'juin':6,
-    'juil':7,'août':8,'aout':8,'sept':9,'oct':10,'nov':11,'déc':12,'dec':12
+    // Anglais (comme affiché dans GH : JAN, FEB, MAR...)
+    'jan':1,'feb':2,'mar':3,'apr':4,'may':5,'jun':6,
+    'jul':7,'aug':8,'sep':9,'oct':10,'nov':11,'dec':12,
+    // Français
+    'janv':1,'fevr':2,'fevrier':2,'fev':2,'mars':3,'avr':4,'mai':5,'juin':6,
+    'juil':7,'aout':8,'sept':9,'octobre':10,'novembre':11,'decembre':12,
+    // Français avec accents normalisés
+    'févr':2,'août':8,'déc':12
   };
   
-  // Format principal : "14 NOV 2025" ou "14 nov 2025" (produit par fmtDate)
-  const m0 = s.match(/^(\d{1,2})\s+([a-zéûA-ZÉÛÀ]+)\s+(\d{4})$/i);
+  const getMonth = (str) => {
+    const key = str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    return MOIS[key] || MOIS[key.slice(0,3)] || MOIS[key.slice(0,4)] || null;
+  };
+  
+  // Format "DD-MMM-YYYY" ou "DD-MMM-YY" (ex: 23-DEC-2025, 14-NOV-2026)
+  const m0 = s.match(/^(\d{1,2})[-\/\s]([a-zA-ZéûàèêâÉÛÀÈÊÂ]+)[-\/\s](\d{2,4})$/i);
   if(m0){
-    const moisKey = m0[2].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-    const mNum = MOIS[m0[2].toLowerCase()] || MOIS[moisKey] || MOIS[moisKey.slice(0,4)] || MOIS[moisKey.slice(0,3)];
-    if(mNum) return new Date(parseInt(m0[3]), mNum-1, parseInt(m0[1])).getTime();
+    const mNum = getMonth(m0[2]);
+    if(mNum){
+      const y = m0[3].length === 2 ? '20' + m0[3] : m0[3];
+      return new Date(parseInt(y), mNum-1, parseInt(m0[1])).getTime();
+    }
   }
   
   // Format DD/MM/YYYY ou DD-MM-YYYY
   const m1 = s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{2,4})$/);
   if(m1){
     const y = m1[3].length === 2 ? '20' + m1[3] : m1[3];
-    return new Date(y, parseInt(m1[2])-1, parseInt(m1[1])).getTime();
+    return new Date(parseInt(y), parseInt(m1[2])-1, parseInt(m1[1])).getTime();
   }
   
   // Format YYYY-MM-DD
   const m2 = s.match(/^(\d{4})[-\/](\d{2})[-\/](\d{2})$/);
-  if(m2) return new Date(m2[1], parseInt(m2[2])-1, parseInt(m2[3])).getTime();
+  if(m2) return new Date(parseInt(m2[1]), parseInt(m2[2])-1, parseInt(m2[3])).getTime();
   
-  return Infinity; // format inconnu à la fin
+  return Infinity; // format inconnu → à la fin
 }
 
 function filterInventory(){
