@@ -245,16 +245,19 @@
   box-shadow:8px 0 40px rgba(0,0,0,.5);
   z-index:49;
   padding:16px 0;
-  transform:translateX(-110%);
+  transform:translateX(calc(-100% - 20px));
   opacity:0;
   pointer-events:none;
-  transition:transform .3s cubic-bezier(.4,0,.2,1), opacity .25s ease;
+  visibility:hidden;
+  transition:transform .3s cubic-bezier(.4,0,.2,1), opacity .25s ease, visibility 0s linear .3s;
   overflow-y:auto;
 }
 .cat-flyout.open{
   transform:translateX(0);
   opacity:1;
   pointer-events:all;
+  visibility:visible;
+  transition:transform .3s cubic-bezier(.4,0,.2,1), opacity .25s ease, visibility 0s linear 0s;
 }
 
 .cat-flyout-header{
@@ -1077,17 +1080,21 @@ function showSecondFlyout(catId){
   const flyout1 = document.getElementById('cat-flyout');
   const flyout2 = document.getElementById('cat-flyout-2');
   
-  alignFlyouts(); // repositionner les deux flyouts dynamiquement
+  // Récupérer la position réelle de la sidebar
+  const sidebar = document.getElementById('cat-sidebar');
+  const sidebarRight = sidebar ? sidebar.getBoundingClientRect().right : 180;
   
   // Détecter si mobile (largeur < 768px)
   const isMobile = window.innerWidth < 768;
   
   if (isMobile) {
-    // Mobile : remplacer flyout 1 par flyout 2
-    flyout1.style.opacity = '0';
-    flyout1.style.pointerEvents = 'none';
+    // Mobile : flyout2 prend exactement la même position que flyout1
+    flyout2.style.left = sidebarRight + 'px';
+    // Masquer flyout1 sans le déplacer (on le cache visuellement)
+    flyout1.classList.remove('open');
   } else {
-    // Desktop : afficher côte à côte, flyout 2 déjà positionné par alignFlyouts()
+    // Desktop : flyout2 à droite du flyout1
+    flyout2.style.left = (sidebarRight + 260) + 'px';
     flyout1.style.opacity = '1';
     flyout1.style.pointerEvents = 'all';
   }
@@ -1103,13 +1110,13 @@ function hideSecondFlyout(){
   
   if(flyout2) {
     flyout2.classList.remove('open');
-    setTimeout(() => flyout2.style.display = 'none', 200);
+    setTimeout(() => flyout2.style.display = 'none', 300);
   }
   
-  // Restaurer flyout 1
+  // Restaurer flyout 1 (inline styles overrides)
   if(flyout1) {
-    flyout1.style.opacity = '1';
-    flyout1.style.pointerEvents = 'all';
+    flyout1.style.opacity = '';
+    flyout1.style.pointerEvents = '';
   }
 }
 
@@ -1173,7 +1180,13 @@ function openFlyout(catId){
 function closeFlyout(){
   clearTimeout(window._flyoutTimer);
   activeFlyoutId = null;
-  document.getElementById('cat-flyout')?.classList.remove('open');
+  const flyout1 = document.getElementById('cat-flyout');
+  if(flyout1){
+    flyout1.classList.remove('open');
+    // Nettoyer les inline styles qui auraient pu être appliqués par showSecondFlyout
+    flyout1.style.opacity = '';
+    flyout1.style.pointerEvents = '';
+  }
   document.getElementById('cat-overlay')?.classList.remove('open');
   hideSecondFlyout();
 }
