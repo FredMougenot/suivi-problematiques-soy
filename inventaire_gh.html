@@ -1027,10 +1027,11 @@ function openSubcategoriesFlyout(parentId){
 
   // Build subcategories list
   const flyoutItems = document.getElementById('flyout-items');
+  const isMobileView = window.innerWidth < 768;
   flyoutItems.innerHTML = children.length === 0
     ? '<div style="padding:16px;font-size:.78rem;color:var(--text-faint);text-align:center;">Aucune sous-catégorie</div>'
     : children.map(child => `
-        <div class="cat-flyout-item" onclick="openFlyout('${child.id}')" onmouseenter="showSecondFlyout('${child.id}')" style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="cat-flyout-item" onclick="openFlyout('${child.id}')" ${isMobileView ? '' : `onmouseenter="showSecondFlyout('${child.id}')"`} style="display:flex;align-items:center;justify-content:space-between;">
           <div style="display:flex;align-items:center;gap:8px;">
             <span style="font-size:1.1rem;">${child.icon || '📦'}</span>
             ${escH(child.name)}
@@ -1123,6 +1124,9 @@ function hideSecondFlyout(){
 function openFlyout(catId){
   const cat = ghCategories.find(c => c.id === catId);
   if(!cat) return;
+
+  // Toujours cacher le flyout 2 d'abord
+  hideSecondFlyout();
 
   // If same cat — toggle
   if(activeFlyoutId === catId){
