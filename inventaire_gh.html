@@ -1898,22 +1898,13 @@ function parseInventory(html){
 // ── FILTER & RENDER ───────────────────────────────────────────────
 // ── TRI PAR DATE D'EXPIRATION ─────────────────────────────────────
 function sortByExpiration(){
-  const keep = [1, 2, 8, 13, 15, 16, 17, 18, 19, 20];
-  // keep[4] = index 15 = Expiration (selon keep.slice(2) qui donne [8, 13, 15, ...])
-  // Mais attention : keep[3] dans le tableau affiché = keep.slice(2)[1] = index 13
-  // La colonne "Expiration" dans l'en-tête est la 9ème colonne affichée
-  // En-têtes : No.produit, Description, Qté, No.comm, Étiquette, No.lot, No.sous-lot, Date lot, Expiration
-  // Donc Expiration = 8ème colonne affichée = keep.slice(2)[6] = keep[8] = index 19? Non...
-  
-  // Regardons les en-têtes : ligne 419-431
-  // <th>Expiration</th> est entre "Date lot" et "Réception originale"
-  // keep.slice(2) = [8, 13, 15, 16, 17, 18, 19, 20]
-  // Position 0=Qté(8), 1=No.comm(13), 2=?(15), 3=?(16), 4=?(17), 5=Date lot(18?), 6=Expiration(?), 7=Réception
-  
-  // D'après le commentaire ligne 1029: 14=Expiration
+  // Colonnes affichées : keep = [1, 2, 8, 13, 15, 16, 17, 18, 19, 20]
+  // Col 1=No.produit, 2=Description, 3=Qté(8), 4=No.comm(13), 5=Étiquette(15),
+  // 6=No.lot(16), 7=No.sous-lot(17), 8=Date lot(18), 9=Expiration(19), 10=Réception(20)
+  // → 9ème colonne affichée = _raw[19]
   filtered.sort((a, b) => {
-    const dateA = (a._raw || [])[14] || '';
-    const dateB = (b._raw || [])[14] || '';
+    const dateA = (a._raw || [])[19] || '';
+    const dateB = (b._raw || [])[19] || '';
     return parseDate(dateA) - parseDate(dateB);
   });
 }
