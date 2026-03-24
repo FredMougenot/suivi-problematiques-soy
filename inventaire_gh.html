@@ -315,6 +315,18 @@
 }
 .cat-overlay.open{display:block;}
 
+/* Bouton retour flyout mobile */
+.flyout-back-btn{
+  display:flex;align-items:center;gap:6px;
+  width:100%;padding:10px 16px;
+  background:rgba(74,158,232,.1);
+  border:none;border-bottom:1px solid rgba(255,255,255,.06);
+  color:var(--sapphire);font-size:.82rem;font-weight:700;
+  cursor:pointer;text-align:left;
+  transition:background .15s;
+}
+.flyout-back-btn:hover{background:rgba(74,158,232,.18);}
+
 /* ── Content area ── */
 .gh-content{flex:1;padding:0 20px 16px 20px;overflow-x:auto;overflow-y:visible;min-width:0;}
 
@@ -1027,11 +1039,10 @@ function openSubcategoriesFlyout(parentId){
 
   // Build subcategories list
   const flyoutItems = document.getElementById('flyout-items');
-  const isMobileView = window.innerWidth < 768;
   flyoutItems.innerHTML = children.length === 0
     ? '<div style="padding:16px;font-size:.78rem;color:var(--text-faint);text-align:center;">Aucune sous-catégorie</div>'
     : children.map(child => `
-        <div class="cat-flyout-item" onclick="openFlyout('${child.id}')" ${isMobileView ? '' : `onmouseenter="showSecondFlyout('${child.id}')"`} style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="cat-flyout-item" onclick="showSecondFlyout('${child.id}')" style="display:flex;align-items:center;justify-content:space-between;">
           <div style="display:flex;align-items:center;gap:8px;">
             <span style="font-size:1.1rem;">${child.icon || '📦'}</span>
             ${escH(child.name)}
@@ -1076,7 +1087,7 @@ function showSecondFlyout(catId){
           ${escH(p)}
         </div>`).join('');
 
-  // Sur mobile : cacher le flyout 1 et mettre le flyout 2 à sa place
+  // Sur mobile : flyout 2 par-dessus flyout 1 (z-index supérieur) avec bouton retour
   // Sur desktop : afficher les deux côte à côte
   const flyout1 = document.getElementById('cat-flyout');
   const flyout2 = document.getElementById('cat-flyout-2');
@@ -1089,15 +1100,24 @@ function showSecondFlyout(catId){
   const isMobile = window.innerWidth < 768;
   
   if (isMobile) {
-    // Mobile : flyout2 prend exactement la même position que flyout1
+    // Mobile : flyout 2 par-dessus flyout 1, même position, z-index plus élevé
     flyout2.style.left = sidebarRight + 'px';
-    // Masquer flyout1 sans le déplacer (on le cache visuellement)
-    flyout1.classList.remove('open');
+    flyout2.style.zIndex = '51'; // au-dessus du flyout 1 (z-index:49)
+    // Ajouter un bouton retour en haut du flyout 2
+    const header2 = flyout2.querySelector('.cat-flyout-header');
+    if(header2 && !flyout2.querySelector('.flyout-back-btn')){
+      const backBtn = document.createElement('button');
+      backBtn.className = 'flyout-back-btn';
+      backBtn.innerHTML = '← Retour';
+      backBtn.onclick = (e) => { e.stopPropagation(); hideSecondFlyout(); };
+      flyout2.insertBefore(backBtn, header2);
+    }
   } else {
-    // Desktop : flyout2 à droite du flyout1
+    // Desktop : flyout 2 à droite du flyout 1
     flyout2.style.left = (sidebarRight + 260) + 'px';
-    flyout1.style.opacity = '1';
-    flyout1.style.pointerEvents = 'all';
+    flyout2.style.zIndex = '49';
+    // Retirer le bouton retour s'il existe
+    flyout2.querySelector('.flyout-back-btn')?.remove();
   }
 
   // Show second flyout
@@ -1111,10 +1131,12 @@ function hideSecondFlyout(){
   
   if(flyout2) {
     flyout2.classList.remove('open');
+    flyout2.style.zIndex = '49';
+    flyout2.querySelector('.flyout-back-btn')?.remove();
     setTimeout(() => flyout2.style.display = 'none', 300);
   }
   
-  // Restaurer flyout 1 (inline styles overrides)
+  // Restaurer flyout 1 (nettoyer inline styles)
   if(flyout1) {
     flyout1.style.opacity = '';
     flyout1.style.pointerEvents = '';
