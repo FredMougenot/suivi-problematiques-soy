@@ -478,6 +478,16 @@
       <div id="flyout-items"></div>
     </div>
 
+    <!-- Deuxième flyout pour les items (cascade) -->
+    <div class="cat-flyout" id="cat-flyout-2" style="left:296px;display:none;">
+      <div class="cat-flyout-header">
+        <div class="cat-flyout-icon" id="flyout-2-icon">📦</div>
+        <div class="cat-flyout-name" id="flyout-2-name"></div>
+        <div class="cat-flyout-count" id="flyout-2-count"></div>
+      </div>
+      <div id="flyout-2-items"></div>
+    </div>
+
     <!-- Status + Actions (pleine largeur) -->
     <div class="gh-status">
       <div class="gh-dot" id="gh-dot"></div>
@@ -797,9 +807,15 @@ function renderCatSidebar(){
 
   // Trier les catégories par ordre alphabétique
   const sortedCategories = [...ghCategories].sort((a,b) => a.name.localeCompare(b.name));
+  
+  // Filtrer pour ne montrer QUE les catégories racines (sans parent)
+  const rootCategories = sortedCategories.filter(cat => !cat.parent_id);
 
   // Category buttons avec icône ET nom
-  sortedCategories.forEach(cat => {
+  rootCategories.forEach(cat => {
+    // Vérifier si cette catégorie a des enfants
+    const hasChildren = ghCategories.some(c => c.parent_id === cat.id);
+    
     const btn = document.createElement('div');
     btn.className = 'cat-btn' + (activeCatId === cat.id ? ' active' : '');
     btn.title = cat.name;
@@ -808,8 +824,16 @@ function renderCatSidebar(){
     btn.innerHTML = `
       <span class="cat-btn-icon">${cat.icon || '📦'}</span>
       <span class="cat-btn-name">${escH(cat.name)}</span>
+      ${hasChildren ? '<span style="margin-left:auto;color:var(--text-muted);font-size:.7rem;">►</span>' : ''}
     `;
-    btn.onclick = (e) => { e.stopPropagation(); openFlyout(cat.id); };
+    btn.onclick = (e) => { 
+      e.stopPropagation(); 
+      if (hasChildren) {
+        openSubcategoriesFlyout(cat.id);
+      } else {
+        openFlyout(cat.id);
+      }
+    };
     sidebar.appendChild(btn);
   });
   
@@ -937,6 +961,99 @@ function supprimerCamion(camionId) {
   toast('Camion supprimé', 'ok');
 }
 
+function openSubcategoriesFlyout(parentId){
+  const parent = ghCategories.find(c => c.id === parentId);
+  if(!parent) return;
+
+  // If same cat — toggle
+  if(activeFlyoutId === parentId){
+    closeFlyout();
+    return;
+  }
+
+  activeFlyoutId = parentId;
+  
+  // Vider selectedRows
+  selectedRows.clear();
+  
+  // Cacher la barre bleue
+  const bar = document.getElementById('selection-bar');
+  if(bar) bar.style.display = 'none';
+  
+  // Activer la catégorie visuellement dans la sidebar
+  activeCatId = parentId;
+  renderCatSidebar();
+
+  // Trouver les sous-catégories
+  const children = ghCategories.filter(c => c.parent_id === parentId).sort((a,b) => a.name.localeCompare(b.name));
+
+  document.getElementById('flyout-icon').textContent = parent.icon || '📦';
+  document.getElementById('flyout-name').textContent = parent.name;
+  document.getElementById('flyout-count').textContent = children.length + ' sous-catégorie' + (children.length !== 1 ? 's' : '');
+
+  // Build subcategories list
+  const flyoutItems = document.getElementById('flyout-items');
+  flyoutItems.innerHTML = children.length === 0
+    ? '<div style="padding:16px;font-size:.78rem;color:var(--text-faint);text-align:center;">Aucune sous-catégorie</div>'
+    : children.map(child => `
+        <div class="cat-flyout-item" onclick="openFlyout('${child.id}')" onmouseenter="showSecondFlyout('${child.id}')" style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:1.1rem;">${child.icon || '📦'}</span>
+            ${escH(child.name)}
+          </div>
+          <span style="color:var(--text-muted);font-size:.7rem;">►</span>
+        </div>`).join('');
+
+  // Open flyout
+  const flyout = document.getElementById('cat-flyout');
+  const overlay = document.getElementById('cat-overlay');
+  flyout.classList.add('open');
+  overlay.classList.add('open');
+
+  // Auto-close after 4 seconds of inactivity
+  clearTimeout(window._flyoutTimer);
+  flyout.onmouseenter = () => clearTimeout(window._flyoutTimer);
+  flyout.onmouseleave = () => {
+    window._flyoutTimer = setTimeout(closeFlyout, 1500);
+  };
+}
+
+function showSecondFlyout(catId){
+  const cat = ghCategories.find(c => c.id === catId);
+  if(!cat) return;
+
+  // Get matching items from current inventory
+  const matches = allInventory.filter(r => matchesCategory(r, cat));
+
+  document.getElementById('flyout-2-icon').textContent = cat.icon || '📦';
+  document.getElementById('flyout-2-name').textContent = cat.name;
+  document.getElementById('flyout-2-count').textContent = matches.length + ' item' + (matches.length !== 1 ? 's' : '');
+
+  // Build items list
+  const produits = [...new Set(matches.map(r => r._raw?.[1]||'').filter(Boolean))];
+  const flyout2Items = document.getElementById('flyout-2-items');
+  flyout2Items.innerHTML = produits.length === 0
+    ? '<div style="padding:16px;font-size:.78rem;color:var(--text-faint);text-align:center;">Aucun item dans l\'inventaire actuel</div>'
+    : produits.map(p => `
+        <div class="cat-flyout-item" onclick="filterByProduct('${p.replace(/'/g,"\'")}')">
+          <div class="cat-flyout-item-dot"></div>
+          ${escH(p)}
+        </div>`).join('');
+
+  // Show second flyout
+  const flyout2 = document.getElementById('cat-flyout-2');
+  flyout2.style.display = 'block';
+  setTimeout(() => flyout2.classList.add('open'), 10);
+}
+
+function hideSecondFlyout(){
+  const flyout2 = document.getElementById('cat-flyout-2');
+  if(flyout2) {
+    flyout2.classList.remove('open');
+    setTimeout(() => flyout2.style.display = 'none', 200);
+  }
+}
+
 function openFlyout(catId){
   const cat = ghCategories.find(c => c.id === catId);
   if(!cat) return;
@@ -1000,6 +1117,7 @@ function closeFlyout(){
   activeFlyoutId = null;
   document.getElementById('cat-flyout')?.classList.remove('open');
   document.getElementById('cat-overlay')?.classList.remove('open');
+  hideSecondFlyout();
 }
 
 function filterByCategory(catId){
