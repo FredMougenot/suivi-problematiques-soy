@@ -11,6 +11,7 @@
 @media(max-width:1100px){.gh-layout{grid-template-columns:1fr;}}
 
 /* ── Page layout avec sidebar catégories ── */
+.tool-main{position:relative;}
 .gh-page-layout{display:flex;gap:0;}
 
 /* ── Sidebar catégories ── */
@@ -25,7 +26,9 @@
 
 /* ── Flyout ── */
 .cat-flyout{
-  position:relative;
+  position:absolute;
+  top:140px;
+  left:56px;
   width:240px;
   background:var(--bg-float);
   border:1px solid rgba(255,255,255,.08);
@@ -37,7 +40,7 @@
   opacity:0;
   pointer-events:none;
   transition:transform .28s cubic-bezier(.4,0,.2,1), opacity .22s ease;
-  overflow-y:auto;max-height:80vh;
+  overflow-y:auto;max-height:calc(100vh - 160px);
 }
 .cat-flyout.open{transform:translateX(0);opacity:1;pointer-events:all;}
 .cat-flyout-header{padding:0 14px 10px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:6px;}
