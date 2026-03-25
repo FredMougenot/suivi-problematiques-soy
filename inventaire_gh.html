@@ -1066,13 +1066,6 @@ function openSubcategoriesFlyout(parentId){
   alignFlyouts();
   flyout.classList.add('open');
   overlay.classList.add('open');
-
-  // Auto-close after 4 seconds of inactivity
-  clearTimeout(window._flyoutTimer);
-  flyout.onmouseenter = () => clearTimeout(window._flyoutTimer);
-  flyout.onmouseleave = () => {
-    window._flyoutTimer = setTimeout(closeFlyout, 1500);
-  };
 }
 
 function showSecondFlyout(catId){
@@ -1215,15 +1208,9 @@ function openFlyout(catId){
   alignFlyouts();
   flyout.classList.add('open');
   overlay.classList.add('open');
-  clearTimeout(window._flyoutTimer);
-  flyout.onmouseenter = () => clearTimeout(window._flyoutTimer);
-  flyout.onmouseleave = () => {
-    window._flyoutTimer = setTimeout(closeFlyout, 1500);
-  };
 }
 
 function closeFlyout(){
-  clearTimeout(window._flyoutTimer);
   activeFlyoutId = null;
   const flyout1 = document.getElementById('cat-flyout');
   if(flyout1){
