@@ -848,22 +848,25 @@ function render(){
     if(_isActifOuNL(stEff, _rVActif, _rVInactif)){ _idxDernierActif = s.idx; break; }
   }
   window._renderIdxDernierActif = _idxDernierActif;
-  // Appliquer : dernier actif → _BOBTAIL, les autres → vide si _BOBTAIL
+  // Appliquer : dernier actif → _BOBTAIL, les autres → retirer _BOBTAIL
   if(_BOBTAIL){
     const _allIdx = [...SLOTS.map(s=>s.idx), ...Object.keys(rows).map(Number).filter(i=>i>=10)];
     _allIdx.forEach(i => {
       if(!rows[i]) rows[i]={slot_index:i};
       if(i === _idxDernierActif){
-        // Appliquer BOBTAIL seulement si pas encore sauvegardé en DB (pas d'id ou destination null)
-        if(!rows[i].id || rows[i].destination === null || rows[i].destination === undefined){
+        // C'est le dernier camion actif → appliquer BOBTAIL
+        // Vérifier si la destination n'est pas déjà BOBTAIL ou si elle a été modifiée manuellement
+        // On applique BOBTAIL seulement si pas déjà sauvegardé avec une autre valeur
+        const hasManualDest = rows[i].id && rows[i].destination !== null && rows[i].destination !== undefined && rows[i].destination !== _BOBTAIL && rows[i].destination !== '';
+        if(!hasManualDest){
           rows[i].destination = _BOBTAIL;
-          // Vider num_depart et chargement quand BOBTAIL est appliqué automatiquement
+          // Vider num_depart et chargement quand BOBTAIL est appliqué
           rows[i].num_depart = '';
           rows[i].chargement = '';
         }
       } else {
-        // Vider si c'est encore la valeur par défaut et pas sauvegardée
-        if((!rows[i].id || rows[i].destination === null || rows[i].destination === undefined) && rows[i].destination === _BOBTAIL){
+        // Ce n'est PAS le dernier camion actif → retirer BOBTAIL si présent
+        if(rows[i].destination === _BOBTAIL){
           rows[i].destination = '';
         }
       }
