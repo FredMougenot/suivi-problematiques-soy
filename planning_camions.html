@@ -1672,10 +1672,16 @@ function updDestSel(sel){
   // Vérifier si on était déjà en mode BOBTAIL avant ce changement
   const wasBobt = numDep?.disabled === true;
   
-  if(isBobt && !wasBobt){
-    // Passage vers BOBTAIL : sauvegarder et vider
-    if(numDep){ numDep.dataset.savedVal=numDep.value; numDep.value=''; numDep.disabled=true; numDep.style.opacity='.3'; }
-    if(chargSel){ chargSel.dataset.savedVal=chargSel.value; chargSel.value=''; chargSel.disabled=true; chargSel.style.opacity='.3'; }
+  if(isBobt){
+    // Passage vers BOBTAIL ou déjà en BOBTAIL
+    if(!wasBobt){
+      // Sauvegarder les valeurs actuelles seulement si on n'était pas déjà en BOBTAIL
+      if(numDep){ numDep.dataset.savedVal=numDep.value; }
+      if(chargSel){ chargSel.dataset.savedVal=chargSel.value; }
+    }
+    // Vider et bloquer les champs
+    if(numDep){ numDep.value=''; numDep.disabled=true; numDep.style.opacity='.3'; }
+    if(chargSel){ chargSel.value=''; chargSel.disabled=true; chargSel.style.opacity='.3'; }
     // Mettre à jour les données en mémoire
     const idx = parseInt(tr.id.replace('tr',''));
     if(!isNaN(idx)){
@@ -1683,7 +1689,7 @@ function updDestSel(sel){
       rows[idx].num_depart='';
       rows[idx].chargement='';
     }
-  } else if(!isBobt && wasBobt){
+  } else if(wasBobt){
     // Passage depuis BOBTAIL vers autre destination : restaurer
     if(numDep){ numDep.value=numDep.dataset.savedVal||''; numDep.disabled=false; numDep.style.opacity=''; delete numDep.dataset.savedVal; }
     if(chargSel){ chargSel.value=chargSel.dataset.savedVal||''; chargSel.disabled=false; chargSel.style.opacity=''; delete chargSel.dataset.savedVal; }
@@ -1695,7 +1701,7 @@ function updDestSel(sel){
       rows[idx].chargement=chargSel?.value||'';
     }
   }
-  // Si on reste en mode BOBTAIL ou si on change entre deux destinations non-BOBTAIL, ne rien faire
+  // Si on change entre deux destinations non-BOBTAIL, ne rien faire
 }
 function updStatutLigne(sel){
   const st = getParamStyle('statut_ligne', sel.value);
