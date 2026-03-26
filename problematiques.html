@@ -898,7 +898,7 @@ body { font-size: 0.9375rem; }
         <option value="">Tous les statuts</option>
         <option>À traiter</option><option>En cours</option><option>Résolu</option><option>Annulé</option><option>Clôturé</option>
       </select>
-      <select class="fsel" id="filter-priorite" onchange="filterTable()">
+      <select class="fsel" id="filter-priorite" onchange="filterTable()" style="display:none">
         <option value="">Toutes les priorités</option>
         <option>Critique</option><option>Haute</option><option>Moyenne</option><option>Basse</option>
       </select>
@@ -915,22 +915,22 @@ body { font-size: 0.9375rem; }
         <colgroup>
           <col style="width:52px">    <!-- ID -->
           <col style="display:none;width:0">  <!-- Pilier — masqué -->
-          <col style="width:120px">   <!-- Priorité -->
+          <col style="display:none;width:0">   <!-- Priorité — masqué -->
           <col style="width:115px">   <!-- Statut -->
           <col style="width:102px">   <!-- Soumis le -->
-          <col style="width:140px">   <!-- Intitulé -->
-          <col style="width:110px">   <!-- Cause -->
-          <col style="width:110px">   <!-- Action -->
-          <col style="width:110px">   <!-- Résultat -->
+          <col style="width:148px">   <!-- Intitulé -->
+          <col style="width:148px">   <!-- Cause -->
+          <col style="width:148px">   <!-- Action -->
+          <col style="width:148px">   <!-- Résultat -->
           <col style="width:130px">   <!-- Responsable -->
           <col style="width:130px">   <!-- Date prévue -->
           <col style="width:70px">    <!-- Retard -->
           <col style="width:140px">   <!-- Date résolue -->
           <col style="width:90px">    <!-- Actions admin -->
         </colgroup>
-        <!-- Total : 52+120+115+102+140+110+110+110+130+130+70+140+90 = 1419px -->
+        <!-- Total : 52+115+102+148+148+148+148+130+130+70+140+90 = 1421px (4 colonnes égales à 148px) -->
         <thead><tr>
-          <th>ID</th><th style="display:none">Pilier</th><th>Priorité</th><th>Statut</th>
+          <th>ID</th><th style="display:none">Pilier</th><th style="display:none">Priorité</th><th>Statut</th>
           <th>Soumis le</th><th>Intitulé</th><th>Cause</th><th>Action</th><th>Résultat</th>
           <th>Responsable</th><th>Date prévue</th><th>Retard</th><th>Date résolue</th>
           <th class="admin-only" style="display:none">Actions</th>
@@ -1170,7 +1170,7 @@ function renderTable(data){
     return `<tr>
       <td><span class="c-id">#${fmtId(p.id)}</span></td>
       <td style="display:none"><span class="badge bd">${esc(p.pilier||'')}</span></td>
-      <td>${bPrio(p.priorite)}</td>
+      <td style="display:none">${bPrio(p.priorite)}</td>
       <td>${bStat(p.statut)}</td>
       <td style="font-size:.78rem;color:var(--text-secondary);white-space:nowrap">${fmtDate(p.created_at)}</td>
       <td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,65))}${(p.description||'').length>65?'...':''}</small></div></td>
