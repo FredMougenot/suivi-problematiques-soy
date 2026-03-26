@@ -916,23 +916,23 @@ body { font-size: 0.9375rem; }
           <col style="width:52px">    <!-- ID -->
           <col style="display:none;width:0">  <!-- Pilier — masqué -->
           <col style="display:none;width:0">   <!-- Priorité — masqué -->
-          <col style="width:115px">   <!-- Statut -->
-          <col style="width:102px">   <!-- Soumis le -->
-          <col style="width:148px">   <!-- Intitulé -->
-          <col style="width:148px">   <!-- Cause -->
-          <col style="width:148px">   <!-- Action -->
-          <col style="width:148px">   <!-- Résultat -->
-          <col style="width:130px">   <!-- Responsable -->
+          <col style="width:95px">    <!-- Statut (115 → 95, -20px) -->
+          <col style="width:90px">    <!-- Soumis le (102 → 90, -12px) -->
+          <col style="width:169px">   <!-- Intitulé (148 + 21) -->
+          <col style="width:169px">   <!-- Cause (148 + 21) -->
+          <col style="width:168px">   <!-- Action (148 + 20) -->
+          <col style="width:168px">   <!-- Résultat (148 + 20) -->
+          <col style="width:80px">    <!-- Responsable → RESP. (130 → 80, -50px) -->
           <col style="width:130px">   <!-- Date prévue -->
           <col style="width:70px">    <!-- Retard -->
           <col style="width:140px">   <!-- Date résolue -->
           <col style="width:90px">    <!-- Actions admin -->
         </colgroup>
-        <!-- Total : 52+115+102+148+148+148+148+130+130+70+140+90 = 1421px (4 colonnes égales à 148px) -->
+        <!-- Total : 52+95+90+169+169+168+168+80+130+70+140+90 = 1421px (82px gagnés répartis: 21+21+20+20) -->
         <thead><tr>
           <th>ID</th><th style="display:none">Pilier</th><th style="display:none">Priorité</th><th>Statut</th>
           <th>Soumis le</th><th>Intitulé</th><th>Cause</th><th>Action</th><th>Résultat</th>
-          <th>Responsable</th><th>Date prévue</th><th>Retard</th><th>Date résolue</th>
+          <th>RESP.</th><th>Date prévue</th><th>Retard</th><th>Date résolue</th>
           <th class="admin-only" style="display:none">Actions</th>
         </tr></thead>
         <tbody id="prob-tbody"></tbody>
@@ -1177,7 +1177,17 @@ function renderTable(data){
       <td>${cause}</td>
       <td>${action}</td>
       <td>${resultat}</td>
-      <td style="font-size:.82rem;color:var(--text-secondary);white-space:nowrap">${esc(p.responsable||'')}</td>
+      <td style="font-size:.75rem;color:var(--text-secondary);line-height:1.3;white-space:normal;">${
+        (() => {
+          if(!p.responsable) return '<span style="color:var(--text-faint)">—</span>';
+          const parts = p.responsable.trim().split(/\s+/);
+          if(parts.length === 1) return esc(parts[0]);
+          // Premier mot = prénom, le reste = nom (sur ligne suivante)
+          const prenom = parts[0];
+          const nom = parts.slice(1).join(' ');
+          return `${esc(prenom)}<br>${esc(nom)}`;
+        })()
+      }</td>
       <td>${datePrevue}</td>
       <td style="text-align:center">${retardCell}</td>
       <td>${dateResolue}</td>
