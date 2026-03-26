@@ -857,6 +857,9 @@ function render(){
         // Appliquer BOBTAIL seulement si pas encore sauvegardé en DB (pas d'id ou destination null)
         if(!rows[i].id || rows[i].destination === null || rows[i].destination === undefined){
           rows[i].destination = _BOBTAIL;
+          // Vider num_depart et chargement quand BOBTAIL est appliqué automatiquement
+          rows[i].num_depart = '';
+          rows[i].chargement = '';
         }
       } else {
         // Vider si c'est encore la valeur par défaut et pas sauvegardée
@@ -1115,7 +1118,15 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
         <option value="">—</option>${opts}</select>`;
     })()}</td>
 
-    <td><input class="ci" style="max-width:95px" value="${esc(r.num_depart||'')}" placeholder="N° départ" oninput="fchg(${idx},'num_depart',this.value)"></td>
+    <td>${(()=>{
+      // Vérifier si la destination actuelle est BOBTAIL (param #6)
+      const _dstP = _params['destination']||[];
+      const _vBobt = _dstP[5]?.valeur||'';
+      const isBobt = _vBobt && r.destination === _vBobt;
+      const disabledAttr = isBobt ? ' disabled' : '';
+      const opacityStyle = isBobt ? 'opacity:.3;' : '';
+      return `<input class="ci" style="max-width:95px;${opacityStyle}" value="${esc(r.num_depart||'')}" placeholder="N° départ" oninput="fchg(${idx},'num_depart',this.value)"${disabledAttr}>`;
+    })()}</td>
 
     <td>${(()=>{
       const items=_params['chargement']||[];
@@ -1125,8 +1136,14 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
         ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
         : `<option${cur==='ATTENTE'?' selected':''}>ATTENTE</option><option${cur==='PRÊTE'?' selected':''}>PRÊTE</option><option${cur==='EN CHARGEMENT'?' selected':''}>EN CHARGEMENT</option>`;
       const bgCH=getBgStyle('chargement',cur);
+      // Vérifier si la destination actuelle est BOBTAIL (param #6)
+      const _dstP = _params['destination']||[];
+      const _vBobt = _dstP[5]?.valeur||'';
+      const isBobt = _vBobt && r.destination === _vBobt;
+      const disabledAttr = isBobt ? ' disabled' : '';
+      const opacityStyle = isBobt ? 'opacity:.3;' : '';
       return `<span class="statut-badge" style="${bgCH}">
-        <select class="cs statut-sel" style="min-width:135px;${st}" onchange="fchg(${idx},'chargement',this.value);updCharg(this)" data-cat="chargement">
+        <select class="cs statut-sel" style="min-width:135px;${opacityStyle}${st}" onchange="fchg(${idx},'chargement',this.value);updCharg(this)" data-cat="chargement"${disabledAttr}>
           <option value=""${!cur?' selected':''}>—</option>${opts}</select>
       </span>`;
     })()}</td>
