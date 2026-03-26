@@ -1164,16 +1164,16 @@ function renderTable(data){
         retardCell = `<span style="font-size:.78rem;font-weight:700;color:var(--ruby);white-space:nowrap;">+${diffJ}j</span>`;
       }
     }
-    const cause = p.cause ? `<div style="font-size:.8rem;color:var(--text-secondary);white-space:normal;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:unset;">${esc(p.cause)}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
-    const action = p.action ? `<div style="font-size:.8rem;color:var(--text-secondary);white-space:normal;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:unset;">${esc(p.action)}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
-    const resultat = p.resultat ? `<div style="font-size:.8rem;color:var(--text-secondary);white-space:normal;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:unset;">${esc(p.resultat)}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+    const cause = p.cause ? `<div style="font-size:.8rem;color:var(--text-secondary);line-height:1.3;max-height:4em;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;">${esc(p.cause)}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+    const action = p.action ? `<div style="font-size:.8rem;color:var(--text-secondary);line-height:1.3;max-height:4em;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;">${esc(p.action)}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+    const resultat = p.resultat ? `<div style="font-size:.8rem;color:var(--text-secondary);line-height:1.3;max-height:4em;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;">${esc(p.resultat)}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
     return `<tr>
       <td><span class="c-id">#${fmtId(p.id)}</span></td>
       <td style="display:none"><span class="badge bd">${esc(p.pilier||'')}</span></td>
       <td style="display:none">${bPrio(p.priorite)}</td>
       <td>${bStat(p.statut)}</td>
       <td style="font-size:.78rem;color:var(--text-secondary);white-space:nowrap">${fmtDate(p.created_at)}</td>
-      <td><div class="c-title">${esc(p.intitule)}<small>${esc((p.description||'').substring(0,65))}${(p.description||'').length>65?'...':''}</small></div></td>
+      <td><div class="c-title" style="line-height:1.3;max-height:4em;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;">${esc(p.intitule)}<small style="display:block;margin-top:2px;line-height:1.4;max-height:2.8em;overflow:hidden;text-overflow:ellipsis;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${esc(p.description||'')}</small></div></td>
       <td>${cause}</td>
       <td>${action}</td>
       <td>${resultat}</td>
