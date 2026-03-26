@@ -848,19 +848,25 @@ function render(){
     if(_isActifOuNL(stEff, _rVActif, _rVInactif)){ _idxDernierActif = s.idx; break; }
   }
   window._renderIdxDernierActif = _idxDernierActif;
-  // Appliquer : dernier actif → _BOBTAIL, les autres → vide si _BOBTAIL
+  // Appliquer : dernier actif → _BOBTAIL, les autres → retirer _BOBTAIL
   if(_BOBTAIL){
     const _allIdx = [...SLOTS.map(s=>s.idx), ...Object.keys(rows).map(Number).filter(i=>i>=10)];
     _allIdx.forEach(i => {
       if(!rows[i]) rows[i]={slot_index:i};
       if(i === _idxDernierActif){
-        // Appliquer BOBTAIL seulement si pas encore sauvegardé en DB (pas d'id ou destination null)
-        if(!rows[i].id || rows[i].destination === null || rows[i].destination === undefined){
+        // C'est le dernier camion actif → appliquer BOBTAIL
+        // Vérifier si la destination n'est pas déjà BOBTAIL ou si elle a été modifiée manuellement
+        // On applique BOBTAIL seulement si pas déjà sauvegardé avec une autre valeur
+        const hasManualDest = rows[i].id && rows[i].destination !== null && rows[i].destination !== undefined && rows[i].destination !== _BOBTAIL && rows[i].destination !== '';
+        if(!hasManualDest){
           rows[i].destination = _BOBTAIL;
+          // Vider num_depart et chargement quand BOBTAIL est appliqué
+          rows[i].num_depart = '';
+          rows[i].chargement = '';
         }
       } else {
-        // Vider si c'est encore la valeur par défaut et pas sauvegardée
-        if((!rows[i].id || rows[i].destination === null || rows[i].destination === undefined) && rows[i].destination === _BOBTAIL){
+        // Ce n'est PAS le dernier camion actif → retirer BOBTAIL si présent
+        if(rows[i].destination === _BOBTAIL){
           rows[i].destination = '';
         }
       }
@@ -1115,7 +1121,15 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
         <option value="">—</option>${opts}</select>`;
     })()}</td>
 
-    <td><input class="ci" style="max-width:95px" value="${esc(r.num_depart||'')}" placeholder="N° départ" oninput="fchg(${idx},'num_depart',this.value)"></td>
+    <td>${(()=>{
+      // Vérifier si la destination actuelle est BOBTAIL (param #6)
+      const _dstP = _params['destination']||[];
+      const _vBobt = _dstP[5]?.valeur||'';
+      const isBobt = _vBobt && r.destination === _vBobt;
+      const disabledAttr = isBobt ? ' disabled' : '';
+      const opacityStyle = isBobt ? 'opacity:.3;' : '';
+      return `<input class="ci" style="max-width:95px;${opacityStyle}" value="${esc(r.num_depart||'')}" placeholder="N° départ" oninput="fchg(${idx},'num_depart',this.value)"${disabledAttr}>`;
+    })()}</td>
 
     <td>${(()=>{
       const items=_params['chargement']||[];
@@ -1125,8 +1139,14 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
         ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
         : `<option${cur==='ATTENTE'?' selected':''}>ATTENTE</option><option${cur==='PRÊTE'?' selected':''}>PRÊTE</option><option${cur==='EN CHARGEMENT'?' selected':''}>EN CHARGEMENT</option>`;
       const bgCH=getBgStyle('chargement',cur);
+      // Vérifier si la destination actuelle est BOBTAIL (param #6)
+      const _dstP = _params['destination']||[];
+      const _vBobt = _dstP[5]?.valeur||'';
+      const isBobt = _vBobt && r.destination === _vBobt;
+      const disabledAttr = isBobt ? ' disabled' : '';
+      const opacityStyle = isBobt ? 'opacity:.3;' : '';
       return `<span class="statut-badge" style="${bgCH}">
-        <select class="cs statut-sel" style="min-width:135px;${st}" onchange="fchg(${idx},'chargement',this.value);updCharg(this)" data-cat="chargement">
+        <select class="cs statut-sel" style="min-width:135px;${opacityStyle}${st}" onchange="fchg(${idx},'chargement',this.value);updCharg(this)" data-cat="chargement"${disabledAttr}>
           <option value=""${!cur?' selected':''}>—</option>${opts}</select>
       </span>`;
     })()}</td>
@@ -1668,9 +1688,20 @@ function updDestSel(sel){
   if(!tr) return;
   const numDep  = tr.querySelector('input.ci[placeholder*="part"]');
   const chargSel = tr.querySelector('select.cs[data-cat="chargement"]');
+  
+  // Vérifier si on était déjà en mode BOBTAIL avant ce changement
+  const wasBobt = numDep?.disabled === true;
+  
   if(isBobt){
-    if(numDep){ numDep.dataset.savedVal=numDep.value; numDep.value=''; numDep.disabled=true; numDep.style.opacity='.3'; }
-    if(chargSel){ chargSel.dataset.savedVal=chargSel.value; chargSel.value=''; chargSel.disabled=true; chargSel.style.opacity='.3'; }
+    // Passage vers BOBTAIL ou déjà en BOBTAIL
+    if(!wasBobt){
+      // Sauvegarder les valeurs actuelles seulement si on n'était pas déjà en BOBTAIL
+      if(numDep){ numDep.dataset.savedVal=numDep.value; }
+      if(chargSel){ chargSel.dataset.savedVal=chargSel.value; }
+    }
+    // Vider et bloquer les champs
+    if(numDep){ numDep.value=''; numDep.disabled=true; numDep.style.opacity='.3'; }
+    if(chargSel){ chargSel.value=''; chargSel.disabled=true; chargSel.style.opacity='.3'; }
     // Mettre à jour les données en mémoire
     const idx = parseInt(tr.id.replace('tr',''));
     if(!isNaN(idx)){
@@ -1678,10 +1709,19 @@ function updDestSel(sel){
       rows[idx].num_depart='';
       rows[idx].chargement='';
     }
-  } else {
-    if(numDep){ numDep.value=numDep.dataset.savedVal||''; numDep.disabled=false; numDep.style.opacity=''; }
-    if(chargSel){ chargSel.value=chargSel.dataset.savedVal||''; chargSel.disabled=false; chargSel.style.opacity=''; }
+  } else if(wasBobt){
+    // Passage depuis BOBTAIL vers autre destination : restaurer
+    if(numDep){ numDep.value=numDep.dataset.savedVal||''; numDep.disabled=false; numDep.style.opacity=''; delete numDep.dataset.savedVal; }
+    if(chargSel){ chargSel.value=chargSel.dataset.savedVal||''; chargSel.disabled=false; chargSel.style.opacity=''; delete chargSel.dataset.savedVal; }
+    // Mettre à jour les données en mémoire avec les valeurs restaurées
+    const idx = parseInt(tr.id.replace('tr',''));
+    if(!isNaN(idx)){
+      if(!rows[idx]) rows[idx]={slot_index:idx};
+      rows[idx].num_depart=numDep?.value||'';
+      rows[idx].chargement=chargSel?.value||'';
+    }
   }
+  // Si on change entre deux destinations non-BOBTAIL, ne rien faire
 }
 function updStatutLigne(sel){
   const st = getParamStyle('statut_ligne', sel.value);
