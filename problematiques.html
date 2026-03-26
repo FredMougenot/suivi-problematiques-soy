@@ -1903,25 +1903,25 @@ async function exportPDF() {
     } else {
       // ── Calcul des largeurs PDF ──
       // Masquer Priorité, réduire Statut et RESP., agrandir les 4 colonnes texte
-      // Statut: 15mm (au lieu de 18) | RESP.: 12mm (au lieu de 24)
-      // ID: 13mm | Soumis: 22mm | Date prévue: 22mm | Retard: 12mm | Date résolue: 22mm
-      // Fixes total : 13+15+22+12+22+12+22 = 118mm
-      // Reste pour 4 colonnes texte : (W - 2*M - 118) / 4 = ~40mm chacune
-      const fixedW = 13 + 15 + 22 + 12 + 22 + 12 + 22; // = 118mm (sans Priorité)
-      const textW  = Math.floor((W - 2*M - fixedW) / 4); // ≈ 40mm
+      // ID: 10mm | Statut: 15mm | Soumis: 18mm | RESP.: 15mm
+      // Date prévue: 20mm | Retard: 12mm | Date résolue: 20mm
+      // Fixes total : 10+15+18+15+20+12+20 = 110mm
+      // Reste pour 4 colonnes texte : (W - 2*M - 110) / 4 = ~42mm chacune
+      const fixedW = 10 + 15 + 18 + 15 + 20 + 12 + 20; // = 110mm
+      const textW  = Math.floor((W - 2*M - fixedW) / 4); // ≈ 42mm
 
       const cols = [
-        { key: 0,  label: 'ID',           w: 13,    isText: false },
+        { key: 0,  label: 'ID',           w: 10,    isText: false },
         { key: 3,  label: 'Statut',        w: 15,    isText: false },
-        { key: 4,  label: 'Soumis le',     w: 22,    isText: false },
-        { key: 5,  label: 'Intitulé',      w: textW, isText: true  },
+        { key: 4,  label: 'Soumis le',     w: 18,    isText: false },
+        { key: 5,  label: 'Intitulé',      w: textW, isText: true, isIntitule: true  },
         { key: 6,  label: 'Cause',         w: textW, isText: true  },
         { key: 7,  label: 'Action',        w: textW, isText: true  },
         { key: 8,  label: 'Résultat',      w: textW, isText: true  },
-        { key: 9,  label: 'RESP.',         w: 12,    isText: false, isResp: true },
-        { key: 10, label: 'Date prévue',   w: 22,    isText: false },
+        { key: 9,  label: 'RESP.',         w: 15,    isText: false, isResp: true },
+        { key: 10, label: 'Date prévue',   w: 20,    isText: false },
         { key: 11, label: 'Retard',        w: 12,    isText: false, isRetard: true },
-        { key: 12, label: 'Date résolue',  w: 22,    isText: false },
+        { key: 12, label: 'Date résolue',  w: 20,    isText: false },
       ];
 
       const rowH   = 9;
@@ -1992,7 +1992,7 @@ async function exportPDF() {
           if (!col.isText) return;
           const td = tds[col.key];
           
-          if (col.key === 5) {
+          if (col.isIntitule) {
             // Colonne Intitulé : calculer titre + description séparément
             const intituleDiv = td?.querySelector('div > span:first-child');
             const descSpan = td?.querySelector('div > span:last-child');
@@ -2065,26 +2065,31 @@ async function exportPDF() {
 
           if (col.isText) {
             // Texte multi-lignes
-            if (col.key === 5) {
+            if (col.isIntitule) {
               // Colonne Intitulé : titre en gras, description en normal
               const intituleDiv = td?.querySelector('div > span:first-child');
               const descSpan = td?.querySelector('div > span:last-child');
               const titre = intituleDiv?.textContent.trim() || '';
               const desc = descSpan?.textContent.trim() || '';
               
+              let yOffset = y + padV + 3.5;
+              
               // Titre en gras
-              pdf.setFont('helvetica', 'bold');
-              const titreLines = splitLines(titre, col.w);
-              titreLines.forEach((line, li) => {
-                pdf.text(line, x + 2, y + padV + 3.5 + li * lineH);
-              });
+              if (titre) {
+                pdf.setFont('helvetica', 'bold');
+                const titreLines = splitLines(titre, col.w);
+                titreLines.forEach((line, li) => {
+                  pdf.text(line, x + 2, yOffset + li * lineH);
+                });
+                yOffset += titreLines.length * lineH;
+              }
               
               // Description en normal (si présente)
               if (desc) {
                 pdf.setFont('helvetica', 'normal');
                 const descLines = splitLines(desc, col.w);
                 descLines.forEach((line, li) => {
-                  pdf.text(line, x + 2, y + padV + 3.5 + (titreLines.length + li) * lineH);
+                  pdf.text(line, x + 2, yOffset + li * lineH);
                 });
               }
             } else {
@@ -2104,9 +2109,19 @@ async function exportPDF() {
               } else {
                 const prenom = parts[0];
                 const nom = parts.slice(1).join(' ');
-                pdf.setFontSize(6.5);
-                pdf.text(prenom, x + 2, y + dynRowH / 2 - 0.5);
-                pdf.text(nom, x + 2, y + dynRowH / 2 + 2.5);
+                pdf.setFontSize(6);
+                // Tronquer si nécessaire
+                let prenomDisplay = prenom;
+                let nomDisplay = nom;
+                const maxW = col.w - 4;
+                while (prenomDisplay.length > 1 && pdf.getTextWidth(prenomDisplay) > maxW) {
+                  prenomDisplay = prenomDisplay.slice(0, -1);
+                }
+                while (nomDisplay.length > 1 && pdf.getTextWidth(nomDisplay) > maxW) {
+                  nomDisplay = nomDisplay.slice(0, -1);
+                }
+                pdf.text(prenomDisplay, x + 2, y + dynRowH / 2);
+                pdf.text(nomDisplay, x + 2, y + dynRowH / 2 + 3);
                 pdf.setFontSize(7);
               }
             } else {
