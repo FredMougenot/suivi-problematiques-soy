@@ -1902,24 +1902,23 @@ async function exportPDF() {
       pdf.text('Aucune problématique à afficher.', M, y + 8);
     } else {
       // ── Calcul des largeurs PDF ──
-      // Font-size:7 helvetica normal ≈ 1.5mm/char, bold ≈ 1.85mm/char. Padding: 2mm/côté.
-      // ID: 13mm | Priorité: 15mm | Statut: 18mm | Soumis: 22mm
-      // Responsable: 24mm | Date prévue: 22mm | Retard "+99j": 12mm | Date résolue: 22mm
-      // Fixes total : 13+15+18+22+24+22+12+22 = 148mm
-      // Reste pour 4 colonnes texte : (277 - 148) / 4 = ~32mm chacune
-      const fixedW = 13 + 15 + 18 + 22 + 24 + 22 + 12 + 22; // = 148mm
-      const textW  = Math.floor((W - 2*M - fixedW) / 4); // ≈ 32mm
+      // Masquer Priorité, réduire Statut et RESP., agrandir les 4 colonnes texte
+      // Statut: 15mm (au lieu de 18) | RESP.: 12mm (au lieu de 24)
+      // ID: 13mm | Soumis: 22mm | Date prévue: 22mm | Retard: 12mm | Date résolue: 22mm
+      // Fixes total : 13+15+22+12+22+12+22 = 118mm
+      // Reste pour 4 colonnes texte : (W - 2*M - 118) / 4 = ~40mm chacune
+      const fixedW = 13 + 15 + 22 + 12 + 22 + 12 + 22; // = 118mm (sans Priorité)
+      const textW  = Math.floor((W - 2*M - fixedW) / 4); // ≈ 40mm
 
       const cols = [
         { key: 0,  label: 'ID',           w: 13,    isText: false },
-        { key: 2,  label: 'Priorité',      w: 15,    isText: false },
-        { key: 3,  label: 'Statut',        w: 18,    isText: false },
+        { key: 3,  label: 'Statut',        w: 15,    isText: false },
         { key: 4,  label: 'Soumis le',     w: 22,    isText: false },
         { key: 5,  label: 'Intitulé',      w: textW, isText: true  },
         { key: 6,  label: 'Cause',         w: textW, isText: true  },
         { key: 7,  label: 'Action',        w: textW, isText: true  },
         { key: 8,  label: 'Résultat',      w: textW, isText: true  },
-        { key: 9,  label: 'Responsable',   w: 24,    isText: false },
+        { key: 9,  label: 'RESP.',         w: 12,    isText: false, isResp: true },
         { key: 10, label: 'Date prévue',   w: 22,    isText: false },
         { key: 11, label: 'Retard',        w: 12,    isText: false, isRetard: true },
         { key: 12, label: 'Date résolue',  w: 22,    isText: false },
@@ -1992,10 +1991,29 @@ async function exportPDF() {
         cols.forEach(col => {
           if (!col.isText) return;
           const td = tds[col.key];
-          const raw = td ? td.textContent.trim().replace(/\s+/g, ' ') : '';
-          const lines = splitLines(raw || '—', col.w);
-          wrappedLines[col.key] = lines;
-          if (lines.length > maxLines) maxLines = lines.length;
+          
+          if (col.key === 5) {
+            // Colonne Intitulé : calculer titre + description séparément
+            const intituleDiv = td?.querySelector('div > span:first-child');
+            const descSpan = td?.querySelector('div > span:last-child');
+            const titre = intituleDiv?.textContent.trim() || '';
+            const desc = descSpan?.textContent.trim() || '';
+            
+            pdf.setFont('helvetica', 'bold');
+            const titreLines = splitLines(titre || '—', col.w);
+            pdf.setFont('helvetica', 'normal');
+            const descLines = desc ? splitLines(desc, col.w) : [];
+            
+            const totalLines = titreLines.length + descLines.length;
+            wrappedLines[col.key] = [...titreLines, ...descLines];
+            if (totalLines > maxLines) maxLines = totalLines;
+          } else {
+            // Autres colonnes texte (Cause, Action, Résultat)
+            const raw = td ? td.textContent.trim().replace(/\s+/g, ' ') : '';
+            const lines = splitLines(raw || '—', col.w);
+            wrappedLines[col.key] = lines;
+            if (lines.length > maxLines) maxLines = lines.length;
+          }
         });
 
         const dynRowH = maxLines * lineH + padV * 2;
@@ -2038,12 +2056,6 @@ async function exportPDF() {
             else if (t.includes('cours'))   pdf.setTextColor(...C.amber);
             else if (t.includes('résolu'))  pdf.setTextColor(...C.emerald);
             else                            pdf.setTextColor(...C.grey);
-          } else if (col.key === 2) {
-            const t = raw.toLowerCase();
-            if (t.includes('critique'))     pdf.setTextColor(...C.ruby);
-            else if (t.includes('haute'))   pdf.setTextColor(...C.amber);
-            else if (t.includes('moyenne')) pdf.setTextColor(...C.sapphire);
-            else                            pdf.setTextColor(...C.emerald);
           } else if (col.key === 0) {
             pdf.setTextColor(...C.copper);
             pdf.setFont('helvetica', 'bold');
@@ -2053,10 +2065,53 @@ async function exportPDF() {
 
           if (col.isText) {
             // Texte multi-lignes
-            const lines = wrappedLines[col.key] || ['—'];
-            lines.forEach((line, li) => {
-              pdf.text(line, x + 2, y + padV + 3.5 + li * lineH);
-            });
+            if (col.key === 5) {
+              // Colonne Intitulé : titre en gras, description en normal
+              const intituleDiv = td?.querySelector('div > span:first-child');
+              const descSpan = td?.querySelector('div > span:last-child');
+              const titre = intituleDiv?.textContent.trim() || '';
+              const desc = descSpan?.textContent.trim() || '';
+              
+              // Titre en gras
+              pdf.setFont('helvetica', 'bold');
+              const titreLines = splitLines(titre, col.w);
+              titreLines.forEach((line, li) => {
+                pdf.text(line, x + 2, y + padV + 3.5 + li * lineH);
+              });
+              
+              // Description en normal (si présente)
+              if (desc) {
+                pdf.setFont('helvetica', 'normal');
+                const descLines = splitLines(desc, col.w);
+                descLines.forEach((line, li) => {
+                  pdf.text(line, x + 2, y + padV + 3.5 + (titreLines.length + li) * lineH);
+                });
+              }
+            } else {
+              // Autres colonnes texte (Cause, Action, Résultat)
+              const lines = wrappedLines[col.key] || ['—'];
+              lines.forEach((line, li) => {
+                pdf.text(line, x + 2, y + padV + 3.5 + li * lineH);
+              });
+            }
+          } else if (col.isResp) {
+            // RESP. : prénom et nom sur 2 lignes
+            const resp = raw || '—';
+            if (resp !== '—') {
+              const parts = resp.trim().split(/\s+/);
+              if (parts.length === 1) {
+                pdf.text(parts[0], x + 2, y + dynRowH / 2 + 2);
+              } else {
+                const prenom = parts[0];
+                const nom = parts.slice(1).join(' ');
+                pdf.setFontSize(6.5);
+                pdf.text(prenom, x + 2, y + dynRowH / 2 - 0.5);
+                pdf.text(nom, x + 2, y + dynRowH / 2 + 2.5);
+                pdf.setFontSize(7);
+              }
+            } else {
+              pdf.text('—', x + 2, y + dynRowH / 2 + 2);
+            }
           } else {
             // Texte simple sur une ligne, tronqué si nécessaire
             const maxW = col.w - 4;
