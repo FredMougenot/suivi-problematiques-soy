@@ -837,10 +837,22 @@ function render(){
   // ── Règle destination départ : dernier slot actif → param #6, autres → vide si = param #6 ──
   const _dstParams = _params['destination']||[];
   const _BOBTAIL = _dstParams[5]?.valeur||''; // valeur #6
-  // Calculer le dernier actif (tous les jours)
+  // Calculer le dernier actif (tous les jours) - INCLURE LES EXTRAS
   const _rVInactif = _rSlParams[1]?.valeur||'INACTIF';
   let _idxDernierActif = null;
-  for(const s of [..._rSlotsTries].reverse()){
+  
+  // Construire la liste complète : slots fixes + extras, triés par heure
+  const _allSlotsForLast = [];
+  SLOTS.forEach(s => _allSlotsForLast.push({idx: s.idx, h: s.h}));
+  Object.keys(rows).map(Number).filter(i => i >= 10).forEach(i => {
+    const r = rows[i];
+    _allSlotsForLast.push({idx: i, h: r.heure_planif || '00:00'});
+  });
+  // Trier par heure, puis par idx
+  _allSlotsForLast.sort((a, b) => a.h < b.h ? -1 : a.h > b.h ? 1 : a.idx - b.idx);
+  
+  // Parcourir en ordre inverse pour trouver le dernier actif
+  for(const s of [..._allSlotsForLast].reverse()){
     const dbSt = (rows[s.idx]||{}).statut_ligne;
     // Calculer le statut effectif (meme logique que buildRow)
     const _wkI = [0,1,7,8,9];
