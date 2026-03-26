@@ -1164,9 +1164,9 @@ function renderTable(data){
         retardCell = `<span style="font-size:.78rem;font-weight:700;color:var(--ruby);white-space:nowrap;">+${diffJ}j</span>`;
       }
     }
-    const cause = p.cause ? `<div style="font-size:.8rem;color:var(--text-secondary);white-space:normal">${esc(p.cause.substring(0,80))}${p.cause.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
-    const action = p.action ? `<div style="font-size:.8rem;color:var(--text-secondary);white-space:normal">${esc(p.action.substring(0,80))}${p.action.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
-    const resultat = p.resultat ? `<div style="font-size:.8rem;color:var(--text-secondary);white-space:normal">${esc(p.resultat.substring(0,80))}${p.resultat.length>80?'...':''}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+    const cause = p.cause ? `<div style="font-size:.8rem;color:var(--text-secondary);white-space:normal;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:unset;">${esc(p.cause)}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+    const action = p.action ? `<div style="font-size:.8rem;color:var(--text-secondary);white-space:normal;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:unset;">${esc(p.action)}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
+    const resultat = p.resultat ? `<div style="font-size:.8rem;color:var(--text-secondary);white-space:normal;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:unset;">${esc(p.resultat)}</div>` : '<span style="color:var(--text-faint);font-size:.75rem">—</span>';
     return `<tr>
       <td><span class="c-id">#${fmtId(p.id)}</span></td>
       <td style="display:none"><span class="badge bd">${esc(p.pilier||'')}</span></td>
