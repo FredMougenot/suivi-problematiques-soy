@@ -2110,30 +2110,49 @@ async function exportPDF() {
             }
           } else if (col.isResp) {
             // RESP. : prénom sur ligne 1, nom sur ligne 2
-            // Extraire depuis le HTML car textContent ne garde pas l'espace entre prénom et nom
-            const spans = td?.querySelectorAll('div > span');
+            // Le HTML contient soit : "Marcel<br>Tailleur" soit "<span>—</span>"
+            
             let prenom = '';
             let nom = '';
             
-            if (spans && spans.length > 0) {
-              const fullText = Array.from(spans).map(s => s.textContent.trim()).join(' ');
-              const parts = fullText.trim().split(/\s+/);
-              if (parts.length >= 2) {
-                prenom = parts[0];
-                nom = parts.slice(1).join(' ');
-              } else if (parts.length === 1) {
-                prenom = parts[0];
+            if (td) {
+              const htmlContent = td.innerHTML || '';
+              
+              // Cas 1: Contient <br> → séparer prénom et nom
+              if (htmlContent.includes('<br>')) {
+                // Split sur <br> (tolérant aux variations <br>, <br/>, <BR>)
+                const parts = htmlContent.split(/<br\s*\/?>/i);
+                if (parts.length >= 2) {
+                  // Nettoyer chaque partie (retirer balises HTML éventuelles)
+                  prenom = parts[0].replace(/<[^>]+>/g, '').trim();
+                  nom = parts[1].replace(/<[^>]+>/g, '').trim();
+                }
+              } else {
+                // Cas 2: Pas de <br> → soit "—" soit un seul nom
+                const cleanText = htmlContent.replace(/<[^>]+>/g, '').trim();
+                if (cleanText && cleanText !== '—') {
+                  // Essayer de séparer sur espace si possible
+                  const words = cleanText.split(/\s+/);
+                  if (words.length >= 2) {
+                    prenom = words[0];
+                    nom = words.slice(1).join(' ');
+                  } else {
+                    prenom = cleanText;
+                  }
+                }
               }
             }
             
+            // Affichage
             if (prenom || nom) {
               pdf.setFontSize(6.5);
               pdf.setFont('helvetica', 'normal');
               const maxW = col.w - 4;
               
               // Tronquer si nécessaire
-              let prenomDisplay = prenom;
-              let nomDisplay = nom;
+              let prenomDisplay = prenom || '';
+              let nomDisplay = nom || '';
+              
               while (prenomDisplay.length > 1 && pdf.getTextWidth(prenomDisplay) > maxW) {
                 prenomDisplay = prenomDisplay.slice(0, -1);
               }
@@ -2141,13 +2160,19 @@ async function exportPDF() {
                 nomDisplay = nomDisplay.slice(0, -1);
               }
               
-              // Afficher sur 2 lignes centrées verticalement
+              // Centrer verticalement
               const yCenter = y + dynRowH / 2;
-              if (prenomDisplay) pdf.text(prenomDisplay, x + 2, yCenter - 1);
-              if (nomDisplay) pdf.text(nomDisplay, x + 2, yCenter + 2);
+              if (prenomDisplay) {
+                pdf.text(prenomDisplay, x + 2, yCenter - 1);
+              }
+              if (nomDisplay) {
+                pdf.text(nomDisplay, x + 2, yCenter + 2);
+              }
               pdf.setFontSize(7);
             } else {
+              // Pas de responsable ou "—"
               pdf.setFontSize(7);
+              pdf.setFont('helvetica', 'normal');
               pdf.text('—', x + 2, y + dynRowH / 2 + 2);
             }
           } else {
