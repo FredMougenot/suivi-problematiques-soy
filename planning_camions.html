@@ -1412,14 +1412,24 @@ async function saveAll(){
   const allIdx=[...Object.keys(rows).map(Number), ...SLOTS.map(s=>s.idx)];
   const unique=[...new Set(allIdx)].sort((a,b)=>a-b);
   let errors=0;
+  // Calculer la logique weekend une seule fois pour saveAll
+  const _saIsWkEnd=(()=>{ const d=new Date(curDate+'T00:00:00').getDay(); return d===0||d===6; })();
+  const _saWkInactif=[0,1,7,8,9];
+  const _saSlParams=_params['statut_ligne']||[{valeur:'ACTIF'},{valeur:'INACTIF'}];
+  const _saVActif=_saSlParams[0]?.valeur||'ACTIF';
+  const _saVInactif=_saSlParams[1]?.valeur||'INACTIF';
   for(const idx of unique){
     const r=rows[idx];
     if(!r) continue; // ligne vide non modifiée
     const slot=SLOTS.find(s=>s.idx===idx);
+    // Calculer le statut effectif en respectant la logique weekend
+    const _saStatutEff = r.statut_ligne || (
+      (_saIsWkEnd && _saWkInactif.includes(idx)) ? _saVInactif : _saVActif
+    );
     const payload={
       date_jour:curDate, slot_index:idx,
       heure_planif:r.heure_planif||(slot?slot.h:'00:00'),
-      statut_ligne:r.statut_ligne||(_params['statut_ligne']||[{valeur:'Actif'}])[0].valeur,
+      statut_ligne:_saStatutEff,
       type_camion:(r.type_camion==='__VIDE__'?null:r.type_camion||null),
       num_arrivee:r.num_arrivee||null,
       num_depart:r.num_depart||null,
