@@ -591,7 +591,7 @@ const DESTS = ['GH','ADVANTECH','PROACTIVE','LJDERY','AUCUN REPARTIR BOBTAIL'];
 
 let curDate = todayStr();
 let rows = {};  // idx -> row object
-const _descManuallyChanged = new Set(); // idx des slots dont la description a été modifiée manuellement
+const _descManuallyChanged = new Set(); // slots dont la description a été modifiée manuellement
 
 // ── UTILS ──────────────────────────────────────────────────────────
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -906,7 +906,9 @@ function render(){
       const stEff=dbSt||(_rIsWkEnd&&_wkID.includes(i)?_rVInactifD:_rVActif);
       if(!_isActifOuNL(stEff, _rVActif, _rVInactifD)) return; // ignorer inactifs
 
-      // Ne pré-remplir description que si pas encore sauvegardée en DB ET non modifiée manuellement
+      // Ne pré-remplir description que si :
+      // 1) pas encore sauvegardée en DB, ET
+      // 2) pas modifiée manuellement par l'utilisateur dans cette session
       const hasSavedDesc = (rows[i].id && rows[i].description !== null && rows[i].description !== undefined)
                         || _descManuallyChanged.has(i);
       if(hasSavedDesc) return; // valeur saisie par l'utilisateur → ne pas écraser
@@ -1333,7 +1335,11 @@ function fchg(idx, field, val){
   if(!rows[idx]) rows[idx]={slot_index:idx};
   rows[idx][field]=val;
   if(field==='description'){
+    // Marquer comme modifié manuellement pour protéger contre render()
     _descManuallyChanged.add(idx);
+    // Sauvegarder immédiatement en DB pour persister même sans saveAll
+    saveRow(idx);
+    return;
   }
   if(field==='statut_ligne'){
     // Snapshot destinations avant render
