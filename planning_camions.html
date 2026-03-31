@@ -906,10 +906,10 @@ function render(){
       const stEff=dbSt||(_rIsWkEnd&&_wkID.includes(i)?_rVInactifD:_rVActif);
       if(!_isActifOuNL(stEff, _rVActif, _rVInactifD)) return; // ignorer inactifs
 
-      // Ne pré-remplir description que si :
-      // 1) pas encore sauvegardée en DB, ET
-      // 2) pas modifiée manuellement par l'utilisateur dans cette session
-      const hasSavedDesc = (rows[i].id && rows[i].description !== null && rows[i].description !== undefined)
+      // Ne pré-remplir description que si pas encore sauvegardée en DB ET pas modifiée manuellement
+      // __VIDE__ = sentinelle pour "volontairement vide" (Supabase stocke null pour "")
+      const _descInDB = rows[i].description;
+      const hasSavedDesc = (rows[i].id && (_descInDB !== null && _descInDB !== undefined))
                         || _descManuallyChanged.has(i);
       if(hasSavedDesc) return; // valeur saisie par l'utilisateur → ne pas écraser
 
@@ -1089,7 +1089,8 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
 
     <td>${(()=>{
       const items=_params['description']||[];
-      const cur=r.description||'';
+      // __VIDE__ = l'utilisateur a volontairement vidé ce champ → afficher comme vide
+      const cur = r.description === '__VIDE__' ? '' : (r.description||'');
       const st=getParamStyle('description',cur);
       const opts=items.length
         ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
@@ -1335,9 +1336,9 @@ function fchg(idx, field, val){
   if(!rows[idx]) rows[idx]={slot_index:idx};
   rows[idx][field]=val;
   if(field==='description'){
-    // Marquer comme modifié manuellement pour protéger contre render()
+    // Stocker __VIDE__ si l'utilisateur choisit volontairement le champ vide
+    rows[idx][field] = (val === '' || val === null) ? '__VIDE__' : val;
     _descManuallyChanged.add(idx);
-    // Sauvegarder immédiatement en DB pour persister même sans saveAll
     saveRow(idx);
     return;
   }
@@ -1447,7 +1448,7 @@ async function saveAll(){
       num_depart:r.num_depart||null,
       dest_arrivee:r.dest_arrivee||null,
       destination:r.destination||null,
-      description:r.description||null,
+      description: r.description || null,
       statut:r.statut||null,
       chargement:r.chargement||null,
       heure_reelle:r.heure_reelle||null,
@@ -1483,7 +1484,7 @@ async function saveRow(idx){
     num_depart:r.num_depart||null,
     dest_arrivee:r.dest_arrivee||null,
     destination:r.destination||null,
-    description:r.description||null,
+    description: r.description || null,
     statut:r.statut||null,
     chargement:r.chargement||null,
     heure_reelle:r.heure_reelle||null,
