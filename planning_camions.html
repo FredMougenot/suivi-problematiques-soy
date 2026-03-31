@@ -591,6 +591,7 @@ const DESTS = ['GH','ADVANTECH','PROACTIVE','LJDERY','AUCUN REPARTIR BOBTAIL'];
 
 let curDate = todayStr();
 let rows = {};  // idx -> row object
+const _descManuallyChanged = new Set(); // idx des slots dont la description a été modifiée manuellement
 
 // ── UTILS ──────────────────────────────────────────────────────────
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -781,6 +782,7 @@ async function load(){
   document.getElementById('spinner').style.display='flex';
   document.getElementById('tbl').style.display='none';
   rows={};
+  _descManuallyChanged.clear();
   try {
     const {data,error}=await sb.from('planning_camions').select('*')
       .eq('date_jour',curDate).order('slot_index');
@@ -904,8 +906,9 @@ function render(){
       const stEff=dbSt||(_rIsWkEnd&&_wkID.includes(i)?_rVInactifD:_rVActif);
       if(!_isActifOuNL(stEff, _rVActif, _rVInactifD)) return; // ignorer inactifs
 
-      // Ne pré-remplir description que si pas encore sauvegardée en DB
-      const hasSavedDesc = rows[i].id && rows[i].description !== null && rows[i].description !== undefined;
+      // Ne pré-remplir description que si pas encore sauvegardée en DB ET non modifiée manuellement
+      const hasSavedDesc = (rows[i].id && rows[i].description !== null && rows[i].description !== undefined)
+                        || _descManuallyChanged.has(i);
       if(hasSavedDesc) return; // valeur saisie par l'utilisateur → ne pas écraser
 
       if(_rIsWkEnd){
@@ -1329,6 +1332,9 @@ async function saveVerifState(idx, newState) {
 function fchg(idx, field, val){
   if(!rows[idx]) rows[idx]={slot_index:idx};
   rows[idx][field]=val;
+  if(field==='description'){
+    _descManuallyChanged.add(idx);
+  }
   if(field==='statut_ligne'){
     // Snapshot destinations avant render
     const _dBefore={};
