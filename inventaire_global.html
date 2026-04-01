@@ -58,6 +58,35 @@
 .global-layout{display:grid;grid-template-columns:180px 1fr;gap:0;min-height:60vh;}
 @media(max-width:900px){.global-layout{grid-template-columns:1fr;}}
 
+/* ── Flyout panel ── */
+.cat-flyout{position:fixed;left:0;top:0;width:260px;height:auto;max-height:90vh;
+  background:var(--bg-float);border:1px solid rgba(255,255,255,.08);
+  border-radius:0 12px 12px 0;box-shadow:8px 8px 40px rgba(0,0,0,.5);
+  z-index:49;padding:16px 0;
+  transform:translateX(calc(-100% - 20px));opacity:0;pointer-events:none;visibility:hidden;
+  transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .25s ease,visibility 0s linear .3s;
+  overflow-y:auto;}
+.cat-flyout.open{transform:translateX(0);opacity:1;pointer-events:all;visibility:visible;
+  transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .25s ease,visibility 0s linear 0s;}
+.cat-flyout-header{padding:0 16px 12px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:8px;}
+.cat-flyout-icon{font-size:1.6rem;margin-bottom:4px;}
+.cat-flyout-name{font-size:.9rem;font-weight:700;color:var(--text-primary);}
+.cat-flyout-count{font-size:.72rem;color:var(--text-faint);margin-top:2px;}
+.cat-flyout-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;
+  transition:background .12s;font-size:.8rem;color:var(--text-muted);border-left:2px solid transparent;}
+.cat-flyout-item:hover{background:rgba(255,255,255,.04);color:var(--text-primary);}
+.cat-flyout-item.cat-flyout-item-tout{background:rgba(74,158,232,.06);color:var(--sapphire);}
+.cat-flyout-item.cat-flyout-item-tout:hover{background:rgba(74,158,232,.14);}
+.cat-flyout-item.selected{background:rgba(74,158,232,.08);color:var(--sapphire);border-left-color:var(--sapphire);}
+.cat-flyout-item-dot{width:6px;height:6px;border-radius:50%;background:var(--text-faint);flex-shrink:0;transition:background .12s;}
+.cat-flyout-item:hover .cat-flyout-item-dot,.cat-flyout-item.selected .cat-flyout-item-dot{background:var(--sapphire);}
+.cat-overlay{position:fixed;inset:0;z-index:48;display:none;}
+.cat-overlay.open{display:block;}
+.flyout-back-btn{display:flex;align-items:center;gap:6px;width:100%;padding:10px 16px;
+  background:rgba(74,158,232,.1);border:none;border-bottom:1px solid rgba(255,255,255,.06);
+  color:var(--sapphire);font-size:.82rem;font-weight:700;cursor:pointer;text-align:left;transition:background .15s;}
+.flyout-back-btn:hover{background:rgba(74,158,232,.18);}
+
 /* ── Sidebar catégories ── */
 .cat-sidebar{width:180px;flex-shrink:0;background:var(--bg-raised);
   border-right:1px solid rgba(255,255,255,.06);padding:12px 8px;
@@ -239,6 +268,29 @@
       </button>
     </div>
 
+    <!-- Flyout overlay -->
+    <div class="cat-overlay" id="cat-overlay" onclick="closeFlyout()"></div>
+
+    <!-- Flyout niveau 1 : sous-catégories -->
+    <div class="cat-flyout" id="cat-flyout">
+      <div class="cat-flyout-header">
+        <div class="cat-flyout-icon" id="flyout-icon">📦</div>
+        <div class="cat-flyout-name" id="flyout-name"></div>
+        <div class="cat-flyout-count" id="flyout-count"></div>
+      </div>
+      <div id="flyout-items"></div>
+    </div>
+
+    <!-- Flyout niveau 2 : produits -->
+    <div class="cat-flyout" id="cat-flyout-2" style="display:none;">
+      <div class="cat-flyout-header">
+        <div class="cat-flyout-icon" id="flyout-2-icon">📦</div>
+        <div class="cat-flyout-name" id="flyout-2-name"></div>
+        <div class="cat-flyout-count" id="flyout-2-count"></div>
+      </div>
+      <div id="flyout-2-items"></div>
+    </div>
+
     <!-- Layout sidebar + contenu -->
     <div class="global-layout">
       <!-- Sidebar catégories -->
@@ -347,23 +399,36 @@ async function loadCategories(){
 
 function getCategoryForRow(row){
   if(row.source === 'usine'){
-    // Pour l'usine, la catégorie est stockée directement
     if(row.categorie_id){
+      // Chercher la catégorie, puis remonter à la racine
       const cat = ghCategories.find(c => c.id === row.categorie_id);
-      return cat || null;
+      if(cat) return getRootCategory(cat);
     }
     return null;
   }
-  // Pour GH, utiliser les règles de matching
+  // Pour GH : tester TOUTES les catégories (racines ET sous-catégories)
+  // puis remonter à la racine pour l'affichage — exactement comme inventaire_gh.html
   for(const cat of ghCategories){
-    if(!cat.parent_id && matchesCategory(row.raw, cat)) return cat;
+    if(matchesCategory(row.raw, cat)){
+      return getRootCategory(cat);
+    }
   }
   return null;
 }
 
+function getRootCategory(cat){
+  if(!cat.parent_id) return cat;
+  const parent = ghCategories.find(c => c.id === cat.parent_id);
+  return parent ? getRootCategory(parent) : cat;
+}
+
 function matchesCategory(raw, cat){
   if(!cat || !cat.rules || cat.rules.length === 0) return false;
-  const colMap = {'no_produit':1,'description':2,'qte_inv':3,'no_comm':13,'no_lot':16,'no_sous_lot':17,'date_lot':18,'expiration':19,'reception':20};
+  const colMap = {
+    'no_produit':1, 'description':2, 'qte_inv':3,
+    'no_comm':13, 'no_lot':16, 'no_sous_lot':17,
+    'date_lot':18, 'expiration':19, 'reception':20
+  };
   let result = true;
   for(let i = 0; i < cat.rules.length; i++){
     const rule = cat.rules[i];
@@ -451,7 +516,27 @@ function buildAllRows(){
   });
 }
 
-// ── SIDEBAR ───────────────────────────────────────────────────────
+// ── SIDEBAR + FLYOUT ──────────────────────────────────────────────
+let activeFlyoutId = null;
+
+function alignFlyouts(){
+  const sidebar = document.getElementById('cat-sidebar');
+  const flyout1 = document.getElementById('cat-flyout');
+  const flyout2 = document.getElementById('cat-flyout-2');
+  if(!sidebar || !flyout1) return;
+  const rect = sidebar.getBoundingClientRect();
+  flyout1.style.left = rect.right + 'px';
+  flyout1.style.top  = rect.top + 'px';
+  if(flyout2){
+    const isMobile = window.innerWidth < 768;
+    flyout2.style.left = isMobile ? rect.right + 'px' : (rect.right + 260) + 'px';
+    flyout2.style.top  = rect.top + 'px';
+  }
+}
+window.addEventListener('resize', () => {
+  if(document.getElementById('cat-flyout')?.classList.contains('open')) alignFlyouts();
+});
+
 function buildSidebar(){
   const sidebar = document.getElementById('cat-sidebar');
   sidebar.innerHTML = '';
@@ -459,21 +544,26 @@ function buildSidebar(){
   // TOUT
   const allBtn = document.createElement('div');
   allBtn.className = 'cat-btn' + (activeCat === null ? ' active' : '');
-  allBtn.id = 'cat-btn-all';
-  allBtn.onclick = () => filterByCat(null);
-  allBtn.innerHTML = `<span class="cat-btn-icon">Σ</span><span class="cat-btn-name">TOUT</span><span class="cat-btn-count" id="cnt-all">${allRows.length}</span>`;
+  allBtn.onclick = () => { closeFlyout(); filterByCat(null); };
+  allBtn.innerHTML = `<span class="cat-btn-icon">Σ</span><span class="cat-btn-name">TOUT</span><span class="cat-btn-count">${allRows.length}</span>`;
   sidebar.appendChild(allBtn);
 
   // Catégories racines triées
   const rootCats = ghCategories.filter(c => !c.parent_id).sort((a,b) => a.name.localeCompare(b.name));
   rootCats.forEach(cat => {
     const count = allRows.filter(r => r._cat && r._cat.id === cat.id).length;
+    const hasChildren = ghCategories.some(c => c.parent_id === cat.id);
     const btn = document.createElement('div');
     btn.className = 'cat-btn' + (activeCat === cat.id ? ' active' : '');
     btn.style.borderColor = activeCat === cat.id ? (cat.color||'var(--sapphire)') : 'transparent';
     btn.style.background  = activeCat === cat.id ? (cat.color||'var(--sapphire)')+'22' : '';
-    btn.onclick = () => filterByCat(cat.id);
-    btn.innerHTML = `<span class="cat-btn-icon">${cat.icon||'📦'}</span><span class="cat-btn-name">${esc(cat.name)}</span><span class="cat-btn-count">${count}</span>`;
+    btn.title = cat.name;
+    btn.innerHTML = `<span class="cat-btn-icon">${cat.icon||'📦'}</span><span class="cat-btn-name">${esc(cat.name)}</span>${hasChildren ? '<span style="margin-left:auto;color:var(--text-muted);font-size:.7rem;">►</span>' : `<span class="cat-btn-count">${count}</span>`}`;
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      if(hasChildren){ openSubcatFlyout(cat.id); }
+      else { openFlyout(cat.id); }
+    };
     sidebar.appendChild(btn);
   });
 
@@ -481,9 +571,127 @@ function buildSidebar(){
   const noCatCount = allRows.filter(r => !r._cat).length;
   const noCatBtn = document.createElement('div');
   noCatBtn.className = 'cat-btn' + (activeCat === 'NO_CAT' ? ' active' : '');
-  noCatBtn.onclick = () => filterByCat('NO_CAT');
+  noCatBtn.onclick = () => { closeFlyout(); filterByCat('NO_CAT'); };
   noCatBtn.innerHTML = `<span class="cat-btn-icon">📋</span><span class="cat-btn-name">SANS CAT.</span><span class="cat-btn-count">${noCatCount}</span>`;
   sidebar.appendChild(noCatBtn);
+}
+
+// Flyout niveau 1 : sous-catégories d'une racine
+function openSubcatFlyout(parentId){
+  const parent = ghCategories.find(c => c.id === parentId);
+  if(!parent) return;
+  if(activeFlyoutId === parentId){ closeFlyout(); return; }
+  activeFlyoutId = parentId;
+  activeCat = parentId;
+  buildSidebar();
+  hideSecondFlyout();
+
+  const children = ghCategories.filter(c => c.parent_id === parentId).sort((a,b) => a.name.localeCompare(b.name));
+  document.getElementById('flyout-icon').textContent  = parent.icon || '📦';
+  document.getElementById('flyout-name').textContent  = parent.name;
+  document.getElementById('flyout-count').textContent = children.length + ' sous-catégorie' + (children.length !== 1 ? 's' : '');
+
+  document.getElementById('flyout-items').innerHTML = children.length === 0
+    ? '<div style="padding:16px;font-size:.78rem;color:var(--text-faint);text-align:center;">Aucune sous-catégorie</div>'
+    : children.map(child => `
+        <div class="cat-flyout-item" onclick="showSecondFlyout('${child.id}')" style="justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:1.1rem;">${child.icon||'📦'}</span>${esc(child.name)}
+          </div>
+          <span style="color:var(--text-muted);font-size:.7rem;">►</span>
+        </div>`).join('');
+
+  alignFlyouts();
+  document.getElementById('cat-flyout').classList.add('open');
+  document.getElementById('cat-overlay').classList.add('open');
+}
+
+// Flyout niveau 1 : produits d'une catégorie sans enfants
+function openFlyout(catId){
+  const cat = ghCategories.find(c => c.id === catId);
+  if(!cat) return;
+  if(activeFlyoutId === catId){ closeFlyout(); return; }
+  activeFlyoutId = catId;
+  activeCat = catId;
+  buildSidebar();
+  hideSecondFlyout();
+
+  const matches = allRows.filter(r => r._cat && r._cat.id === catId);
+  const produits = [...new Set(matches.map(r => r.code_produit).filter(Boolean))].sort();
+  document.getElementById('flyout-icon').textContent  = cat.icon || '📦';
+  document.getElementById('flyout-name').textContent  = cat.name;
+  document.getElementById('flyout-count').textContent = matches.length + ' item' + (matches.length !== 1 ? 's' : '');
+
+  const toutItem = `<div class="cat-flyout-item cat-flyout-item-tout" onclick="filterByCat('${catId}');closeFlyout();">
+    <span style="font-size:1rem;">Σ</span><span style="font-weight:700;">TOUT (${matches.length})</span>
+  </div><div style="height:1px;background:rgba(255,255,255,.06);margin:4px 0;"></div>`;
+
+  document.getElementById('flyout-items').innerHTML = toutItem + (produits.length === 0
+    ? '<div style="padding:16px;font-size:.78rem;color:var(--text-faint);text-align:center;">Aucun item</div>'
+    : produits.map(p => `<div class="cat-flyout-item" onclick="filterByCode('${p.replace(/'/g,"\\'")}');closeFlyout();">
+        <div class="cat-flyout-item-dot"></div>${esc(p)}</div>`).join(''));
+
+  alignFlyouts();
+  document.getElementById('cat-flyout').classList.add('open');
+  document.getElementById('cat-overlay').classList.add('open');
+}
+
+// Flyout niveau 2 : produits d'une sous-catégorie
+function showSecondFlyout(catId){
+  const cat = ghCategories.find(c => c.id === catId);
+  if(!cat) return;
+
+  const matches = allRows.filter(r => {
+    // Chercher les lignes qui matchent cette sous-catégorie précisément
+    if(r.source === 'gh') return matchesCategory(r.raw, cat);
+    // Pour usine : vérifier si la catégorie ou un parent correspond
+    let c = ghCategories.find(x => x.id === r.categorie_id);
+    while(c){ if(c.id === catId) return true; c = ghCategories.find(x => x.id === c.parent_id); }
+    return false;
+  });
+  const produits = [...new Set(matches.map(r => r.code_produit).filter(Boolean))].sort();
+
+  document.getElementById('flyout-2-icon').textContent  = cat.icon || '📦';
+  document.getElementById('flyout-2-name').textContent  = cat.name;
+  document.getElementById('flyout-2-count').textContent = matches.length + ' item' + (matches.length !== 1 ? 's' : '');
+
+  const toutItem = `<div class="cat-flyout-item cat-flyout-item-tout" onclick="filterByCat('${cat.parent_id||catId}');closeFlyout();">
+    <span style="font-size:1rem;">Σ</span><span style="font-weight:700;">TOUT (${matches.length})</span>
+  </div><div style="height:1px;background:rgba(255,255,255,.06);margin:4px 0;"></div>`;
+
+  document.getElementById('flyout-2-items').innerHTML = toutItem + (produits.length === 0
+    ? '<div style="padding:16px;font-size:.78rem;color:var(--text-faint);text-align:center;">Aucun item</div>'
+    : produits.map(p => `<div class="cat-flyout-item" onclick="filterByCode('${p.replace(/'/g,"\\'")}');closeFlyout();">
+        <div class="cat-flyout-item-dot"></div>${esc(p)}</div>`).join(''));
+
+  const flyout2 = document.getElementById('cat-flyout-2');
+  const isMobile = window.innerWidth < 768;
+  flyout2.style.display = 'block';
+  flyout2.style.zIndex  = isMobile ? '51' : '49';
+  if(isMobile && !flyout2.querySelector('.flyout-back-btn')){
+    const backBtn = document.createElement('button');
+    backBtn.className = 'flyout-back-btn';
+    backBtn.innerHTML = '← Retour';
+    backBtn.onclick = (e) => { e.stopPropagation(); hideSecondFlyout(); };
+    flyout2.insertBefore(backBtn, flyout2.querySelector('.cat-flyout-header'));
+  }
+  alignFlyouts();
+  setTimeout(() => flyout2.classList.add('open'), 10);
+}
+
+function hideSecondFlyout(){
+  const f2 = document.getElementById('cat-flyout-2');
+  if(!f2) return;
+  f2.classList.remove('open');
+  f2.querySelector('.flyout-back-btn')?.remove();
+  setTimeout(() => { f2.style.display = 'none'; }, 300);
+}
+
+function closeFlyout(){
+  activeFlyoutId = null;
+  document.getElementById('cat-flyout')?.classList.remove('open');
+  document.getElementById('cat-overlay')?.classList.remove('open');
+  hideSecondFlyout();
 }
 
 // ── FILTRES ───────────────────────────────────────────────────────
@@ -493,22 +701,27 @@ function filterByCat(catId){
   applyFilters();
 }
 
+function filterByCode(code){
+  activeCat = null; // pas de filtre catégorie, juste le code
+  buildSidebar();
+  document.getElementById('srch').value = code;
+  applyFilters();
+}
+
 function applyFilters(){
   const srch = document.getElementById('srch').value.toLowerCase().trim();
   const loc  = document.getElementById('fsel-loc').value;
 
   filteredRows = allRows.filter(row => {
-    // Filtre emplacement
     if(loc && row.source !== loc) return false;
 
-    // Filtre catégorie (sidebar)
     if(activeCat === 'NO_CAT'){
       if(row._cat) return false;
     } else if(activeCat !== null){
+      // Filtrer par catégorie racine (row._cat est toujours la racine)
       if(!row._cat || row._cat.id !== activeCat) return false;
     }
 
-    // Filtre texte
     if(srch){
       const haystack = [row.code_produit, row.description, row.no_lot, row.no_sous_lot, row.notes].join(' ').toLowerCase();
       if(!haystack.includes(srch)) return false;
