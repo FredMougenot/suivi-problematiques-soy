@@ -372,16 +372,41 @@ function waitSB(){
     loadAll();
   } else { setTimeout(waitSB, 50); }
 }
+let poidsList = [];
+
+async function loadPoids(){
+  try{
+    const {data, error} = await sb.from('gh_poids').select('*');
+    if(error) throw error;
+    poidsList = (data||[]).map(p => ({...p, matchType: p.match_type||'exact'}));
+  }catch(e){
+    poidsList = [];
+    console.error('Erreur chargement poids:', e);
+  }
+}
+
+function getPoidsUnitaire(code){
+  if(!code) return 0;
+  const codeUpper = String(code).trim().toUpperCase();
+  // Priorité 1 : match exact
+  const exact = poidsList.find(p => (p.matchType||'exact')==='exact' && String(p.code||'').trim().toUpperCase()===codeUpper);
+  if(exact) return parseFloat(exact.poids_unitaire||0);
+  // Priorité 2 : match contains
+  const contains = poidsList.find(p => (p.matchType||'exact')==='contains' && codeUpper.includes(String(p.code||'').trim().toUpperCase()));
+  if(contains) return parseFloat(contains.poids_unitaire||0);
+  return 0;
+}
+
 window.addEventListener('load', waitSB);
 
 async function loadAll(){
   showState('spinner');
   document.getElementById('btn-pdf').disabled = true;
 
-  // Charger catégories
-  await loadCategories();
+  // Charger catégories ET poids en parallèle
+  await Promise.all([loadCategories(), loadPoids()]);
 
-  // Charger en parallèle : usine (Supabase) + GH (localStorage)
+  // Charger usine (Supabase) + GH (localStorage)
   await Promise.all([loadUsine(), loadGH()]);
 
   // Fusionner et afficher
@@ -499,14 +524,15 @@ async function loadGH(){
       // Fallback sur r.qte_inv (champ nommé) ou _resolved_qte
       const rawQte = raw[8] || r.qte_inv || r._resolved_qte || '0';
       const qte = parseFloat(String(rawQte).replace(/[^\d.-]/g,''))||0;
-      // Poids : utiliser _resolved_poids_total si disponible, sinon qte * _resolved_poids_unit
-      const poidsUnit  = r._resolved_poids_unit || 0;
+      const code = raw[1]||r._resolved_code||r.no_produit||'';
+      // Poids : priorité à _resolved (item déjà dans camion), sinon recalculer depuis gh_poids
+      const poidsUnit  = r._resolved_poids_unit || getPoidsUnitaire(code) || 0;
       const poidsTotal = r._resolved_poids_total || (qte * poidsUnit) || 0;
       return {
         source:          'gh',
         categorie_id:    '',
         categorie_nom:   '',
-        code_produit:    raw[1]||r._resolved_code||r.no_produit||'',
+        code_produit:    code,
         description:     raw[2]||r._resolved_desc||r.description||'',
         no_lot:          raw[16]||r.no_lot||'',
         no_sous_lot:     raw[17]||r.no_sous_lot||'',
