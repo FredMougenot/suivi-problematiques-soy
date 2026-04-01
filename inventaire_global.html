@@ -485,23 +485,38 @@ async function loadGH(){
     const saved = localStorage.getItem('gh_inventory');
     if(!saved){ ghRows = []; showBanner('Stock GH non disponible — connectez-vous à GH Logistics.'); return; }
     const items = JSON.parse(saved);
+    // Mapping réel du _raw brut GH (commentaire dans parseInventory) :
+    // 0=vide, 1=voir liste, 2=tri, 3=Division, 4=No.produit, 5=Description,
+    // 6=Unité1, 7=Unité2, 8=No.comm client, 9=Ent., 10=Étiquette,
+    // 11=No.lot, 12=No.sous-lot, 13=Date lot, 14=Expiration, 15=Réception,
+    // 16=Bloquer, 17=Raison, 18=Qté inv (unités), 19=Expéd.att, 20=Bloqués,
+    // 21=Disponibles(unités), 22=Qté inv(poids), 25=Disponibles(poids)
+    // MAIS : après fill-down, raw[1]=no_produit, raw[2]=description (colonnes affichées)
+    // keep=[1,2,8,13,15,16,17,18,19,20] → keep[2]=raw[8]=colonne Qté affichée dans le tableau
     ghRows = (items||[]).map(r => {
       const raw = r._raw || [];
+      // Quantité : keep[2]=raw[8] = colonne "Qté inv." affichée dans le tableau GH
+      // Fallback sur r.qte_inv (champ nommé) ou _resolved_qte
+      const rawQte = raw[8] || r.qte_inv || r._resolved_qte || '0';
+      const qte = parseFloat(String(rawQte).replace(/[^\d.-]/g,''))||0;
+      // Poids : utiliser _resolved_poids_total si disponible, sinon qte * _resolved_poids_unit
+      const poidsUnit  = r._resolved_poids_unit || 0;
+      const poidsTotal = r._resolved_poids_total || (qte * poidsUnit) || 0;
       return {
-        source:        'gh',
-        categorie_id:  '',
-        categorie_nom: '',
-        code_produit:  raw[1]||r._resolved_code||'',
-        description:   raw[2]||r._resolved_desc||'',
-        no_lot:        raw[16]||'',
-        no_sous_lot:   raw[17]||'',
-        quantite:      parseFloat(String(raw[8]||r._resolved_qte||'0').replace(/[^\d.-]/g,''))||0,
-        poids_unit:    r._resolved_poids_unit||0,
-        poids_total:   r._resolved_poids_total||0,
-        date_fab:      raw[18]||'',
-        date_peremption: raw[19]||'',
-        notes:         '',
-        raw:           raw
+        source:          'gh',
+        categorie_id:    '',
+        categorie_nom:   '',
+        code_produit:    raw[1]||r._resolved_code||r.no_produit||'',
+        description:     raw[2]||r._resolved_desc||r.description||'',
+        no_lot:          raw[16]||r.no_lot||'',
+        no_sous_lot:     raw[17]||r.no_sous_lot||'',
+        quantite:        qte,
+        poids_unit:      poidsUnit,
+        poids_total:     poidsTotal,
+        date_fab:        raw[18]||r.date_lot||'',
+        date_peremption: raw[19]||r.expiration||'',
+        notes:           '',
+        raw:             raw
       };
     });
   }catch(e){
@@ -964,8 +979,8 @@ async function exportPDF(){
     const totalPoidsAll = allRows.reduce((s,r) => s+(parseFloat(r.poids_total)||0), 0);
     pdf.setFontSize(8); pdf.setFont('helvetica','bold');
     pdf.setTextColor(...C.sapphire);  pdf.text('Total : ' + filteredRows.length + ' lignes', M, y + 4);
-    pdf.setTextColor(...C.copper);    pdf.text('🏭 Usine : ' + usineRows.length, M + 55, y + 4);
-    pdf.setTextColor(...[45,160,100]); pdf.text('🏪 GH : ' + ghRows.length, M + 105, y + 4);
+    pdf.setTextColor(...C.copper);    pdf.text('Usine : ' + usineRows.length, M + 55, y + 4);
+    pdf.setTextColor(...[45,160,100]); pdf.text('GH : ' + ghRows.length, M + 105, y + 4);
     pdf.setTextColor(...C.amber);     pdf.text('Poids total : ' + totalPoidsAll.toFixed(0) + ' kg', M + 150, y + 4);
     y += 12;
 
