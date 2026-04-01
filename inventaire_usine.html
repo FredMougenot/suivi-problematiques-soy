@@ -535,8 +535,10 @@ async function saveAll(){
 
   try{
     // 1. Effacer TOUT l'inventaire usine existant
-    const {error: delErr} = await sb.from('inventaire_usine').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-    if(delErr) throw delErr;
+    toast('Étape 1 : suppression en cours…', 'info');
+    const {error: delErr} = await sb.from('inventaire_usine').delete().not('id', 'is', null);
+    if(delErr) throw new Error('Suppression échouée : ' + delErr.message);
+    toast('Étape 1 OK — Étape 2 : insertion…', 'info');
 
     // 2. Insérer toutes les lignes
     if(rows.length > 0){
