@@ -433,11 +433,12 @@ function getCategoryForRow(row){
     }
     return null;
   }
-  // Pour GH : retourner la catégorie exacte qui matche (pas la racine)
-  for(const cat of ghCategories){
-    if(matchesCategory(row.raw, cat)){
-      return cat;
-    }
+  // Pour GH : tester toutes les catégories dans l'ordre, retourner la première qui matche
+  // Tester d'abord les sous-catégories (plus spécifiques) avant les racines
+  const children = ghCategories.filter(c => c.parent_id);
+  const roots = ghCategories.filter(c => !c.parent_id);
+  for(const cat of [...children, ...roots]){
+    if(matchesCategory(row.raw, cat)) return cat;
   }
   return null;
 }
@@ -845,15 +846,16 @@ function renderMain(){
   // Regrouper les palettes (même code+lot+source → additionner qté et poids)
   const grouped = groupRows(filteredRows);
 
-  // Grouper par catégorie → code produit
+  // Grouper par catégorie racine pour l'affichage visuel
   const byCat = new Map();
   grouped.forEach(row => {
-    const catKey  = row._cat ? row._cat.id : '__none__';
-    const catName = row._cat ? row._cat.name : 'Sans catégorie';
-    const catIcon = row._cat ? (row._cat.icon||'📦') : '📋';
+    const rootCat = row._cat ? getRootCategory(row._cat) : null;
+    const catKey  = rootCat ? rootCat.id : '__none__';
+    const catName = rootCat ? rootCat.name : 'Sans catégorie';
+    const catIcon = rootCat ? (rootCat.icon||'📦') : '📋';
 
     if(!byCat.has(catKey)){
-      byCat.set(catKey, { catKey, catName, catIcon, cat: row._cat, byCode: new Map() });
+      byCat.set(catKey, { catKey, catName, catIcon, cat: rootCat, byCode: new Map() });
     }
     const catGroup = byCat.get(catKey);
     const code = row.code_produit || '—';
