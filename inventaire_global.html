@@ -340,11 +340,14 @@ let dateReleveUsine = null;
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function fmtDate(s){
   if(!s) return '—';
-  // YYYY-MM-DD
-  const m1 = String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if(m1) return m1[3]+'/'+m1[2]+'/'+m1[1];
-  // DD/MM/YYYY already
-  if(String(s).match(/^\d{2}\/\d{2}\/\d{4}$/)) return s;
+  s = String(s).trim();
+  // Déjà formaté DD/MM/YYYY
+  if(s.match(/^\d{2}\/\d{2}\/\d{4}$/)) return s;
+  // Format YYYY-MM-DD → DD/MM/YYYY
+  const m2 = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m2) return m2[3]+'/'+m2[2]+'/'+m2[1];
+  // Format GH : "15 avr 2025" ou "15 avr. 2025" → retourner tel quel
+  if(s.match(/^\d{1,2}\s+[a-zA-Zéèêûàâôî]+\.?\s+\d{4}$/)) return s;
   return s;
 }
 function parseDate(s){
@@ -1035,15 +1038,18 @@ async function exportPDF(){
         pdf.text(isUsine ? 'USINE' : 'GH', M+2.5, y + (rH/2) + 1.5);
 
         x = M + cols[0].w; // sauter colonne source déjà dessinée
+        const qteVal   = parseFloat(row.quantite)||0;
+        const poidsU   = parseFloat(row.poids_unit)||0;
+        const poidsT   = parseFloat(row.poids_total)||0;
         const rowData = {
           cat:     catData.name,
           code:    row.code_produit||'',
           desc:    row.description||'',
           lot:     row.no_lot||'',
           slot:    row.no_sous_lot||'',
-          qte:     row.quantite > 0 ? String(row.quantite) : '',
-          poids_u: row.poids_unit > 0 ? parseFloat(row.poids_unit).toFixed(2) : '',
-          poids_t: row.poids_total > 0 ? parseFloat(row.poids_total).toFixed(2) : '',
+          qte:     qteVal > 0 ? (qteVal % 1 === 0 ? String(qteVal) : qteVal.toFixed(2)) : '',
+          poids_u: poidsU > 0 ? poidsU.toFixed(2) : '',
+          poids_t: poidsT > 0 ? poidsT.toFixed(2) : '',
           dfab:    row.date_fab ? fmtDate(row.date_fab) : '',
           dper:    row.date_peremption ? fmtDate(row.date_peremption) : '',
         };
