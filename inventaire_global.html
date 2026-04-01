@@ -428,24 +428,22 @@ async function loadCategories(){
 function getCategoryForRow(row){
   if(row.source === 'usine'){
     if(row.categorie_id){
-      // Chercher la catégorie, puis remonter à la racine
       const cat = ghCategories.find(c => c.id === row.categorie_id);
-      if(cat) return getRootCategory(cat);
+      return cat || null;
     }
     return null;
   }
-  // Pour GH : tester TOUTES les catégories (racines ET sous-catégories)
-  // puis remonter à la racine pour l'affichage — exactement comme inventaire_gh.html
+  // Pour GH : retourner la catégorie exacte qui matche (pas la racine)
   for(const cat of ghCategories){
     if(matchesCategory(row.raw, cat)){
-      return getRootCategory(cat);
+      return cat;
     }
   }
   return null;
 }
 
 function getRootCategory(cat){
-  if(!cat.parent_id) return cat;
+  if(!cat || !cat.parent_id) return cat;
   const parent = ghCategories.find(c => c.id === cat.parent_id);
   return parent ? getRootCategory(parent) : cat;
 }
@@ -595,7 +593,7 @@ function buildSidebar(){
   // Catégories racines triées
   const rootCats = ghCategories.filter(c => !c.parent_id).sort((a,b) => a.name.localeCompare(b.name));
   rootCats.forEach(cat => {
-    const count = allRows.filter(r => r._cat && r._cat.id === cat.id).length;
+    const count = allRows.filter(r => r._cat && isCatOrDescendant(r, cat.id)).length;
     const hasChildren = ghCategories.some(c => c.parent_id === cat.id);
     const btn = document.createElement('div');
     btn.className = 'cat-btn' + (activeCat === cat.id ? ' active' : '');
@@ -754,19 +752,11 @@ function filterByCode(code){
 
 function isCatOrDescendant(row, catId){
   if(!row._cat) return false;
-  // Cas 1 : row._cat.id correspond directement
-  if(row._cat.id === catId) return true;
-  // Cas 2 : catId est un ancêtre de row._cat (on remonte depuis row._cat)
-  let c = ghCategories.find(x => x.id === row._cat.id);
+  // Vérifier si row._cat correspond à catId ou est un descendant de catId
+  let c = row._cat;
   while(c){
     if(c.id === catId) return true;
     c = ghCategories.find(x => x.id === c.parent_id);
-  }
-  // Cas 3 : catId est un descendant de row._cat (ex: Papier Tétra est enfant de la racine stockée)
-  let target = ghCategories.find(x => x.id === catId);
-  while(target){
-    if(target.id === row._cat.id) return true;
-    target = ghCategories.find(x => x.id === target.parent_id);
   }
   return false;
 }
