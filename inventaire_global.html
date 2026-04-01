@@ -927,7 +927,6 @@ function renderMain(){
         html += `<div class="stock-row">
           <span class="loc-badge ${badgeCls}">${badgeTxt}</span>
           <span class="row-lot" title="No. lot">${esc(row.no_lot||'—')}${palBadge}</span>
-          <span class="row-sous-lot">${row.no_sous_lot ? esc(row.no_sous_lot) : '<span style="color:var(--text-faint);font-size:.72rem;">—</span>'}</span>
           <span class="row-qte">${row.quantite > 0 ? (row.quantite % 1 === 0 ? row.quantite : row.quantite.toFixed(2)) : '<span style="color:var(--text-faint);">—</span>'}</span>
           <span class="row-poids">${row.poids_total > 0 ? row.poids_total.toFixed(2)+' kg' : '<span style="color:var(--text-faint);">—</span>'}</span>
           <div class="row-dates">
