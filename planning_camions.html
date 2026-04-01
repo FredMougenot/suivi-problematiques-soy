@@ -591,7 +591,6 @@ const DESTS = ['GH','ADVANTECH','PROACTIVE','LJDERY','AUCUN REPARTIR BOBTAIL'];
 
 let curDate = todayStr();
 let rows = {};  // idx -> row object
-const _descManuallyChanged = new Set(); // slots dont la description a été modifiée manuellement
 
 // ── UTILS ──────────────────────────────────────────────────────────
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -782,7 +781,6 @@ async function load(){
   document.getElementById('spinner').style.display='flex';
   document.getElementById('tbl').style.display='none';
   rows={};
-  _descManuallyChanged.clear();
   try {
     const {data,error}=await sb.from('planning_camions').select('*')
       .eq('date_jour',curDate).order('slot_index');
@@ -906,11 +904,8 @@ function render(){
       const stEff=dbSt||(_rIsWkEnd&&_wkID.includes(i)?_rVInactifD:_rVActif);
       if(!_isActifOuNL(stEff, _rVActif, _rVInactifD)) return; // ignorer inactifs
 
-      // Ne pré-remplir description que si pas encore sauvegardée en DB ET pas modifiée manuellement
-      // __VIDE__ = sentinelle pour "volontairement vide" (Supabase stocke null pour "")
-      const _descInDB = rows[i].description;
-      const hasSavedDesc = (rows[i].id && (_descInDB !== null && _descInDB !== undefined))
-                        || _descManuallyChanged.has(i);
+      // Ne pré-remplir description que si pas encore sauvegardée en DB
+      const hasSavedDesc = rows[i].id && rows[i].description !== null && rows[i].description !== undefined;
       if(hasSavedDesc) return; // valeur saisie par l'utilisateur → ne pas écraser
 
       if(_rIsWkEnd){
@@ -1089,8 +1084,7 @@ function buildRow(idx, heure, lbl, isExtra, lineNum){
 
     <td>${(()=>{
       const items=_params['description']||[];
-      // __VIDE__ = l'utilisateur a volontairement vidé ce champ → afficher comme vide
-      const cur = r.description === '__VIDE__' ? '' : (r.description||'');
+      const cur=r.description||'';
       const st=getParamStyle('description',cur);
       const opts=items.length
         ? items.map(it=>`<option value="${it.valeur}"${cur===it.valeur?' selected':''}>${it.valeur}</option>`).join('')
@@ -1335,13 +1329,6 @@ async function saveVerifState(idx, newState) {
 function fchg(idx, field, val){
   if(!rows[idx]) rows[idx]={slot_index:idx};
   rows[idx][field]=val;
-  if(field==='description'){
-    // Stocker __VIDE__ si l'utilisateur choisit volontairement le champ vide
-    rows[idx][field] = (val === '' || val === null) ? '__VIDE__' : val;
-    _descManuallyChanged.add(idx);
-    saveRow(idx);
-    return;
-  }
   if(field==='statut_ligne'){
     // Snapshot destinations avant render
     const _dBefore={};
@@ -1448,7 +1435,7 @@ async function saveAll(){
       num_depart:r.num_depart||null,
       dest_arrivee:r.dest_arrivee||null,
       destination:r.destination||null,
-      description: r.description || null,
+      description:r.description||null,
       statut:r.statut||null,
       chargement:r.chargement||null,
       heure_reelle:r.heure_reelle||null,
@@ -1484,7 +1471,7 @@ async function saveRow(idx){
     num_depart:r.num_depart||null,
     dest_arrivee:r.dest_arrivee||null,
     destination:r.destination||null,
-    description: r.description || null,
+    description:r.description||null,
     statut:r.statut||null,
     chargement:r.chargement||null,
     heure_reelle:r.heure_reelle||null,
@@ -1904,7 +1891,9 @@ function exportPDF() {
   doc.text('Exporté le ' + new Date().toLocaleDateString('fr-CA') + ' à ' + now, 276, 19, { align: 'right' });
 
   // ── Construire les données du tableau
-  const allIdx = [...new Set([...SLOTS.map(s => s.idx), ...Object.keys(rows).map(Number)])].sort((a,b)=>a-b);
+  const _allIdxRaw = [...new Set([...SLOTS.map(s => s.idx), ...Object.keys(rows).map(Number)])];
+  const _getH = (idx) => { const slot = SLOTS.find(s => s.idx === idx); return (rows[idx]?.heure_planif) || (slot ? slot.h : '00:00'); };
+  const allIdx = _allIdxRaw.sort((a, b) => { const ha = _getH(a), hb = _getH(b); return ha < hb ? -1 : ha > hb ? 1 : a - b; });
   // Parametres
   const _slPDF   = _params['statut_ligne']    || [];
   const _tcP     = _params['type_camion']     || [];
