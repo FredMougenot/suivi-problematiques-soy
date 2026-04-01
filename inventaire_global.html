@@ -976,12 +976,15 @@ async function exportPDF(){
     pdf.setDrawColor(...C.faint); pdf.setLineWidth(0.2); pdf.line(M, y, W - M, y); y += 5;
 
     // ── RÉSUMÉ GLOBAL ──
-    const totalPoidsAll = allRows.reduce((s,r) => s+(parseFloat(r.poids_total)||0), 0);
+    const groupedAll   = groupRows(filteredRows);
+    const totalPoidsAll = groupedAll.reduce((s,r) => s+(parseFloat(r.poids_total)||0), 0);
+    const usineGrouped  = groupedAll.filter(r => r.source === 'usine').length;
+    const ghGrouped     = groupedAll.filter(r => r.source === 'gh').length;
     pdf.setFontSize(8); pdf.setFont('helvetica','bold');
-    pdf.setTextColor(...C.sapphire);  pdf.text('Total : ' + filteredRows.length + ' lignes', M, y + 4);
-    pdf.setTextColor(...C.copper);    pdf.text('Usine : ' + usineRows.length, M + 55, y + 4);
-    pdf.setTextColor(...[45,160,100]); pdf.text('GH : ' + ghRows.length, M + 105, y + 4);
-    pdf.setTextColor(...C.amber);     pdf.text('Poids total : ' + totalPoidsAll.toFixed(0) + ' kg', M + 150, y + 4);
+    pdf.setTextColor(...C.sapphire);   pdf.text('Total : ' + groupedAll.length + ' lignes', M, y + 4);
+    pdf.setTextColor(...C.copper);     pdf.text('Usine : ' + usineGrouped, M + 55, y + 4);
+    pdf.setTextColor(...[45,160,100]); pdf.text('GH : ' + ghGrouped, M + 105, y + 4);
+    pdf.setTextColor(...C.amber);      pdf.text('Poids total : ' + totalPoidsAll.toFixed(0) + ' kg', M + 150, y + 4);
     y += 12;
 
     // ── COLONNES ──
