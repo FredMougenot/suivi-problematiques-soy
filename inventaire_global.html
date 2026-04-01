@@ -752,6 +752,25 @@ function filterByCode(code){
   applyFilters();
 }
 
+function isCatOrDescendant(row, catId){
+  if(!row._cat) return false;
+  // Cas 1 : row._cat.id correspond directement
+  if(row._cat.id === catId) return true;
+  // Cas 2 : catId est un ancêtre de row._cat (on remonte depuis row._cat)
+  let c = ghCategories.find(x => x.id === row._cat.id);
+  while(c){
+    if(c.id === catId) return true;
+    c = ghCategories.find(x => x.id === c.parent_id);
+  }
+  // Cas 3 : catId est un descendant de row._cat (ex: Papier Tétra est enfant de la racine stockée)
+  let target = ghCategories.find(x => x.id === catId);
+  while(target){
+    if(target.id === row._cat.id) return true;
+    target = ghCategories.find(x => x.id === target.parent_id);
+  }
+  return false;
+}
+
 function applyFilters(){
   const srch = document.getElementById('srch').value.toLowerCase().trim();
   const loc  = document.getElementById('fsel-loc').value;
@@ -762,8 +781,7 @@ function applyFilters(){
     if(activeCat === 'NO_CAT'){
       if(row._cat) return false;
     } else if(activeCat !== null){
-      // Filtrer par catégorie racine (row._cat est toujours la racine)
-      if(!row._cat || row._cat.id !== activeCat) return false;
+      if(!isCatOrDescendant(row, activeCat)) return false;
     }
 
     if(srch){
