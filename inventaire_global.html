@@ -395,7 +395,7 @@ async function loadUsine(){
       description:   r.description||'',
       no_lot:        r.no_lot||'',
       no_sous_lot:   r.no_sous_lot||'',
-      quantite:      r.quantite||0,
+      quantite:      parseFloat(r.quantite)||0,
       poids_unit:    r.poids_unit||0,
       poids_total:   r.poids_total||0,
       date_fab:      r.date_fab||'',
@@ -427,7 +427,7 @@ async function loadGH(){
         description:   raw[2]||r._resolved_desc||'',
         no_lot:        raw[16]||'',
         no_sous_lot:   raw[17]||'',
-        quantite:      parseFloat(raw[3]||r._resolved_qte||0),
+        quantite:      parseFloat(String(raw[3]||r._resolved_qte||'0').replace(/[^\d.-]/g,''))||0,
         poids_unit:    r._resolved_poids_unit||0,
         poids_total:   r._resolved_poids_total||0,
         date_fab:      raw[18]||'',
@@ -671,7 +671,7 @@ function renderMain(){
           <span class="loc-badge ${badgeCls}">${badgeTxt}</span>
           <span class="row-lot" title="No. lot">${esc(row.no_lot||'—')}${palBadge}</span>
           <span class="row-sous-lot">${row.no_sous_lot ? esc(row.no_sous_lot) : '<span style="color:var(--text-faint);font-size:.72rem;">—</span>'}</span>
-          <span class="row-qte">${row.quantite > 0 ? (row.quantite % 1 === 0 ? row.quantite : row.quantite.toFixed(2)) : '<span style="color:var(--text-faint);">—</span>'} unités</span>
+          <span class="row-qte">${row.quantite > 0 ? (row.quantite % 1 === 0 ? row.quantite : row.quantite.toFixed(2)) : '<span style="color:var(--text-faint);">—</span>'}</span>
           <span class="row-poids">${row.poids_total > 0 ? row.poids_total.toFixed(2)+' kg' : '<span style="color:var(--text-faint);">—</span>'}</span>
           <div class="row-dates">
             <div class="row-date-item"><div class="row-date-lbl">Fab.</div><div class="row-date-val">${fabVal}</div></div>
