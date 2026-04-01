@@ -519,6 +519,50 @@ function applyFilters(){
   renderMain();
 }
 
+// ── REGROUPEMENT : fusionner les palettes du même code+lot+source ──
+function groupRows(rows){
+  // Clé de regroupement : source | code_produit | no_lot | no_sous_lot
+  const map = new Map();
+  rows.forEach(row => {
+    const key = [row.source, row.code_produit||'', row.no_lot||''].join('|');
+    if(!map.has(key)){
+      map.set(key, {
+        source:         row.source,
+        _cat:           row._cat,
+        categorie_id:   row.categorie_id,
+        categorie_nom:  row.categorie_nom,
+        code_produit:   row.code_produit,
+        description:    row.description,
+        no_lot:         row.no_lot,
+        no_sous_lot:    row.no_sous_lot,
+        quantite:       0,
+        poids_unit:     row.poids_unit,
+        poids_total:    0,
+        date_fab:       row.date_fab,
+        date_peremption: row.date_peremption,
+        date_fab_conflit:       false,
+        date_peremption_conflit: false,
+        notes:          row.notes,
+        palettes:       0
+      });
+    }
+    const g = map.get(key);
+    g.quantite    += parseFloat(row.quantite)||0;
+    g.poids_total += parseFloat(row.poids_total)||0;
+    g.palettes    += 1;
+
+    // Détecter les conflits de dates (cas anormal)
+    if(row.date_fab && g.date_fab && row.date_fab !== g.date_fab)
+      g.date_fab_conflit = true;
+    if(row.date_peremption && g.date_peremption && row.date_peremption !== g.date_peremption)
+      g.date_peremption_conflit = true;
+    // Prendre la date si pas encore définie
+    if(!g.date_fab && row.date_fab) g.date_fab = row.date_fab;
+    if(!g.date_peremption && row.date_peremption) g.date_peremption = row.date_peremption;
+  });
+  return [...map.values()];
+}
+
 // ── RENDU PRINCIPAL ───────────────────────────────────────────────
 function renderMain(){
   const view = document.getElementById('main-view');
@@ -529,10 +573,12 @@ function renderMain(){
   }
   showState('view');
 
-  // Grouper par catégorie → code produit
-  const byCat = new Map(); // catKey → { cat, byCode }
+  // Regrouper les palettes (même code+lot+source → additionner qté et poids)
+  const grouped = groupRows(filteredRows);
 
-  filteredRows.forEach(row => {
+  // Grouper par catégorie → code produit
+  const byCat = new Map();
+  grouped.forEach(row => {
     const catKey  = row._cat ? row._cat.id : '__none__';
     const catName = row._cat ? row._cat.name : 'Sans catégorie';
     const catIcon = row._cat ? (row._cat.icon||'📦') : '📋';
@@ -541,7 +587,6 @@ function renderMain(){
       byCat.set(catKey, { catKey, catName, catIcon, cat: row._cat, byCode: new Map() });
     }
     const catGroup = byCat.get(catKey);
-
     const code = row.code_produit || '—';
     if(!catGroup.byCode.has(code)){
       catGroup.byCode.set(code, { code, description: row.description, rows: [] });
@@ -549,14 +594,14 @@ function renderMain(){
     catGroup.byCode.get(code).rows.push(row);
   });
 
-  // Trier les catégories alphabétiquement
   const sortedCats = [...byCat.values()].sort((a,b) => a.catName.localeCompare(b.catName));
 
   let html = '';
   sortedCats.forEach(({ catName, catIcon, byCode }) => {
-    const totalRows = [...byCode.values()].reduce((s, g) => s + g.rows.length, 0);
-    const usineCount = filteredRows.filter(r => (r._cat ? r._cat.name === catName : catName === 'Sans catégorie') && r.source === 'usine').length;
-    const ghCount    = filteredRows.filter(r => (r._cat ? r._cat.name === catName : catName === 'Sans catégorie') && r.source === 'gh').length;
+    const catRows    = [...byCode.values()].flatMap(g => g.rows);
+    const usineCount = catRows.filter(r => r.source === 'usine').length;
+    const ghCount    = catRows.filter(r => r.source === 'gh').length;
+    const totalLignes = catRows.length;
 
     let badges = '';
     if(usineCount > 0) badges += `<span style="padding:2px 8px;border-radius:20px;background:rgba(200,132,58,.12);border:1px solid rgba(200,132,58,.25);color:var(--copper);font-size:.66rem;font-weight:700;margin-left:6px;">🏭 ${usineCount}</span>`;
@@ -567,10 +612,9 @@ function renderMain(){
         <span class="cat-section-icon">${catIcon}</span>
         <span class="cat-section-name">${esc(catName)}</span>
         ${badges}
-        <span class="cat-section-badge badge-multi" style="margin-left:auto;">${totalRows} ligne${totalRows>1?'s':''}</span>
+        <span class="cat-section-badge badge-multi" style="margin-left:auto;">${totalLignes} ligne${totalLignes>1?'s':''}</span>
       </div>`;
 
-    // Trier les codes alphabétiquement
     const sortedCodes = [...byCode.values()].sort((a,b) => a.code.localeCompare(b.code));
     html += `<div class="prod-group">`;
 
@@ -589,7 +633,7 @@ function renderMain(){
         </div>
       </div>`;
 
-      // Trier les lignes : d'abord par lot, puis usine avant GH pour même lot
+      // Trier : par lot, puis usine avant GH pour même lot
       codeRows.sort((a,b) => {
         const lotCmp = (a.no_lot||'').localeCompare(b.no_lot||'');
         if(lotCmp !== 0) return lotCmp;
@@ -604,7 +648,7 @@ function renderMain(){
 
         // Couleur date péremption
         let expCls = '';
-        if(row.date_peremption){
+        if(row.date_peremption && !row.date_peremption_conflit){
           const d = daysUntil(row.date_peremption);
           if(d !== null){
             if(d < 0) expCls = 'exp-danger';
@@ -612,20 +656,30 @@ function renderMain(){
           }
         }
 
+        const palBadge = row.palettes > 1
+          ? `<span title="${row.palettes} palettes regroupées" style="margin-left:6px;font-size:.64rem;color:var(--text-muted);background:var(--bg-float);border:1px solid var(--text-faint);border-radius:10px;padding:1px 6px;">${row.palettes} pal.</span>`
+          : '';
+
+        const fabVal  = row.date_fab_conflit
+          ? `<span style="color:var(--ruby);font-weight:700;" title="Dates différentes entre palettes">⚠ conflit</span>`
+          : (row.date_fab ? fmtDate(row.date_fab) : '—');
+        const perVal  = row.date_peremption_conflit
+          ? `<span style="color:var(--ruby);font-weight:700;" title="Dates différentes entre palettes">⚠ conflit</span>`
+          : (row.date_peremption ? `<span class="${expCls}">${fmtDate(row.date_peremption)}</span>` : '—');
+
         html += `<div class="stock-row">
           <span class="loc-badge ${badgeCls}">${badgeTxt}</span>
-          <span class="row-lot" title="No. lot">${esc(row.no_lot||'—')}</span>
+          <span class="row-lot" title="No. lot">${esc(row.no_lot||'—')}${palBadge}</span>
           <span class="row-sous-lot">${row.no_sous_lot ? esc(row.no_sous_lot) : '<span style="color:var(--text-faint);font-size:.72rem;">—</span>'}</span>
-          <span class="row-qte">${row.quantite > 0 ? row.quantite : '<span style="color:var(--text-faint);">—</span>'} unités</span>
-          <span class="row-poids">${row.poids_total > 0 ? parseFloat(row.poids_total).toFixed(2)+' kg' : '<span style="color:var(--text-faint);">—</span>'}</span>
+          <span class="row-qte">${row.quantite > 0 ? (row.quantite % 1 === 0 ? row.quantite : row.quantite.toFixed(2)) : '<span style="color:var(--text-faint);">—</span>'} unités</span>
+          <span class="row-poids">${row.poids_total > 0 ? row.poids_total.toFixed(2)+' kg' : '<span style="color:var(--text-faint);">—</span>'}</span>
           <div class="row-dates">
-            ${row.date_fab ? `<div class="row-date-item"><div class="row-date-lbl">Fab.</div><div class="row-date-val">${fmtDate(row.date_fab)}</div></div>` : ''}
-            ${row.date_peremption ? `<div class="row-date-item"><div class="row-date-lbl">Pér.</div><div class="row-date-val ${expCls}">${fmtDate(row.date_peremption)}</div></div>` : ''}
+            <div class="row-date-item"><div class="row-date-lbl">Fab.</div><div class="row-date-val">${fabVal}</div></div>
+            <div class="row-date-item"><div class="row-date-lbl">Pér.</div><div class="row-date-val">${perVal}</div></div>
           </div>
           ${row.notes ? `<span style="font-size:.72rem;color:var(--text-muted);font-style:italic;margin-left:auto;">${esc(row.notes)}</span>` : ''}
         </div>`;
       });
-
     });
 
     html += `</div></div>`;
@@ -725,10 +779,12 @@ async function exportPDF(){
     cols.forEach(c => { pdf.text(c.label.toUpperCase(), x + 2, y + 5); x += c.w; });
     y += hH;
 
+    // Grouper comme l'affichage écran
+    const groupedForPDF = groupRows(filteredRows);
+
     // ── DONNÉES ──
-    // Grouper par catégorie pour impression avec en-têtes
     const byCat = new Map();
-    filteredRows.forEach(row => {
+    groupedForPDF.forEach(row => {
       const k = row._cat ? row._cat.name : 'Sans catégorie';
       if(!byCat.has(k)) byCat.set(k, { name:k, icon: row._cat ? (row._cat.icon||'') : '📋', rows:[] });
       byCat.get(k).rows.push(row);
