@@ -449,8 +449,10 @@ function getRootCategory(cat){
   return parent ? getRootCategory(parent) : cat;
 }
 
-function matchesCategory(raw, cat){
+function matchesCategory(rowOrRaw, cat){
   if(!cat || !cat.rules || cat.rules.length === 0) return false;
+  // Accepter soit un tableau brut, soit un objet row avec _raw
+  const raw = Array.isArray(rowOrRaw) ? rowOrRaw : (rowOrRaw._raw || rowOrRaw.raw || []);
   const colMap = {
     'no_produit':1, 'description':2, 'qte_inv':3,
     'no_comm':13, 'no_lot':16, 'no_sous_lot':17,
