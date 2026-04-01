@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Inventaire Global — SOY</title>
+<link rel="stylesheet" href="soy-shared.css">
+<style>
+/* ── Layout global ── */
+.page-eyebrow{font-size:.62rem;font-weight:800;color:var(--sapphire);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;}
+.page-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--text-primary);}
+.page-sub{font-size:.82rem;color:var(--text-muted);margin-top:4px;margin-bottom:20px;}
+
+/* ── Grille KPI ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;}
+@media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+.kpi-card{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);
+  padding:14px 18px;position:relative;overflow:hidden;}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kpi-card.kpi-global::before{background:linear-gradient(90deg,transparent,var(--sapphire),transparent);}
+.kpi-card.kpi-usine::before{background:linear-gradient(90deg,transparent,var(--copper),transparent);}
+.kpi-card.kpi-gh::before{background:linear-gradient(90deg,transparent,var(--emerald),transparent);}
+.kpi-card.kpi-poids::before{background:linear-gradient(90deg,transparent,var(--amber),transparent);}
+.kpi-lbl{font-size:.6rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;}
+.kpi-card.kpi-global .kpi-lbl{color:var(--sapphire);}
+.kpi-card.kpi-usine  .kpi-lbl{color:var(--copper);}
+.kpi-card.kpi-gh     .kpi-lbl{color:var(--emerald);}
+.kpi-card.kpi-poids  .kpi-lbl{color:var(--amber);}
+.kpi-val{font-size:1.6rem;font-weight:800;color:var(--text-primary);}
+.kpi-sub{font-size:.72rem;color:var(--text-muted);margin-top:3px;}
+
+/* ── Barre outils ── */
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;
+  flex-wrap:wrap;gap:12px;}
+.toolbar-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.search-wrap{position:relative;}
+.search-wrap input{background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);
+  border-radius:var(--r-md);padding:8px 12px 8px 34px;font-size:.84rem;font-family:'Outfit',sans-serif;
+  outline:none;width:240px;transition:border-color .15s;}
+.search-wrap input:focus{border-color:var(--sapphire);}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);}
+.fsel{background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);
+  border-radius:var(--r-md);padding:8px 12px;font-size:.82rem;font-family:'Outfit',sans-serif;
+  outline:none;cursor:pointer;transition:border-color .15s;}
+.fsel:focus{border-color:var(--sapphire);}
+.fsel option{background:var(--bg-float);}
+.btn-pdf{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--sapphire),#1a6bff);color:#fff;
+  font-size:.82rem;font-weight:700;border:none;cursor:pointer;transition:opacity .15s,transform .1s;}
+.btn-pdf:hover{opacity:.9;transform:translateY(-1px);}
+.btn-pdf:disabled{opacity:.4;cursor:default;transform:none;}
+.btn-refresh-all{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);
+  background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-muted);
+  font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s;}
+.btn-refresh-all:hover{border-color:var(--sapphire);color:var(--sapphire);}
+
+/* ── Layout avec sidebar ── */
+.global-layout{display:grid;grid-template-columns:180px 1fr;gap:0;min-height:60vh;}
+@media(max-width:900px){.global-layout{grid-template-columns:1fr;}}
+
+/* ── Sidebar catégories ── */
+.cat-sidebar{width:180px;flex-shrink:0;background:var(--bg-raised);
+  border-right:1px solid rgba(255,255,255,.06);padding:12px 8px;
+  display:flex;flex-direction:column;gap:4px;position:sticky;top:0;
+  max-height:80vh;overflow-y:auto;z-index:20;}
+.cat-btn{height:36px;padding:0 8px;border-radius:10px;display:flex;align-items:center;
+  justify-content:flex-start;gap:8px;cursor:pointer;transition:all .18s;
+  border:1.5px solid transparent;background:transparent;}
+.cat-btn:hover{background:rgba(255,255,255,.06);}
+.cat-btn.active{border-color:var(--sapphire);background:rgba(74,158,232,.12);}
+.cat-btn-icon{font-size:1.1rem;flex-shrink:0;}
+.cat-btn-name{font-size:.75rem;font-weight:600;color:var(--text-secondary);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;}
+.cat-btn.active .cat-btn-name{color:var(--text-primary);}
+.cat-btn-count{margin-left:auto;font-size:.62rem;font-weight:700;padding:1px 6px;
+  border-radius:10px;background:rgba(255,255,255,.06);color:var(--text-muted);}
+.cat-btn.active .cat-btn-count{background:rgba(74,158,232,.15);color:var(--sapphire);}
+
+/* ── Contenu principal ── */
+.global-content{flex:1;min-width:0;padding:0 0 0 0;}
+
+/* ── Section catégorie ── */
+.cat-section{margin-bottom:28px;}
+.cat-section-header{display:flex;align-items:center;gap:10px;padding:10px 16px;
+  background:var(--bg-float);border-radius:var(--r-md) var(--r-md) 0 0;
+  border:1px solid var(--text-faint);border-bottom:none;position:sticky;top:0;z-index:10;}
+.cat-section-icon{font-size:1.2rem;}
+.cat-section-name{font-size:.82rem;font-weight:800;color:var(--text-primary);}
+.cat-section-badge{padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:700;}
+.cat-section-badge.badge-multi{background:rgba(74,158,232,.1);border:1px solid rgba(74,158,232,.25);color:var(--sapphire);}
+
+/* ── Groupe produit ── */
+.prod-group{border:1px solid var(--text-faint);border-radius:0 0 var(--r-md) var(--r-md);
+  overflow:hidden;margin-bottom:2px;}
+.prod-group-header{display:flex;align-items:center;gap:10px;padding:8px 16px;
+  background:rgba(255,255,255,.02);border-bottom:1px solid rgba(44,51,80,.5);}
+.prod-code{font-size:.82rem;font-weight:800;color:var(--sapphire);}
+.prod-desc{font-size:.78rem;color:var(--text-secondary);}
+.prod-totaux{margin-left:auto;display:flex;gap:12px;align-items:center;}
+.prod-tot-item{font-size:.7rem;color:var(--text-muted);}
+.prod-tot-item strong{color:var(--amber);font-size:.78rem;}
+
+/* ── Ligne de stock ── */
+.stock-row{display:flex;align-items:center;gap:0;padding:7px 16px;
+  border-bottom:1px solid rgba(44,51,80,.3);transition:background .1s;}
+.stock-row:last-child{border-bottom:none;}
+.stock-row:hover{background:var(--bg-hover);}
+
+/* Badges emplacement */
+.loc-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;
+  font-size:.68rem;font-weight:700;white-space:nowrap;flex-shrink:0;width:80px;justify-content:center;}
+.loc-badge.loc-usine{background:rgba(200,132,58,.12);border:1px solid rgba(200,132,58,.25);color:var(--copper);}
+.loc-badge.loc-gh{background:rgba(45,212,160,.1);border:1px solid rgba(45,212,160,.25);color:var(--emerald);}
+
+.row-lot{font-size:.8rem;font-weight:700;color:var(--text-primary);min-width:130px;margin:0 12px;}
+.row-sous-lot{font-size:.76rem;color:var(--text-secondary);min-width:90px;margin-right:12px;}
+.row-qte{font-size:.8rem;color:var(--text-primary);min-width:60px;margin-right:10px;}
+.row-poids{font-size:.8rem;color:var(--amber);font-weight:700;min-width:80px;margin-right:10px;}
+.row-dates{font-size:.72rem;color:var(--text-muted);display:flex;gap:10px;margin-right:10px;flex-wrap:wrap;}
+.row-date-item{display:flex;flex-direction:column;gap:1px;}
+.row-date-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);}
+.row-date-val{color:var(--text-secondary);}
+.row-date-val.exp-warn{color:var(--amber);}
+.row-date-val.exp-danger{color:var(--ruby);}
+
+/* ── Spinner ── */
+.spinner-ctr{display:flex;align-items:center;justify-content:center;padding:80px;gap:12px;
+  color:var(--text-muted);font-size:.88rem;}
+.sp-ring{width:28px;height:28px;border:2px solid var(--text-faint);border-top-color:var(--sapphire);
+  border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Vide ── */
+.empty-ctr{padding:60px;text-align:center;color:var(--text-muted);font-size:.88rem;}
+.empty-icon{font-size:2.8rem;margin-bottom:14px;opacity:.4;}
+
+/* ── Info banner ── */
+.info-banner{display:flex;align-items:center;gap:12px;padding:10px 16px;
+  background:rgba(74,158,232,.08);border:1px solid rgba(74,158,232,.2);border-radius:var(--r-md);
+  font-size:.78rem;color:var(--sapphire);margin-bottom:16px;flex-wrap:wrap;}
+.info-banner strong{font-weight:700;}
+
+/* ── Toast ── */
+.toast-bar{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px;}
+.toast{padding:11px 18px;border-radius:var(--r-md);font-size:.82rem;font-weight:600;border:1px solid;
+  animation:tin .2s;max-width:320px;}
+.toast.ok{background:rgba(45,212,160,.12);color:var(--emerald);border-color:rgba(45,212,160,.3);}
+.toast.err{background:rgba(224,85,85,.12);color:var(--ruby);border-color:rgba(224,85,85,.3);}
+.toast.info{background:rgba(74,158,232,.12);color:var(--sapphire);border-color:rgba(74,158,232,.3);}
+@keyframes tin{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+
+  <!-- TOPBAR -->
+  <div class="tool-topbar">
+    <a class="tool-back" href="index.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Retour
+    </a>
+    <div class="tool-title">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--sapphire)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      Inventaire Global
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+      <a href="inventaire_usine.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
+        border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);
+        color:var(--copper);font-size:.8rem;font-weight:600;text-decoration:none;transition:all .15s;"
+        onmouseover="this.style.borderColor='var(--copper)'" onmouseout="this.style.borderColor='var(--text-faint)'">
+        🏭 Saisie usine
+      </a>
+      <a href="inventaire_gh.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
+        border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);
+        color:var(--emerald);font-size:.8rem;font-weight:600;text-decoration:none;transition:all .15s;"
+        onmouseover="this.style.borderColor='var(--emerald)'" onmouseout="this.style.borderColor='var(--text-faint)'">
+        🏪 Inventaire GH
+      </a>
+    </div>
+    <span style="font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:20px;background:rgba(74,158,232,.1);border:1px solid rgba(74,158,232,.2);color:var(--sapphire);">Global</span>
+  </div>
+
+  <!-- MAIN -->
+  <div class="tool-main">
+    <div class="page-eyebrow">Vue consolidée</div>
+    <div class="page-title">Inventaire Global — Usine + GH</div>
+    <div class="page-sub">Stock combiné de l'usine (relevé le plus récent) et de l'entrepôt GH Logistics. Classé par catégorie, code produit et numéro de lot.</div>
+
+    <!-- Bannière info -->
+    <div class="info-banner" id="info-banner" style="display:none;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="info-banner-text"></span>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-global">
+        <div class="kpi-lbl">🌐 Total global</div>
+        <div class="kpi-val" id="kpi-total">—</div>
+        <div class="kpi-sub">lignes de stock</div>
+      </div>
+      <div class="kpi-card kpi-usine">
+        <div class="kpi-lbl">🏭 Stock usine</div>
+        <div class="kpi-val" id="kpi-usine">—</div>
+        <div class="kpi-sub" id="kpi-usine-date">relevé: —</div>
+      </div>
+      <div class="kpi-card kpi-gh">
+        <div class="kpi-lbl">🏪 Stock GH</div>
+        <div class="kpi-val" id="kpi-gh">—</div>
+        <div class="kpi-sub">entrepôt externe</div>
+      </div>
+      <div class="kpi-card kpi-poids">
+        <div class="kpi-lbl">⚖️ Poids total</div>
+        <div class="kpi-val" id="kpi-poids">—</div>
+        <div class="kpi-sub">kg combinés</div>
+      </div>
+    </div>
+
+    <!-- Barre outils -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <div class="search-wrap">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="srch" placeholder="Rechercher code, lot, description…" oninput="applyFilters()">
+        </div>
+        <select class="fsel" id="fsel-loc" onchange="applyFilters()">
+          <option value="">Tous les emplacements</option>
+          <option value="usine">🏭 Usine seulement</option>
+          <option value="gh">🏪 GH seulement</option>
+        </select>
+        <button class="btn-refresh-all" onclick="loadAll()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Actualiser
+        </button>
+      </div>
+      <button class="btn-pdf" id="btn-pdf" onclick="exportPDF()" disabled>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Exporter PDF
+      </button>
+    </div>
+
+    <!-- Layout sidebar + contenu -->
+    <div class="global-layout">
+      <!-- Sidebar catégories -->
+      <div class="cat-sidebar" id="cat-sidebar">
+        <div class="cat-btn active" id="cat-btn-all" onclick="filterByCat(null)" title="Tout afficher">
+          <span class="cat-btn-icon">Σ</span>
+          <span class="cat-btn-name">TOUT</span>
+          <span class="cat-btn-count" id="cnt-all">0</span>
+        </div>
+      </div>
+
+      <!-- Contenu -->
+      <div class="global-content" id="global-content">
+        <div class="spinner-ctr" id="spinner">
+          <div class="sp-ring"></div> Chargement des inventaires…
+        </div>
+        <div class="empty-ctr" id="empty-ctr" style="display:none;">
+          <div class="empty-icon">📊</div>
+          <div>Aucune donnée disponible.</div>
+          <div style="margin-top:8px;font-size:.78rem;">Vérifiez que l'inventaire usine a été saisi et que GH est connecté.</div>
+        </div>
+        <div id="main-view" style="display:none;"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast-bar" id="toasts"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+
+let sb;
+let ghCategories = [];   // Catégories depuis Supabase
+let usineRows    = [];   // Stock usine
+let ghRows       = [];   // Stock GH (depuis localStorage)
+let allRows      = [];   // Fusion des deux
+let filteredRows = [];   // Après filtres
+let activeCat    = null; // Catégorie active dans sidebar
+let dateReleveUsine = null;
+
+// ── UTILS ─────────────────────────────────────────────────────────
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtDate(s){
+  if(!s) return '—';
+  // YYYY-MM-DD
+  const m1 = String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m1) return m1[3]+'/'+m1[2]+'/'+m1[1];
+  // DD/MM/YYYY already
+  if(String(s).match(/^\d{2}\/\d{2}\/\d{4}$/)) return s;
+  return s;
+}
+function parseDate(s){
+  if(!s) return 0;
+  s = String(s).trim();
+  const m1 = s.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/);
+  if(m1) return new Date(m1[3], m1[2]-1, m1[1]).getTime();
+  const m2 = s.match(/^(\d{4})[\/\-](\d{2})[\/\-](\d{2})$/);
+  if(m2) return new Date(m2[1], m2[2]-1, m2[3]).getTime();
+  return 0;
+}
+function daysUntil(s){
+  const t = parseDate(s);
+  if(!t) return null;
+  return Math.round((t - Date.now()) / 86400000);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+function waitSB(){
+  if(typeof supabase !== 'undefined' && supabase.createClient){
+    sb = supabase.createClient(SB_URL, SB_KEY);
+    loadAll();
+  } else { setTimeout(waitSB, 50); }
+}
+window.addEventListener('load', waitSB);
+
+async function loadAll(){
+  showState('spinner');
+  document.getElementById('btn-pdf').disabled = true;
+
+  // Charger catégories
+  await loadCategories();
+
+  // Charger en parallèle : usine (Supabase) + GH (localStorage)
+  await Promise.all([loadUsine(), loadGH()]);
+
+  // Fusionner et afficher
+  buildAllRows();
+  buildSidebar();
+  applyFilters();
+  updateKPIs();
+  document.getElementById('btn-pdf').disabled = allRows.length === 0;
+}
+
+// ── CATÉGORIES ────────────────────────────────────────────────────
+async function loadCategories(){
+  try{
+    const {data} = await sb.from('gh_categories').select('*').order('created_at');
+    ghCategories = (data||[]).map(c => ({...c, rules: c.cat_rules||c.rules||[]}));
+  }catch(e){ ghCategories = []; }
+}
+
+function getCategoryForRow(row){
+  if(row.source === 'usine'){
+    // Pour l'usine, la catégorie est stockée directement
+    if(row.categorie_id){
+      const cat = ghCategories.find(c => c.id === row.categorie_id);
+      return cat || null;
+    }
+    return null;
+  }
+  // Pour GH, utiliser les règles de matching
+  for(const cat of ghCategories){
+    if(!cat.parent_id && matchesCategory(row.raw, cat)) return cat;
+  }
+  return null;
+}
+
+function matchesCategory(raw, cat){
+  if(!cat || !cat.rules || cat.rules.length === 0) return false;
+  const colMap = {'no_produit':1,'description':2,'qte_inv':3,'no_comm':13,'no_lot':16,'no_sous_lot':17,'date_lot':18,'expiration':19,'reception':20};
+  let result = true;
+  for(let i = 0; i < cat.rules.length; i++){
+    const rule = cat.rules[i];
+    const colIdx = colMap[rule.col] ?? parseInt(rule.col);
+    const cellVal = ((raw||[])[colIdx]||'').toLowerCase();
+    const ruleVal = (rule.value||'').toLowerCase();
+    let match = false;
+    if(rule.operator==='contains')     match = cellVal.includes(ruleVal);
+    if(rule.operator==='not_contains') match = !cellVal.includes(ruleVal);
+    if(rule.operator==='starts_with')  match = cellVal.startsWith(ruleVal);
+    if(rule.operator==='ends_with')    match = cellVal.endsWith(ruleVal);
+    if(rule.operator==='equals')       match = cellVal === ruleVal;
+    if(rule.operator==='not_equals')   match = cellVal !== ruleVal;
+    if(i===0){ result=match; } else if(rule.logic==='OR'){ result=result||match; } else { result=result&&match; }
+  }
+  return result;
+}
+
+// ── STOCK USINE ───────────────────────────────────────────────────
+async function loadUsine(){
+  try{
+    const {data, error} = await sb.from('inventaire_usine').select('*').order('created_at');
+    if(error) throw error;
+    usineRows = (data||[]).map(r => ({
+      source:        'usine',
+      categorie_id:  r.categorie_id||'',
+      categorie_nom: r.categorie_nom||'',
+      code_produit:  r.code_produit||'',
+      description:   r.description||'',
+      no_lot:        r.no_lot||'',
+      no_sous_lot:   r.no_sous_lot||'',
+      quantite:      r.quantite||0,
+      poids_unit:    r.poids_unit||0,
+      poids_total:   r.poids_total||0,
+      date_fab:      r.date_fab||'',
+      date_peremption: r.date_peremption||'',
+      notes:         r.notes||'',
+      raw:           null
+    }));
+    if(data && data.length > 0) dateReleveUsine = data[0].date_releve;
+  }catch(e){
+    usineRows = [];
+    console.error('Erreur usine:', e);
+    showBanner('Impossible de charger le stock usine : '+e.message);
+  }
+}
+
+// ── STOCK GH (depuis localStorage) ────────────────────────────────
+async function loadGH(){
+  try{
+    const saved = localStorage.getItem('gh_inventory');
+    if(!saved){ ghRows = []; showBanner('Stock GH non disponible — connectez-vous à GH Logistics.'); return; }
+    const items = JSON.parse(saved);
+    ghRows = (items||[]).map(r => {
+      const raw = r._raw || [];
+      return {
+        source:        'gh',
+        categorie_id:  '',
+        categorie_nom: '',
+        code_produit:  raw[1]||r._resolved_code||'',
+        description:   raw[2]||r._resolved_desc||'',
+        no_lot:        raw[16]||'',
+        no_sous_lot:   raw[17]||'',
+        quantite:      parseFloat(raw[3]||r._resolved_qte||0),
+        poids_unit:    r._resolved_poids_unit||0,
+        poids_total:   r._resolved_poids_total||0,
+        date_fab:      raw[18]||'',
+        date_peremption: raw[19]||'',
+        notes:         '',
+        raw:           raw
+      };
+    });
+  }catch(e){
+    ghRows = [];
+    console.error('Erreur GH:', e);
+  }
+}
+
+// ── FUSION ────────────────────────────────────────────────────────
+function buildAllRows(){
+  allRows = [...usineRows, ...ghRows];
+  // Résoudre la catégorie de chaque ligne
+  allRows.forEach(row => {
+    row._cat = getCategoryForRow(row);
+  });
+}
+
+// ── SIDEBAR ───────────────────────────────────────────────────────
+function buildSidebar(){
+  const sidebar = document.getElementById('cat-sidebar');
+  sidebar.innerHTML = '';
+
+  // TOUT
+  const allBtn = document.createElement('div');
+  allBtn.className = 'cat-btn' + (activeCat === null ? ' active' : '');
+  allBtn.id = 'cat-btn-all';
+  allBtn.onclick = () => filterByCat(null);
+  allBtn.innerHTML = `<span class="cat-btn-icon">Σ</span><span class="cat-btn-name">TOUT</span><span class="cat-btn-count" id="cnt-all">${allRows.length}</span>`;
+  sidebar.appendChild(allBtn);
+
+  // Catégories racines triées
+  const rootCats = ghCategories.filter(c => !c.parent_id).sort((a,b) => a.name.localeCompare(b.name));
+  rootCats.forEach(cat => {
+    const count = allRows.filter(r => r._cat && r._cat.id === cat.id).length;
+    const btn = document.createElement('div');
+    btn.className = 'cat-btn' + (activeCat === cat.id ? ' active' : '');
+    btn.style.borderColor = activeCat === cat.id ? (cat.color||'var(--sapphire)') : 'transparent';
+    btn.style.background  = activeCat === cat.id ? (cat.color||'var(--sapphire)')+'22' : '';
+    btn.onclick = () => filterByCat(cat.id);
+    btn.innerHTML = `<span class="cat-btn-icon">${cat.icon||'📦'}</span><span class="cat-btn-name">${esc(cat.name)}</span><span class="cat-btn-count">${count}</span>`;
+    sidebar.appendChild(btn);
+  });
+
+  // SANS CATÉGORIE
+  const noCatCount = allRows.filter(r => !r._cat).length;
+  const noCatBtn = document.createElement('div');
+  noCatBtn.className = 'cat-btn' + (activeCat === 'NO_CAT' ? ' active' : '');
+  noCatBtn.onclick = () => filterByCat('NO_CAT');
+  noCatBtn.innerHTML = `<span class="cat-btn-icon">📋</span><span class="cat-btn-name">SANS CAT.</span><span class="cat-btn-count">${noCatCount}</span>`;
+  sidebar.appendChild(noCatBtn);
+}
+
+// ── FILTRES ───────────────────────────────────────────────────────
+function filterByCat(catId){
+  activeCat = catId;
+  buildSidebar();
+  applyFilters();
+}
+
+function applyFilters(){
+  const srch = document.getElementById('srch').value.toLowerCase().trim();
+  const loc  = document.getElementById('fsel-loc').value;
+
+  filteredRows = allRows.filter(row => {
+    // Filtre emplacement
+    if(loc && row.source !== loc) return false;
+
+    // Filtre catégorie (sidebar)
+    if(activeCat === 'NO_CAT'){
+      if(row._cat) return false;
+    } else if(activeCat !== null){
+      if(!row._cat || row._cat.id !== activeCat) return false;
+    }
+
+    // Filtre texte
+    if(srch){
+      const haystack = [row.code_produit, row.description, row.no_lot, row.no_sous_lot, row.notes].join(' ').toLowerCase();
+      if(!haystack.includes(srch)) return false;
+    }
+    return true;
+  });
+
+  renderMain();
+}
+
+// ── RENDU PRINCIPAL ───────────────────────────────────────────────
+function renderMain(){
+  const view = document.getElementById('main-view');
+
+  if(filteredRows.length === 0){
+    showState('empty');
+    return;
+  }
+  showState('view');
+
+  // Grouper par catégorie → code produit
+  const byCat = new Map(); // catKey → { cat, byCode }
+
+  filteredRows.forEach(row => {
+    const catKey  = row._cat ? row._cat.id : '__none__';
+    const catName = row._cat ? row._cat.name : 'Sans catégorie';
+    const catIcon = row._cat ? (row._cat.icon||'📦') : '📋';
+
+    if(!byCat.has(catKey)){
+      byCat.set(catKey, { catKey, catName, catIcon, cat: row._cat, byCode: new Map() });
+    }
+    const catGroup = byCat.get(catKey);
+
+    const code = row.code_produit || '—';
+    if(!catGroup.byCode.has(code)){
+      catGroup.byCode.set(code, { code, description: row.description, rows: [] });
+    }
+    catGroup.byCode.get(code).rows.push(row);
+  });
+
+  // Trier les catégories alphabétiquement
+  const sortedCats = [...byCat.values()].sort((a,b) => a.catName.localeCompare(b.catName));
+
+  let html = '';
+  sortedCats.forEach(({ catName, catIcon, byCode }) => {
+    const totalRows = [...byCode.values()].reduce((s, g) => s + g.rows.length, 0);
+    const usineCount = filteredRows.filter(r => (r._cat ? r._cat.name === catName : catName === 'Sans catégorie') && r.source === 'usine').length;
+    const ghCount    = filteredRows.filter(r => (r._cat ? r._cat.name === catName : catName === 'Sans catégorie') && r.source === 'gh').length;
+
+    let badges = '';
+    if(usineCount > 0) badges += `<span style="padding:2px 8px;border-radius:20px;background:rgba(200,132,58,.12);border:1px solid rgba(200,132,58,.25);color:var(--copper);font-size:.66rem;font-weight:700;margin-left:6px;">🏭 ${usineCount}</span>`;
+    if(ghCount > 0)    badges += `<span style="padding:2px 8px;border-radius:20px;background:rgba(45,212,160,.1);border:1px solid rgba(45,212,160,.25);color:var(--emerald);font-size:.66rem;font-weight:700;margin-left:4px;">🏪 ${ghCount}</span>`;
+
+    html += `<div class="cat-section">
+      <div class="cat-section-header">
+        <span class="cat-section-icon">${catIcon}</span>
+        <span class="cat-section-name">${esc(catName)}</span>
+        ${badges}
+        <span class="cat-section-badge badge-multi" style="margin-left:auto;">${totalRows} ligne${totalRows>1?'s':''}</span>
+      </div>`;
+
+    // Trier les codes alphabétiquement
+    const sortedCodes = [...byCode.values()].sort((a,b) => a.code.localeCompare(b.code));
+    html += `<div class="prod-group">`;
+
+    sortedCodes.forEach(({ code, description, rows: codeRows }, ci) => {
+      const totalPoids = codeRows.reduce((s, r) => s + (parseFloat(r.poids_total)||0), 0);
+      const totalQte   = codeRows.reduce((s, r) => s + (parseFloat(r.quantite)||0), 0);
+
+      if(ci > 0) html += `<div style="height:1px;background:rgba(44,51,80,.4);margin:0 16px;"></div>`;
+
+      html += `<div class="prod-group-header">
+        <span class="prod-code">${esc(code)}</span>
+        ${description ? `<span class="prod-desc">— ${esc(description)}</span>` : ''}
+        <div class="prod-totaux">
+          <span class="prod-tot-item">Qté : <strong>${totalQte % 1 === 0 ? totalQte : totalQte.toFixed(2)}</strong></span>
+          ${totalPoids > 0 ? `<span class="prod-tot-item">Poids : <strong>${totalPoids.toFixed(2)} kg</strong></span>` : ''}
+        </div>
+      </div>`;
+
+      // Trier les lignes : d'abord par lot, puis usine avant GH pour même lot
+      codeRows.sort((a,b) => {
+        const lotCmp = (a.no_lot||'').localeCompare(b.no_lot||'');
+        if(lotCmp !== 0) return lotCmp;
+        if(a.source === b.source) return 0;
+        return a.source === 'usine' ? -1 : 1;
+      });
+
+      codeRows.forEach(row => {
+        const isUsine = row.source === 'usine';
+        const badgeCls = isUsine ? 'loc-usine' : 'loc-gh';
+        const badgeTxt = isUsine ? '🏭 Usine' : '🏪 GH';
+
+        // Couleur date péremption
+        let expCls = '';
+        if(row.date_peremption){
+          const d = daysUntil(row.date_peremption);
+          if(d !== null){
+            if(d < 0) expCls = 'exp-danger';
+            else if(d <= 90) expCls = 'exp-warn';
+          }
+        }
+
+        html += `<div class="stock-row">
+          <span class="loc-badge ${badgeCls}">${badgeTxt}</span>
+          <span class="row-lot" title="No. lot">${esc(row.no_lot||'—')}</span>
+          <span class="row-sous-lot">${row.no_sous_lot ? esc(row.no_sous_lot) : '<span style="color:var(--text-faint);font-size:.72rem;">—</span>'}</span>
+          <span class="row-qte">${row.quantite > 0 ? row.quantite : '<span style="color:var(--text-faint);">—</span>'} unités</span>
+          <span class="row-poids">${row.poids_total > 0 ? parseFloat(row.poids_total).toFixed(2)+' kg' : '<span style="color:var(--text-faint);">—</span>'}</span>
+          <div class="row-dates">
+            ${row.date_fab ? `<div class="row-date-item"><div class="row-date-lbl">Fab.</div><div class="row-date-val">${fmtDate(row.date_fab)}</div></div>` : ''}
+            ${row.date_peremption ? `<div class="row-date-item"><div class="row-date-lbl">Pér.</div><div class="row-date-val ${expCls}">${fmtDate(row.date_peremption)}</div></div>` : ''}
+          </div>
+          ${row.notes ? `<span style="font-size:.72rem;color:var(--text-muted);font-style:italic;margin-left:auto;">${esc(row.notes)}</span>` : ''}
+        </div>`;
+      });
+
+    });
+
+    html += `</div></div>`;
+  });
+
+  view.innerHTML = html;
+}
+
+// ── KPIs ──────────────────────────────────────────────────────────
+function updateKPIs(){
+  const totalPoids = allRows.reduce((s, r) => s + (parseFloat(r.poids_total)||0), 0);
+  document.getElementById('kpi-total').textContent  = allRows.length;
+  document.getElementById('kpi-usine').textContent  = usineRows.length;
+  document.getElementById('kpi-gh').textContent     = ghRows.length;
+  document.getElementById('kpi-poids').textContent  = totalPoids > 0 ? totalPoids.toFixed(0) : '—';
+  if(dateReleveUsine){
+    document.getElementById('kpi-usine-date').textContent = 'relevé : ' + fmtDate(dateReleveUsine);
+  }
+}
+
+// ── ÉTAT ──────────────────────────────────────────────────────────
+function showState(s){
+  document.getElementById('spinner').style.display  = s==='spinner' ? 'flex' : 'none';
+  document.getElementById('empty-ctr').style.display = s==='empty'  ? 'block' : 'none';
+  document.getElementById('main-view').style.display  = s==='view'  ? 'block' : 'none';
+}
+
+function showBanner(txt){
+  const b = document.getElementById('info-banner');
+  document.getElementById('info-banner-text').textContent = txt;
+  b.style.display = 'flex';
+}
+
+// ── EXPORT PDF ────────────────────────────────────────────────────
+async function exportPDF(){
+  if(filteredRows.length === 0){ toast('Aucune donnée à exporter.','err'); return; }
+
+  try{
+    const {jsPDF} = window.jspdf;
+    // Format lettre canadien paysage : 11" × 8.5" = 279.4mm × 215.9mm
+    const pdf = new jsPDF({orientation:'landscape', unit:'mm', format:'letter'});
+    const W = pdf.internal.pageSize.getWidth();  // 279.4
+    const H = pdf.internal.pageSize.getHeight(); // 215.9
+    const M = 10;
+    const C = {
+      sapphire:[74,158,232], copper:[200,132,58], emerald:[45,212,160], amber:[232,164,58],
+      ruby:[224,85,85], black:[15,16,23], grey:[107,114,128], faint:[44,51,80],
+      white:[255,255,255], bgLight:[245,246,250]
+    };
+
+    let y = M;
+
+    // ── EN-TÊTE ──
+    pdf.setFillColor(...C.sapphire); pdf.rect(0, 0, W, 1.5, 'F');
+    pdf.setFontSize(16); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.black);
+    pdf.text('Inventaire Global — SOY', M, y + 8);
+    pdf.setFontSize(8); pdf.setFont('helvetica','normal'); pdf.setTextColor(...C.grey);
+    const now = new Date().toLocaleString('fr-CA', {dateStyle:'long', timeStyle:'short'});
+    pdf.text('Généré le : ' + now + (dateReleveUsine ? '  ·  Relevé usine : '+fmtDate(dateReleveUsine) : ''), W - M, y + 8, {align:'right'});
+    y += 14;
+
+    // Ligne séparatrice
+    pdf.setDrawColor(...C.faint); pdf.setLineWidth(0.2); pdf.line(M, y, W - M, y); y += 5;
+
+    // ── RÉSUMÉ GLOBAL ──
+    const totalPoidsAll = allRows.reduce((s,r) => s+(parseFloat(r.poids_total)||0), 0);
+    pdf.setFontSize(8); pdf.setFont('helvetica','bold');
+    pdf.setTextColor(...C.sapphire);  pdf.text('Total : ' + filteredRows.length + ' lignes', M, y + 4);
+    pdf.setTextColor(...C.copper);    pdf.text('🏭 Usine : ' + usineRows.length, M + 55, y + 4);
+    pdf.setTextColor(...[45,160,100]); pdf.text('🏪 GH : ' + ghRows.length, M + 105, y + 4);
+    pdf.setTextColor(...C.amber);     pdf.text('Poids total : ' + totalPoidsAll.toFixed(0) + ' kg', M + 150, y + 4);
+    y += 12;
+
+    // ── COLONNES ──
+    const cols = [
+      {label:'Emplacement', w:20, key:'source'},
+      {label:'Catégorie',   w:30, key:'cat'},
+      {label:'Code produit',w:25, key:'code'},
+      {label:'Description', w:0,  key:'desc'},
+      {label:'No. lot',     w:25, key:'lot'},
+      {label:'Sous-lot',    w:18, key:'slot'},
+      {label:'Qté',         w:12, key:'qte'},
+      {label:'Poids u. kg', w:16, key:'poids_u'},
+      {label:'Poids tot. kg',w:18, key:'poids_t'},
+      {label:'Date fab.',   w:18, key:'dfab'},
+      {label:'Date pér.',   w:18, key:'dper'},
+    ];
+    const fixedW = cols.filter(c=>c.w>0).reduce((s,c)=>s+c.w,0);
+    const descCol = cols.find(c=>c.key==='desc');
+    descCol.w = Math.max(W - 2*M - fixedW, 25);
+
+    const hH = 7, rH = 6;
+    let x = M;
+    pdf.setFillColor(...C.bgLight);
+    pdf.rect(M, y, W - 2*M, hH, 'F');
+    pdf.setFontSize(5); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.sapphire);
+    cols.forEach(c => { pdf.text(c.label.toUpperCase(), x + 2, y + 5); x += c.w; });
+    y += hH;
+
+    // ── DONNÉES ──
+    // Grouper par catégorie pour impression avec en-têtes
+    const byCat = new Map();
+    filteredRows.forEach(row => {
+      const k = row._cat ? row._cat.name : 'Sans catégorie';
+      if(!byCat.has(k)) byCat.set(k, { name:k, icon: row._cat ? (row._cat.icon||'') : '📋', rows:[] });
+      byCat.get(k).rows.push(row);
+    });
+
+    [...byCat.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([catName, catData]) => {
+      // En-tête catégorie
+      if(y > H - 20){ pdf.addPage(); y = M; }
+      pdf.setFillColor(230, 235, 248);
+      pdf.rect(M, y, W - 2*M, 6, 'F');
+      pdf.setFontSize(6.5); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.sapphire);
+      pdf.text(catData.name.toUpperCase() + '  ·  ' + catData.rows.length + ' ligne' + (catData.rows.length>1?'s':''), M + 3, y + 4.5);
+      y += 6;
+
+      // Lignes
+      catData.rows.sort((a,b) => {
+        const codeCmp = (a.code_produit||'').localeCompare(b.code_produit||'');
+        if(codeCmp !== 0) return codeCmp;
+        const lotCmp = (a.no_lot||'').localeCompare(b.no_lot||'');
+        if(lotCmp !== 0) return lotCmp;
+        return a.source === b.source ? 0 : a.source === 'usine' ? -1 : 1;
+      });
+
+      catData.rows.forEach((row, ri) => {
+        if(y > H - 14){ pdf.addPage(); y = M; }
+
+        const isUsine = row.source === 'usine';
+        if(ri % 2 === 0){ pdf.setFillColor(252,252,253); pdf.rect(M, y, W-2*M, rH, 'F'); }
+
+        // Couleur badge source
+        if(isUsine){ pdf.setFillColor(...C.copper, 0.3); } else { pdf.setFillColor(...[45,212,160]); }
+        pdf.setFillColor(isUsine ? 200 : 45, isUsine ? 132 : 212, isUsine ? 58 : 160);
+        pdf.roundedRect(M+1, y+1, 10, rH-2, 1, 1, 'F');
+        pdf.setFontSize(4.5); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.white);
+        pdf.text(isUsine ? 'USINE' : 'GH', M+2.5, y + (rH/2) + 1.5);
+
+        x = M + cols[0].w; // sauter colonne source déjà dessinée
+        const rowData = {
+          cat:     catData.name,
+          code:    row.code_produit||'',
+          desc:    row.description||'',
+          lot:     row.no_lot||'',
+          slot:    row.no_sous_lot||'',
+          qte:     row.quantite > 0 ? String(row.quantite) : '',
+          poids_u: row.poids_unit > 0 ? parseFloat(row.poids_unit).toFixed(2) : '',
+          poids_t: row.poids_total > 0 ? parseFloat(row.poids_total).toFixed(2) : '',
+          dfab:    row.date_fab ? fmtDate(row.date_fab) : '',
+          dper:    row.date_peremption ? fmtDate(row.date_peremption) : '',
+        };
+
+        cols.slice(1).forEach(c => {
+          pdf.setFontSize(5.5); pdf.setFont('helvetica','normal');
+          if(c.key==='code'){ pdf.setTextColor(...C.sapphire); pdf.setFont('helvetica','bold'); }
+          else if(c.key==='poids_t'){ pdf.setTextColor(...C.amber); pdf.setFont('helvetica','bold'); }
+          else if(c.key==='dper'){
+            const d = daysUntil(row.date_peremption);
+            if(d !== null && d < 0) pdf.setTextColor(...C.ruby);
+            else if(d !== null && d <= 90) pdf.setTextColor(200,140,0);
+            else pdf.setTextColor(60,65,80);
+          }
+          else pdf.setTextColor(60, 65, 80);
+
+          const maxW = c.w - 3;
+          let txt = String(rowData[c.key]||'');
+          while(txt.length > 1 && pdf.getTextWidth(txt) > maxW) txt = txt.slice(0,-1);
+          if(txt !== String(rowData[c.key]||'')) txt += '…';
+          pdf.text(txt, x + 1.5, y + 4.3);
+          x += c.w;
+        });
+
+        pdf.setDrawColor(220,222,228); pdf.setLineWidth(0.1); pdf.line(M, y+rH, W-M, y+rH);
+        y += rH;
+      });
+
+      y += 2; // espace entre catégories
+    });
+
+    // ── PIED DE PAGE ──
+    const pages = pdf.internal.getNumberOfPages();
+    for(let i = 1; i <= pages; i++){
+      pdf.setPage(i);
+      pdf.setDrawColor(...C.faint); pdf.setLineWidth(0.2); pdf.line(M, H-7, W-M, H-7);
+      pdf.setFontSize(6); pdf.setFont('helvetica','normal'); pdf.setTextColor(...C.grey);
+      pdf.text('SOY — Inventaire Global — ' + now, M, H - 3);
+      pdf.text('Page ' + i + ' / ' + pages, W - M, H - 3, {align:'right'});
+    }
+
+    // Nom de fichier avec date
+    const d = new Date();
+    const fname = `SOY_Inventaire_Global_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.pdf`;
+    pdf.save(fname);
+    toast('PDF exporté ✓', 'ok');
+
+  }catch(e){
+    console.error(e);
+    toast('Erreur PDF : '+(e?.message||e), 'err');
+  }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────
+function toast(msg, type='ok'){
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 4500);
+}
+</script>
+</body>
+</html>

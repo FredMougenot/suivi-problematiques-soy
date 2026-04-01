@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Inventaire Usine — SOY</title>
+<link rel="stylesheet" href="soy-shared.css">
+<style>
+/* ── Page ── */
+.page-eyebrow{font-size:.62rem;font-weight:800;color:var(--copper);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;}
+.page-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--text-primary);}
+.page-sub{font-size:.82rem;color:var(--text-muted);margin-top:4px;margin-bottom:24px;}
+
+/* ── Bandeau de relevé ── */
+.releve-banner{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+  background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);
+  padding:16px 20px;margin-bottom:22px;position:relative;overflow:hidden;
+}
+.releve-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--copper),transparent);}
+.releve-info{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.releve-date-wrap{display:flex;flex-direction:column;gap:3px;}
+.releve-date-lbl{font-size:.6rem;font-weight:800;color:var(--copper);letter-spacing:.12em;text-transform:uppercase;}
+.releve-date-val{font-size:1rem;font-weight:700;color:var(--text-primary);}
+.releve-count{padding:5px 14px;border-radius:20px;background:var(--copper-dim);border:1px solid rgba(200,132,58,.2);
+  color:var(--copper);font-size:.78rem;font-weight:700;}
+.btn-nouveau-releve{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);
+  background:rgba(224,85,85,.12);border:1px solid rgba(224,85,85,.3);color:var(--ruby);
+  font-size:.82rem;font-weight:700;cursor:pointer;transition:all .15s;}
+.btn-nouveau-releve:hover{background:rgba(224,85,85,.2);}
+
+/* ── Barre d'actions ── */
+.actions-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px;}
+.btn-add-item{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;
+  font-size:.82rem;font-weight:800;border:none;cursor:pointer;transition:opacity .15s,transform .1s;}
+.btn-add-item:hover{opacity:.88;transform:translateY(-1px);}
+.btn-save-all{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);
+  background:var(--emerald-bg);border:1px solid rgba(45,212,160,.3);color:var(--emerald);
+  font-size:.82rem;font-weight:700;cursor:pointer;transition:all .15s;}
+.btn-save-all:hover{background:rgba(45,212,160,.15);}
+.btn-global{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);
+  background:rgba(74,158,232,.1);border:1px solid rgba(74,158,232,.3);color:var(--sapphire);
+  font-size:.82rem;font-weight:700;cursor:pointer;transition:all .15s;text-decoration:none;}
+.btn-global:hover{background:rgba(74,158,232,.18);}
+
+/* ── Tableau de saisie ── */
+.tbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);
+  overflow:hidden;position:relative;}
+.tbl-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--copper),transparent);pointer-events:none;}
+.saisie-tbl{width:100%;border-collapse:collapse;}
+.saisie-tbl thead tr{background:var(--bg-float);border-bottom:1px solid var(--text-faint);}
+.saisie-tbl thead th{padding:10px 10px;font-size:.58rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:.1em;color:var(--text-muted);text-align:left;white-space:nowrap;}
+.saisie-tbl thead th.th-req::after{content:'*';color:var(--ruby);margin-left:2px;}
+.saisie-tbl tbody tr{border-bottom:1px solid rgba(44,51,80,.5);transition:background .1s;}
+.saisie-tbl tbody tr:hover{background:var(--bg-hover);}
+.saisie-tbl tbody tr:last-child{border-bottom:none;}
+.saisie-tbl tbody td{padding:6px 8px;vertical-align:middle;}
+.td-num{text-align:center;color:var(--text-muted);font-size:.74rem;font-weight:700;width:36px;}
+.td-rm{text-align:center;width:40px;}
+
+/* ── Inputs dans le tableau ── */
+.inp-cell{background:transparent;border:none;border-bottom:1px solid transparent;
+  color:var(--text-primary);font-size:.84rem;font-family:'Outfit',sans-serif;
+  outline:none;padding:4px 6px;width:100%;transition:border-color .15s;min-width:0;}
+.inp-cell:hover{border-bottom-color:var(--text-faint);}
+.inp-cell:focus{border-bottom-color:var(--copper);}
+.inp-cell.inp-req:focus{border-bottom-color:var(--copper);}
+.inp-cell.inp-req:invalid:not(:placeholder-shown){border-bottom-color:var(--ruby);}
+.sel-cell{background:var(--bg-float);border:1px solid rgba(255,255,255,.06);
+  color:var(--text-primary);border-radius:var(--r-sm);padding:4px 8px;
+  font-size:.82rem;font-family:'Outfit',sans-serif;outline:none;cursor:pointer;
+  width:100%;transition:border-color .15s;}
+.sel-cell:focus{border-color:var(--copper);}
+.sel-cell option{background:var(--bg-float);}
+.inp-poids-total{color:var(--amber);font-weight:700;font-size:.84rem;
+  padding:4px 6px;text-align:right;}
+
+/* ── Badge emplacement ── */
+.badge-usine{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;
+  background:rgba(200,132,58,.12);border:1px solid rgba(200,132,58,.25);
+  color:var(--copper);font-size:.68rem;font-weight:700;}
+
+/* ── Pied de tableau ── */
+.tbl-footer{display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;background:var(--bg-float);border-top:1px solid var(--text-faint);
+  flex-wrap:wrap;gap:12px;}
+.tbl-totaux{display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+.total-item{display:flex;flex-direction:column;gap:2px;}
+.total-lbl{font-size:.6rem;font-weight:800;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;}
+.total-val{font-size:.96rem;font-weight:700;color:var(--amber);}
+
+/* ── Ligne vide ── */
+.empty-state{padding:50px;text-align:center;color:var(--text-muted);font-size:.88rem;}
+.empty-icon{font-size:2.4rem;margin-bottom:12px;opacity:.5;}
+
+/* ── Spinner ── */
+.spinner{display:flex;align-items:center;justify-content:center;padding:50px;gap:12px;
+  color:var(--text-muted);font-size:.88rem;}
+.sp-ring{width:24px;height:24px;border:2px solid var(--text-faint);border-top-color:var(--copper);
+  border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Toast ── */
+.toast-bar{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px;}
+.toast{padding:11px 18px;border-radius:var(--r-md);font-size:.82rem;font-weight:600;border:1px solid;
+  animation:tin .2s;max-width:320px;}
+.toast.ok{background:rgba(45,212,160,.12);color:var(--emerald);border-color:rgba(45,212,160,.3);}
+.toast.err{background:rgba(224,85,85,.12);color:var(--ruby);border-color:rgba(224,85,85,.3);}
+.toast.info{background:rgba(74,158,232,.12);color:var(--sapphire);border-color:rgba(74,158,232,.3);}
+@keyframes tin{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+
+/* ── Modal confirmation ── */
+.modal-overlay{position:fixed;inset:0;z-index:900;background:rgba(7,8,12,.82);
+  backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:24px;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-xl);
+  width:100%;max-width:420px;overflow:hidden;}
+.modal-hd{padding:20px 24px 0;font-size:1.1rem;font-weight:700;color:var(--text-primary);}
+.modal-bd{padding:16px 24px;font-size:.86rem;color:var(--text-secondary);line-height:1.6;}
+.modal-ft{padding:12px 24px 20px;display:flex;gap:10px;justify-content:flex-end;
+  border-top:1px solid var(--text-faint);}
+.btn-cancel{padding:9px 18px;border-radius:var(--r-md);background:transparent;
+  border:1px solid var(--text-faint);color:var(--text-secondary);font-size:.84rem;cursor:pointer;}
+.btn-confirm-danger{padding:9px 20px;border-radius:var(--r-md);
+  background:var(--ruby);border:none;color:#fff;font-size:.84rem;font-weight:700;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+
+  <!-- TOPBAR -->
+  <div class="tool-topbar">
+    <a class="tool-back" href="index.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Retour
+    </a>
+    <div class="tool-title">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--copper)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Inventaire Usine
+    </div>
+    <a class="btn-global" href="inventaire_global.html" style="margin-left:auto;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      Inventaire global
+    </a>
+    <span style="font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--copper-dim);border:1px solid rgba(200,132,58,.2);color:var(--copper);">Qualité</span>
+  </div>
+
+  <!-- MAIN -->
+  <div class="tool-main">
+    <div class="page-eyebrow">Relevé hebdomadaire</div>
+    <div class="page-title">Stock Usine</div>
+    <div class="page-sub">Saisie du stock présent à l'usine. Chaque lundi, saisissez l'intégralité des produits présents. Le relevé précédent sera remplacé lors de la sauvegarde.</div>
+
+    <!-- Bandeau info relevé -->
+    <div class="releve-banner">
+      <div class="releve-info">
+        <div class="releve-date-wrap">
+          <div class="releve-date-lbl">Date du relevé</div>
+          <div class="releve-date-val" id="releve-date-val">—</div>
+        </div>
+        <div class="badge-usine">🏭 Usine</div>
+        <div class="releve-count" id="releve-count">0 produit</div>
+        <div id="releve-last-info" style="font-size:.76rem;color:var(--text-muted);display:none;">
+          Dernier relevé chargé — <span id="releve-last-date" style="color:var(--text-secondary);font-weight:600;"></span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <input type="date" id="inp-date-releve" style="background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);border-radius:var(--r-sm);padding:6px 10px;font-size:.84rem;font-family:'Outfit',sans-serif;outline:none;">
+        <button class="btn-nouveau-releve" onclick="confirmNouveauReleve()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.89"/></svg>
+          Nouveau relevé (effacer)
+        </button>
+      </div>
+    </div>
+
+    <!-- Barre actions -->
+    <div class="actions-bar">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <button class="btn-add-item" onclick="addRow()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter un produit
+        </button>
+        <button class="btn-save-all" onclick="saveAll()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Sauvegarder
+        </button>
+      </div>
+      <div style="font-size:.72rem;color:var(--text-muted);">* Champs obligatoires</div>
+    </div>
+
+    <!-- Tableau de saisie -->
+    <div class="tbl-wrap">
+      <div id="spinner" class="spinner" style="display:none;"><div class="sp-ring"></div> Chargement…</div>
+      <div id="empty-state" class="empty-state">
+        <div class="empty-icon">📦</div>
+        <div>Aucun produit saisi pour ce relevé.</div>
+        <div style="margin-top:8px;font-size:.78rem;">Cliquez sur <strong>Ajouter un produit</strong> pour commencer.</div>
+      </div>
+      <table class="saisie-tbl" id="saisie-tbl" style="display:none;">
+        <thead>
+          <tr>
+            <th style="width:36px;">#</th>
+            <th class="th-req" style="min-width:140px;">Catégorie</th>
+            <th class="th-req" style="min-width:110px;">Code produit</th>
+            <th style="min-width:180px;">Description</th>
+            <th class="th-req" style="min-width:100px;">No. lot</th>
+            <th style="min-width:90px;">No. sous-lot</th>
+            <th style="min-width:70px;">Qté</th>
+            <th style="min-width:80px;">Poids unit. (kg)</th>
+            <th style="min-width:90px;">Poids total (kg)</th>
+            <th style="min-width:110px;">Date fabrication</th>
+            <th style="min-width:110px;">Date péremption</th>
+            <th style="min-width:120px;">Notes</th>
+            <th style="width:40px;"></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="tbl-footer" id="tbl-footer" style="display:none;">
+        <div class="tbl-totaux">
+          <div class="total-item">
+            <div class="total-lbl">Produits</div>
+            <div class="total-val" id="total-lignes">0</div>
+          </div>
+          <div class="total-item">
+            <div class="total-lbl">Qté totale</div>
+            <div class="total-val" id="total-qte">0</div>
+          </div>
+          <div class="total-item">
+            <div class="total-lbl">Poids total</div>
+            <div class="total-val" id="total-poids">0 kg</div>
+          </div>
+        </div>
+        <div style="font-size:.72rem;color:var(--text-muted);">Poids calculé automatiquement : Qté × Poids unitaire</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast bar -->
+<div class="toast-bar" id="toasts"></div>
+
+<!-- Modal confirmation nouveau relevé -->
+<div class="modal-overlay" id="modal-nouveau">
+  <div class="modal-box">
+    <div class="modal-hd">⚠️ Nouveau relevé</div>
+    <div class="modal-bd">
+      Cette action va <strong>effacer toutes les lignes actuelles</strong> du relevé en cours et réinitialiser la saisie.<br><br>
+      Les données sauvegardées en base resteront jusqu'à la prochaine sauvegarde complète.<br><br>
+      Voulez-vous continuer ?
+    </div>
+    <div class="modal-ft">
+      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+      <button class="btn-confirm-danger" onclick="nouveauReleve()">Effacer et recommencer</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+
+let sb;
+let rows = [];          // Lignes de saisie en mémoire
+let ghCategories = [];  // Catégories chargées depuis Supabase
+let nextTmpId = -1;     // IDs temporaires pour nouvelles lignes
+
+// ── UTILS ─────────────────────────────────────────────────────────
+function todayStr(){
+  const d = new Date();
+  return d.toISOString().split('T')[0];
+}
+function getMondayStr(){
+  const d = new Date();
+  const day = d.getDay(); // 0=dim, 1=lun...
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  return d.toISOString().split('T')[0];
+}
+function fmtDate(s){
+  if(!s) return '—';
+  const [y,m,d] = s.split('-');
+  if(!y||!m||!d) return s;
+  return d+'/'+m+'/'+y;
+}
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+// ── INIT ──────────────────────────────────────────────────────────
+function waitSB(){
+  if(typeof supabase !== 'undefined' && supabase.createClient){
+    sb = supabase.createClient(SB_URL, SB_KEY);
+    init();
+  } else { setTimeout(waitSB, 50); }
+}
+window.addEventListener('load', waitSB);
+
+async function init(){
+  // Définir la date du relevé (lundi de la semaine courante)
+  const inp = document.getElementById('inp-date-releve');
+  inp.value = getMondayStr();
+  updateRelEveDateDisplay();
+
+  inp.addEventListener('change', updateRelEveDateDisplay);
+
+  // Charger catégories GH
+  await loadCategories();
+
+  // Charger le relevé existant depuis Supabase
+  await loadReleve();
+}
+
+function updateRelEveDateDisplay(){
+  const val = document.getElementById('inp-date-releve').value;
+  document.getElementById('releve-date-val').textContent = val ? fmtDate(val) : '—';
+}
+
+// ── CATÉGORIES ────────────────────────────────────────────────────
+async function loadCategories(){
+  try{
+    const {data, error} = await sb.from('gh_categories').select('id,name,icon,color,parent_id').order('created_at');
+    if(error) throw error;
+    ghCategories = (data||[]).filter(c => !c.parent_id); // racines seulement
+  }catch(e){
+    console.error('Erreur chargement catégories:', e);
+    ghCategories = [];
+  }
+}
+
+function buildCatOptions(selectedId){
+  const opts = ['<option value="">— Sélectionner —</option>'];
+  ghCategories.forEach(c => {
+    const sel = c.id === selectedId ? ' selected' : '';
+    opts.push(`<option value="${esc(c.id)}" data-nom="${esc(c.name)}"${sel}>${c.icon||'📦'} ${esc(c.name)}</option>`);
+  });
+  return opts.join('');
+}
+
+// ── CHARGEMENT RELEVÉ EXISTANT ────────────────────────────────────
+async function loadReleve(){
+  showSpinner(true);
+  try{
+    const {data, error} = await sb.from('inventaire_usine').select('*').order('created_at');
+    if(error) throw error;
+
+    if(data && data.length > 0){
+      // Prendre la date du relevé existant
+      const dateReleve = data[0].date_releve;
+      document.getElementById('inp-date-releve').value = dateReleve;
+      updateRelEveDateDisplay();
+
+      // Afficher info
+      document.getElementById('releve-last-date').textContent = fmtDate(dateReleve);
+      document.getElementById('releve-last-info').style.display = 'block';
+
+      rows = data.map(r => ({
+        id: r.id,
+        categorie_id: r.categorie_id||'',
+        categorie_nom: r.categorie_nom||'',
+        code_produit: r.code_produit||'',
+        description: r.description||'',
+        no_lot: r.no_lot||'',
+        no_sous_lot: r.no_sous_lot||'',
+        quantite: r.quantite||'',
+        poids_unit: r.poids_unit||'',
+        poids_total: r.poids_total||'',
+        date_fab: r.date_fab||'',
+        date_peremption: r.date_peremption||'',
+        notes: r.notes||'',
+        isNew: false,
+        dirty: false
+      }));
+    } else {
+      rows = [];
+    }
+  }catch(e){
+    toast('Erreur chargement : '+e.message, 'err');
+    rows = [];
+  }
+  showSpinner(false);
+  render();
+}
+
+// ── RENDU ─────────────────────────────────────────────────────────
+function render(){
+  const tbody = document.getElementById('tbody');
+  const tbl   = document.getElementById('saisie-tbl');
+  const empty = document.getElementById('empty-state');
+  const footer = document.getElementById('tbl-footer');
+
+  if(rows.length === 0){
+    tbl.style.display = 'none';
+    footer.style.display = 'none';
+    empty.style.display = 'block';
+  } else {
+    tbl.style.display = 'table';
+    footer.style.display = 'flex';
+    empty.style.display = 'none';
+  }
+
+  tbody.innerHTML = rows.map((r, i) => {
+    const poidsTotal = (parseFloat(r.quantite)||0) * (parseFloat(r.poids_unit)||0);
+    return `<tr id="row-${i}">
+      <td class="td-num">${i+1}</td>
+      <td>
+        <select class="sel-cell" onchange="updateCat(${i},this)">
+          ${buildCatOptions(r.categorie_id)}
+        </select>
+      </td>
+      <td><input class="inp-cell inp-req" value="${esc(r.code_produit)}" placeholder="Ex: CI.1750" oninput="mark(${i},'code_produit',this.value)"></td>
+      <td><input class="inp-cell" value="${esc(r.description)}" placeholder="Description…" oninput="mark(${i},'description',this.value)"></td>
+      <td><input class="inp-cell inp-req" value="${esc(r.no_lot)}" placeholder="No. lot" oninput="mark(${i},'no_lot',this.value)"></td>
+      <td><input class="inp-cell" value="${esc(r.no_sous_lot)}" placeholder="Sous-lot" oninput="mark(${i},'no_sous_lot',this.value)"></td>
+      <td><input class="inp-cell" type="number" min="0" step="0.01" value="${esc(r.quantite)}" placeholder="0" oninput="mark(${i},'quantite',this.value);updatePoidsTotal(${i})"></td>
+      <td><input class="inp-cell" type="number" min="0" step="0.001" value="${esc(r.poids_unit)}" placeholder="kg" oninput="mark(${i},'poids_unit',this.value);updatePoidsTotal(${i})"></td>
+      <td><div class="inp-poids-total" id="pt-${i}">${poidsTotal > 0 ? poidsTotal.toFixed(2) : '—'}</div></td>
+      <td><input class="inp-cell" type="date" value="${esc(r.date_fab)}" oninput="mark(${i},'date_fab',this.value)"></td>
+      <td><input class="inp-cell" type="date" value="${esc(r.date_peremption)}" oninput="mark(${i},'date_peremption',this.value)"></td>
+      <td><input class="inp-cell" value="${esc(r.notes)}" placeholder="Notes…" oninput="mark(${i},'notes',this.value)"></td>
+      <td class="td-rm">
+        <button onclick="removeRow(${i})" title="Supprimer" style="width:28px;height:28px;border-radius:var(--r-sm);background:transparent;border:1px solid transparent;color:var(--text-muted);font-size:.85rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;" onmouseover="this.style.background='rgba(224,85,85,.1)';this.style.borderColor='rgba(224,85,85,.3)';this.style.color='var(--ruby)'" onmouseout="this.style.background='transparent';this.style.borderColor='transparent';this.style.color='var(--text-muted)'">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  updateTotaux();
+  document.getElementById('releve-count').textContent = rows.length + ' produit' + (rows.length > 1 ? 's' : '');
+}
+
+function updatePoidsTotal(idx){
+  const r = rows[idx];
+  const pt = (parseFloat(r.quantite)||0) * (parseFloat(r.poids_unit)||0);
+  rows[idx].poids_total = pt > 0 ? pt : '';
+  const el = document.getElementById('pt-'+idx);
+  if(el) el.textContent = pt > 0 ? pt.toFixed(2) : '—';
+  updateTotaux();
+}
+
+function updateCat(idx, sel){
+  const opt = sel.options[sel.selectedIndex];
+  rows[idx].categorie_id = sel.value;
+  rows[idx].categorie_nom = opt ? opt.getAttribute('data-nom') || '' : '';
+  rows[idx].dirty = true;
+}
+
+function mark(idx, field, val){
+  rows[idx][field] = val;
+  rows[idx].dirty = true;
+  if(field === 'quantite' || field === 'poids_unit') updatePoidsTotal(idx);
+}
+
+function updateTotaux(){
+  let totalQte = 0, totalPoids = 0;
+  rows.forEach(r => {
+    totalQte   += parseFloat(r.quantite)||0;
+    totalPoids += parseFloat(r.poids_total)||0;
+  });
+  document.getElementById('total-lignes').textContent = rows.length;
+  document.getElementById('total-qte').textContent = totalQte % 1 === 0 ? totalQte : totalQte.toFixed(2);
+  document.getElementById('total-poids').textContent = totalPoids.toFixed(2) + ' kg';
+}
+
+// ── AJOUTER ───────────────────────────────────────────────────────
+function addRow(){
+  rows.push({
+    id: nextTmpId--,
+    categorie_id:'', categorie_nom:'',
+    code_produit:'', description:'',
+    no_lot:'', no_sous_lot:'',
+    quantite:'', poids_unit:'', poids_total:'',
+    date_fab:'', date_peremption:'',
+    notes:'',
+    isNew:true, dirty:true
+  });
+  render();
+  // Focus sur le champ code_produit de la nouvelle ligne
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('.inp-req');
+    if(inputs.length){
+      // Trouver le dernier code_produit
+      const allCodes = document.querySelectorAll('#tbody input.inp-req:nth-of-type(1)');
+      const lastRow = document.querySelector('#tbody tr:last-child');
+      if(lastRow){
+        const firstInp = lastRow.querySelectorAll('input')[0];
+        if(firstInp) firstInp.focus();
+      }
+    }
+  }, 50);
+}
+
+// ── SUPPRIMER ─────────────────────────────────────────────────────
+function removeRow(idx){
+  rows.splice(idx, 1);
+  render();
+}
+
+// ── NOUVEAU RELEVÉ ────────────────────────────────────────────────
+function confirmNouveauReleve(){
+  document.getElementById('modal-nouveau').classList.add('open');
+}
+function closeModal(){
+  document.getElementById('modal-nouveau').classList.remove('open');
+}
+function nouveauReleve(){
+  closeModal();
+  rows = [];
+  document.getElementById('inp-date-releve').value = getMondayStr();
+  updateRelEveDateDisplay();
+  document.getElementById('releve-last-info').style.display = 'none';
+  render();
+  toast('Relevé réinitialisé. Ajoutez vos produits.', 'info');
+}
+
+// ── SAUVEGARDER ───────────────────────────────────────────────────
+async function saveAll(){
+  // Validation
+  const invalid = rows.filter(r => !r.code_produit || !r.no_lot);
+  if(invalid.length > 0){
+    toast(`${invalid.length} ligne(s) incomplète(s) — Code produit et No. lot sont obligatoires.`, 'err');
+    return;
+  }
+
+  const dateReleve = document.getElementById('inp-date-releve').value;
+  if(!dateReleve){ toast('Veuillez sélectionner une date de relevé.', 'err'); return; }
+
+  const btn = document.querySelector('.btn-save-all');
+  btn.disabled = true;
+  btn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(45,212,160,.3);border-top-color:var(--emerald);border-radius:50%;animation:spin .7s linear infinite;"></div> Sauvegarde…';
+
+  try{
+    // 1. Effacer TOUT l'inventaire usine existant
+    const {error: delErr} = await sb.from('inventaire_usine').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    if(delErr) throw delErr;
+
+    // 2. Insérer toutes les lignes
+    if(rows.length > 0){
+      const payload = rows.map(r => ({
+        date_releve:     dateReleve,
+        categorie_id:    r.categorie_id || null,
+        categorie_nom:   r.categorie_nom || null,
+        code_produit:    r.code_produit,
+        description:     r.description || null,
+        no_lot:          r.no_lot,
+        no_sous_lot:     r.no_sous_lot || null,
+        quantite:        r.quantite !== '' ? parseFloat(r.quantite) : null,
+        poids_unit:      r.poids_unit !== '' ? parseFloat(r.poids_unit) : null,
+        poids_total:     r.poids_total !== '' ? parseFloat(r.poids_total) : null,
+        date_fab:        r.date_fab || null,
+        date_peremption: r.date_peremption || null,
+        notes:           r.notes || null
+      }));
+
+      const {data, error: insErr} = await sb.from('inventaire_usine').insert(payload).select();
+      if(insErr) throw insErr;
+
+      // Mettre à jour les IDs
+      rows = rows.map((r, i) => ({...r, id: data[i]?.id || r.id, isNew: false, dirty: false}));
+    }
+
+    document.getElementById('releve-last-date').textContent = fmtDate(dateReleve);
+    document.getElementById('releve-last-info').style.display = 'block';
+    toast(rows.length + ' produit(s) sauvegardé(s) ✓', 'ok');
+    render();
+
+  }catch(e){
+    toast('Erreur sauvegarde : '+e.message, 'err');
+    console.error(e);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Sauvegarder`;
+}
+
+// ── SPINNER / TOAST ───────────────────────────────────────────────
+function showSpinner(v){
+  document.getElementById('spinner').style.display = v ? 'flex' : 'none';
+}
+function toast(msg, type='ok'){
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 4500);
+}
+</script>
+</body>
+</html>
