@@ -427,7 +427,7 @@ async function loadGH(){
         description:   raw[2]||r._resolved_desc||'',
         no_lot:        raw[16]||'',
         no_sous_lot:   raw[17]||'',
-        quantite:      parseFloat(String(raw[3]||r._resolved_qte||'0').replace(/[^\d.-]/g,''))||0,
+        quantite:      parseFloat(String(raw[8]||r._resolved_qte||'0').replace(/[^\d.-]/g,''))||0,
         poids_unit:    r._resolved_poids_unit||0,
         poids_total:   r._resolved_poids_total||0,
         date_fab:      raw[18]||'',
