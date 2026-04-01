@@ -593,7 +593,10 @@ function buildSidebar(){
   // Catégories racines triées
   const rootCats = ghCategories.filter(c => !c.parent_id).sort((a,b) => a.name.localeCompare(b.name));
   rootCats.forEach(cat => {
-    const count = allRows.filter(r => r._cat && isCatOrDescendant(r, cat.id)).length;
+    const count = allRows.filter(r => {
+      if(r.source === 'gh') return matchesCategory(r.raw, cat);
+      return r._cat && (r._cat.id === cat.id || (()=>{ let c=r._cat; while(c){ if(c.id===cat.id) return true; c=ghCategories.find(x=>x.id===c.parent_id); } return false; })());
+    }).length;
     const hasChildren = ghCategories.some(c => c.parent_id === cat.id);
     const btn = document.createElement('div');
     btn.className = 'cat-btn' + (activeCat === cat.id ? ' active' : '');
@@ -750,17 +753,6 @@ function filterByCode(code){
   applyFilters();
 }
 
-function isCatOrDescendant(row, catId){
-  if(!row._cat) return false;
-  // Vérifier si row._cat correspond à catId ou est un descendant de catId
-  let c = row._cat;
-  while(c){
-    if(c.id === catId) return true;
-    c = ghCategories.find(x => x.id === c.parent_id);
-  }
-  return false;
-}
-
 function applyFilters(){
   const srch = document.getElementById('srch').value.toLowerCase().trim();
   const loc  = document.getElementById('fsel-loc').value;
@@ -771,11 +763,23 @@ function applyFilters(){
     if(activeCat === 'NO_CAT'){
       if(row._cat) return false;
     } else if(activeCat !== null){
-      if(!isCatOrDescendant(row, activeCat)) return false;
+      const cat = ghCategories.find(c => c.id === activeCat);
+      if(!cat) return false;
+      if(row.source === 'gh'){
+        // Exactement comme GH : appliquer matchesCategory directement sur la catégorie cliquée
+        if(!matchesCategory(row.raw, cat)) return false;
+      } else {
+        // Pour usine : vérifier si la catégorie ou un ancêtre correspond
+        if(!row._cat) return false;
+        let c = row._cat;
+        let found = false;
+        while(c){ if(c.id === activeCat){ found=true; break; } c = ghCategories.find(x => x.id === c.parent_id); }
+        if(!found) return false;
+      }
     }
 
     if(srch){
-      const haystack = [row.code_produit, row.description, row.no_lot, row.no_sous_lot, row.notes].join(' ').toLowerCase();
+      const haystack = [row.code_produit, row.description, row.no_lot, row.notes].join(' ').toLowerCase();
       if(!haystack.includes(srch)) return false;
     }
     return true;
