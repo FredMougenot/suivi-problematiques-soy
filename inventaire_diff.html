@@ -458,11 +458,9 @@ function groupRows(rows){
 async function loadAndCompare(){
   showState('spinner');
 
-  // Charger snapshot précédent
   const {data:precData} = await sb.from('snapshot_precedent').select('*');
   const {data:actData}  = await sb.from('snapshot_actuel').select('*');
 
-  // Info dates
   const precDate = precData&&precData.length>0 ? precData[0].saved_at : null;
   const actDate  = actData&&actData.length>0   ? actData[0].saved_at  : null;
   document.getElementById('snap-prec-date').textContent = precDate ? new Date(precDate).toLocaleDateString('fr-CA') : 'Aucun';
@@ -474,50 +472,114 @@ async function loadAndCompare(){
     return;
   }
 
-  // Construire maps par clé source|code|lot
+  // ── ÉTAPE 1 : détecter les clés source|code|lot qui ont changé ──
+  // Clé de détection : source + code_produit + no_lot
   const precMap = new Map();
   precData.forEach(r => { precMap.set([r.source,r.code_produit,r.no_lot].join('|'), r); });
   const actMap = new Map();
   actData.forEach(r => { actMap.set([r.source,r.code_produit,r.no_lot].join('|'), r); });
 
-  diffRows = [];
+  // Collecter les code_produit qui ont changé (toutes sources)
+  const changedCodes = new Set();
 
-  // Nouveaux + Modifiés
   actMap.forEach((actRow, key) => {
     const precRow = precMap.get(key);
-    const _cat = getCategoryForRow({
-      source:actRow.source, categorie_id:actRow.categorie_id,
-      code_produit:actRow.code_produit, description:actRow.description,
-      no_lot:actRow.no_lot, _original:null, raw:null, _raw:null
-    });
-
     if(!precRow){
-      // NOUVEAU
-      diffRows.push({ type:'new', ...actRow, _cat });
+      // Nouveau
+      changedCodes.add(actRow.code_produit);
     } else {
-      // MODIFIÉ ?
       const qteChanged   = Math.abs((parseFloat(actRow.quantite)||0)   - (parseFloat(precRow.quantite)||0))   > 0.001;
       const poidsChanged = Math.abs((parseFloat(actRow.poids_total)||0) - (parseFloat(precRow.poids_total)||0)) > 0.001;
-      if(qteChanged || poidsChanged){
-        diffRows.push({
-          type:'mod', ...actRow, _cat,
-          prev_quantite:precRow.quantite,
-          prev_poids_total:precRow.poids_total
-        });
-      }
+      if(qteChanged || poidsChanged) changedCodes.add(actRow.code_produit);
     }
   });
-
-  // Disparus — présents dans précédent mais absents dans actuel
+  // Disparus
   precMap.forEach((precRow, key) => {
-    if(!actMap.has(key)){
-      const _cat = getCategoryForRow({
-        source:precRow.source, categorie_id:precRow.categorie_id,
-        code_produit:precRow.code_produit, description:precRow.description,
-        no_lot:precRow.no_lot, _original:null, raw:null, _raw:null
+    if(!actMap.has(key)) changedCodes.add(precRow.code_produit);
+  });
+
+  // ── ÉTAPE 2 : pour chaque code changé, consolider actuel (usine+GH) par lot ──
+  // Regrouper actData par code_produit + no_lot (toutes sources additionnées)
+  const consolidatedMap = new Map(); // clé: code|lot → { usine, gh }
+
+  actData.filter(r => changedCodes.has(r.code_produit)).forEach(r => {
+    const lotKey = [r.code_produit, r.no_lot].join('|');
+    if(!consolidatedMap.has(lotKey)){
+      consolidatedMap.set(lotKey, {
+        code_produit: r.code_produit,
+        description:  r.description||'',
+        no_lot:       r.no_lot,
+        categorie_id: r.categorie_id,
+        categorie_nom:r.categorie_nom,
+        usine_qte: 0, usine_poids: 0,
+        gh_qte:    0, gh_poids:    0,
+        date_fab:  r.date_fab||'',
+        date_peremption: r.date_peremption||''
       });
-      diffRows.push({ type:'gone', ...precRow, _cat });
     }
+    const g = consolidatedMap.get(lotKey);
+    if(r.source === 'usine'){
+      g.usine_qte   += parseFloat(r.quantite)||0;
+      g.usine_poids += parseFloat(r.poids_total)||0;
+    } else {
+      g.gh_qte   += parseFloat(r.quantite)||0;
+      g.gh_poids += parseFloat(r.poids_total)||0;
+    }
+    if(!g.date_fab && r.date_fab) g.date_fab = r.date_fab;
+    if(!g.date_peremption && r.date_peremption) g.date_peremption = r.date_peremption;
+  });
+
+  // ── ÉTAPE 3 : construire diffRows avec type de changement par lot ──
+  diffRows = [];
+  consolidatedMap.forEach((row, lotKey) => {
+    const [code, lot] = lotKey.split('|');
+    const _cat = getCategoryForRow({
+      source:'gh', categorie_id:row.categorie_id,
+      code_produit:code, description:row.description,
+      no_lot:lot, _original:null, raw:null, _raw:null
+    }) || getCategoryForRow({
+      source:'usine', categorie_id:row.categorie_id,
+      code_produit:code, description:row.description,
+      no_lot:lot, _original:null, raw:null, _raw:null
+    });
+
+    // Déterminer le type de changement pour ce lot
+    const usineKey = ['usine', code, lot].join('|');
+    const ghKey    = ['gh',    code, lot].join('|');
+    const usineAct = actMap.get(usineKey);
+    const usinePrc = precMap.get(usineKey);
+    const ghAct    = actMap.get(ghKey);
+    const ghPrc    = precMap.get(ghKey);
+
+    let type = 'mod';
+    // NOUVEAU si aucune des deux sources n'existait avant
+    if(!usinePrc && !ghPrc) type = 'new';
+    // DISPARU si aucune des deux sources n'existe dans l'actuel
+    if(!usineAct && !ghAct) type = 'gone';
+
+    // Totaux précédents pour les modifiés
+    const prev_total_qte   = (parseFloat(usinePrc?.quantite)||0)   + (parseFloat(ghPrc?.quantite)||0);
+    const prev_total_poids = (parseFloat(usinePrc?.poids_total)||0) + (parseFloat(ghPrc?.poids_total)||0);
+    const act_total_qte    = row.usine_qte + row.gh_qte;
+    const act_total_poids  = row.usine_poids + row.gh_poids;
+
+    diffRows.push({
+      type, _cat,
+      code_produit:    code,
+      description:     row.description,
+      no_lot:          lot,
+      categorie_id:    row.categorie_id,
+      usine_qte:       row.usine_qte,
+      usine_poids:     row.usine_poids,
+      gh_qte:          row.gh_qte,
+      gh_poids:        row.gh_poids,
+      total_qte:       act_total_qte,
+      total_poids:     act_total_poids,
+      prev_total_qte,
+      prev_total_poids,
+      date_fab:        row.date_fab,
+      date_peremption: row.date_peremption
+    });
   });
 
   updateKPIs();
@@ -627,42 +689,54 @@ function renderMain(){
 
     [...byCode.values()].sort((a,b)=>a.code.localeCompare(b.code)).forEach(({code, description, rows:codeRows}, ci) => {
       if(ci>0) html += `<div style="height:1px;background:rgba(44,51,80,.4);margin:0 16px;"></div>`;
+
+      // Totaux du code produit
+      const totalQte   = codeRows.reduce((s,r)=>s+(r.total_qte||0),0);
+      const totalPoids = codeRows.reduce((s,r)=>s+(r.total_poids||0),0);
       html += `<div class="prod-group-header">
         <span class="prod-code">${esc(code)}</span>
         ${description?`<span class="prod-desc">— ${esc(description)}</span>`:''}
+        <div class="prod-totaux" style="margin-left:auto;display:flex;gap:12px;">
+          <span style="font-size:.7rem;color:var(--text-muted);">Qté total : <strong style="color:var(--amber)">${fmtNum(totalQte)}</strong></span>
+          ${totalPoids>0?`<span style="font-size:.7rem;color:var(--text-muted);">Poids total : <strong style="color:var(--amber)">${totalPoids.toFixed(2)} kg</strong></span>`:''}
+        </div>
       </div>`;
 
       codeRows.sort((a,b)=>(a.no_lot||'').localeCompare(b.no_lot||'')).forEach(row => {
-        const isUsine = row.source==='usine';
-        const badgeCls = isUsine ? 'loc-usine' : 'loc-gh';
-        const badgeTxt = isUsine ? '🏭 Usine' : '🏪 GH';
         const diffBadge = row.type==='new'
           ? `<span class="badge-new">🟢 NOUVEAU</span>`
           : row.type==='gone'
           ? `<span class="badge-gone">🔴 DISPARU</span>`
           : `<span class="badge-mod">🟡 MODIFIÉ</span>`;
 
-        let detailHtml = '';
-        if(row.type==='new'){
-          detailHtml = `
-            <span class="diff-val"><span class="new">Qté : ${fmtNum(row.quantite)}</span></span>
-            ${row.poids_total>0?`<span class="diff-val"><span class="new">Poids : ${parseFloat(row.poids_total).toFixed(2)} kg</span></span>`:''}`;
-        } else if(row.type==='gone'){
-          detailHtml = `
-            <span class="diff-val"><span style="color:var(--text-muted);">Qté : ${fmtNum(row.quantite)}</span></span>
-            ${row.poids_total>0?`<span class="diff-val"><span style="color:var(--text-muted);">Poids : ${parseFloat(row.poids_total).toFixed(2)} kg</span></span>`:''}`;
-        } else {
-          const qteChg = Math.abs((parseFloat(row.quantite)||0)-(parseFloat(row.prev_quantite)||0)) > 0.001;
-          const poidChg = Math.abs((parseFloat(row.poids_total)||0)-(parseFloat(row.prev_poids_total)||0)) > 0.001;
-          if(qteChg) detailHtml += `<span class="diff-val">Qté : <span class="old">${fmtNum(row.prev_quantite)}</span><span class="new">${fmtNum(row.quantite)}</span></span>`;
-          if(poidChg) detailHtml += `<span class="diff-val">Poids : <span class="old">${parseFloat(row.prev_poids_total||0).toFixed(2)} kg</span><span class="new">${parseFloat(row.poids_total||0).toFixed(2)} kg</span></span>`;
+        // Détail des sources pour ce lot
+        const usineHtml = row.usine_qte > 0
+          ? `<span class="loc-badge loc-usine" style="width:auto;padding:3px 8px;">🏭 ${fmtNum(row.usine_qte)}${row.usine_poids>0?' / '+row.usine_poids.toFixed(2)+' kg':''}</span>`
+          : '';
+        const ghHtml = row.gh_qte > 0
+          ? `<span class="loc-badge loc-gh" style="width:auto;padding:3px 8px;">🏪 ${fmtNum(row.gh_qte)}${row.gh_poids>0?' / '+row.gh_poids.toFixed(2)+' kg':''}</span>`
+          : '';
+
+        // Total consolidé actuel
+        const totalActHtml = row.type !== 'gone'
+          ? `<span style="font-size:.82rem;font-weight:800;color:var(--amber);">${fmtNum(row.total_qte)}${row.total_poids>0?' / '+row.total_poids.toFixed(2)+' kg':''}</span>`
+          : `<span style="font-size:.78rem;color:var(--text-muted);text-decoration:line-through;">${fmtNum(row.prev_total_qte)}</span>`;
+
+        // Comparaison avant/après pour modifié
+        let prevHtml = '';
+        if(row.type==='mod'){
+          prevHtml = `<span style="font-size:.72rem;color:var(--text-muted);">était : <span style="color:var(--ruby);text-decoration:line-through;">${fmtNum(row.prev_total_qte)}${row.prev_total_poids>0?' / '+row.prev_total_poids.toFixed(2)+' kg':''}</span></span>`;
         }
 
         html += `<div class="diff-row row-${row.type}">
           ${diffBadge}
-          <span class="loc-badge ${badgeCls}">${badgeTxt}</span>
           <span class="row-lot">${esc(row.no_lot||'—')}</span>
-          <div class="diff-detail">${detailHtml}</div>
+          <div class="diff-detail">
+            ${usineHtml}${ghHtml}
+            <span style="color:var(--text-faint);font-size:.8rem;">=</span>
+            ${totalActHtml}
+            ${prevHtml}
+          </div>
           <div class="diff-dates">
             ${row.date_fab?`<div class="diff-date-item"><div class="diff-date-lbl">Fab.</div><div>${fmtDate(row.date_fab)}</div></div>`:''}
             ${row.date_peremption?`<div class="diff-date-item"><div class="diff-date-lbl">Pér.</div><div>${fmtDate(row.date_peremption)}</div></div>`:''}
