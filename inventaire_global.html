@@ -675,7 +675,12 @@ function openFlyout(catId){
   buildSidebar();
   hideSecondFlyout();
 
-  const matches = allRows.filter(r => r._cat && r._cat.id === catId);
+  const matches = allRows.filter(r => {
+    if(r.source === 'gh') return matchesCategory(r._original || r, cat);
+    let c = ghCategories.find(x => x.id === r.categorie_id);
+    while(c){ if(c.id === catId) return true; c = ghCategories.find(x => x.id === c.parent_id); }
+    return false;
+  });
   const produits = [...new Set(matches.map(r => r.code_produit).filter(Boolean))].sort();
   document.getElementById('flyout-icon').textContent  = cat.icon || '📦';
   document.getElementById('flyout-name').textContent  = cat.name;
@@ -701,9 +706,7 @@ function showSecondFlyout(catId){
   if(!cat) return;
 
   const matches = allRows.filter(r => {
-    // Chercher les lignes qui matchent cette sous-catégorie précisément
-    if(r.source === 'gh') return matchesCategory(r.raw, cat);
-    // Pour usine : vérifier si la catégorie ou un parent correspond
+    if(r.source === 'gh') return matchesCategory(r._original || r, cat);
     let c = ghCategories.find(x => x.id === r.categorie_id);
     while(c){ if(c.id === catId) return true; c = ghCategories.find(x => x.id === c.parent_id); }
     return false;
