@@ -100,7 +100,10 @@
   border-bottom:1px solid rgba(44,51,80,.3);transition:background .1s;}
 .diff-row:last-child{border-bottom:none;}
 .diff-row.row-new{background:rgba(45,212,160,.04);}
-.diff-row.row-mod{background:rgba(232,164,58,.04);}
+.badge-gone{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;
+  background:rgba(224,85,85,.12);border:1px solid rgba(224,85,85,.3);color:var(--ruby);
+  font-size:.68rem;font-weight:800;white-space:nowrap;flex-shrink:0;width:84px;justify-content:center;}
+.diff-row.row-gone{background:rgba(224,85,85,.04);}
 .diff-row:hover{filter:brightness(1.1);}
 .row-lot{font-size:.8rem;font-weight:700;color:var(--text-primary);min-width:130px;}
 .loc-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;
@@ -198,6 +201,12 @@
         <div class="kpi-lbl">🟡 Modifiés</div>
         <div class="kpi-val" id="kpi-mod">—</div>
         <div class="kpi-sub">quantité ou poids changé</div>
+      </div>
+      <div class="kpi-card" style="position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--ruby),transparent);"></div>
+        <div class="kpi-lbl" style="color:var(--ruby);">🔴 Disparus</div>
+        <div class="kpi-val" id="kpi-gone">—</div>
+        <div class="kpi-sub">items absents maintenant</div>
       </div>
       <div class="kpi-card kpi-snap">
         <div class="kpi-lbl">📊 Total changements</div>
@@ -499,9 +508,17 @@ async function loadAndCompare(){
     }
   });
 
-  // Résoudre _cat pour les lignes GH (nécessite l'objet original)
-  // Pour les snapshots on n'a pas le _raw, on utilise le code_produit et no_lot
-  // La catégorie est déjà assignée lors de la sauvegarde du snapshot
+  // Disparus — présents dans précédent mais absents dans actuel
+  precMap.forEach((precRow, key) => {
+    if(!actMap.has(key)){
+      const _cat = getCategoryForRow({
+        source:precRow.source, categorie_id:precRow.categorie_id,
+        code_produit:precRow.code_produit, description:precRow.description,
+        no_lot:precRow.no_lot, _original:null, raw:null, _raw:null
+      });
+      diffRows.push({ type:'gone', ...precRow, _cat });
+    }
+  });
 
   updateKPIs();
   buildSidebar();
@@ -511,11 +528,13 @@ async function loadAndCompare(){
 
 // ── KPIs ──────────────────────────────────────────────────────────
 function updateKPIs(){
-  const newCount = diffRows.filter(r=>r.type==='new').length;
-  const modCount = diffRows.filter(r=>r.type==='mod').length;
+  const newCount  = diffRows.filter(r=>r.type==='new').length;
+  const modCount  = diffRows.filter(r=>r.type==='mod').length;
+  const goneCount = diffRows.filter(r=>r.type==='gone').length;
   document.getElementById('kpi-new').textContent   = newCount;
   document.getElementById('kpi-mod').textContent   = modCount;
-  document.getElementById('kpi-total').textContent = newCount + modCount;
+  document.getElementById('kpi-gone').textContent  = goneCount;
+  document.getElementById('kpi-total').textContent = newCount + modCount + goneCount;
 }
 
 // ── SIDEBAR ───────────────────────────────────────────────────────
@@ -619,6 +638,8 @@ function renderMain(){
         const badgeTxt = isUsine ? '🏭 Usine' : '🏪 GH';
         const diffBadge = row.type==='new'
           ? `<span class="badge-new">🟢 NOUVEAU</span>`
+          : row.type==='gone'
+          ? `<span class="badge-gone">🔴 DISPARU</span>`
           : `<span class="badge-mod">🟡 MODIFIÉ</span>`;
 
         let detailHtml = '';
@@ -626,6 +647,10 @@ function renderMain(){
           detailHtml = `
             <span class="diff-val"><span class="new">Qté : ${fmtNum(row.quantite)}</span></span>
             ${row.poids_total>0?`<span class="diff-val"><span class="new">Poids : ${parseFloat(row.poids_total).toFixed(2)} kg</span></span>`:''}`;
+        } else if(row.type==='gone'){
+          detailHtml = `
+            <span class="diff-val"><span style="color:var(--text-muted);">Qté : ${fmtNum(row.quantite)}</span></span>
+            ${row.poids_total>0?`<span class="diff-val"><span style="color:var(--text-muted);">Poids : ${parseFloat(row.poids_total).toFixed(2)} kg</span></span>`:''}`;
         } else {
           const qteChg = Math.abs((parseFloat(row.quantite)||0)-(parseFloat(row.prev_quantite)||0)) > 0.001;
           const poidChg = Math.abs((parseFloat(row.poids_total)||0)-(parseFloat(row.prev_poids_total)||0)) > 0.001;
