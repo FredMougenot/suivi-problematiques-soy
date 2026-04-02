@@ -717,7 +717,7 @@ function showSecondFlyout(catId){
   document.getElementById('flyout-2-name').textContent  = cat.name;
   document.getElementById('flyout-2-count').textContent = matches.length + ' item' + (matches.length !== 1 ? 's' : '');
 
-  const toutItem = `<div class="cat-flyout-item cat-flyout-item-tout" onclick="filterByCat('${cat.parent_id||catId}');closeFlyout();">
+  const toutItem = `<div class="cat-flyout-item cat-flyout-item-tout" onclick="filterByCat('${catId}');closeFlyout();">
     <span style="font-size:1rem;">Σ</span><span style="font-weight:700;">TOUT (${matches.length})</span>
   </div><div style="height:1px;background:rgba(255,255,255,.06);margin:4px 0;"></div>`;
 
@@ -780,15 +780,17 @@ function applyFilters(){
     if(activeCat === 'NO_CAT'){
       if(row._cat) return false;
     } else if(activeCat !== null){
-      if(!row._cat) return false;
-      // Remonter la hiérarchie depuis _cat pour trouver activeCat
-      let c = row._cat;
-      let found = false;
-      while(c){
-        if(c.id === activeCat){ found = true; break; }
-        c = ghCategories.find(x => x.id === c.parent_id);
+      const cat = ghCategories.find(c => c.id === activeCat);
+      if(!cat) return false;
+      if(row.source === 'gh'){
+        if(!matchesCategory(row._original || row, cat)) return false;
+      } else {
+        if(!row._cat) return false;
+        let c = row._cat;
+        let found = false;
+        while(c){ if(c.id === activeCat){ found=true; break; } c = ghCategories.find(x => x.id === c.parent_id); }
+        if(!found) return false;
       }
-      if(!found) return false;
     }
 
     if(srch){
