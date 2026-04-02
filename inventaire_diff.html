@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Inventaire Diff — SOY</title>
+<link rel="stylesheet" href="soy-shared.css">
+<style>
+.page-eyebrow{font-size:.62rem;font-weight:800;color:var(--sapphire);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;}
+.page-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--text-primary);}
+.page-sub{font-size:.82rem;color:var(--text-muted);margin-top:4px;margin-bottom:20px;}
+
+/* ── KPI ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px;}
+@media(max-width:700px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+.kpi-card{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);padding:14px 18px;position:relative;overflow:hidden;}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kpi-card.kpi-new::before{background:linear-gradient(90deg,transparent,var(--emerald),transparent);}
+.kpi-card.kpi-mod::before{background:linear-gradient(90deg,transparent,var(--amber),transparent);}
+.kpi-card.kpi-snap::before{background:linear-gradient(90deg,transparent,var(--sapphire),transparent);}
+.kpi-lbl{font-size:.6rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;}
+.kpi-card.kpi-new .kpi-lbl{color:var(--emerald);}
+.kpi-card.kpi-mod .kpi-lbl{color:var(--amber);}
+.kpi-card.kpi-snap .kpi-lbl{color:var(--sapphire);}
+.kpi-val{font-size:1.6rem;font-weight:800;color:var(--text-primary);}
+.kpi-sub{font-size:.72rem;color:var(--text-muted);margin-top:3px;}
+
+/* ── Barre outils ── */
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;}
+.btn-snapshot{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--copper),var(--copper-light));color:#0F1118;
+  font-size:.84rem;font-weight:800;border:none;cursor:pointer;transition:opacity .15s,transform .1s;}
+.btn-snapshot:hover{opacity:.88;transform:translateY(-1px);}
+.btn-snapshot:disabled{opacity:.4;cursor:default;transform:none;}
+.btn-pdf{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--sapphire),#1a6bff);color:#fff;
+  font-size:.82rem;font-weight:700;border:none;cursor:pointer;transition:opacity .15s;}
+.btn-pdf:hover{opacity:.9;}
+.btn-pdf:disabled{opacity:.4;cursor:default;}
+
+/* ── Snapshot info ── */
+.snap-info{display:flex;align-items:center;gap:16px;padding:12px 18px;
+  background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);
+  margin-bottom:18px;flex-wrap:wrap;}
+.snap-block{display:flex;flex-direction:column;gap:2px;}
+.snap-lbl{font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);}
+.snap-val{font-size:.86rem;font-weight:700;color:var(--text-primary);}
+.snap-divider{width:1px;height:32px;background:var(--text-faint);}
+
+/* ── Badges diff ── */
+.badge-new{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;
+  background:rgba(45,212,160,.12);border:1px solid rgba(45,212,160,.3);color:var(--emerald);
+  font-size:.68rem;font-weight:800;white-space:nowrap;flex-shrink:0;width:84px;justify-content:center;}
+.badge-mod{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;
+  background:rgba(232,164,58,.12);border:1px solid rgba(232,164,58,.3);color:var(--amber);
+  font-size:.68rem;font-weight:800;white-space:nowrap;flex-shrink:0;width:84px;justify-content:center;}
+
+/* ── Layout avec sidebar ── */
+.diff-layout{display:grid;grid-template-columns:180px 1fr;gap:0;min-height:60vh;}
+@media(max-width:900px){.diff-layout{grid-template-columns:1fr;}}
+.cat-sidebar{width:180px;flex-shrink:0;background:var(--bg-raised);
+  border-right:1px solid rgba(255,255,255,.06);padding:12px 8px;
+  display:flex;flex-direction:column;gap:4px;position:sticky;top:0;
+  max-height:80vh;overflow-y:auto;z-index:20;}
+.cat-btn{height:36px;padding:0 8px;border-radius:10px;display:flex;align-items:center;
+  justify-content:flex-start;gap:8px;cursor:pointer;transition:all .18s;
+  border:1.5px solid transparent;background:transparent;}
+.cat-btn:hover{background:rgba(255,255,255,.06);}
+.cat-btn.active{border-color:var(--sapphire);background:rgba(74,158,232,.12);}
+.cat-btn-icon{font-size:1.1rem;flex-shrink:0;}
+.cat-btn-name{font-size:.75rem;font-weight:600;color:var(--text-secondary);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;}
+.cat-btn.active .cat-btn-name{color:var(--text-primary);}
+.cat-btn-count{margin-left:auto;font-size:.62rem;font-weight:700;padding:1px 6px;
+  border-radius:10px;background:rgba(255,255,255,.06);color:var(--text-muted);}
+.cat-btn.active .cat-btn-count{background:rgba(74,158,232,.15);color:var(--sapphire);}
+
+/* ── Contenu ── */
+.diff-content{flex:1;min-width:0;padding:0;}
+
+/* ── Section catégorie ── */
+.cat-section{margin-bottom:28px;}
+.cat-section-header{display:flex;align-items:center;gap:10px;padding:10px 16px;
+  background:var(--bg-float);border-radius:var(--r-md) var(--r-md) 0 0;
+  border:1px solid var(--text-faint);border-bottom:none;position:sticky;top:0;z-index:10;}
+.cat-section-icon{font-size:1.2rem;}
+.cat-section-name{font-size:.82rem;font-weight:800;color:var(--text-primary);}
+.cat-section-badge{padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:700;
+  background:rgba(74,158,232,.1);border:1px solid rgba(74,158,232,.25);color:var(--sapphire);}
+
+/* ── Groupe produit ── */
+.prod-group{border:1px solid var(--text-faint);border-radius:0 0 var(--r-md) var(--r-md);overflow:hidden;margin-bottom:2px;}
+.prod-group-header{display:flex;align-items:center;gap:10px;padding:8px 16px;
+  background:rgba(255,255,255,.02);border-bottom:1px solid rgba(44,51,80,.5);}
+.prod-code{font-size:.82rem;font-weight:800;color:var(--sapphire);}
+.prod-desc{font-size:.78rem;color:var(--text-secondary);}
+
+/* ── Ligne diff ── */
+.diff-row{display:flex;align-items:center;gap:12px;padding:8px 16px;
+  border-bottom:1px solid rgba(44,51,80,.3);transition:background .1s;}
+.diff-row:last-child{border-bottom:none;}
+.diff-row.row-new{background:rgba(45,212,160,.04);}
+.diff-row.row-mod{background:rgba(232,164,58,.04);}
+.diff-row:hover{filter:brightness(1.1);}
+.row-lot{font-size:.8rem;font-weight:700;color:var(--text-primary);min-width:130px;}
+.loc-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;
+  font-size:.68rem;font-weight:700;white-space:nowrap;flex-shrink:0;width:80px;justify-content:center;}
+.loc-badge.loc-usine{background:rgba(200,132,58,.12);border:1px solid rgba(200,132,58,.25);color:var(--copper);}
+.loc-badge.loc-gh{background:rgba(45,212,160,.1);border:1px solid rgba(45,212,160,.25);color:var(--emerald);}
+.diff-detail{display:flex;gap:16px;align-items:center;flex-wrap:wrap;flex:1;}
+.diff-val{font-size:.78rem;}
+.diff-val .old{color:var(--ruby);text-decoration:line-through;margin-right:4px;}
+.diff-val .new{color:var(--emerald);font-weight:700;}
+.diff-val .unchanged{color:var(--text-secondary);}
+.diff-dates{font-size:.72rem;color:var(--text-muted);display:flex;gap:10px;}
+.diff-date-item{display:flex;flex-direction:column;gap:1px;}
+.diff-date-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);}
+
+/* ── Spinner / vide ── */
+.spinner-ctr{display:flex;align-items:center;justify-content:center;padding:80px;gap:12px;color:var(--text-muted);font-size:.88rem;}
+.sp-ring{width:28px;height:28px;border:2px solid var(--text-faint);border-top-color:var(--sapphire);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-ctr{padding:60px;text-align:center;color:var(--text-muted);font-size:.88rem;}
+.empty-icon{font-size:2.8rem;margin-bottom:14px;opacity:.4;}
+
+/* ── Toast ── */
+.toast-bar{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px;}
+.toast{padding:11px 18px;border-radius:var(--r-md);font-size:.82rem;font-weight:600;border:1px solid;animation:tin .2s;max-width:320px;}
+.toast.ok{background:rgba(45,212,160,.12);color:var(--emerald);border-color:rgba(45,212,160,.3);}
+.toast.err{background:rgba(224,85,85,.12);color:var(--ruby);border-color:rgba(224,85,85,.3);}
+.toast.info{background:rgba(74,158,232,.12);color:var(--sapphire);border-color:rgba(74,158,232,.3);}
+@keyframes tin{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+
+/* ── Modal confirmation ── */
+.modal-overlay{position:fixed;inset:0;z-index:900;background:rgba(7,8,12,.82);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:24px;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-xl);width:100%;max-width:420px;overflow:hidden;}
+.modal-hd{padding:20px 24px 0;font-size:1.1rem;font-weight:700;color:var(--text-primary);}
+.modal-bd{padding:16px 24px;font-size:.86rem;color:var(--text-secondary);line-height:1.6;}
+.modal-ft{padding:12px 24px 20px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--text-faint);}
+.btn-cancel{padding:9px 18px;border-radius:var(--r-md);background:transparent;border:1px solid var(--text-faint);color:var(--text-secondary);font-size:.84rem;cursor:pointer;}
+.btn-confirm{padding:9px 20px;border-radius:var(--r-md);background:var(--copper);border:none;color:#0F1118;font-size:.84rem;font-weight:800;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="tool-wrap">
+
+  <!-- TOPBAR -->
+  <div class="tool-topbar">
+    <a class="tool-back" href="inventaire_gh.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Inventaire GH
+    </a>
+    <div class="tool-title">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      Inventaire Diff
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+      <a href="inventaire_global.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r-md);background:rgba(74,158,232,.1);border:1px solid rgba(74,158,232,.3);color:var(--sapphire);font-size:.8rem;font-weight:600;text-decoration:none;">
+        Inventaire Global
+      </a>
+    </div>
+    <span style="font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:20px;background:rgba(232,164,58,.1);border:1px solid rgba(232,164,58,.2);color:var(--amber);">Diff</span>
+  </div>
+
+  <!-- MAIN -->
+  <div class="tool-main">
+    <div class="page-eyebrow">Comparaison hebdomadaire</div>
+    <div class="page-title">Inventaire Diff — Changements</div>
+    <div class="page-sub">Affiche uniquement les items nouveaux ou modifiés par rapport au relevé précédent. Les items inchangés ne sont pas affichés.</div>
+
+    <!-- Info snapshots -->
+    <div class="snap-info">
+      <div class="snap-block">
+        <div class="snap-lbl">État précédent</div>
+        <div class="snap-val" id="snap-prec-date">—</div>
+      </div>
+      <div class="snap-divider"></div>
+      <div class="snap-block">
+        <div class="snap-lbl">État actuel</div>
+        <div class="snap-val" id="snap-act-date">—</div>
+      </div>
+      <div class="snap-divider"></div>
+      <div class="snap-block">
+        <div class="snap-lbl">Lignes actuel</div>
+        <div class="snap-val" id="snap-act-count">—</div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-new">
+        <div class="kpi-lbl">🟢 Nouveaux</div>
+        <div class="kpi-val" id="kpi-new">—</div>
+        <div class="kpi-sub">items absents avant</div>
+      </div>
+      <div class="kpi-card kpi-mod">
+        <div class="kpi-lbl">🟡 Modifiés</div>
+        <div class="kpi-val" id="kpi-mod">—</div>
+        <div class="kpi-sub">quantité ou poids changé</div>
+      </div>
+      <div class="kpi-card kpi-snap">
+        <div class="kpi-lbl">📊 Total changements</div>
+        <div class="kpi-val" id="kpi-total">—</div>
+        <div class="kpi-sub">sur l'inventaire global</div>
+      </div>
+    </div>
+
+    <!-- Barre outils -->
+    <div class="toolbar">
+      <button class="btn-snapshot" id="btn-snapshot" onclick="confirmSnapshot()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Sauvegarder l'état actuel
+      </button>
+      <button class="btn-pdf" id="btn-pdf" onclick="exportPDF()" disabled>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Exporter PDF
+      </button>
+    </div>
+
+    <!-- Layout sidebar + contenu -->
+    <div class="diff-layout">
+      <div class="cat-sidebar" id="cat-sidebar">
+        <div class="cat-btn active" onclick="filterByCat(null)">
+          <span class="cat-btn-icon">Σ</span>
+          <span class="cat-btn-name">TOUT</span>
+          <span class="cat-btn-count" id="cnt-all">0</span>
+        </div>
+      </div>
+      <div class="diff-content">
+        <div class="spinner-ctr" id="spinner"><div class="sp-ring"></div> Chargement…</div>
+        <div class="empty-ctr" id="empty-ctr" style="display:none;">
+          <div class="empty-icon">✅</div>
+          <div>Aucun changement détecté.</div>
+          <div style="margin-top:8px;font-size:.78rem;">L'inventaire est identique au relevé précédent.</div>
+        </div>
+        <div class="empty-ctr" id="no-snap-ctr" style="display:none;">
+          <div class="empty-icon">📸</div>
+          <div>Aucun état précédent disponible.</div>
+          <div style="margin-top:8px;font-size:.78rem;">Cliquez <strong>Sauvegarder l'état actuel</strong> pour créer le premier relevé.</div>
+        </div>
+        <div id="main-view" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-bar" id="toasts"></div>
+
+<!-- Modal confirmation snapshot -->
+<div class="modal-overlay" id="modal-snap">
+  <div class="modal-box">
+    <div class="modal-hd">📸 Sauvegarder l'état actuel</div>
+    <div class="modal-bd">
+      L'état actuel (GH + Usine) va être sauvegardé.<br><br>
+      L'état précédent sera <strong>remplacé</strong> par l'état actuel.<br>
+      La prochaine comparaison se fera par rapport à ce nouveau relevé.<br><br>
+      Voulez-vous continuer ?
+    </div>
+    <div class="modal-ft">
+      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+      <button class="btn-confirm" onclick="saveSnapshot()">Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+
+let sb;
+let ghCategories = [];
+let poidsList    = [];
+let diffRows     = [];      // Lignes de changements
+let filteredDiff = [];
+let activeCat    = null;
+
+// ── UTILS ─────────────────────────────────────────────────────────
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtDate(s){
+  if(!s) return '—';
+  s = String(s).trim();
+  if(s.match(/^\d{2}\/\d{2}\/\d{4}$/)) return s;
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return m[3]+'/'+m[2]+'/'+m[1];
+  return s;
+}
+function fmtNum(v){ const n=parseFloat(v)||0; return n%1===0?String(n):n.toFixed(2); }
+
+// ── INIT ──────────────────────────────────────────────────────────
+function waitSB(){
+  if(typeof supabase !== 'undefined' && supabase.createClient){
+    sb = supabase.createClient(SB_URL, SB_KEY);
+    init();
+  } else { setTimeout(waitSB, 50); }
+}
+window.addEventListener('load', waitSB);
+
+async function init(){
+  showState('spinner');
+  await Promise.all([loadCategories(), loadPoids()]);
+  await loadAndCompare();
+}
+
+// ── CATÉGORIES ────────────────────────────────────────────────────
+async function loadCategories(){
+  try{
+    const {data} = await sb.from('gh_categories').select('*').order('created_at');
+    ghCategories = (data||[]).map(c => ({...c, rules: c.cat_rules||c.rules||[]}));
+  }catch(e){ ghCategories = []; }
+}
+
+// ── POIDS ─────────────────────────────────────────────────────────
+async function loadPoids(){
+  try{
+    const {data} = await sb.from('gh_poids').select('*');
+    poidsList = (data||[]).map(p => ({...p, matchType: p.match_type||'exact'}));
+  }catch(e){ poidsList = []; }
+}
+function getPoidsUnitaire(code){
+  if(!code) return 0;
+  const cu = String(code).trim().toUpperCase();
+  const exact = poidsList.find(p => (p.matchType||'exact')==='exact' && String(p.code||'').trim().toUpperCase()===cu);
+  if(exact) return parseFloat(exact.poids_unitaire||0);
+  const cont = poidsList.find(p => (p.matchType||'exact')==='contains' && cu.includes(String(p.code||'').trim().toUpperCase()));
+  if(cont) return parseFloat(cont.poids_unitaire||0);
+  return 0;
+}
+
+// ── MATCHING CATÉGORIE ────────────────────────────────────────────
+function matchesCategory(row, cat){
+  if(!cat || !cat.rules || cat.rules.length === 0) return false;
+  const raw = row._raw || [];
+  const colMap = {'no_produit':1,'description':2,'qte_inv':3,'no_comm':13,'no_lot':16,'no_sous_lot':17,'date_lot':18,'expiration':19,'reception':20};
+  let result = true;
+  for(let i = 0; i < cat.rules.length; i++){
+    const rule = cat.rules[i];
+    const colIdx = colMap[rule.col] ?? parseInt(rule.col);
+    const cellVal = (raw[colIdx]||'').toLowerCase();
+    const ruleVal = (rule.value||'').toLowerCase();
+    let match = false;
+    if(rule.operator==='contains')     match = cellVal.includes(ruleVal);
+    if(rule.operator==='not_contains') match = !cellVal.includes(ruleVal);
+    if(rule.operator==='starts_with')  match = cellVal.startsWith(ruleVal);
+    if(rule.operator==='ends_with')    match = cellVal.endsWith(ruleVal);
+    if(rule.operator==='equals')       match = cellVal === ruleVal;
+    if(rule.operator==='not_equals')   match = cellVal !== ruleVal;
+    if(i===0){ result=match; } else if(rule.logic==='OR'){ result=result||match; } else { result=result&&match; }
+  }
+  return result;
+}
+function getRootCategory(cat){
+  if(!cat||!cat.parent_id) return cat;
+  const p = ghCategories.find(c=>c.id===cat.parent_id);
+  return p ? getRootCategory(p) : cat;
+}
+function getCategoryForRow(row){
+  if(row.source==='usine'){
+    if(row.categorie_id){ const c=ghCategories.find(x=>x.id===row.categorie_id); return c||null; }
+    return null;
+  }
+  const children=ghCategories.filter(c=>c.parent_id);
+  const roots=ghCategories.filter(c=>!c.parent_id);
+  const rowForMatch=row._original||row;
+  for(const cat of [...children,...roots]){ if(matchesCategory(rowForMatch,cat)) return cat; }
+  return null;
+}
+
+// ── CHARGER GH DEPUIS LOCALSTORAGE ────────────────────────────────
+function loadGHFromLocalStorage(){
+  try{
+    const saved = localStorage.getItem('gh_inventory');
+    if(!saved) return [];
+    const items = JSON.parse(saved);
+    // Fill-down exactement comme GH
+    let lastCol1='', lastCol2='';
+    (items||[]).forEach(r => {
+      const raw = r._raw||[];
+      if(raw[1]&&raw[1].trim()){lastCol1=raw[1];} else if(lastCol1){raw[1]=lastCol1;}
+      if(raw[2]&&raw[2].trim()){lastCol2=raw[2];} else if(lastCol2){raw[2]=lastCol2;}
+    });
+    return (items||[]).map(r => {
+      const raw = r._raw||[];
+      const rawQte = raw[8]||r.qte_inv||r._resolved_qte||'0';
+      const qte = parseFloat(String(rawQte).replace(/[^\d.-]/g,''))||0;
+      const code = raw[1]||r._resolved_code||r.no_produit||'';
+      const poidsUnit = r._resolved_poids_unit||getPoidsUnitaire(code)||0;
+      const poidsTotal = r._resolved_poids_total||(qte*poidsUnit)||0;
+      return {
+        source:'gh', code_produit:code,
+        description:raw[2]||r._resolved_desc||r.description||'',
+        no_lot:raw[16]||r.no_lot||'',
+        quantite:qte, poids_total:poidsTotal,
+        date_fab:raw[18]||r.date_lot||'',
+        date_peremption:raw[19]||r.expiration||'',
+        raw:raw, _raw:raw, _original:r,
+        categorie_id:'', categorie_nom:''
+      };
+    });
+  }catch(e){ return []; }
+}
+
+// ── CHARGER USINE DEPUIS SUPABASE ─────────────────────────────────
+async function loadUsineRows(){
+  try{
+    const {data,error} = await sb.from('inventaire_usine').select('*').order('created_at');
+    if(error) throw error;
+    return (data||[]).map(r => ({
+      source:'usine',
+      code_produit:r.code_produit||'',
+      description:r.description||'',
+      no_lot:r.no_lot||'',
+      quantite:parseFloat(r.quantite)||0,
+      poids_total:parseFloat(r.poids_total)||0,
+      date_fab:r.date_fab||'',
+      date_peremption:r.date_peremption||'',
+      categorie_id:r.categorie_id||'',
+      categorie_nom:r.categorie_nom||'',
+      raw:null, _raw:null, _original:null
+    }));
+  }catch(e){ return []; }
+}
+
+// ── GROUPER (même logique que inventaire_global) ──────────────────
+function groupRows(rows){
+  const map = new Map();
+  rows.forEach(row => {
+    const key = [row.source, row.code_produit||'', row.no_lot||''].join('|');
+    if(!map.has(key)){
+      map.set(key, {
+        source:row.source, code_produit:row.code_produit,
+        description:row.description, no_lot:row.no_lot,
+        quantite:0, poids_total:0,
+        date_fab:row.date_fab, date_peremption:row.date_peremption,
+        categorie_id:row.categorie_id, categorie_nom:row.categorie_nom,
+        raw:row.raw, _raw:row._raw, _original:row._original
+      });
+    }
+    const g = map.get(key);
+    g.quantite    += parseFloat(row.quantite)||0;
+    g.poids_total += parseFloat(row.poids_total)||0;
+  });
+  return [...map.values()];
+}
+
+// ── CHARGER ET COMPARER ───────────────────────────────────────────
+async function loadAndCompare(){
+  showState('spinner');
+
+  // Charger snapshot précédent
+  const {data:precData} = await sb.from('snapshot_precedent').select('*');
+  const {data:actData}  = await sb.from('snapshot_actuel').select('*');
+
+  // Info dates
+  const precDate = precData&&precData.length>0 ? precData[0].saved_at : null;
+  const actDate  = actData&&actData.length>0   ? actData[0].saved_at  : null;
+  document.getElementById('snap-prec-date').textContent = precDate ? new Date(precDate).toLocaleDateString('fr-CA') : 'Aucun';
+  document.getElementById('snap-act-date').textContent  = actDate  ? new Date(actDate).toLocaleDateString('fr-CA')  : 'Aucun';
+  document.getElementById('snap-act-count').textContent = actData ? actData.length + ' lignes' : '—';
+
+  if(!precData||precData.length===0||!actData||actData.length===0){
+    showState('no-snap');
+    return;
+  }
+
+  // Construire maps par clé source|code|lot
+  const precMap = new Map();
+  precData.forEach(r => { precMap.set([r.source,r.code_produit,r.no_lot].join('|'), r); });
+  const actMap = new Map();
+  actData.forEach(r => { actMap.set([r.source,r.code_produit,r.no_lot].join('|'), r); });
+
+  diffRows = [];
+
+  // Nouveaux + Modifiés
+  actMap.forEach((actRow, key) => {
+    const precRow = precMap.get(key);
+    const _cat = getCategoryForRow({
+      source:actRow.source, categorie_id:actRow.categorie_id,
+      code_produit:actRow.code_produit, description:actRow.description,
+      no_lot:actRow.no_lot, _original:null, raw:null, _raw:null
+    });
+
+    if(!precRow){
+      // NOUVEAU
+      diffRows.push({ type:'new', ...actRow, _cat });
+    } else {
+      // MODIFIÉ ?
+      const qteChanged   = Math.abs((parseFloat(actRow.quantite)||0)   - (parseFloat(precRow.quantite)||0))   > 0.001;
+      const poidsChanged = Math.abs((parseFloat(actRow.poids_total)||0) - (parseFloat(precRow.poids_total)||0)) > 0.001;
+      if(qteChanged || poidsChanged){
+        diffRows.push({
+          type:'mod', ...actRow, _cat,
+          prev_quantite:precRow.quantite,
+          prev_poids_total:precRow.poids_total
+        });
+      }
+    }
+  });
+
+  // Résoudre _cat pour les lignes GH (nécessite l'objet original)
+  // Pour les snapshots on n'a pas le _raw, on utilise le code_produit et no_lot
+  // La catégorie est déjà assignée lors de la sauvegarde du snapshot
+
+  updateKPIs();
+  buildSidebar();
+  applyFilters();
+  document.getElementById('btn-pdf').disabled = diffRows.length === 0;
+}
+
+// ── KPIs ──────────────────────────────────────────────────────────
+function updateKPIs(){
+  const newCount = diffRows.filter(r=>r.type==='new').length;
+  const modCount = diffRows.filter(r=>r.type==='mod').length;
+  document.getElementById('kpi-new').textContent   = newCount;
+  document.getElementById('kpi-mod').textContent   = modCount;
+  document.getElementById('kpi-total').textContent = newCount + modCount;
+}
+
+// ── SIDEBAR ───────────────────────────────────────────────────────
+function buildSidebar(){
+  const sidebar = document.getElementById('cat-sidebar');
+  sidebar.innerHTML = '';
+  const allBtn = document.createElement('div');
+  allBtn.className = 'cat-btn' + (activeCat===null?' active':'');
+  allBtn.onclick = () => filterByCat(null);
+  allBtn.innerHTML = `<span class="cat-btn-icon">Σ</span><span class="cat-btn-name">TOUT</span><span class="cat-btn-count">${diffRows.length}</span>`;
+  sidebar.appendChild(allBtn);
+
+  const rootCats = ghCategories.filter(c=>!c.parent_id).sort((a,b)=>a.name.localeCompare(b.name));
+  rootCats.forEach(cat => {
+    const count = diffRows.filter(r => {
+      if(!r._cat) return false;
+      let c=r._cat; while(c){ if(c.id===cat.id) return true; c=ghCategories.find(x=>x.id===c.parent_id); }
+      return false;
+    }).length;
+    if(count === 0) return;
+    const btn = document.createElement('div');
+    btn.className = 'cat-btn' + (activeCat===cat.id?' active':'');
+    btn.onclick = () => filterByCat(cat.id);
+    btn.innerHTML = `<span class="cat-btn-icon">${cat.icon||'📦'}</span><span class="cat-btn-name">${esc(cat.name)}</span><span class="cat-btn-count">${count}</span>`;
+    sidebar.appendChild(btn);
+  });
+
+  const noCatCount = diffRows.filter(r=>!r._cat).length;
+  if(noCatCount > 0){
+    const noCatBtn = document.createElement('div');
+    noCatBtn.className = 'cat-btn' + (activeCat==='NO_CAT'?' active':'');
+    noCatBtn.onclick = () => filterByCat('NO_CAT');
+    noCatBtn.innerHTML = `<span class="cat-btn-icon">📋</span><span class="cat-btn-name">SANS CAT.</span><span class="cat-btn-count">${noCatCount}</span>`;
+    sidebar.appendChild(noCatBtn);
+  }
+}
+
+function filterByCat(catId){
+  activeCat = catId;
+  buildSidebar();
+  applyFilters();
+}
+
+function applyFilters(){
+  filteredDiff = diffRows.filter(row => {
+    if(activeCat === 'NO_CAT') return !row._cat;
+    if(activeCat !== null){
+      if(!row._cat) return false;
+      let c=row._cat; let found=false;
+      while(c){ if(c.id===activeCat){found=true;break;} c=ghCategories.find(x=>x.id===c.parent_id); }
+      if(!found) return false;
+    }
+    return true;
+  });
+  renderMain();
+}
+
+// ── RENDU PRINCIPAL ───────────────────────────────────────────────
+function renderMain(){
+  const view = document.getElementById('main-view');
+  if(filteredDiff.length === 0){ showState('empty'); return; }
+  showState('view');
+
+  // Grouper par catégorie racine → code produit
+  const byCat = new Map();
+  filteredDiff.forEach(row => {
+    const rootCat = row._cat ? getRootCategory(row._cat) : null;
+    const catKey  = rootCat ? rootCat.id : '__none__';
+    const catName = rootCat ? rootCat.name : 'Sans catégorie';
+    const catIcon = rootCat ? (rootCat.icon||'📦') : '📋';
+    if(!byCat.has(catKey)) byCat.set(catKey, {catName, catIcon, byCode: new Map()});
+    const code = row.code_produit||'—';
+    if(!byCat.get(catKey).byCode.has(code))
+      byCat.get(catKey).byCode.set(code, {code, description:row.description, rows:[]});
+    byCat.get(catKey).byCode.get(code).rows.push(row);
+  });
+
+  const sortedCats = [...byCat.values()].sort((a,b)=>a.catName.localeCompare(b.catName));
+  let html = '';
+
+  sortedCats.forEach(({catName, catIcon, byCode}) => {
+    const total = [...byCode.values()].reduce((s,g)=>s+g.rows.length,0);
+    html += `<div class="cat-section">
+      <div class="cat-section-header">
+        <span class="cat-section-icon">${catIcon}</span>
+        <span class="cat-section-name">${esc(catName)}</span>
+        <span class="cat-section-badge" style="margin-left:auto;">${total} changement${total>1?'s':''}</span>
+      </div>
+      <div class="prod-group">`;
+
+    [...byCode.values()].sort((a,b)=>a.code.localeCompare(b.code)).forEach(({code, description, rows:codeRows}, ci) => {
+      if(ci>0) html += `<div style="height:1px;background:rgba(44,51,80,.4);margin:0 16px;"></div>`;
+      html += `<div class="prod-group-header">
+        <span class="prod-code">${esc(code)}</span>
+        ${description?`<span class="prod-desc">— ${esc(description)}</span>`:''}
+      </div>`;
+
+      codeRows.sort((a,b)=>(a.no_lot||'').localeCompare(b.no_lot||'')).forEach(row => {
+        const isUsine = row.source==='usine';
+        const badgeCls = isUsine ? 'loc-usine' : 'loc-gh';
+        const badgeTxt = isUsine ? '🏭 Usine' : '🏪 GH';
+        const diffBadge = row.type==='new'
+          ? `<span class="badge-new">🟢 NOUVEAU</span>`
+          : `<span class="badge-mod">🟡 MODIFIÉ</span>`;
+
+        let detailHtml = '';
+        if(row.type==='new'){
+          detailHtml = `
+            <span class="diff-val"><span class="new">Qté : ${fmtNum(row.quantite)}</span></span>
+            ${row.poids_total>0?`<span class="diff-val"><span class="new">Poids : ${parseFloat(row.poids_total).toFixed(2)} kg</span></span>`:''}`;
+        } else {
+          const qteChg = Math.abs((parseFloat(row.quantite)||0)-(parseFloat(row.prev_quantite)||0)) > 0.001;
+          const poidChg = Math.abs((parseFloat(row.poids_total)||0)-(parseFloat(row.prev_poids_total)||0)) > 0.001;
+          if(qteChg) detailHtml += `<span class="diff-val">Qté : <span class="old">${fmtNum(row.prev_quantite)}</span><span class="new">${fmtNum(row.quantite)}</span></span>`;
+          if(poidChg) detailHtml += `<span class="diff-val">Poids : <span class="old">${parseFloat(row.prev_poids_total||0).toFixed(2)} kg</span><span class="new">${parseFloat(row.poids_total||0).toFixed(2)} kg</span></span>`;
+        }
+
+        html += `<div class="diff-row row-${row.type}">
+          ${diffBadge}
+          <span class="loc-badge ${badgeCls}">${badgeTxt}</span>
+          <span class="row-lot">${esc(row.no_lot||'—')}</span>
+          <div class="diff-detail">${detailHtml}</div>
+          <div class="diff-dates">
+            ${row.date_fab?`<div class="diff-date-item"><div class="diff-date-lbl">Fab.</div><div>${fmtDate(row.date_fab)}</div></div>`:''}
+            ${row.date_peremption?`<div class="diff-date-item"><div class="diff-date-lbl">Pér.</div><div>${fmtDate(row.date_peremption)}</div></div>`:''}
+          </div>
+        </div>`;
+      });
+    });
+
+    html += `</div></div>`;
+  });
+
+  view.innerHTML = html;
+}
+
+// ── ÉTAT ──────────────────────────────────────────────────────────
+function showState(s){
+  document.getElementById('spinner').style.display   = s==='spinner' ? 'flex'  : 'none';
+  document.getElementById('empty-ctr').style.display  = s==='empty'   ? 'block' : 'none';
+  document.getElementById('no-snap-ctr').style.display= s==='no-snap' ? 'block' : 'none';
+  document.getElementById('main-view').style.display   = s==='view'    ? 'block' : 'none';
+}
+
+// ── SAUVEGARDER SNAPSHOT ──────────────────────────────────────────
+function confirmSnapshot(){ document.getElementById('modal-snap').classList.add('open'); }
+function closeModal(){ document.getElementById('modal-snap').classList.remove('open'); }
+
+async function saveSnapshot(){
+  closeModal();
+  const btn = document.getElementById('btn-snapshot');
+  btn.disabled = true;
+  btn.innerHTML = '<div style="width:14px;height:14px;border:2px solid rgba(15,17,24,.3);border-top-color:#0F1118;border-radius:50%;animation:spin .7s linear infinite;"></div> Sauvegarde…';
+
+  try{
+    toast('Chargement du stock en cours…', 'info');
+
+    // Charger GH + Usine
+    const ghRows    = loadGHFromLocalStorage();
+    const usineRows = await loadUsineRows();
+    const allRows   = groupRows([...ghRows, ...usineRows]);
+
+    // Résoudre catégorie
+    allRows.forEach(r => { r._cat = getCategoryForRow(r); });
+
+    const now = new Date().toISOString();
+    const payload = allRows.map(r => ({
+      source:          r.source,
+      categorie_id:    r._cat?.id || null,
+      categorie_nom:   r._cat?.name || null,
+      code_produit:    r.code_produit,
+      description:     r.description||null,
+      no_lot:          r.no_lot,
+      quantite:        r.quantite||null,
+      poids_total:     r.poids_total||null,
+      date_fab:        r.date_fab||null,
+      date_peremption: r.date_peremption||null,
+      saved_at:        now
+    }));
+
+    toast('Copie état précédent → sauvegarde…', 'info');
+
+    // 1. Copier actuel → précédent
+    const {data:actData} = await sb.from('snapshot_actuel').select('*');
+    if(actData && actData.length > 0){
+      await sb.from('snapshot_precedent').delete().not('id','is',null);
+      const precPayload = actData.map(r => {
+        const {id, ...rest} = r;
+        return rest;
+      });
+      await sb.from('snapshot_precedent').insert(precPayload);
+    }
+
+    // 2. Remplacer actuel
+    await sb.from('snapshot_actuel').delete().not('id','is',null);
+    await sb.from('snapshot_actuel').insert(payload);
+
+    toast('État sauvegardé ✓', 'ok');
+    await loadAndCompare();
+
+  }catch(e){
+    toast('Erreur : '+e.message, 'err');
+    console.error(e);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Sauvegarder l'état actuel`;
+}
+
+// ── EXPORT PDF ────────────────────────────────────────────────────
+async function exportPDF(){
+  if(filteredDiff.length===0){ toast('Aucun changement à exporter.','err'); return; }
+  try{
+    const {jsPDF} = window.jspdf;
+    const pdf = new jsPDF({orientation:'landscape', unit:'mm', format:'letter'});
+    const W=pdf.internal.pageSize.getWidth(), H=pdf.internal.pageSize.getHeight(), M=10;
+    const C={sapphire:[74,158,232],copper:[200,132,58],emerald:[45,212,160],amber:[232,164,58],
+             ruby:[224,85,85],black:[15,16,23],grey:[107,114,128],faint:[44,51,80],white:[255,255,255]};
+    let y=M;
+
+    // En-tête
+    pdf.setFillColor(...C.amber); pdf.rect(0,0,W,1.5,'F');
+    pdf.setFontSize(16); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.black);
+    pdf.text('Inventaire Diff — SOY', M, y+8);
+    const now = new Date().toLocaleString('fr-CA',{dateStyle:'long',timeStyle:'short'});
+    pdf.setFontSize(8); pdf.setFont('helvetica','normal'); pdf.setTextColor(...C.grey);
+    pdf.text('Généré le : '+now, W-M, y+8, {align:'right'});
+    y+=14;
+    pdf.setDrawColor(...C.faint); pdf.setLineWidth(0.2); pdf.line(M,y,W-M,y); y+=5;
+
+    // Résumé
+    const newCount=filteredDiff.filter(r=>r.type==='new').length;
+    const modCount=filteredDiff.filter(r=>r.type==='mod').length;
+    pdf.setFontSize(8); pdf.setFont('helvetica','bold');
+    pdf.setTextColor(...C.emerald); pdf.text('Nouveaux : '+newCount, M, y+4);
+    pdf.setTextColor(...C.amber);   pdf.text('Modifies : '+modCount, M+55, y+4);
+    pdf.setTextColor(...C.sapphire);pdf.text('Total : '+(newCount+modCount), M+110, y+4);
+    y+=12;
+
+    // Colonnes
+    const cols=[
+      {label:'Type',        w:18, key:'type'},
+      {label:'Emplacement', w:20, key:'source'},
+      {label:'Catégorie',   w:30, key:'cat'},
+      {label:'Code produit',w:25, key:'code'},
+      {label:'Description', w:0,  key:'desc'},
+      {label:'No. lot',     w:25, key:'lot'},
+      {label:'Qté avant',   w:18, key:'qte_prev'},
+      {label:'Qté après',   w:18, key:'qte_new'},
+      {label:'Poids avant', w:20, key:'poids_prev'},
+      {label:'Poids après', w:20, key:'poids_new'},
+      {label:'Date pér.',   w:18, key:'dper'},
+    ];
+    const fixedW=cols.filter(c=>c.w>0).reduce((s,c)=>s+c.w,0);
+    cols.find(c=>c.key==='desc').w=Math.max(W-2*M-fixedW,20);
+
+    const hH=7, rH=6;
+    let x=M;
+    pdf.setFillColor(245,246,250); pdf.rect(M,y,W-2*M,hH,'F');
+    pdf.setFontSize(5); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.sapphire);
+    cols.forEach(c=>{ pdf.text(c.label.toUpperCase(), x+2, y+5); x+=c.w; }); y+=hH;
+
+    // Grouper par catégorie pour PDF
+    const byCat=new Map();
+    filteredDiff.forEach(row=>{
+      const rootCat=row._cat?getRootCategory(row._cat):null;
+      const k=rootCat?rootCat.name:'Sans catégorie';
+      if(!byCat.has(k)) byCat.set(k,{name:k,rows:[]});
+      byCat.get(k).rows.push(row);
+    });
+
+    [...byCat.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([catName,catData])=>{
+      if(y>H-20){ pdf.addPage(); y=M; }
+      pdf.setFillColor(230,235,248); pdf.rect(M,y,W-2*M,6,'F');
+      pdf.setFontSize(6.5); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.sapphire);
+      pdf.text(catName.toUpperCase()+'  ·  '+catData.rows.length+' changement'+(catData.rows.length>1?'s':''), M+3, y+4.5);
+      y+=6;
+
+      catData.rows.sort((a,b)=>(a.code_produit||'').localeCompare(b.code_produit||'')).forEach((row,ri)=>{
+        if(y>H-14){ pdf.addPage(); y=M; }
+        if(ri%2===0){ pdf.setFillColor(252,252,253); pdf.rect(M,y,W-2*M,rH,'F'); }
+
+        // Badge type
+        if(row.type==='new'){ pdf.setFillColor(...C.emerald); }
+        else { pdf.setFillColor(...C.amber); }
+        pdf.roundedRect(M+1,y+1,10,rH-2,1,1,'F');
+        pdf.setFontSize(4.5); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.white);
+        pdf.text(row.type==='new'?'NOUVEAU':'MODIFIE', M+1.5, y+(rH/2)+1.5);
+
+        x=M+cols[0].w;
+        const rowData={
+          source:   row.source==='usine'?'Usine':'GH',
+          cat:      row._cat?getRootCategory(row._cat).name:'—',
+          code:     row.code_produit||'',
+          desc:     row.description||'',
+          lot:      row.no_lot||'',
+          qte_prev: row.type==='new'?'—':fmtNum(row.prev_quantite),
+          qte_new:  fmtNum(row.quantite),
+          poids_prev: row.type==='new'?'—':(parseFloat(row.prev_poids_total||0).toFixed(2)+' kg'),
+          poids_new:  parseFloat(row.poids_total||0).toFixed(2)+' kg',
+          dper:     row.date_peremption?fmtDate(row.date_peremption):'',
+        };
+        cols.slice(1).forEach(c=>{
+          pdf.setFontSize(5.5); pdf.setFont('helvetica','normal');
+          if(c.key==='code'){ pdf.setTextColor(...C.sapphire); pdf.setFont('helvetica','bold'); }
+          else if(c.key==='qte_new'||c.key==='poids_new'){ pdf.setTextColor(...C.emerald); pdf.setFont('helvetica','bold'); }
+          else if(c.key==='qte_prev'||c.key==='poids_prev'){ pdf.setTextColor(...C.ruby); }
+          else pd.setTextColor(60,65,80);
+          const maxW=c.w-3;
+          let txt=String(rowData[c.key]||'');
+          while(txt.length>1&&pdf.getTextWidth(txt)>maxW) txt=txt.slice(0,-1);
+          if(txt!==String(rowData[c.key]||'')) txt+='…';
+          pdf.text(txt, x+1.5, y+4.3); x+=c.w;
+        });
+        pdf.setDrawColor(220,222,228); pdf.setLineWidth(0.1); pdf.line(M,y+rH,W-M,y+rH);
+        y+=rH;
+      });
+      y+=2;
+    });
+
+    // Pied de page
+    const pages=pdf.internal.getNumberOfPages();
+    for(let i=1;i<=pages;i++){
+      pdf.setPage(i);
+      pdf.setDrawColor(...C.faint); pdf.setLineWidth(0.2); pdf.line(M,H-7,W-M,H-7);
+      pdf.setFontSize(6); pdf.setFont('helvetica','normal'); pdf.setTextColor(...C.grey);
+      pdf.text('SOY — Inventaire Diff — '+now, M, H-3);
+      pdf.text('Page '+i+' / '+pages, W-M, H-3, {align:'right'});
+    }
+    const d=new Date();
+    pdf.save(`SOY_Diff_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.pdf`);
+    toast('PDF exporté ✓','ok');
+  }catch(e){ toast('Erreur PDF : '+(e?.message||e),'err'); console.error(e); }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────
+function toast(msg,type='ok'){
+  const el=document.createElement('div');
+  el.className='toast '+type; el.textContent=msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(),4500);
+}
+</script>
+</body>
+</html>
