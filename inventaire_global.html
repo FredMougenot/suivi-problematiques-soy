@@ -411,6 +411,12 @@ async function loadAll(){
 
   // Fusionner et afficher
   buildAllRows();
+  // Debug visible sur mobile
+  const ghSample = allRows.filter(r => r.source === 'gh').slice(0, 2);
+  const debugTxt = ghSample.map((r, i) =>
+    `GH[${i}]: raw.len=${r.raw?.length} raw[1]=${r.raw?.[1]} raw[16]=${r.raw?.[16]} _cat=${r._cat?.name||'NULL'}`
+  ).join(' | ');
+  showBanner('DEBUG: ' + debugTxt);
   buildSidebar();
   applyFilters();
   updateKPIs();
@@ -766,19 +772,15 @@ function applyFilters(){
     if(activeCat === 'NO_CAT'){
       if(row._cat) return false;
     } else if(activeCat !== null){
-      const cat = ghCategories.find(c => c.id === activeCat);
-      if(!cat) return false;
-      if(row.source === 'gh'){
-        // Exactement comme GH : appliquer matchesCategory directement sur la catégorie cliquée
-        if(!matchesCategory(row.raw, cat)) return false;
-      } else {
-        // Pour usine : vérifier si la catégorie ou un ancêtre correspond
-        if(!row._cat) return false;
-        let c = row._cat;
-        let found = false;
-        while(c){ if(c.id === activeCat){ found=true; break; } c = ghCategories.find(x => x.id === c.parent_id); }
-        if(!found) return false;
+      if(!row._cat) return false;
+      // Remonter la hiérarchie depuis _cat pour trouver activeCat
+      let c = row._cat;
+      let found = false;
+      while(c){
+        if(c.id === activeCat){ found = true; break; }
+        c = ghCategories.find(x => x.id === c.parent_id);
       }
+      if(!found) return false;
     }
 
     if(srch){
