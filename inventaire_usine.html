@@ -101,7 +101,8 @@
 .ac-wrap{position:relative;}
 .ac-dropdown{position:fixed;z-index:9000;min-width:280px;max-width:92vw;
   background:var(--bg-float);border:1px solid rgba(74,158,232,.3);border-radius:var(--r-md);
-  box-shadow:0 8px 24px rgba(0,0,0,.7);max-height:240px;overflow-y:auto;display:none;}
+  box-shadow:0 8px 24px rgba(0,0,0,.7);max-height:240px;overflow-y:auto;display:none;
+  touch-action:none;}
 .ac-dropdown.open{display:block;}
 .ac-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(44,51,80,.4);}
 .ac-item:last-child{border-bottom:none;}
@@ -678,9 +679,9 @@ function acSearch(rowIdx, mode, input){
   acActiveIdx = -1;
   drop.innerHTML = results.map((r,i) => `
     <div class="ac-item" data-i="${i}"
+      style="touch-action:none;"
       onmousedown="dbg('mousedown item ${i}');acSelectPrevent(event,${rowIdx},${JSON.stringify(r.trax)},${JSON.stringify(r.interne)},${JSON.stringify(r.desig)})"
-      ontouchstart="dbg('touchstart item ${i}');acTouching=true"
-      ontouchend="dbg('touchend item ${i}');acSelectPrevent(event,${rowIdx},${JSON.stringify(r.trax)},${JSON.stringify(r.interne)},${JSON.stringify(r.desig)})">
+      ontouchstart="dbg('touchstart→select item ${i}');acTouching=true;acSelectPrevent(event,${rowIdx},${JSON.stringify(r.trax)},${JSON.stringify(r.interne)},${JSON.stringify(r.desig)})">
       <div class="ac-code">${esc(r.trax)}${r.interne?' <span class="ac-interne">→ '+esc(r.interne)+'</span>':''}</div>
       <div class="ac-desig">${esc(r.desig)}</div>
     </div>`).join('');
@@ -688,8 +689,8 @@ function acSearch(rowIdx, mode, input){
 }
 
 function acSelectPrevent(e, rowIdx, trax, interne, desig){
-  e.preventDefault();
-  e.stopPropagation();
+  dbg('acSelectPrevent type='+e.type+' row='+rowIdx);
+  if(e.cancelable) e.preventDefault();
   acTouching = false;
   acSelect(rowIdx, trax, interne, desig);
 }
