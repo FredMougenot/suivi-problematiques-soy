@@ -282,6 +282,7 @@ let ghCategories = [];  // Catégories chargées depuis Supabase
 let nextTmpId = -1;     // IDs temporaires pour nouvelles lignes
 let traxData = [];      // Données correspondance TRAX pour autocomplete
 let acActiveIdx = -1;   // Index item actif dans dropdown
+let acTouching = false; // Flag mobile : touche en cours sur dropdown
 
 // ── UTILS ─────────────────────────────────────────────────────────
 function todayStr(){
@@ -428,17 +429,17 @@ function render(){
         <input class="inp-cell inp-req" value="${esc(r.code_produit)}" placeholder="Ex: CI.1750"
           oninput="mark(${i},'code_produit',this.value);acSearch(${i},'code',this)"
           onfocus="acSearch(${i},'code',this)"
-          onblur="setTimeout(()=>acClose(${i}),180)"
+          onblur="if(!acTouching)acClose(${i})"
           onkeydown="acKey(event,${i})">
-        <div class="ac-dropdown" id="ac-${i}"></div>
+        <div class="ac-dropdown" id="ac-${i}" ontouchstart="acTouching=true"></div>
       </td>
       <td class="ac-wrap">
         <input class="inp-cell" value="${esc(r.description)}" placeholder="Description…"
           oninput="mark(${i},'description',this.value);acSearch(${i},'desig',this)"
           onfocus="acSearch(${i},'desig',this)"
-          onblur="setTimeout(()=>acClose(${i}),180)"
+          onblur="if(!acTouching)acClose(${i})"
           onkeydown="acKey(event,${i})">
-        <div class="ac-dropdown" id="ac-desig-${i}"></div>
+        <div class="ac-dropdown" id="ac-desig-${i}" ontouchstart="acTouching=true"></div>
       </td>
       <td><input class="inp-cell inp-req" value="${esc(r.no_lot)}" placeholder="No. lot" oninput="mark(${i},'no_lot',this.value)"></td>
       <td><input class="inp-cell" value="${esc(r.no_sous_lot)}" placeholder="Sous-lot" oninput="mark(${i},'no_sous_lot',this.value)"></td>
@@ -662,7 +663,8 @@ function acSearch(rowIdx, mode, input){
 }
 
 function acSelectPrevent(e, rowIdx, trax, interne, desig){
-  e.preventDefault(); // Empêche le blur de fermer avant la sélection
+  e.preventDefault();
+  acTouching = false;
   acSelect(rowIdx, trax, interne, desig);
 }
 
@@ -691,6 +693,7 @@ function acClose(rowIdx){
     if(d){ d.classList.remove('open'); d.innerHTML=''; }
   });
   acActiveIdx = -1;
+  acTouching = false;
 }
 
 function acKey(e, rowIdx){
