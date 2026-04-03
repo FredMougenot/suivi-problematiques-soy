@@ -47,7 +47,7 @@
 
 /* ── Tableau de saisie ── */
 .tbl-wrap{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);
-  overflow:hidden;position:relative;}
+  overflow:hidden;position:relative;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .tbl-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
   background:linear-gradient(90deg,transparent,var(--copper),transparent);pointer-events:none;}
 .saisie-tbl{width:100%;border-collapse:collapse;}
@@ -653,11 +653,17 @@ function acSearch(rowIdx, mode, input){
   acActiveIdx = -1;
   drop.innerHTML = results.map((r,i) => `
     <div class="ac-item" data-i="${i}"
-      onmousedown="acSelect(${rowIdx},${JSON.stringify(r.trax)},${JSON.stringify(r.interne)},${JSON.stringify(r.desig)})">
+      onmousedown="acSelectPrevent(event,${rowIdx},${JSON.stringify(r.trax)},${JSON.stringify(r.interne)},${JSON.stringify(r.desig)})"
+      ontouchend="acSelectPrevent(event,${rowIdx},${JSON.stringify(r.trax)},${JSON.stringify(r.interne)},${JSON.stringify(r.desig)})">
       <div class="ac-code">${esc(r.trax)}${r.interne?' <span class="ac-interne">→ '+esc(r.interne)+'</span>':''}</div>
       <div class="ac-desig">${esc(r.desig)}</div>
     </div>`).join('');
   drop.classList.add('open');
+}
+
+function acSelectPrevent(e, rowIdx, trax, interne, desig){
+  e.preventDefault(); // Empêche le blur de fermer avant la sélection
+  acSelect(rowIdx, trax, interne, desig);
 }
 
 function acSelect(rowIdx, trax, interne, desig){
