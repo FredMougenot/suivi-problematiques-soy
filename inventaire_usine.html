@@ -99,15 +99,15 @@
 
 /* ── Autocomplete TRAX ── */
 .ac-wrap{position:relative;}
-.ac-dropdown{position:absolute;top:100%;left:0;z-index:200;min-width:320px;max-width:480px;
+.ac-dropdown{position:fixed;z-index:9000;min-width:280px;max-width:92vw;
   background:var(--bg-float);border:1px solid rgba(74,158,232,.3);border-radius:var(--r-md);
-  box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:220px;overflow-y:auto;display:none;}
+  box-shadow:0 8px 24px rgba(0,0,0,.7);max-height:240px;overflow-y:auto;display:none;}
 .ac-dropdown.open{display:block;}
-.ac-item{padding:8px 12px;cursor:pointer;border-bottom:1px solid rgba(44,51,80,.4);transition:background .1s;}
+.ac-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(44,51,80,.4);}
 .ac-item:last-child{border-bottom:none;}
-.ac-item:hover,.ac-item.active{background:rgba(74,158,232,.1);}
-.ac-code{font-size:.78rem;font-weight:700;color:var(--sapphire);}
-.ac-desig{font-size:.74rem;color:var(--text-muted);margin-top:1px;}
+.ac-item:active,.ac-item.active{background:rgba(74,158,232,.2);}
+.ac-code{font-size:.8rem;font-weight:700;color:var(--sapphire);}
+.ac-desig{font-size:.75rem;color:var(--text-muted);margin-top:2px;}
 .ac-interne{font-size:.72rem;color:var(--emerald);font-weight:600;}
 .spinner{display:flex;align-items:center;justify-content:center;padding:50px;gap:12px;
   color:var(--text-muted);font-size:.88rem;}
@@ -434,21 +434,19 @@ function render(){
           ${buildCatOptions(r.categorie_id)}
         </select>
       </td>
-      <td class="ac-wrap">
+      <td>
         <input class="inp-cell inp-req" value="${esc(r.code_produit)}" placeholder="Ex: CI.1750"
           oninput="mark(${i},'code_produit',this.value);acSearch(${i},'code',this)"
           onfocus="acSearch(${i},'code',this)"
-          onblur="setTimeout(()=>acClose(${i}),200)"
+          onblur="if(!acTouching)acClose()"
           onkeydown="acKey(event,${i})">
-        <div class="ac-dropdown" id="ac-${i}"></div>
       </td>
-      <td class="ac-wrap">
+      <td>
         <input class="inp-cell" value="${esc(r.description)}" placeholder="Description…"
           oninput="mark(${i},'description',this.value);acSearch(${i},'desig',this)"
           onfocus="acSearch(${i},'desig',this)"
-          onblur="setTimeout(()=>acClose(${i}),200)"
+          onblur="if(!acTouching)acClose()"
           onkeydown="acKey(event,${i})">
-        <div class="ac-dropdown" id="ac-desig-${i}"></div>
       </td>
       <td><input class="inp-cell inp-req" value="${esc(r.no_lot)}" placeholder="No. lot" oninput="mark(${i},'no_lot',this.value)"></td>
       <td><input class="inp-cell" value="${esc(r.no_sous_lot)}" placeholder="Sous-lot" oninput="mark(${i},'no_sous_lot',this.value)"></td>
@@ -648,10 +646,11 @@ async function loadTraxData(){
   }catch(e){ traxData = []; dbg('TRAX erreur : '+e.message); }
 }
 
+let acCurrentRow = -1;
+
 function acSearch(rowIdx, mode, input){
   const q = (input.value||'').toLowerCase().trim();
-  const dropId = mode === 'code' ? `ac-${rowIdx}` : `ac-desig-${rowIdx}`;
-  const drop = document.getElementById(dropId);
+  const drop = document.getElementById('ac-global');
   if(!drop) return;
   if(!q){ drop.classList.remove('open'); drop.innerHTML=''; return; }
 
@@ -666,14 +665,22 @@ function acSearch(rowIdx, mode, input){
     ).slice(0, 10);
   }
 
+  dbg('Résultats : '+results.length+' mode='+mode+' row='+rowIdx);
   if(!results.length){ drop.classList.remove('open'); drop.innerHTML=''; return; }
 
+  // Positionner le dropdown sous l'input
+  const rect = input.getBoundingClientRect();
+  drop.style.left  = rect.left + 'px';
+  drop.style.top   = (rect.bottom + 2) + 'px';
+  drop.style.width = Math.max(rect.width, 280) + 'px';
+
+  acCurrentRow = rowIdx;
   acActiveIdx = -1;
-  dbg('Résultats : '+results.length+' pour mode='+mode);
   drop.innerHTML = results.map((r,i) => `
     <div class="ac-item" data-i="${i}"
-      onmousedown="dbg('mousedown '+${i});acSelectPrevent(event,${rowIdx},${JSON.stringify(r.trax)},${JSON.stringify(r.interne)},${JSON.stringify(r.desig)})"
-      ontouchstart="dbg('touchstart '+${i});acTouching=true;acSelectPrevent(event,${rowIdx},${JSON.stringify(r.trax)},${JSON.stringify(r.interne)},${JSON.stringify(r.desig)})">
+      onmousedown="dbg('mousedown item ${i}');acSelectPrevent(event,${rowIdx},${JSON.stringify(r.trax)},${JSON.stringify(r.interne)},${JSON.stringify(r.desig)})"
+      ontouchstart="dbg('touchstart item ${i}');acTouching=true"
+      ontouchend="dbg('touchend item ${i}');acSelectPrevent(event,${rowIdx},${JSON.stringify(r.trax)},${JSON.stringify(r.interne)},${JSON.stringify(r.desig)})">
       <div class="ac-code">${esc(r.trax)}${r.interne?' <span class="ac-interne">→ '+esc(r.interne)+'</span>':''}</div>
       <div class="ac-desig">${esc(r.desig)}</div>
     </div>`).join('');
@@ -706,33 +713,31 @@ function acSelect(rowIdx, trax, interne, desig){
   acClose(rowIdx);
 }
 
-function acClose(rowIdx){
-  ['ac-'+rowIdx, 'ac-desig-'+rowIdx].forEach(id => {
-    const d = document.getElementById(id);
-    if(d){ d.classList.remove('open'); d.innerHTML=''; }
-  });
+function acClose(){
+  const drop = document.getElementById('ac-global');
+  if(drop){ drop.classList.remove('open'); drop.innerHTML=''; }
   acActiveIdx = -1;
   acTouching = false;
+  acCurrentRow = -1;
 }
 
 function acKey(e, rowIdx){
-  // Trouver le dropdown ouvert pour cette ligne
-  const d1 = document.getElementById('ac-'+rowIdx);
-  const d2 = document.getElementById('ac-desig-'+rowIdx);
-  const drop = (d1&&d1.classList.contains('open')) ? d1 : (d2&&d2.classList.contains('open')) ? d2 : null;
-  if(!drop) return;
+  const drop = document.getElementById('ac-global');
+  if(!drop||!drop.classList.contains('open')) return;
   const items = drop.querySelectorAll('.ac-item');
   if(!items.length) return;
 
   if(e.key==='ArrowDown'){ e.preventDefault(); acActiveIdx=Math.min(acActiveIdx+1,items.length-1); }
   else if(e.key==='ArrowUp'){ e.preventDefault(); acActiveIdx=Math.max(acActiveIdx-1,0); }
   else if(e.key==='Enter'&&acActiveIdx>=0){ e.preventDefault(); items[acActiveIdx].dispatchEvent(new MouseEvent('mousedown')); return; }
-  else if(e.key==='Escape'){ acClose(rowIdx); return; }
+  else if(e.key==='Escape'){ acClose(); return; }
   else return;
 
   items.forEach((it,i)=>it.classList.toggle('active',i===acActiveIdx));
   items[acActiveIdx]?.scrollIntoView({block:'nearest'});
 }
 </script>
+<!-- Dropdown autocomplete global -->
+<div class="ac-dropdown" id="ac-global"></div>
 </body>
 </html>
