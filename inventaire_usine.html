@@ -97,19 +97,7 @@
 .empty-state{padding:50px;text-align:center;color:var(--text-muted);font-size:.88rem;}
 .empty-icon{font-size:2.4rem;margin-bottom:12px;opacity:.5;}
 
-/* ── Autocomplete TRAX ── */
-.ac-wrap{position:relative;}
-.ac-dropdown{position:fixed;z-index:9000;min-width:280px;max-width:92vw;
-  background:var(--bg-float);border:1px solid rgba(74,158,232,.3);border-radius:var(--r-md);
-  box-shadow:0 8px 24px rgba(0,0,0,.7);max-height:240px;overflow-y:auto;display:none;
-  touch-action:none;}
-.ac-dropdown.open{display:block;}
-.ac-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(44,51,80,.4);}
-.ac-item:last-child{border-bottom:none;}
-.ac-item:active,.ac-item.active{background:rgba(74,158,232,.2);}
-.ac-code{font-size:.8rem;font-weight:700;color:var(--sapphire);}
-.ac-desig{font-size:.75rem;color:var(--text-muted);margin-top:2px;}
-.ac-interne{font-size:.72rem;color:var(--emerald);font-weight:600;}
+
 .spinner{display:flex;align-items:center;justify-content:center;padding:50px;gap:12px;
   color:var(--text-muted);font-size:.88rem;}
 .sp-ring{width:24px;height:24px;border:2px solid var(--text-faint);border-top-color:var(--copper);
@@ -253,6 +241,10 @@
   </div>
 </div>
 
+<!-- Datalists pour autocomplete natif -->
+<datalist id="dl-codes"></datalist>
+<datalist id="dl-desig"></datalist>
+
 <!-- Debug panel -->
 <div id="dbg" style="position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(0,0,0,.92);color:#0f0;font-family:monospace;font-size:.7rem;padding:8px 12px;max-height:160px;overflow-y:auto;border-top:2px solid #0f0;">
   <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
@@ -291,8 +283,6 @@ let rows = [];          // Lignes de saisie en mémoire
 let ghCategories = [];  // Catégories chargées depuis Supabase
 let nextTmpId = -1;     // IDs temporaires pour nouvelles lignes
 let traxData = [];      // Données correspondance TRAX pour autocomplete
-let acActiveIdx = -1;   // Index item actif dans dropdown
-let acTouching = false; // Flag mobile : touche en cours sur dropdown
 
 // ── UTILS ─────────────────────────────────────────────────────────
 function todayStr(){
@@ -437,17 +427,15 @@ function render(){
       </td>
       <td>
         <input class="inp-cell inp-req" value="${esc(r.code_produit)}" placeholder="Ex: CI.1750"
-          oninput="mark(${i},'code_produit',this.value);acSearch(${i},'code',this)"
-          onfocus="acSearch(${i},'code',this)"
-          onblur="if(!acTouching)acClose()"
-          onkeydown="acKey(event,${i})">
+          list="dl-codes"
+          oninput="mark(${i},'code_produit',this.value);acFillFromCode(${i},this.value)"
+          onchange="acFillFromCode(${i},this.value)">
       </td>
       <td>
         <input class="inp-cell" value="${esc(r.description)}" placeholder="Description…"
-          oninput="mark(${i},'description',this.value);acSearch(${i},'desig',this)"
-          onfocus="acSearch(${i},'desig',this)"
-          onblur="if(!acTouching)acClose()"
-          onkeydown="acKey(event,${i})">
+          list="dl-desig"
+          oninput="mark(${i},'description',this.value);acFillFromDesig(${i},this.value)"
+          onchange="acFillFromDesig(${i},this.value)">
       </td>
       <td><input class="inp-cell inp-req" value="${esc(r.no_lot)}" placeholder="No. lot" oninput="mark(${i},'no_lot',this.value)"></td>
       <td><input class="inp-cell" value="${esc(r.no_sous_lot)}" placeholder="Sous-lot" oninput="mark(${i},'no_sous_lot',this.value)"></td>
@@ -644,101 +632,55 @@ async function loadTraxData(){
       desig:   r.designation||''
     }));
     dbg('TRAX chargé : '+traxData.length+' entrées');
+    buildDataLists();
   }catch(e){ traxData = []; dbg('TRAX erreur : '+e.message); }
 }
 
-let acCurrentRow = -1;
+function buildDataLists(){
+  // Datalist codes : valeur = code_interne, label = code_trax + désignation
+  const dlCodes = document.getElementById('dl-codes');
+  const dlDesig = document.getElementById('dl-desig');
+  if(!dlCodes || !dlDesig) return;
 
-function acSearch(rowIdx, mode, input){
-  const q = (input.value||'').toLowerCase().trim();
-  const drop = document.getElementById('ac-global');
-  if(!drop) return;
-  if(!q){ drop.classList.remove('open'); drop.innerHTML=''; return; }
+  dlCodes.innerHTML = traxData.map(r => {
+    const val = r.interne || r.trax;
+    return `<option value="${esc(val)}" data-trax="${esc(r.trax)}" data-desig="${esc(r.desig)}">${esc(r.trax)} — ${esc(r.desig)}</option>`;
+  }).join('');
 
-  let results;
-  if(mode === 'code'){
-    results = traxData.filter(r =>
-      r.trax.toLowerCase().includes(q) || r.interne.toLowerCase().includes(q)
-    ).slice(0, 10);
-  } else {
-    results = traxData.filter(r =>
-      r.desig.toLowerCase().includes(q) || r.trax.toLowerCase().includes(q) || r.interne.toLowerCase().includes(q)
-    ).slice(0, 10);
-  }
+  dlDesig.innerHTML = traxData.map(r => {
+    const val = r.desig;
+    return `<option value="${esc(val)}" data-interne="${esc(r.interne||r.trax)}">${esc(r.trax)}</option>`;
+  }).join('');
 
-  dbg('Résultats : '+results.length+' mode='+mode+' row='+rowIdx);
-  if(!results.length){ drop.classList.remove('open'); drop.innerHTML=''; return; }
-
-  // Positionner le dropdown sous l'input
-  const rect = input.getBoundingClientRect();
-  drop.style.left  = rect.left + 'px';
-  drop.style.top   = (rect.bottom + 2) + 'px';
-  drop.style.width = Math.max(rect.width, 280) + 'px';
-
-  acCurrentRow = rowIdx;
-  acActiveIdx = -1;
-  drop.innerHTML = results.map((r,i) => `
-    <div class="ac-item" data-i="${i}"
-      style="touch-action:none;"
-      onmousedown="dbg('mousedown item ${i}');acSelectPrevent(event,${rowIdx},${JSON.stringify(r.trax)},${JSON.stringify(r.interne)},${JSON.stringify(r.desig)})"
-      ontouchstart="dbg('touchstart→select item ${i}');acTouching=true;acSelectPrevent(event,${rowIdx},${JSON.stringify(r.trax)},${JSON.stringify(r.interne)},${JSON.stringify(r.desig)})">
-      <div class="ac-code">${esc(r.trax)}${r.interne?' <span class="ac-interne">→ '+esc(r.interne)+'</span>':''}</div>
-      <div class="ac-desig">${esc(r.desig)}</div>
-    </div>`).join('');
-  drop.classList.add('open');
+  dbg('Datalists construits : '+traxData.length+' options');
 }
 
-function acSelectPrevent(e, rowIdx, trax, interne, desig){
-  dbg('acSelectPrevent type='+e.type+' row='+rowIdx);
-  if(e.cancelable) e.preventDefault();
-  acTouching = false;
-  acSelect(rowIdx, trax, interne, desig);
-}
-
-function acSelect(rowIdx, trax, interne, desig){
-  dbg('acSelect row='+rowIdx+' trax='+trax+' interne='+interne);
+function acFillFromCode(rowIdx, val){
+  if(!val) return;
+  const match = traxData.find(r => (r.interne||r.trax).toLowerCase() === val.toLowerCase() || r.trax.toLowerCase() === val.toLowerCase());
+  if(!match){ dbg('acFillFromCode: aucun match pour "'+val+'"'); return; }
+  dbg('acFillFromCode match: desig='+match.desig.slice(0,30));
   const tr = document.getElementById('row-'+rowIdx);
-  if(!tr){ dbg('ERREUR: tr#row-'+rowIdx+' introuvable'); return; }
-  const codeInput = tr.querySelector('.inp-req');
+  if(!tr) return;
+  // Remplir description
   const allInputs = tr.querySelectorAll('.inp-cell');
-  let descInput = null;
-  let foundCode = false;
-  allInputs.forEach(inp => {
-    if(inp === codeInput){ foundCode = true; return; }
-    if(foundCode && !descInput) descInput = inp;
-  });
-  dbg('codeInput='+!!codeInput+' descInput='+!!descInput);
-  const codeVal = interne||trax;
-  if(codeInput){ codeInput.value = codeVal; mark(rowIdx,'code_produit', codeVal); dbg('code='+codeVal); }
-  if(descInput){ descInput.value = desig;   mark(rowIdx,'description',  desig);   dbg('desig='+desig.slice(0,25)); }
-  acClose(rowIdx);
+  const codeInput = tr.querySelector('.inp-req');
+  let descInput = null, found = false;
+  allInputs.forEach(inp => { if(inp===codeInput){found=true;return;} if(found&&!descInput)descInput=inp; });
+  if(descInput){ descInput.value = match.desig; mark(rowIdx,'description',match.desig); }
 }
 
-function acClose(){
-  const drop = document.getElementById('ac-global');
-  if(drop){ drop.classList.remove('open'); drop.innerHTML=''; }
-  acActiveIdx = -1;
-  acTouching = false;
-  acCurrentRow = -1;
+function acFillFromDesig(rowIdx, val){
+  if(!val) return;
+  const match = traxData.find(r => r.desig.toLowerCase() === val.toLowerCase());
+  if(!match){ dbg('acFillFromDesig: aucun match pour "'+val+'"'); return; }
+  dbg('acFillFromDesig match: code='+match.interne);
+  const tr = document.getElementById('row-'+rowIdx);
+  if(!tr) return;
+  const codeInput = tr.querySelector('.inp-req');
+  if(codeInput){ codeInput.value = match.interne||match.trax; mark(rowIdx,'code_produit',match.interne||match.trax); }
 }
 
-function acKey(e, rowIdx){
-  const drop = document.getElementById('ac-global');
-  if(!drop||!drop.classList.contains('open')) return;
-  const items = drop.querySelectorAll('.ac-item');
-  if(!items.length) return;
-
-  if(e.key==='ArrowDown'){ e.preventDefault(); acActiveIdx=Math.min(acActiveIdx+1,items.length-1); }
-  else if(e.key==='ArrowUp'){ e.preventDefault(); acActiveIdx=Math.max(acActiveIdx-1,0); }
-  else if(e.key==='Enter'&&acActiveIdx>=0){ e.preventDefault(); items[acActiveIdx].dispatchEvent(new MouseEvent('mousedown')); return; }
-  else if(e.key==='Escape'){ acClose(); return; }
-  else return;
-
-  items.forEach((it,i)=>it.classList.toggle('active',i===acActiveIdx));
-  items[acActiveIdx]?.scrollIntoView({block:'nearest'});
-}
 </script>
-<!-- Dropdown autocomplete global -->
-<div class="ac-dropdown" id="ac-global"></div>
 </body>
 </html>
