@@ -238,13 +238,13 @@ function displayCorr() {
   }
   tbody.innerHTML = corrFiltered.map((row, i) => `<tr>
     <td style="padding:7px 14px;font-size:.72rem;color:var(--text-faint);font-weight:700;text-align:center;width:36px;">${i+1}</td>
-    <td style="padding:7px 14px;font-size:.78rem;color:var(--sapphire);font-weight:700;white-space:nowrap;">${escH(row[0]||'')}</td>
-    <td style="padding:7px 14px;font-size:.78rem;color:var(--emerald);font-weight:600;white-space:nowrap;">${escH(row[1]||'')}</td>
-    <td style="padding:7px 14px;font-size:.78rem;color:var(--text-secondary);">${escH(row[2]||'')}</td>
+    <td style="padding:7px 14px;font-size:.78rem;color:var(--sapphire);font-weight:700;white-space:nowrap;">${escCorr(row[0]||'')}</td>
+    <td style="padding:7px 14px;font-size:.78rem;color:var(--emerald);font-weight:600;white-space:nowrap;">${escCorr(row[1]||'')}</td>
+    <td style="padding:7px 14px;font-size:.78rem;color:var(--text-secondary);">${escCorr(row[2]||'')}</td>
   </tr>`).join('');
 }
 
-function escH(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escCorr(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 </script>
 <script>
