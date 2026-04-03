@@ -429,17 +429,17 @@ function render(){
         <input class="inp-cell inp-req" value="${esc(r.code_produit)}" placeholder="Ex: CI.1750"
           oninput="mark(${i},'code_produit',this.value);acSearch(${i},'code',this)"
           onfocus="acSearch(${i},'code',this)"
-          onblur="if(!acTouching)acClose(${i})"
+          onblur="setTimeout(()=>acClose(${i}),200)"
           onkeydown="acKey(event,${i})">
-        <div class="ac-dropdown" id="ac-${i}" ontouchstart="acTouching=true"></div>
+        <div class="ac-dropdown" id="ac-${i}"></div>
       </td>
       <td class="ac-wrap">
         <input class="inp-cell" value="${esc(r.description)}" placeholder="Description…"
           oninput="mark(${i},'description',this.value);acSearch(${i},'desig',this)"
           onfocus="acSearch(${i},'desig',this)"
-          onblur="if(!acTouching)acClose(${i})"
+          onblur="setTimeout(()=>acClose(${i}),200)"
           onkeydown="acKey(event,${i})">
-        <div class="ac-dropdown" id="ac-desig-${i}" ontouchstart="acTouching=true"></div>
+        <div class="ac-dropdown" id="ac-desig-${i}"></div>
       </td>
       <td><input class="inp-cell inp-req" value="${esc(r.no_lot)}" placeholder="No. lot" oninput="mark(${i},'no_lot',this.value)"></td>
       <td><input class="inp-cell" value="${esc(r.no_sous_lot)}" placeholder="Sous-lot" oninput="mark(${i},'no_sous_lot',this.value)"></td>
@@ -655,7 +655,7 @@ function acSearch(rowIdx, mode, input){
   drop.innerHTML = results.map((r,i) => `
     <div class="ac-item" data-i="${i}"
       onmousedown="acSelectPrevent(event,${rowIdx},${JSON.stringify(r.trax)},${JSON.stringify(r.interne)},${JSON.stringify(r.desig)})"
-      ontouchend="acSelectPrevent(event,${rowIdx},${JSON.stringify(r.trax)},${JSON.stringify(r.interne)},${JSON.stringify(r.desig)})">
+      ontouchstart="acSelectPrevent(event,${rowIdx},${JSON.stringify(r.trax)},${JSON.stringify(r.interne)},${JSON.stringify(r.desig)})">
       <div class="ac-code">${esc(r.trax)}${r.interne?' <span class="ac-interne">→ '+esc(r.interne)+'</span>':''}</div>
       <div class="ac-desig">${esc(r.desig)}</div>
     </div>`).join('');
@@ -664,6 +664,7 @@ function acSearch(rowIdx, mode, input){
 
 function acSelectPrevent(e, rowIdx, trax, interne, desig){
   e.preventDefault();
+  e.stopPropagation();
   acTouching = false;
   acSelect(rowIdx, trax, interne, desig);
 }
@@ -673,7 +674,6 @@ function acSelect(rowIdx, trax, interne, desig){
   if(!tr) return;
   const codeInput = tr.querySelector('.inp-req');
   const allInputs = tr.querySelectorAll('.inp-cell');
-  // La description est le 2e input (index 1 dans le tr)
   let descInput = null;
   let foundCode = false;
   allInputs.forEach(inp => {
