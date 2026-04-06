@@ -1323,28 +1323,8 @@ function filterByProduct(produit){
     const v1 = r._raw?.[1] || '';  // Déjà rempli à l'importation
     return v1 === produit;
   });
-  // Trier du plus ancien au plus récent — supporte DD/MM/YYYY et YYYY-MM-DD
-  const fmtDate = s => {
-    if(!s) return '';
-    s = s.trim();
-    const m1 = s.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/);
-    if(m1) return m1[1]+'/'+m1[2]+'/'+m1[3];
-    const m2 = s.match(/^(\d{4})[\/\-](\d{2})[\/\-](\d{2})$/);
-    if(m2) return m2[3]+'/'+m2[2]+'/'+m2[1];
-    return s;
-  };
-  const parseDate = s => {
-    if(!s) return 0;
-    s = s.trim();
-    // Format DD/MM/YYYY
-    const m1 = s.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/);
-    if(m1) return new Date(m1[3], m1[2]-1, m1[1]).getTime();
-    // Format YYYY-MM-DD
-    const m2 = s.match(/^(\d{4})[\/\-](\d{2})[\/\-](\d{2})$/);
-    if(m2) return new Date(m2[1], m2[2]-1, m2[3]).getTime();
-    return 0;
-  };
-  filtered.sort((a,b) => parseDate(a._raw?.[13]) - parseDate(b._raw?.[13]));
+  // Trier par date d'expiration (raw[19]) du plus ancien au plus récent
+  filtered.sort((a,b) => parseDate(a._raw?.[19]) - parseDate(b._raw?.[19]));
   renderTable();
   document.getElementById('inv-count').textContent = filtered.length + ' / ' + allInventory.length + ' items';
 }
@@ -1935,26 +1915,24 @@ function sortByExpiration(){
 function parseDate(s){
   if(!s) return Infinity;
   s = String(s).trim();
-  
-  // Mapping complet : mois anglais ET français, majuscules/minuscules
+
+  // Normaliser : enlever accents pour la comparaison
+  const norm = str => str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
   const MOIS = {
-    // Anglais (comme affiché dans GH : JAN, FEB, MAR...)
-    'jan':1,'feb':2,'mar':3,'apr':4,'may':5,'jun':6,
-    'jul':7,'aug':8,'sep':9,'oct':10,'nov':11,'dec':12,
-    // Français
-    'janv':1,'fevr':2,'fevrier':2,'fev':2,'mars':3,'avr':4,'mai':5,'juin':6,
-    'juil':7,'aout':8,'sept':9,'octobre':10,'novembre':11,'decembre':12,
-    // Français avec accents normalisés
-    'févr':2,'août':8,'déc':12
+    'jan':1, 'feb':2, 'fev':2, 'mar':3, 'avr':4, 'apr':4,
+    'mai':5, 'may':5, 'jun':6, 'jui':7, 'jul':7,
+    'aou':8, 'aug':8, 'sep':9, 'oct':10, 'nov':11,
+    'dec':12, 'des':12
   };
-  
+
   const getMonth = (str) => {
-    const key = str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-    return MOIS[key] || MOIS[key.slice(0,3)] || MOIS[key.slice(0,4)] || null;
+    const k = norm(str).slice(0,3);
+    return MOIS[k] || null;
   };
-  
-  // Format "DD-MMM-YYYY" ou "DD-MMM-YY" (ex: 23-DEC-2025, 14-NOV-2026)
-  const m0 = s.match(/^(\d{1,2})[-\/\s]([a-zA-ZéûàèêâÉÛÀÈÊÂ]+)[-\/\s](\d{2,4})$/i);
+
+  // Format "DD-MMM-YYYY" (ex: 23-DEC-2025, 08-AVR-2026, 14-FÉV-2026, 19-AOU-2025)
+  const m0 = s.match(/^(\d{1,2})[-\/\s]([^\d\-\/\s]+)[-\/\s](\d{2,4})$/);
   if(m0){
     const mNum = getMonth(m0[2]);
     if(mNum){
@@ -1962,14 +1940,14 @@ function parseDate(s){
       return new Date(parseInt(y), mNum-1, parseInt(m0[1])).getTime();
     }
   }
-  
+
   // Format DD/MM/YYYY ou DD-MM-YYYY
   const m1 = s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{2,4})$/);
   if(m1){
     const y = m1[3].length === 2 ? '20' + m1[3] : m1[3];
     return new Date(parseInt(y), parseInt(m1[2])-1, parseInt(m1[1])).getTime();
   }
-  
+
   // Format YYYY-MM-DD
   const m2 = s.match(/^(\d{4})[-\/](\d{2})[-\/](\d{2})$/);
   if(m2) return new Date(parseInt(m2[1]), parseInt(m2[2])-1, parseInt(m2[3])).getTime();
@@ -2050,30 +2028,13 @@ function renderTable(){
 
 function getExpiryClass(dateStr){
   if(!dateStr) return '';
-  try{
-    const MOIS = {
-      'JAN':0,'FÉV':1,'FEV':1,'MAR':2,'AVR':3,'MAI':4,'JUN':5,
-      'JUI':6,'JUL':6,'AOU':7,'AOÛ':7,'SEP':8,'OCT':9,'NOV':10,'DÉC':11,'DEC':11
-    };
-    let d;
-    const s = dateStr.trim().toUpperCase();
-    // Format DD-MMM-YYYY ou DD/MMM/YYYY (ex: 31-DEC-2025)
-    const m1 = s.match(/^(\d{2})[-\/]([A-ZÉÛ]{3,4})[-\/](\d{4})$/);
-    if(m1){
-      const mois = MOIS[m1[2].substring(0,3)];
-      if(mois !== undefined) d = new Date(parseInt(m1[3]), mois, parseInt(m1[1]));
-    }
-    // Format DD/MM/YYYY
-    if(!d){ const m2 = s.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/); if(m2) d = new Date(parseInt(m2[3]), parseInt(m2[2])-1, parseInt(m2[1])); }
-    // Format YYYY-MM-DD
-    if(!d){ const m3 = s.match(/^(\d{4})[\/\-](\d{2})[\/\-](\d{2})$/); if(m3) d = new Date(parseInt(m3[1]), parseInt(m3[2])-1, parseInt(m3[3])); }
-    if(!d || isNaN(d)) return '';
-    const now = new Date(); now.setHours(0,0,0,0);
-    const oneMonth = new Date(now); oneMonth.setMonth(oneMonth.getMonth()+1);
-    if(d < now)      return 'expired';
-    if(d < oneMonth) return 'expiring';
-    return '';
-  }catch(e){ return ''; }
+  const t = parseDate(dateStr);
+  if(t === Infinity) return '';
+  const now = new Date(); now.setHours(0,0,0,0);
+  const oneMonth = new Date(now); oneMonth.setMonth(oneMonth.getMonth()+1);
+  if(t < now.getTime())      return 'expired';
+  if(t < oneMonth.getTime()) return 'expiring';
+  return '';
 }
 
 function isExpired(dateStr){
