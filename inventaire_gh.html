@@ -2555,41 +2555,7 @@ function debugLog(msg) {
   log.scrollTop = log.scrollHeight;
 }
 
-</script>
 
-<!-- Panneau de DEBUG désactivé -->
-<!-- <div id="debug-panel" ...></div> -->
-
-<!-- Popup ajout correspondance TRAX -->
-<div class="trax-popup-overlay" id="trax-popup-overlay">
-  <div class="trax-popup">
-    <div class="trax-popup-hd">
-      <span style="font-size:1.1rem;">⚠️</span>
-      <div class="trax-popup-title">Ajouter à la correspondance</div>
-      <button onclick="traxPopupClose()" style="background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;padding:4px;">✕</button>
-    </div>
-    <div class="trax-popup-body">
-      <div>
-        <div class="trax-popup-lbl">Code TRAX</div>
-        <input class="trax-popup-inp" id="trax-inp-trax" placeholder="Laisser vide si inconnu…">
-      </div>
-      <div>
-        <div class="trax-popup-lbl">Code interne SOY</div>
-        <input class="trax-popup-inp" id="trax-inp-interne" placeholder="Code produit GH">
-      </div>
-      <div>
-        <div class="trax-popup-lbl">Désignation</div>
-        <input class="trax-popup-inp" id="trax-inp-desig" placeholder="Description du produit">
-      </div>
-    </div>
-    <div class="trax-popup-ft">
-      <button class="trax-popup-cancel" onclick="traxPopupClose()">Annuler</button>
-      <button class="trax-popup-save" onclick="traxPopupSave()">Ajouter</button>
-    </div>
-  </div>
-</div>
-
-<script>
 // ── CORRESPONDANCE TRAX ───────────────────────────────────────────
 async function loadTraxCodes(){
   try{
@@ -2670,7 +2636,5 @@ function showToast(msg, type){
   document.body.appendChild(el);
   setTimeout(()=>el.remove(), 3500);
 }
-</script>
 
-</body>
-</html>
+</script>
