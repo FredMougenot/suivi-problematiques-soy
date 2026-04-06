@@ -130,8 +130,8 @@
 .prod-tot-item strong{color:var(--amber);font-size:.78rem;}
 
 /* ── Ligne de stock ── */
-.stock-row{display:grid;grid-template-columns:88px 170px 52px 120px 108px 108px;align-items:center;padding:6px 16px;
-  border-bottom:1px solid rgba(44,51,80,.3);transition:background .1s;}
+.stock-row{display:grid;grid-template-columns:80px 1fr 56px 110px 100px 100px;align-items:center;padding:6px 16px;
+  border-bottom:1px solid rgba(44,51,80,.3);transition:background .1s;gap:8px;}
 .stock-row:last-child{border-bottom:none;}
 .stock-row:hover{background:var(--bg-hover);}
 
@@ -141,14 +141,14 @@
 .loc-badge.loc-usine{background:rgba(200,132,58,.12);border:1px solid rgba(200,132,58,.25);color:var(--copper);}
 .loc-badge.loc-gh{background:rgba(45,212,160,.1);border:1px solid rgba(45,212,160,.25);color:var(--emerald);}
 
-.row-lot{font-size:.78rem;font-weight:700;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.row-lot{font-size:.78rem;font-weight:700;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
 .row-sous-lot{font-size:.76rem;color:var(--text-secondary);min-width:90px;margin-right:12px;}
-.row-qte{font-size:.8rem;color:var(--text-primary);text-align:right;padding-right:12px;}
-.row-poids{font-size:.8rem;color:var(--amber);font-weight:700;text-align:right;padding-right:12px;}
-.row-dates{font-size:.72rem;color:var(--text-muted);display:flex;gap:10px;}
-.row-date-item{display:flex;flex-direction:column;gap:1px;min-width:88px;}
+.row-qte{font-size:.8rem;color:var(--text-primary);text-align:right;}
+.row-poids{font-size:.8rem;color:var(--amber);font-weight:700;text-align:right;}
+.row-dates{font-size:.72rem;color:var(--text-muted);display:flex;gap:14px;}
+.row-date-item{display:flex;flex-direction:column;gap:1px;}
 .row-date-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);}
-.row-date-val{color:var(--text-secondary);}
+.row-date-val{color:var(--text-secondary);white-space:nowrap;}
 .row-date-val.exp-warn{color:var(--amber);}
 .row-date-val.exp-danger{color:var(--ruby);}
 
@@ -960,11 +960,16 @@ function renderMain(){
 
         html += `<div class="stock-row">
           <span class="loc-badge ${badgeCls}">${badgeTxt}</span>
-          <span class="row-lot" title="No. lot">${esc(row.no_lot||'—')}${palBadge}</span>
+          <div class="row-lot" title="${esc(row.no_lot||'')}">
+            <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(row.no_lot||'—')}</div>
+            ${palBadge ? `<div style="margin-top:2px;">${palBadge}</div>` : ''}
+          </div>
           <span class="row-qte">${row.quantite > 0 ? (row.quantite % 1 === 0 ? row.quantite : row.quantite.toFixed(2)) : '<span style="color:var(--text-faint);">—</span>'}</span>
           <span class="row-poids">${row.poids_total > 0 ? row.poids_total.toFixed(2)+' kg' : '<span style="color:var(--text-faint);">—</span>'}</span>
           <div class="row-dates">
             <div class="row-date-item"><div class="row-date-lbl">Fab.</div><div class="row-date-val">${fabVal}</div></div>
+          </div>
+          <div class="row-dates">
             <div class="row-date-item"><div class="row-date-lbl">Pér.</div><div class="row-date-val">${perVal}</div></div>
           </div>
           ${row.notes ? `<span style="font-size:.72rem;color:var(--text-muted);font-style:italic;margin-left:auto;">${esc(row.notes)}</span>` : ''}
