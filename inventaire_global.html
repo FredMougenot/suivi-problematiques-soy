@@ -130,8 +130,10 @@
 .prod-tot-item strong{color:var(--amber);font-size:.78rem;}
 
 /* ── Ligne de stock ── */
-.stock-row{display:grid;grid-template-columns:76px 148px 48px 100px 96px 96px;align-items:center;padding:6px 14px;
-  border-bottom:1px solid rgba(44,51,80,.3);transition:background .1s;gap:28px;}
+.stock-row{display:grid;grid-template-columns:76px 148px 48px 100px 88px 88px;align-items:center;padding:6px 14px;
+  border-bottom:1px solid rgba(44,51,80,.3);transition:background .1s;column-gap:28px;row-gap:0;}
+.stock-row > .row-dates:nth-child(5){justify-self:start;}
+.stock-row > .row-dates:nth-child(6){margin-left:-14px;}
 .stock-row:last-child{border-bottom:none;}
 .stock-row:hover{background:var(--bg-hover);}
 
@@ -424,8 +426,7 @@ async function loadAll(){
   const debugTxt = ghSample.map((r, i) =>
     `GH[${i}]: code=${r.code_produit} no_lot=${r.no_lot} _cat=${r._cat?.name||'NULL'}`
   ).join(' | ');
-  const dbEl = document.getElementById('debug-banner');
-  if(dbEl){ dbEl.style.display='block'; dbEl.textContent='DEBUG: '+debugTxt; }
+  // debug désactivé
   buildSidebar();
   applyFilters();
   updateKPIs();
