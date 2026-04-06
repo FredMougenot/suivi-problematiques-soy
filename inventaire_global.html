@@ -524,7 +524,7 @@ async function loadGH(){
     let lastCol1 = '', lastCol2 = '';
     (items||[]).forEach(r => {
       const raw = r._raw || [];
-      if(raw[1] && raw[1].trim()){ lastCol1 = raw[1]; } else if(lastCol1){ raw[1] = lastCol1; }
+      if(raw[1] && raw[1].trim()){ lastCol1 = raw[1].toUpperCase().startsWith('DCA') ? raw[1].replace(/-\d{2}$/, '') : raw[1]; raw[1] = lastCol1; } else if(lastCol1){ raw[1] = lastCol1; }
       if(raw[2] && raw[2].trim()){ lastCol2 = raw[2]; } else if(lastCol2){ raw[2] = lastCol2; }
     });
 
