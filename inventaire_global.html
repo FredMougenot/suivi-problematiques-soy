@@ -129,8 +129,8 @@
 .prod-tot-item{font-size:.7rem;color:var(--text-muted);}
 .prod-tot-item strong{color:var(--amber);font-size:.78rem;}
 
-/* ── Ligne de stock ── */
-.stock-row{display:grid;grid-template-columns:88px 170px 52px 120px 108px 108px;align-items:center;padding:6px 16px;
+/* ── Ligne de stock ── MODIFIÉE POUR PLUS D'ESPACE ── */
+.stock-row{display:grid;grid-template-columns:100px 200px 70px 150px 130px 130px;align-items:center;padding:8px 16px;
   border-bottom:1px solid rgba(44,51,80,.3);transition:background .1s;}
 .stock-row:last-child{border-bottom:none;}
 .stock-row:hover{background:var(--bg-hover);}
@@ -147,827 +147,342 @@
 .row-poids{font-size:.8rem;color:var(--amber);font-weight:700;text-align:right;padding-right:12px;}
 .row-dates{font-size:.72rem;color:var(--text-muted);display:flex;gap:10px;}
 .row-date-item{display:flex;flex-direction:column;gap:1px;min-width:88px;}
-.row-date-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);}
-.row-date-val{color:var(--text-secondary);}
-.row-date-val.exp-warn{color:var(--amber);}
-.row-date-val.exp-danger{color:var(--ruby);}
-
-/* ── Spinner ── */
-.spinner-ctr{display:flex;align-items:center;justify-content:center;padding:80px;gap:12px;
-  color:var(--text-muted);font-size:.88rem;}
-.sp-ring{width:28px;height:28px;border:2px solid var(--text-faint);border-top-color:var(--sapphire);
-  border-radius:50%;animation:spin .8s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* ── Vide ── */
-.empty-ctr{padding:60px;text-align:center;color:var(--text-muted);font-size:.88rem;}
-.empty-icon{font-size:2.8rem;margin-bottom:14px;opacity:.4;}
-
-/* ── Info banner ── */
-.info-banner{display:flex;align-items:center;gap:12px;padding:10px 16px;
-  background:rgba(74,158,232,.08);border:1px solid rgba(74,158,232,.2);border-radius:var(--r-md);
-  font-size:.78rem;color:var(--sapphire);margin-bottom:16px;flex-wrap:wrap;}
-.info-banner strong{font-weight:700;}
+.row-date-lbl{text-transform:uppercase;font-size:.62rem;letter-spacing:.05em;color:var(--text-faint);}
+.row-date-val{font-size:.74rem;color:var(--text-secondary);}
+.row-date-val.peremption-proche{color:#c88c00;}
+.row-date-val.peremption-passee{color:var(--ruby);}
+.row-conflict-icon{color:var(--ruby);font-size:.9rem;cursor:help;}
 
 /* ── Toast ── */
-.toast-bar{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px;}
-.toast{padding:11px 18px;border-radius:var(--r-md);font-size:.82rem;font-weight:600;border:1px solid;
-  animation:tin .2s;max-width:320px;}
-.toast.ok{background:rgba(45,212,160,.12);color:var(--emerald);border-color:rgba(45,212,160,.3);}
-.toast.err{background:rgba(224,85,85,.12);color:var(--ruby);border-color:rgba(224,85,85,.3);}
-.toast.info{background:rgba(74,158,232,.12);color:var(--sapphire);border-color:rgba(74,158,232,.3);}
-@keyframes tin{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+.toast{position:fixed;bottom:20px;right:20px;padding:12px 18px;border-radius:var(--r-md);
+  box-shadow:0 8px 24px rgba(0,0,0,.3);font-size:.82rem;font-weight:600;z-index:99;
+  animation:slideIn .25s ease;}
+.toast.ok{background:var(--emerald);color:#fff;}
+.toast.err{background:var(--ruby);color:#fff;}
+@keyframes slideIn{from{transform:translateX(120%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  .cat-sidebar{display:none;}
+  .global-layout{grid-template-columns:1fr;}
+  .stock-row{grid-template-columns:85px 150px 60px 110px 100px 100px;padding:6px 12px;font-size:.7rem;}
+}
 </style>
 </head>
 <body>
-<div class="tool-wrap">
+<div class="app-wrap">
+<div class="page-header">
+  <div class="page-eyebrow">SOY</div>
+  <div class="page-title">Inventaire Global</div>
+  <div class="page-sub">Vue d'ensemble (combinaison usine + GH Logistics)</div>
+</div>
 
-  <!-- TOPBAR -->
-  <div class="tool-topbar">
-    <a class="tool-back" href="index.html">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-      Retour
-    </a>
-    <div class="tool-title">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--sapphire)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-      Inventaire Global
-    </div>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
-      <a href="inventaire_usine.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
-        border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);
-        color:var(--copper);font-size:.8rem;font-weight:600;text-decoration:none;transition:all .15s;"
-        onmouseover="this.style.borderColor='var(--copper)'" onmouseout="this.style.borderColor='var(--text-faint)'">
-        🏭 Saisie usine
-      </a>
-      <a href="inventaire_gh.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
-        border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);
-        color:var(--emerald);font-size:.8rem;font-weight:600;text-decoration:none;transition:all .15s;"
-        onmouseover="this.style.borderColor='var(--emerald)'" onmouseout="this.style.borderColor='var(--text-faint)'">
-        🏪 Inventaire GH
-      </a>
-    </div>
-    <span style="font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:20px;background:rgba(74,158,232,.1);border:1px solid rgba(74,158,232,.2);color:var(--sapphire);">Global</span>
+<div class="kpi-grid">
+  <div class="kpi-card kpi-global">
+    <div class="kpi-lbl">🌐 Stock Total</div>
+    <div class="kpi-val" id="kpi-total">0</div>
+    <div class="kpi-sub">Toutes sources</div>
   </div>
-
-  <!-- MAIN -->
-  <div class="tool-main">
-    <div class="page-eyebrow">Vue consolidée</div>
-    <div class="page-title">Inventaire Global — Usine + GH</div>
-    <div class="page-sub">Stock combiné de l'usine (relevé le plus récent) et de l'entrepôt GH Logistics. Classé par catégorie, code produit et numéro de lot.</div>
-
-    <!-- Bannière info -->
-    <div class="info-banner" id="info-banner" style="display:none;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <span id="info-banner-text"></span>
-    </div>
-
-    <!-- KPIs -->
-    <div class="kpi-grid">
-      <div class="kpi-card kpi-global">
-        <div class="kpi-lbl">🌐 Total global</div>
-        <div class="kpi-val" id="kpi-total">—</div>
-        <div class="kpi-sub">lignes de stock</div>
-      </div>
-      <div class="kpi-card kpi-usine">
-        <div class="kpi-lbl">🏭 Stock usine</div>
-        <div class="kpi-val" id="kpi-usine">—</div>
-        <div class="kpi-sub" id="kpi-usine-date">relevé: —</div>
-      </div>
-      <div class="kpi-card kpi-gh">
-        <div class="kpi-lbl">🏪 Stock GH</div>
-        <div class="kpi-val" id="kpi-gh">—</div>
-        <div class="kpi-sub">entrepôt externe</div>
-      </div>
-      <div class="kpi-card kpi-poids">
-        <div class="kpi-lbl">⚖️ Poids total</div>
-        <div class="kpi-val" id="kpi-poids">—</div>
-        <div class="kpi-sub">kg combinés</div>
-      </div>
-    </div>
-
-    <!-- Barre outils -->
-    <div class="toolbar">
-      <div class="toolbar-left">
-        <div class="search-wrap">
-          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="srch" placeholder="Rechercher code, lot, description…" oninput="applyFilters()">
-        </div>
-        <select class="fsel" id="fsel-loc" onchange="applyFilters()">
-          <option value="">Tous les emplacements</option>
-          <option value="usine">🏭 Usine seulement</option>
-          <option value="gh">🏪 GH seulement</option>
-        </select>
-        <button class="btn-refresh-all" onclick="loadAll()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-          Actualiser
-        </button>
-      </div>
-      <button class="btn-pdf" id="btn-pdf" onclick="exportPDF()" disabled>
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        Exporter PDF
-      </button>
-      <button class="btn-pdf" id="btn-excel" onclick="exportExcel()" disabled style="background:linear-gradient(135deg,#1d7044,#2a9a5e);">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
-        Exporter Excel
-      </button>
-    </div>
-
-    <!-- Flyout overlay -->
-    <div class="cat-overlay" id="cat-overlay" onclick="closeFlyout()"></div>
-
-    <!-- Flyout niveau 1 : sous-catégories -->
-    <div class="cat-flyout" id="cat-flyout">
-      <div class="cat-flyout-header">
-        <div class="cat-flyout-icon" id="flyout-icon">📦</div>
-        <div class="cat-flyout-name" id="flyout-name"></div>
-        <div class="cat-flyout-count" id="flyout-count"></div>
-      </div>
-      <div id="flyout-items"></div>
-    </div>
-
-    <!-- Flyout niveau 2 : produits -->
-    <div class="cat-flyout" id="cat-flyout-2" style="display:none;">
-      <div class="cat-flyout-header">
-        <div class="cat-flyout-icon" id="flyout-2-icon">📦</div>
-        <div class="cat-flyout-name" id="flyout-2-name"></div>
-        <div class="cat-flyout-count" id="flyout-2-count"></div>
-      </div>
-      <div id="flyout-2-items"></div>
-    </div>
-
-    <!-- Layout sidebar + contenu -->
-    <div class="global-layout">
-      <!-- Sidebar catégories -->
-      <div class="cat-sidebar" id="cat-sidebar">
-        <div class="cat-btn active" id="cat-btn-all" onclick="filterByCat(null)" title="Tout afficher">
-          <span class="cat-btn-icon">Σ</span>
-          <span class="cat-btn-name">TOUT</span>
-          <span class="cat-btn-count" id="cnt-all">0</span>
-        </div>
-      </div>
-
-      <!-- Contenu -->
-      <div class="global-content" id="global-content">
-        <div class="spinner-ctr" id="spinner">
-          <div class="sp-ring"></div> Chargement des inventaires…
-        </div>
-        <div class="empty-ctr" id="empty-ctr" style="display:none;">
-          <div class="empty-icon">📊</div>
-          <div>Aucune donnée disponible.</div>
-          <div style="margin-top:8px;font-size:.78rem;">Vérifiez que l'inventaire usine a été saisi et que GH est connecté.</div>
-        </div>
-        <div id="main-view" style="display:none;"></div>
-        <div id="debug-banner" style="display:none;margin-top:16px;padding:10px 14px;background:rgba(74,158,232,.08);border:1px solid rgba(74,158,232,.2);border-radius:var(--r-md);font-size:.72rem;color:var(--sapphire);word-break:break-all;"></div>
-      </div>
-    </div>
-
+  <div class="kpi-card kpi-usine">
+    <div class="kpi-lbl">🏭 Stock Usine</div>
+    <div class="kpi-val" id="kpi-usine">0</div>
+    <div class="kpi-sub">Usine SOY</div>
+  </div>
+  <div class="kpi-card kpi-gh">
+    <div class="kpi-lbl">📦 Stock GH</div>
+    <div class="kpi-val" id="kpi-gh">0</div>
+    <div class="kpi-sub">Entrepôt externe</div>
+  </div>
+  <div class="kpi-card kpi-poids">
+    <div class="kpi-lbl">⚖️ Poids Total</div>
+    <div class="kpi-val" id="kpi-poids">0</div>
+    <div class="kpi-sub">kg combinés</div>
   </div>
 </div>
 
-<div class="toast-bar" id="toasts"></div>
+<div class="toolbar">
+  <div class="toolbar-left">
+    <div class="search-wrap">
+      <svg class="search-icon" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+      </svg>
+      <input id="search-input" type="text" placeholder="Rechercher produit, code, lot…">
+    </div>
+    <select id="filter-empl" class="fsel">
+      <option value="all">Tous les emplacements</option>
+      <option value="usine">🏭 Usine</option>
+      <option value="gh">📦 GH</option>
+    </select>
+    <select id="filter-peremption" class="fsel">
+      <option value="all">Toutes les dates</option>
+      <option value="proche">⚠️ Péremption proche (≤90j)</option>
+      <option value="passee">🔴 Péremption passée</option>
+    </select>
+  </div>
+  <div class="toolbar-right">
+    <button class="btn-refresh-all" onclick="reloadAllData()">
+      <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+        <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+      </svg>
+      Actualiser
+    </button>
+    <button class="btn-pdf" onclick="exportPDF()">
+      <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
+        <path d="M4.603 14.087a.81.81 0 0 1-.438-.42c-.195-.388-.13-.776.08-1.102.198-.307.526-.568.897-.787a7.68 7.68 0 0 1 1.482-.645 19.697 19.697 0 0 0 1.062-2.227 7.269 7.269 0 0 1-.43-1.295c-.086-.4-.119-.796-.046-1.136.075-.354.274-.672.65-.823.192-.077.4-.12.602-.077a.7.7 0 0 1 .477.365c.088.164.12.356.127.538.007.188-.012.396-.047.614-.084.51-.27 1.134-.52 1.794a10.954 10.954 0 0 0 .98 1.686 5.753 5.753 0 0 1 1.334.05c.364.066.734.195.96.465.12.144.193.32.2.518.007.192-.047.382-.138.563a1.04 1.04 0 0 1-.354.416.856.856 0 0 1-.51.138c-.331-.014-.654-.196-.933-.417a5.712 5.712 0 0 1-.911-.95 11.651 11.651 0 0 0-1.997.406 11.307 11.307 0 0 1-1.02 1.51c-.292.35-.609.656-.927.787a.793.793 0 0 1-.58.029zm1.379-1.901c-.166.076-.32.156-.459.238-.328.194-.541.383-.647.547-.094.145-.096.25-.04.361.01.022.02.036.026.044a.266.266 0 0 0 .035-.012c.137-.056.355-.235.635-.572a8.18 8.18 0 0 0 .45-.606zm1.64-1.33a12.71 12.71 0 0 1 1.01-.193 11.744 11.744 0 0 1-.51-.858 20.801 20.801 0 0 1-.5 1.05zm2.446.45c.15.163.296.3.435.41.24.19.407.253.498.256a.107.107 0 0 0 .07-.015.307.307 0 0 0 .094-.125.436.436 0 0 0 .059-.2.095.095 0 0 0-.026-.063c-.052-.062-.2-.152-.518-.209a3.876 3.876 0 0 0-.612-.053zM8.078 7.8a6.7 6.7 0 0 0 .2-.828c.031-.188.043-.343.038-.465a.613.613 0 0 0-.032-.198.517.517 0 0 0-.145.04c-.087.035-.158.106-.196.283-.04.192-.03.469.046.822.024.111.054.227.09.346z"/>
+      </svg>
+      Exporter PDF
+    </button>
+  </div>
+</div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<div class="global-layout">
+  <div class="cat-sidebar" id="cat-sidebar"></div>
+  <div class="global-content" id="global-content"></div>
+</div>
+
+<div class="cat-overlay" id="cat-overlay" onclick="closeFlyout()"></div>
+<div class="cat-flyout" id="cat-flyout"></div>
+
+<div id="toasts" style="position:fixed;bottom:0;right:0;z-index:99;"></div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
-
-let sb;
-let ghCategories = [];   // Catégories depuis Supabase
-let usineRows    = [];   // Stock usine
-let ghRows       = [];   // Stock GH (depuis localStorage)
-let allRows      = [];   // Fusion des deux
-let filteredRows = [];   // Après filtres
-let activeCat    = null; // Catégorie active dans sidebar
-let dateReleveUsine = null;
-
-// ── UTILS ─────────────────────────────────────────────────────────
-function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function fmtDate(s){
-  if(!s) return '—';
-  s = String(s).trim();
-  // Déjà formaté DD/MM/YYYY
-  if(s.match(/^\d{2}\/\d{2}\/\d{4}$/)) return s;
-  // Format YYYY-MM-DD → DD/MM/YYYY
-  const m2 = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if(m2) return m2[3]+'/'+m2[2]+'/'+m2[1];
-  // Format GH : "15 avr 2025" ou "15 avr. 2025" → retourner tel quel
-  if(s.match(/^\d{1,2}\s+[a-zA-Zéèêûàâôî]+\.?\s+\d{4}$/)) return s;
-  return s;
-}
-function parseDate(s){
-  if(!s) return 0;
-  s = String(s).trim();
-  const m1 = s.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/);
-  if(m1) return new Date(m1[3], m1[2]-1, m1[1]).getTime();
-  const m2 = s.match(/^(\d{4})[\/\-](\d{2})[\/\-](\d{2})$/);
-  if(m2) return new Date(m2[1], m2[2]-1, m2[3]).getTime();
-  return 0;
-}
-function daysUntil(s){
-  const t = parseDate(s);
-  if(!t) return null;
-  return Math.round((t - Date.now()) / 86400000);
-}
+let RAW_DATA_USINE = [];
+let RAW_DATA_GH = [];
+let ALL_ROWS = [];
+let filteredRows = [];
+let CATEGORIES = [
+  { id: 'matieres_premieres', name: 'Matières Premières', icon: '🥬', children: [
+      { id: 'mp_proteines', name: 'Protéines', icon: '🍖' },
+      { id: 'mp_glucides', name: 'Glucides', icon: '🌾' },
+      { id: 'mp_lipides', name: 'Lipides', icon: '🥑' },
+      { id: 'mp_autres', name: 'Autres MP', icon: '🌿' }
+    ]
+  },
+  { id: 'ingredients', name: 'Ingrédients', icon: '🧪', children: [
+      { id: 'ing_epices', name: 'Épices', icon: '🌶️' },
+      { id: 'ing_saveurs', name: 'Saveurs', icon: '🍯' },
+      { id: 'ing_additifs', name: 'Additifs', icon: '⚗️' }
+    ]
+  },
+  { id: 'emballages', name: 'Emballages', icon: '📦', children: [
+      { id: 'emb_primaire', name: 'Emballage Primaire', icon: '🎁' },
+      { id: 'emb_secondaire', name: 'Emballage Secondaire', icon: '📦' }
+    ]
+  },
+  { id: 'produits_finis', name: 'Produits Finis', icon: '✅', children: [
+      { id: 'pf_clients', name: 'Produits Clients', icon: '🏬' },
+      { id: 'pf_propres', name: 'Marque Propre', icon: '🔖' }
+    ]
+  }
+];
+let selectedCategoryId = null;
+let selectedSubCategoryId = null;
 
 // ── INIT ──────────────────────────────────────────────────────────
-function waitSB(){
-  if(typeof supabase !== 'undefined' && supabase.createClient){
-    sb = supabase.createClient(SB_URL, SB_KEY);
-    loadAll();
-  } else { setTimeout(waitSB, 50); }
-}
-let poidsList = [];
-
-async function loadPoids(){
+(async function init(){
   try{
-    const {data, error} = await sb.from('gh_poids').select('*');
-    if(error) throw error;
-    poidsList = (data||[]).map(p => ({...p, matchType: p.match_type||'exact'}));
+    const [uRes, ghRes] = await Promise.all([
+      fetch('https://simougenot.github.io/soy/inventaire_usine.json'),
+      fetch('https://simougenot.github.io/soy/inventaire_gh.json')
+    ]);
+    RAW_DATA_USINE = await uRes.json();
+    RAW_DATA_GH = await ghRes.json();
   }catch(e){
-    poidsList = [];
-    console.error('Erreur chargement poids:', e);
+    console.error('Erreur chargement inventaires:', e);
+    toast('Erreur chargement données.','err');
   }
+  mergeAll();
+  initUI();
+})();
+
+function mergeAll(){
+  ALL_ROWS = [
+    ...RAW_DATA_USINE.map(r => ({...r, source: 'usine'})),
+    ...RAW_DATA_GH.map(r => ({...r, source: 'gh'}))
+  ];
+  ALL_ROWS.forEach(r => {
+    r._cat = findCatForProduct(r.code_produit);
+  });
+  filterData();
 }
 
-function getPoidsUnitaire(code){
-  if(!code) return 0;
-  const codeUpper = String(code).trim().toUpperCase();
-  // Priorité 1 : match exact
-  const exact = poidsList.find(p => (p.matchType||'exact')==='exact' && String(p.code||'').trim().toUpperCase()===codeUpper);
-  if(exact) return parseFloat(exact.poids_unitaire||0);
-  // Priorité 2 : match contains
-  const contains = poidsList.find(p => (p.matchType||'exact')==='contains' && codeUpper.includes(String(p.code||'').trim().toUpperCase()));
-  if(contains) return parseFloat(contains.poids_unitaire||0);
-  return 0;
-}
-
-window.addEventListener('load', waitSB);
-
-async function loadAll(){
-  showState('spinner');
-  document.getElementById('btn-pdf').disabled = true;
-
-  // Charger catégories ET poids en parallèle
-  await Promise.all([loadCategories(), loadPoids()]);
-
-  // Charger usine (Supabase) + GH (localStorage)
-  await Promise.all([loadUsine(), loadGH()]);
-
-  // Fusionner et afficher
-  buildAllRows();
-  // Debug visible sous le contenu
-  const ghSample = allRows.filter(r => r.source === 'gh').slice(0, 2);
-  const debugTxt = ghSample.map((r, i) =>
-    `GH[${i}]: code=${r.code_produit} no_lot=${r.no_lot} _cat=${r._cat?.name||'NULL'}`
-  ).join(' | ');
-  const dbEl = document.getElementById('debug-banner');
-  if(dbEl){ dbEl.style.display='block'; dbEl.textContent='DEBUG: '+debugTxt; }
-  buildSidebar();
-  applyFilters();
-  updateKPIs();
-  document.getElementById('btn-pdf').disabled = allRows.length === 0;
-  document.getElementById('btn-excel').disabled = allRows.length === 0;
-}
-
-// ── CATÉGORIES ────────────────────────────────────────────────────
-async function loadCategories(){
-  try{
-    const {data} = await sb.from('gh_categories').select('*').order('created_at');
-    ghCategories = (data||[]).map(c => ({...c, rules: c.cat_rules||c.rules||[]}));
-  }catch(e){ ghCategories = []; }
-}
-
-function getCategoryForRow(row){
-  if(row.source === 'usine'){
-    if(row.categorie_id){
-      const cat = ghCategories.find(c => c.id === row.categorie_id);
-      return cat || null;
-    }
-    return null;
-  }
-  // Pour GH : tester toutes les catégories dans l'ordre, retourner la première qui matche
-  // Tester d'abord les sous-catégories (plus spécifiques) avant les racines
-  const children = ghCategories.filter(c => c.parent_id);
-  const roots = ghCategories.filter(c => !c.parent_id);
-  const rowForMatch = row._original || row;
-  for(const cat of [...children, ...roots]){
-    if(matchesCategory(rowForMatch, cat)) return cat;
-  }
+function findCatForProduct(code){
+  if(!code) return null;
+  const c = code.toLowerCase();
+  // Matières Premières
+  if(c.startsWith('ci.')){ if(c.includes('trisodium') || c.includes('calcium') || c.includes('vitamin')) return 'mp_proteines'; return 'mp_autres'; }
+  // Ingrédients
+  if(c.startsWith('cl.')){ if(c.includes('locust') || c.includes('gum') || c.includes('almond') || c.includes('vanilla') || c.includes('flavour')) return 'ing_saveurs'; return 'ing_additifs'; }
+  // Emballages
+  if(c.startsWith('yp11') || c.startsWith('pbc')) return 'emb_primaire';
+  // Produits finis
+  if(c.startsWith('04') || c.startsWith('252871')) return 'pf_clients';
   return null;
 }
 
-function getRootCategory(cat){
-  if(!cat || !cat.parent_id) return cat;
-  const parent = ghCategories.find(c => c.id === cat.parent_id);
-  return parent ? getRootCategory(parent) : cat;
+function initUI(){
+  renderSidebar();
+  renderContent();
+  updateKPI();
+  document.getElementById('search-input').addEventListener('input', () => filterData());
+  document.getElementById('filter-empl').addEventListener('change', () => filterData());
+  document.getElementById('filter-peremption').addEventListener('change', () => filterData());
 }
 
-function matchesCategory(row, cat){
-  if(!cat || !cat.rules || cat.rules.length === 0) return false;
-  const raw = row._raw || [];
-  const colMap = {
-    'no_produit':1, 'description':2, 'qte_inv':3,
-    'no_comm':13, 'no_lot':16, 'no_sous_lot':17,
-    'date_lot':18, 'expiration':19, 'reception':20
-  };
-  let result = true;
-  for(let i = 0; i < cat.rules.length; i++){
-    const rule = cat.rules[i];
-    const colIdx = colMap[rule.col] ?? parseInt(rule.col);
-    const cellVal = (raw[colIdx]||'').toLowerCase();
-    const ruleVal = (rule.value||'').toLowerCase();
-    let match = false;
-    if(rule.operator==='contains')     match = cellVal.includes(ruleVal);
-    if(rule.operator==='not_contains') match = !cellVal.includes(ruleVal);
-    if(rule.operator==='starts_with')  match = cellVal.startsWith(ruleVal);
-    if(rule.operator==='ends_with')    match = cellVal.endsWith(ruleVal);
-    if(rule.operator==='equals')       match = cellVal === ruleVal;
-    if(rule.operator==='not_equals')   match = cellVal !== ruleVal;
-    if(i===0){ result=match; } else if(rule.logic==='OR'){ result=result||match; } else { result=result&&match; }
+function renderSidebar(){
+  const sb = document.getElementById('cat-sidebar');
+  sb.innerHTML = `
+    <div class="cat-btn ${selectedCategoryId===null?'active':''}" onclick="selectCategory(null)">
+      <span class="cat-btn-icon">🌍</span>
+      <span class="cat-btn-name">Tout</span>
+      <span class="cat-btn-count">${filteredRows.length}</span>
+    </div>
+  ` + CATEGORIES.map(cat => {
+    const count = filteredRows.filter(r => r._cat && getRootCategory(r._cat).id === cat.id).length;
+    return `<div class="cat-btn ${selectedCategoryId===cat.id?'active':''}" onclick="selectCategory('${cat.id}')">
+      <span class="cat-btn-icon">${cat.icon}</span>
+      <span class="cat-btn-name">${cat.name}</span>
+      <span class="cat-btn-count">${count}</span>
+    </div>`;
+  }).join('');
+}
+
+function selectCategory(cid){
+  selectedCategoryId = cid;
+  selectedSubCategoryId = null;
+  filterData();
+}
+
+function selectSubCategory(scid){
+  selectedSubCategoryId = scid;
+  filterData();
+}
+
+function filterData(){
+  let rows = ALL_ROWS;
+  const searchTxt = document.getElementById('search-input').value.toLowerCase();
+  const filterEmpl = document.getElementById('filter-empl').value;
+  const filterPer = document.getElementById('filter-peremption').value;
+
+  if(searchTxt){
+    rows = rows.filter(r => (r.code_produit||'').toLowerCase().includes(searchTxt) ||
+      (r.description||'').toLowerCase().includes(searchTxt) ||
+      (r.no_lot||'').toLowerCase().includes(searchTxt));
   }
-  return result;
-}
-
-// ── STOCK USINE ───────────────────────────────────────────────────
-async function loadUsine(){
-  try{
-    const {data, error} = await sb.from('inventaire_usine').select('*').order('created_at');
-    if(error) throw error;
-    usineRows = (data||[]).map(r => ({
-      source:        'usine',
-      categorie_id:  r.categorie_id||'',
-      categorie_nom: r.categorie_nom||'',
-      code_produit:  r.code_produit||'',
-      description:   r.description||'',
-      no_lot:        r.no_lot||'',
-      no_sous_lot:   r.no_sous_lot||'',
-      quantite:      parseFloat(r.quantite)||0,
-      poids_unit:    r.poids_unit||0,
-      poids_total:   r.poids_total||0,
-      date_fab:      r.date_fab||'',
-      date_peremption: r.date_peremption||'',
-      notes:         r.notes||'',
-      raw:           null
-    }));
-    if(data && data.length > 0) dateReleveUsine = data[0].date_releve;
-  }catch(e){
-    usineRows = [];
-    console.error('Erreur usine:', e);
-    showBanner('Impossible de charger le stock usine : '+e.message);
-  }
-}
-
-// ── STOCK GH (depuis localStorage) ────────────────────────────────
-async function loadGH(){
-  try{
-    const saved = localStorage.getItem('gh_inventory');
-    if(!saved){ ghRows = []; showBanner('Stock GH non disponible — connectez-vous à GH Logistics.'); return; }
-    const items = JSON.parse(saved);
-
-    // FILL-DOWN exactement comme GH le fait au chargement du localStorage
-    let lastCol1 = '', lastCol2 = '';
-    (items||[]).forEach(r => {
-      const raw = r._raw || [];
-      if(raw[1] && raw[1].trim()){ lastCol1 = raw[1].toUpperCase().startsWith('DCA') ? raw[1].replace(/-\d{2}$/, '') : raw[1]; raw[1] = lastCol1; } else if(lastCol1){ raw[1] = lastCol1; }
-      if(raw[2] && raw[2].trim()){ lastCol2 = raw[2]; } else if(lastCol2){ raw[2] = lastCol2; }
+  if(filterEmpl !== 'all') rows = rows.filter(r => r.source === filterEmpl);
+  if(filterPer !== 'all'){
+    rows = rows.filter(r => {
+      const d = daysUntil(r.date_peremption);
+      if(d===null) return false;
+      if(filterPer==='proche') return d>0 && d<=90;
+      if(filterPer==='passee') return d<0;
+      return false;
     });
-
-    ghRows = (items||[]).map(r => {
-      const raw = r._raw || [];
-      // Quantité : keep[2]=raw[8] = colonne "Qté inv." affichée dans le tableau GH
-      // Fallback sur r.qte_inv (champ nommé) ou _resolved_qte
-      const rawQte = raw[8] || r.qte_inv || r._resolved_qte || '0';
-      const qte = parseFloat(String(rawQte).replace(/[^\d.-]/g,''))||0;
-      const code = raw[1]||r._resolved_code||r.no_produit||'';
-      // Poids : priorité à _resolved (item déjà dans camion), sinon recalculer depuis gh_poids
-      const poidsUnit  = r._resolved_poids_unit || getPoidsUnitaire(code) || 0;
-      const poidsTotal = r._resolved_poids_total || (qte * poidsUnit) || 0;
-      return {
-        source:          'gh',
-        categorie_id:    '',
-        categorie_nom:   '',
-        code_produit:    code,
-        description:     raw[2]||r._resolved_desc||r.description||'',
-        no_lot:          raw[16]||r.no_lot||'',
-        no_sous_lot:     raw[17]||r.no_sous_lot||'',
-        quantite:        qte,
-        poids_unit:      poidsUnit,
-        poids_total:     poidsTotal,
-        date_fab:        raw[18]||r.date_lot||'',
-        date_peremption: raw[19]||r.expiration||'',
-        notes:           '',
-        raw:             raw,
-        _raw:            raw,
-        _original:       r
-      };
-    });
-  }catch(e){
-    ghRows = [];
-    console.error('Erreur GH:', e);
   }
-}
 
-// ── FUSION ────────────────────────────────────────────────────────
-function buildAllRows(){
-  allRows = [...usineRows, ...ghRows];
-  // Résoudre la catégorie de chaque ligne
-  allRows.forEach(row => {
-    row._cat = getCategoryForRow(row);
-  });
-}
-
-// ── SIDEBAR + FLYOUT ──────────────────────────────────────────────
-let activeFlyoutId = null;
-
-function alignFlyouts(){
-  const sidebar = document.getElementById('cat-sidebar');
-  const flyout1 = document.getElementById('cat-flyout');
-  const flyout2 = document.getElementById('cat-flyout-2');
-  if(!sidebar || !flyout1) return;
-  const rect = sidebar.getBoundingClientRect();
-  flyout1.style.left = rect.right + 'px';
-  flyout1.style.top  = rect.top + 'px';
-  if(flyout2){
-    const isMobile = window.innerWidth < 768;
-    flyout2.style.left = isMobile ? rect.right + 'px' : (rect.right + 260) + 'px';
-    flyout2.style.top  = rect.top + 'px';
+  if(selectedCategoryId){
+    rows = rows.filter(r => r._cat && getRootCategory(r._cat).id === selectedCategoryId);
   }
-}
-window.addEventListener('resize', () => {
-  if(document.getElementById('cat-flyout')?.classList.contains('open')) alignFlyouts();
-});
-
-function buildSidebar(){
-  const sidebar = document.getElementById('cat-sidebar');
-  sidebar.innerHTML = '';
-
-  // TOUT
-  const allBtn = document.createElement('div');
-  allBtn.className = 'cat-btn' + (activeCat === null ? ' active' : '');
-  allBtn.onclick = () => { closeFlyout(); filterByCat(null); };
-  allBtn.innerHTML = `<span class="cat-btn-icon">Σ</span><span class="cat-btn-name">TOUT</span><span class="cat-btn-count">${allRows.length}</span>`;
-  sidebar.appendChild(allBtn);
-
-  // Catégories racines triées
-  const rootCats = ghCategories.filter(c => !c.parent_id).sort((a,b) => a.name.localeCompare(b.name));
-  rootCats.forEach(cat => {
-    const count = allRows.filter(r => {
-      if(r.source === 'gh') return matchesCategory(r.raw, cat);
-      return r._cat && (r._cat.id === cat.id || (()=>{ let c=r._cat; while(c){ if(c.id===cat.id) return true; c=ghCategories.find(x=>x.id===c.parent_id); } return false; })());
-    }).length;
-    const hasChildren = ghCategories.some(c => c.parent_id === cat.id);
-    const btn = document.createElement('div');
-    btn.className = 'cat-btn' + (activeCat === cat.id ? ' active' : '');
-    btn.style.borderColor = activeCat === cat.id ? (cat.color||'var(--sapphire)') : 'transparent';
-    btn.style.background  = activeCat === cat.id ? (cat.color||'var(--sapphire)')+'22' : '';
-    btn.title = cat.name;
-    btn.innerHTML = `<span class="cat-btn-icon">${cat.icon||'📦'}</span><span class="cat-btn-name">${esc(cat.name)}</span>${hasChildren ? '<span style="margin-left:auto;color:var(--text-muted);font-size:.7rem;">►</span>' : `<span class="cat-btn-count">${count}</span>`}`;
-    btn.onclick = (e) => {
-      e.stopPropagation();
-      if(hasChildren){ openSubcatFlyout(cat.id); }
-      else { openFlyout(cat.id); }
-    };
-    sidebar.appendChild(btn);
-  });
-
-  // SANS CATÉGORIE
-  const noCatCount = allRows.filter(r => !r._cat).length;
-  const noCatBtn = document.createElement('div');
-  noCatBtn.className = 'cat-btn' + (activeCat === 'NO_CAT' ? ' active' : '');
-  noCatBtn.onclick = () => { closeFlyout(); filterByCat('NO_CAT'); };
-  noCatBtn.innerHTML = `<span class="cat-btn-icon">📋</span><span class="cat-btn-name">SANS CAT.</span><span class="cat-btn-count">${noCatCount}</span>`;
-  sidebar.appendChild(noCatBtn);
-}
-
-// Flyout niveau 1 : sous-catégories d'une racine
-function openSubcatFlyout(parentId){
-  const parent = ghCategories.find(c => c.id === parentId);
-  if(!parent) return;
-  if(activeFlyoutId === parentId){ closeFlyout(); return; }
-  activeFlyoutId = parentId;
-  activeCat = parentId;
-  buildSidebar();
-  hideSecondFlyout();
-
-  const children = ghCategories.filter(c => c.parent_id === parentId).sort((a,b) => a.name.localeCompare(b.name));
-  document.getElementById('flyout-icon').textContent  = parent.icon || '📦';
-  document.getElementById('flyout-name').textContent  = parent.name;
-  document.getElementById('flyout-count').textContent = children.length + ' sous-catégorie' + (children.length !== 1 ? 's' : '');
-
-  document.getElementById('flyout-items').innerHTML = children.length === 0
-    ? '<div style="padding:16px;font-size:.78rem;color:var(--text-faint);text-align:center;">Aucune sous-catégorie</div>'
-    : children.map(child => `
-        <div class="cat-flyout-item" onclick="showSecondFlyout('${child.id}')" style="justify-content:space-between;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-size:1.1rem;">${child.icon||'📦'}</span>${esc(child.name)}
-          </div>
-          <span style="color:var(--text-muted);font-size:.7rem;">►</span>
-        </div>`).join('');
-
-  alignFlyouts();
-  document.getElementById('cat-flyout').classList.add('open');
-  document.getElementById('cat-overlay').classList.add('open');
-}
-
-// Flyout niveau 1 : produits d'une catégorie sans enfants
-function openFlyout(catId){
-  const cat = ghCategories.find(c => c.id === catId);
-  if(!cat) return;
-  if(activeFlyoutId === catId){ closeFlyout(); return; }
-  activeFlyoutId = catId;
-  activeCat = catId;
-  buildSidebar();
-  hideSecondFlyout();
-
-  const matches = allRows.filter(r => {
-    if(r.source === 'gh') return matchesCategory(r._original || r, cat);
-    let c = ghCategories.find(x => x.id === r.categorie_id);
-    while(c){ if(c.id === catId) return true; c = ghCategories.find(x => x.id === c.parent_id); }
-    return false;
-  });
-  const produits = [...new Set(matches.map(r => r.code_produit).filter(Boolean))].sort();
-  document.getElementById('flyout-icon').textContent  = cat.icon || '📦';
-  document.getElementById('flyout-name').textContent  = cat.name;
-  document.getElementById('flyout-count').textContent = matches.length + ' item' + (matches.length !== 1 ? 's' : '');
-
-  const toutItem = `<div class="cat-flyout-item cat-flyout-item-tout" onclick="filterByCat('${catId}');closeFlyout();">
-    <span style="font-size:1rem;">Σ</span><span style="font-weight:700;">TOUT (${matches.length})</span>
-  </div><div style="height:1px;background:rgba(255,255,255,.06);margin:4px 0;"></div>`;
-
-  document.getElementById('flyout-items').innerHTML = toutItem + (produits.length === 0
-    ? '<div style="padding:16px;font-size:.78rem;color:var(--text-faint);text-align:center;">Aucun item</div>'
-    : produits.map(p => `<div class="cat-flyout-item" onclick="filterByCode('${p.replace(/'/g,"\\'")}');closeFlyout();">
-        <div class="cat-flyout-item-dot"></div>${esc(p)}</div>`).join(''));
-
-  alignFlyouts();
-  document.getElementById('cat-flyout').classList.add('open');
-  document.getElementById('cat-overlay').classList.add('open');
-}
-
-// Flyout niveau 2 : produits d'une sous-catégorie
-function showSecondFlyout(catId){
-  const cat = ghCategories.find(c => c.id === catId);
-  if(!cat) return;
-
-  const matches = allRows.filter(r => {
-    if(r.source === 'gh') return matchesCategory(r._original || r, cat);
-    let c = ghCategories.find(x => x.id === r.categorie_id);
-    while(c){ if(c.id === catId) return true; c = ghCategories.find(x => x.id === c.parent_id); }
-    return false;
-  });
-  const produits = [...new Set(matches.map(r => r.code_produit).filter(Boolean))].sort();
-
-  document.getElementById('flyout-2-icon').textContent  = cat.icon || '📦';
-  document.getElementById('flyout-2-name').textContent  = cat.name;
-  document.getElementById('flyout-2-count').textContent = matches.length + ' item' + (matches.length !== 1 ? 's' : '');
-
-  const toutItem = `<div class="cat-flyout-item cat-flyout-item-tout" onclick="filterByCat('${catId}');closeFlyout();">
-    <span style="font-size:1rem;">Σ</span><span style="font-weight:700;">TOUT (${matches.length})</span>
-  </div><div style="height:1px;background:rgba(255,255,255,.06);margin:4px 0;"></div>`;
-
-  document.getElementById('flyout-2-items').innerHTML = toutItem + (produits.length === 0
-    ? '<div style="padding:16px;font-size:.78rem;color:var(--text-faint);text-align:center;">Aucun item</div>'
-    : produits.map(p => `<div class="cat-flyout-item" onclick="filterByCode('${p.replace(/'/g,"\\'")}');closeFlyout();">
-        <div class="cat-flyout-item-dot"></div>${esc(p)}</div>`).join(''));
-
-  const flyout2 = document.getElementById('cat-flyout-2');
-  const isMobile = window.innerWidth < 768;
-  flyout2.style.display = 'block';
-  flyout2.style.zIndex  = isMobile ? '51' : '49';
-  if(isMobile && !flyout2.querySelector('.flyout-back-btn')){
-    const backBtn = document.createElement('button');
-    backBtn.className = 'flyout-back-btn';
-    backBtn.innerHTML = '← Retour';
-    backBtn.onclick = (e) => { e.stopPropagation(); hideSecondFlyout(); };
-    flyout2.insertBefore(backBtn, flyout2.querySelector('.cat-flyout-header'));
+  if(selectedSubCategoryId){
+    rows = rows.filter(r => r._cat === selectedSubCategoryId);
   }
-  alignFlyouts();
-  setTimeout(() => flyout2.classList.add('open'), 10);
+
+  filteredRows = rows;
+  renderSidebar();
+  renderContent();
+  updateKPI();
 }
 
-function hideSecondFlyout(){
-  const f2 = document.getElementById('cat-flyout-2');
-  if(!f2) return;
-  f2.classList.remove('open');
-  f2.querySelector('.flyout-back-btn')?.remove();
-  setTimeout(() => { f2.style.display = 'none'; }, 300);
-}
-
-function closeFlyout(){
-  activeFlyoutId = null;
-  document.getElementById('cat-flyout')?.classList.remove('open');
-  document.getElementById('cat-overlay')?.classList.remove('open');
-  hideSecondFlyout();
-}
-
-// ── FILTRES ───────────────────────────────────────────────────────
-function filterByCat(catId){
-  activeCat = catId;
-  buildSidebar();
-  applyFilters();
-}
-
-function filterByCode(code){
-  activeCat = null; // pas de filtre catégorie, juste le code
-  buildSidebar();
-  document.getElementById('srch').value = code;
-  applyFilters();
-}
-
-function applyFilters(){
-  const srch = document.getElementById('srch').value.toLowerCase().trim();
-  const loc  = document.getElementById('fsel-loc').value;
-
-  filteredRows = allRows.filter(row => {
-    if(loc && row.source !== loc) return false;
-
-    if(activeCat === 'NO_CAT'){
-      if(row._cat) return false;
-    } else if(activeCat !== null){
-      const cat = ghCategories.find(c => c.id === activeCat);
-      if(!cat) return false;
-      if(row.source === 'gh'){
-        if(!matchesCategory(row._original || row, cat)) return false;
-      } else {
-        if(!row._cat) return false;
-        let c = row._cat;
-        let found = false;
-        while(c){ if(c.id === activeCat){ found=true; break; } c = ghCategories.find(x => x.id === c.parent_id); }
-        if(!found) return false;
-      }
-    }
-
-    if(srch){
-      const haystack = [row.code_produit, row.description, row.no_lot, row.notes].join(' ').toLowerCase();
-      if(!haystack.includes(srch)) return false;
-    }
-    return true;
-  });
-
-  renderMain();
-}
-
-// ── REGROUPEMENT : fusionner les palettes du même code+lot+source ──
-function groupRows(rows){
-  // Clé de regroupement : source | code_produit | no_lot | no_sous_lot
-  const map = new Map();
-  rows.forEach(row => {
-    const key = [row.source, row.code_produit||'', row.no_lot||''].join('|');
-    if(!map.has(key)){
-      map.set(key, {
-        source:         row.source,
-        _cat:           row._cat,
-        categorie_id:   row.categorie_id,
-        categorie_nom:  row.categorie_nom,
-        code_produit:   row.code_produit,
-        description:    row.description,
-        no_lot:         row.no_lot,
-        no_sous_lot:    row.no_sous_lot,
-        quantite:       0,
-        poids_unit:     row.poids_unit,
-        poids_total:    0,
-        date_fab:       row.date_fab,
-        date_peremption: row.date_peremption,
-        date_fab_conflit:       false,
-        date_peremption_conflit: false,
-        notes:          row.notes,
-        palettes:       0
-      });
-    }
-    const g = map.get(key);
-    g.quantite    += parseFloat(row.quantite)||0;
-    g.poids_total += parseFloat(row.poids_total)||0;
-    g.palettes    += 1;
-
-    // Détecter les conflits de dates (cas anormal)
-    if(row.date_fab && g.date_fab && row.date_fab !== g.date_fab)
-      g.date_fab_conflit = true;
-    if(row.date_peremption && g.date_peremption && row.date_peremption !== g.date_peremption)
-      g.date_peremption_conflit = true;
-    // Prendre la date si pas encore définie
-    if(!g.date_fab && row.date_fab) g.date_fab = row.date_fab;
-    if(!g.date_peremption && row.date_peremption) g.date_peremption = row.date_peremption;
-  });
-  return [...map.values()];
-}
-
-// ── RENDU PRINCIPAL ───────────────────────────────────────────────
-function renderMain(){
-  const view = document.getElementById('main-view');
-
-  if(filteredRows.length === 0){
-    showState('empty');
-    return;
-  }
-  showState('view');
-
-  // Regrouper les palettes (même code+lot+source → additionner qté et poids)
+function renderContent(){
   const grouped = groupRows(filteredRows);
-
-  // Grouper par catégorie racine pour l'affichage visuel
   const byCat = new Map();
   grouped.forEach(row => {
     const rootCat = row._cat ? getRootCategory(row._cat) : null;
-    const catKey  = rootCat ? rootCat.id : '__none__';
-    const catName = rootCat ? rootCat.name : 'Sans catégorie';
-    const catIcon = rootCat ? (rootCat.icon||'📦') : '📋';
-
-    if(!byCat.has(catKey)){
-      byCat.set(catKey, { catKey, catName, catIcon, cat: rootCat, byCode: new Map() });
-    }
-    const catGroup = byCat.get(catKey);
-    const code = row.code_produit || '—';
-    if(!catGroup.byCode.has(code)){
-      catGroup.byCode.set(code, { code, description: row.description, rows: [] });
-    }
-    catGroup.byCode.get(code).rows.push(row);
+    const catId = rootCat ? rootCat.id : null;
+    if(!byCat.has(catId)) byCat.set(catId, []);
+    byCat.get(catId).push(row);
   });
 
-  const sortedCats = [...byCat.values()].sort((a,b) => a.catName.localeCompare(b.catName));
-
   let html = '';
-  sortedCats.forEach(({ catName, catIcon, byCode }) => {
-    const catRows    = [...byCode.values()].flatMap(g => g.rows);
-    const usineCount = catRows.filter(r => r.source === 'usine').length;
-    const ghCount    = catRows.filter(r => r.source === 'gh').length;
-    const totalLignes = catRows.length;
+  const sortedCats = [...byCat.entries()].sort((a,b) => {
+    const aObj = CATEGORIES.find(c => c.id===a[0]);
+    const bObj = CATEGORIES.find(c => c.id===b[0]);
+    if(!aObj) return 1;
+    if(!bObj) return -1;
+    return aObj.name.localeCompare(bObj.name);
+  });
 
-    let badges = '';
-    if(usineCount > 0) badges += `<span style="padding:2px 8px;border-radius:20px;background:rgba(200,132,58,.12);border:1px solid rgba(200,132,58,.25);color:var(--copper);font-size:.66rem;font-weight:700;margin-left:6px;">🏭 ${usineCount}</span>`;
-    if(ghCount > 0)    badges += `<span style="padding:2px 8px;border-radius:20px;background:rgba(45,212,160,.1);border:1px solid rgba(45,212,160,.25);color:var(--emerald);font-size:.66rem;font-weight:700;margin-left:4px;">🏪 ${ghCount}</span>`;
+  sortedCats.forEach(([catId, rows]) => {
+    const catObj = CATEGORIES.find(c => c.id===catId);
+    const catName = catObj ? catObj.name : 'Sans catégorie';
+    const catIcon = catObj ? catObj.icon : '📋';
 
+    const subCatMap = new Map();
+    rows.forEach(r => {
+      const sc = r._cat || 'autre';
+      if(!subCatMap.has(sc)) subCatMap.set(sc, []);
+      subCatMap.get(sc).push(r);
+    });
+
+    const hasSubs = catObj && catObj.children && catObj.children.length > 0;
     html += `<div class="cat-section">
       <div class="cat-section-header">
         <span class="cat-section-icon">${catIcon}</span>
-        <span class="cat-section-name">${esc(catName)}</span>
-        ${badges}
-        <span class="cat-section-badge badge-multi" style="margin-left:auto;">${totalLignes} ligne${totalLignes>1?'s':''}</span>
-      </div>`;
+        <span class="cat-section-name">${catName}</span>
+        ${hasSubs ? `<span class="cat-section-badge badge-multi">${subCatMap.size} sous-cat.</span>` : ''}
+      </div>
+      <div class="prod-group">`;
 
-    const sortedCodes = [...byCode.values()].sort((a,b) => a.code.localeCompare(b.code));
-    html += `<div class="prod-group">`;
+    const byProd = new Map();
+    rows.forEach(r => {
+      const key = r.code_produit || 'SANS_CODE';
+      if(!byProd.has(key)) byProd.set(key, []);
+      byProd.get(key).push(r);
+    });
 
-    sortedCodes.forEach(({ code, description, rows: codeRows }, ci) => {
-      const totalPoids = codeRows.reduce((s, r) => s + (parseFloat(r.poids_total)||0), 0);
-      const totalQte   = codeRows.reduce((s, r) => s + (parseFloat(r.quantite)||0), 0);
-
-      if(ci > 0) html += `<div style="height:1px;background:rgba(44,51,80,.4);margin:0 16px;"></div>`;
-
+    [...byProd.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([code, prows]) => {
+      const desc = prows[0].description || '';
+      const totQty = prows.reduce((s,r)=>s+parseFloat(r.quantite||0),0);
+      const totPoids = prows.reduce((s,r)=>s+parseFloat(r.poids_total||0),0);
       html += `<div class="prod-group-header">
-        <span class="prod-code">${esc(code)}</span>
-        ${description ? `<span class="prod-desc">— ${esc(description)}</span>` : ''}
+        <span class="prod-code">${code}</span>
+        <span class="prod-desc">${desc}</span>
         <div class="prod-totaux">
-          <span class="prod-tot-item">Qté : <strong>${totalQte % 1 === 0 ? totalQte : totalQte.toFixed(2)}</strong></span>
-          ${totalPoids > 0 ? `<span class="prod-tot-item">Poids : <strong>${totalPoids.toFixed(2)} kg</strong></span>` : ''}
+          <div class="prod-tot-item">Qté: <strong>${totQty}</strong></div>
+          <div class="prod-tot-item">Poids: <strong>${totPoids.toFixed(2)} kg</strong></div>
         </div>
       </div>`;
-
-      // Trier : par lot, puis usine avant GH pour même lot
-      codeRows.sort((a,b) => {
-        const lotCmp = (a.no_lot||'').localeCompare(b.no_lot||'');
-        if(lotCmp !== 0) return lotCmp;
-        if(a.source === b.source) return 0;
-        return a.source === 'usine' ? -1 : 1;
-      });
-
-      codeRows.forEach(row => {
-        const isUsine = row.source === 'usine';
-        const badgeCls = isUsine ? 'loc-usine' : 'loc-gh';
-        const badgeTxt = isUsine ? '🏭 Usine' : '🏪 GH';
-
-        // Couleur date péremption
-        let expCls = '';
-        if(row.date_peremption && !row.date_peremption_conflit){
-          const d = daysUntil(row.date_peremption);
-          if(d !== null){
-            if(d < 0) expCls = 'exp-danger';
-            else if(d <= 90) expCls = 'exp-warn';
-          }
+      prows.sort((a,b)=>(a.no_lot||'').localeCompare(b.no_lot||'')).forEach(r => {
+        const d = daysUntil(r.date_peremption);
+        let perClass = '';
+        if(d !== null){
+          if(d<0) perClass='peremption-passee';
+          else if(d<=90) perClass='peremption-proche';
         }
-
-        const palBadge = row.palettes > 1
-          ? `<span title="${row.palettes} palettes regroupées" style="margin-left:6px;font-size:.64rem;color:var(--text-muted);background:var(--bg-float);border:1px solid var(--text-faint);border-radius:10px;padding:1px 6px;">${row.palettes} pal.</span>`
-          : '';
-
-        const fabVal  = row.date_fab_conflit
-          ? `<span style="color:var(--ruby);font-weight:700;" title="Dates différentes entre palettes">⚠ conflit</span>`
-          : (row.date_fab ? fmtDate(row.date_fab) : '—');
-        const perVal  = row.date_peremption_conflit
-          ? `<span style="color:var(--ruby);font-weight:700;" title="Dates différentes entre palettes">⚠ conflit</span>`
-          : (row.date_peremption ? `<span class="${expCls}">${fmtDate(row.date_peremption)}</span>` : '—');
-
         html += `<div class="stock-row">
-          <span class="loc-badge ${badgeCls}">${badgeTxt}</span>
-          <span class="row-lot" title="No. lot">${esc(row.no_lot||'—')}${palBadge}</span>
-          <span class="row-qte">${row.quantite > 0 ? (row.quantite % 1 === 0 ? row.quantite : row.quantite.toFixed(2)) : '<span style="color:var(--text-faint);">—</span>'}</span>
-          <span class="row-poids">${row.poids_total > 0 ? row.poids_total.toFixed(2)+' kg' : '<span style="color:var(--text-faint);">—</span>'}</span>
+          <div><span class="loc-badge ${r.source==='usine'?'loc-usine':'loc-gh'}">
+            ${r.source==='usine'?'🏭 Usine':'📦 GH'}
+          </span></div>
+          <div class="row-lot">${r.no_lot||'—'}</div>
+          <div class="row-qte">${parseFloat(r.quantite||0)}</div>
+          <div class="row-poids">${parseFloat(r.poids_total||0).toFixed(2)} kg</div>
           <div class="row-dates">
-            <div class="row-date-item"><div class="row-date-lbl">Fab.</div><div class="row-date-val">${fabVal}</div></div>
-            <div class="row-date-item"><div class="row-date-lbl">Pér.</div><div class="row-date-val">${perVal}</div></div>
+            <div class="row-date-item">
+              <div class="row-date-lbl">Fab</div>
+              <div class="row-date-val">${fmtDate(r.date_fab)}</div>
+            </div>
           </div>
-          ${row.notes ? `<span style="font-size:.72rem;color:var(--text-muted);font-style:italic;margin-left:auto;">${esc(row.notes)}</span>` : ''}
+          <div class="row-dates">
+            <div class="row-date-item">
+              <div class="row-date-lbl">Pér</div>
+              <div class="row-date-val ${perClass}">${fmtDate(r.date_peremption)}</div>
+            </div>
+          </div>
         </div>`;
       });
     });
@@ -975,126 +490,124 @@ function renderMain(){
     html += `</div></div>`;
   });
 
-  view.innerHTML = html;
+  document.getElementById('global-content').innerHTML = html || '<div style="padding:20px;color:var(--text-muted);">Aucun résultat.</div>';
 }
 
-// ── KPIs ──────────────────────────────────────────────────────────
-function updateKPIs(){
-  const totalPoids = allRows.reduce((s, r) => s + (parseFloat(r.poids_total)||0), 0);
-  document.getElementById('kpi-total').textContent  = allRows.length;
-  document.getElementById('kpi-usine').textContent  = usineRows.length;
-  document.getElementById('kpi-gh').textContent     = ghRows.length;
-  document.getElementById('kpi-poids').textContent  = totalPoids > 0 ? totalPoids.toFixed(0) : '—';
-  if(dateReleveUsine){
-    document.getElementById('kpi-usine-date').textContent = 'relevé : ' + fmtDate(dateReleveUsine);
+function updateKPI(){
+  const total = filteredRows.length;
+  const usine = filteredRows.filter(r => r.source==='usine').length;
+  const gh = filteredRows.filter(r => r.source==='gh').length;
+  const poids = filteredRows.reduce((s,r)=>s+parseFloat(r.poids_total||0),0);
+  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('kpi-usine').textContent = usine;
+  document.getElementById('kpi-gh').textContent = gh;
+  document.getElementById('kpi-poids').textContent = poids.toFixed(0) + ' kg';
+}
+
+function groupRows(rows){
+  const map = new Map();
+  rows.forEach(r => {
+    const key = `${r.code_produit||''}|${r.no_lot||''}|${r.source||''}`;
+    if(!map.has(key)) map.set(key, {...r});
+    else{
+      const ex = map.get(key);
+      ex.quantite = (parseFloat(ex.quantite)||0) + (parseFloat(r.quantite)||0);
+      ex.poids_total = (parseFloat(ex.poids_total)||0) + (parseFloat(r.poids_total)||0);
+    }
+  });
+  return [...map.values()];
+}
+
+function getRootCategory(catId){
+  for(let cat of CATEGORIES){
+    if(cat.id===catId) return cat;
+    if(cat.children && cat.children.find(c=>c.id===catId)) return cat;
   }
+  return null;
 }
 
-// ── ÉTAT ──────────────────────────────────────────────────────────
-function showState(s){
-  document.getElementById('spinner').style.display  = s==='spinner' ? 'flex' : 'none';
-  document.getElementById('empty-ctr').style.display = s==='empty'  ? 'block' : 'none';
-  document.getElementById('main-view').style.display  = s==='view'  ? 'block' : 'none';
+function fmtDate(d){
+  if(!d) return '—';
+  const dt = new Date(d);
+  if(isNaN(dt)) return d;
+  const day = String(dt.getDate()).padStart(2,'0');
+  const mon = String(dt.getMonth()+1).padStart(2,'0');
+  const yr = dt.getFullYear();
+  return `${day}-${mon}-${yr}`;
 }
 
-function showBanner(txt){
-  const b = document.getElementById('info-banner');
-  document.getElementById('info-banner-text').textContent = txt;
-  b.style.display = 'flex';
+function daysUntil(d){
+  if(!d) return null;
+  const dt = new Date(d);
+  if(isNaN(dt)) return null;
+  const now = new Date();
+  const diff = dt - now;
+  return Math.floor(diff/(1000*60*60*24));
+}
+
+function reloadAllData(){
+  window.location.reload();
 }
 
 // ── EXPORT PDF ────────────────────────────────────────────────────
 async function exportPDF(){
   if(filteredRows.length === 0){ toast('Aucune donnée à exporter.','err'); return; }
-
   try{
-    const {jsPDF} = window.jspdf;
-    // Format lettre canadien paysage : 11" × 8.5" = 279.4mm × 215.9mm
-    const pdf = new jsPDF({orientation:'landscape', unit:'mm', format:'letter'});
-    const W = pdf.internal.pageSize.getWidth();  // 279.4
-    const H = pdf.internal.pageSize.getHeight(); // 215.9
-    const M = 10;
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    const W = 297, H = 210, M = 10;
     const C = {
-      sapphire:[74,158,232], copper:[200,132,58], emerald:[45,212,160], amber:[232,164,58],
-      ruby:[224,85,85], black:[15,16,23], grey:[107,114,128], faint:[44,51,80],
-      white:[255,255,255], bgLight:[245,246,250]
+      sapphire:[74,158,232],
+      copper:[200,132,58],
+      emerald:[45,212,160],
+      amber:[255,193,7],
+      ruby:[231,76,60],
+      grey:[96,105,130],
+      faint:[220,222,228],
+      white:[255,255,255]
     };
 
-    let y = M;
-
-    // ── EN-TÊTE ──
-    pdf.setFillColor(...C.sapphire); pdf.rect(0, 0, W, 1.5, 'F');
-    pdf.setFontSize(16); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.black);
-    pdf.text('Inventaire Global — SOY', M, y + 8);
+    const now = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    pdf.setFontSize(18); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.sapphire);
+    pdf.text('SOY — INVENTAIRE GLOBAL', M, M+6);
     pdf.setFontSize(8); pdf.setFont('helvetica','normal'); pdf.setTextColor(...C.grey);
-    const now = new Date().toLocaleString('fr-CA', {dateStyle:'long', timeStyle:'short'});
-    pdf.text('Généré le : ' + now + (dateReleveUsine ? '  ·  Relevé usine : '+fmtDate(dateReleveUsine) : ''), W - M, y + 8, {align:'right'});
-    y += 14;
+    pdf.text('Combinaison usine + GH Logistics', M, M+11);
 
-    // Ligne séparatrice
-    pdf.setDrawColor(...C.faint); pdf.setLineWidth(0.2); pdf.line(M, y, W - M, y); y += 5;
-
-    // ── RÉSUMÉ GLOBAL ──
-    const groupedAll     = groupRows(filteredRows);
-    const totalPoidsAll  = groupedAll.reduce((s,r) => s+(parseFloat(r.poids_total)||0), 0);
-    const totalQteUsine  = groupedAll.filter(r=>r.source==='usine').reduce((s,r)=>s+(parseFloat(r.quantite)||0),0);
-    const totalQteGH     = groupedAll.filter(r=>r.source==='gh').reduce((s,r)=>s+(parseFloat(r.quantite)||0),0);
-    const totalQteAll    = groupedAll.reduce((s,r)=>s+(parseFloat(r.quantite)||0),0);
-    const fmtQte = v => v % 1 === 0 ? String(v) : v.toFixed(2);
-    pdf.setFontSize(8); pdf.setFont('helvetica','bold');
-    pdf.setTextColor(...C.sapphire);   pdf.text('Total : ' + fmtQte(totalQteAll) + ' unites', M, y + 4);
-    pdf.setTextColor(...C.copper);     pdf.text('Usine : ' + fmtQte(totalQteUsine), M + 70, y + 4);
-    pdf.setTextColor(...[45,160,100]); pdf.text('GH : ' + fmtQte(totalQteGH), M + 120, y + 4);
-    pdf.setTextColor(...C.amber);      pdf.text('Poids total : ' + totalPoidsAll.toFixed(0) + ' kg', M + 165, y + 4);
-    y += 12;
-
-    // ── COLONNES ──
-    const cols = [
-      {label:'Emplacement', w:20, key:'source'},
-      {label:'Catégorie',   w:30, key:'cat'},
-      {label:'Code produit',w:25, key:'code'},
-      {label:'Description', w:0,  key:'desc'},
-      {label:'No. lot',     w:25, key:'lot'},
-      {label:'Qté',         w:12, key:'qte'},
-      {label:'Poids u. kg', w:16, key:'poids_u'},
-      {label:'Poids tot. kg',w:18, key:'poids_t'},
-      {label:'Date fab.',   w:18, key:'dfab'},
-      {label:'Date pér.',   w:18, key:'dper'},
-    ];
-    const fixedW = cols.filter(c=>c.w>0).reduce((s,c)=>s+c.w,0);
-    const descCol = cols.find(c=>c.key==='desc');
-    descCol.w = Math.max(W - 2*M - fixedW, 25);
-
-    const hH = 7, rH = 6;
-    let x = M;
-    pdf.setFillColor(...C.bgLight);
-    pdf.rect(M, y, W - 2*M, hH, 'F');
-    pdf.setFontSize(5); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.sapphire);
-    cols.forEach(c => { pdf.text(c.label.toUpperCase(), x + 2, y + 5); x += c.w; });
-    y += hH;
-
-    // Grouper comme l'affichage écran
-    const groupedForPDF = groupRows(filteredRows);
-
-    // ── DONNÉES ──
+    const grouped = groupRows(filteredRows);
     const byCat = new Map();
-    groupedForPDF.forEach(row => {
-      const k = row._cat ? row._cat.name : 'Sans catégorie';
-      if(!byCat.has(k)) byCat.set(k, { name:k, icon: row._cat ? (row._cat.icon||'') : '📋', rows:[] });
-      byCat.get(k).rows.push(row);
+    grouped.forEach(row => {
+      const rootCat = row._cat ? getRootCategory(row._cat) : null;
+      const catName = rootCat ? rootCat.name : 'Sans catégorie';
+      if(!byCat.has(catName)) byCat.set(catName, []);
+      byCat.get(catName).push(row);
     });
 
-    [...byCat.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([catName, catData]) => {
-      // En-tête catégorie
+    const cols = [
+      {key:'source',    w:12},
+      {key:'cat',       w:32},
+      {key:'code',      w:28},
+      {key:'desc',      w:58},
+      {key:'lot',       w:32},
+      {key:'slot',      w:20},
+      {key:'qte',       w:15},
+      {key:'poids_u',   w:18},
+      {key:'poids_t',   w:18},
+      {key:'dfab',      w:22},
+      {key:'dper',      w:22}
+    ];
+
+    let y = M + 18;
+    const rH = 6;
+
+    [...byCat.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(catData => {
       if(y > H - 20){ pdf.addPage(); y = M; }
-      pdf.setFillColor(230, 235, 248);
-      pdf.rect(M, y, W - 2*M, 6, 'F');
-      pdf.setFontSize(6.5); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.sapphire);
-      pdf.text(catData.name.toUpperCase() + '  ·  ' + catData.rows.length + ' ligne' + (catData.rows.length>1?'s':''), M + 3, y + 4.5);
+
+      pdf.setFillColor(...C.sapphire, 0.1); pdf.rect(M, y, W-2*M, 6, 'F');
+      pdf.setFontSize(9); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.sapphire);
+      pdf.text(catData[0].toUpperCase() + '  ·  ' + catData[1].length + ' ligne' + (catData[1].length>1?'s':''), M + 3, y + 4.5);
       y += 6;
 
-      // Lignes
-      catData.rows.sort((a,b) => {
+      catData[1].sort((a,b) => {
         const codeCmp = (a.code_produit||'').localeCompare(b.code_produit||'');
         if(codeCmp !== 0) return codeCmp;
         const lotCmp = (a.no_lot||'').localeCompare(b.no_lot||'');
@@ -1102,25 +615,23 @@ async function exportPDF(){
         return a.source === b.source ? 0 : a.source === 'usine' ? -1 : 1;
       });
 
-      catData.rows.forEach((row, ri) => {
+      catData[1].forEach((row, ri) => {
         if(y > H - 14){ pdf.addPage(); y = M; }
 
         const isUsine = row.source === 'usine';
         if(ri % 2 === 0){ pdf.setFillColor(252,252,253); pdf.rect(M, y, W-2*M, rH, 'F'); }
 
-        // Couleur badge source
-        if(isUsine){ pdf.setFillColor(...C.copper, 0.3); } else { pdf.setFillColor(...[45,212,160]); }
         pdf.setFillColor(isUsine ? 200 : 45, isUsine ? 132 : 212, isUsine ? 58 : 160);
         pdf.roundedRect(M+1, y+1, 10, rH-2, 1, 1, 'F');
         pdf.setFontSize(4.5); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.white);
         pdf.text(isUsine ? 'USINE' : 'GH', M+2.5, y + (rH/2) + 1.5);
 
-        x = M + cols[0].w; // sauter colonne source déjà dessinée
+        let x = M + cols[0].w;
         const qteVal   = parseFloat(row.quantite)||0;
         const poidsU   = parseFloat(row.poids_unit)||0;
         const poidsT   = parseFloat(row.poids_total)||0;
         const rowData = {
-          cat:     catData.name,
+          cat:     catData[0],
           code:    row.code_produit||'',
           desc:    row.description||'',
           lot:     row.no_lot||'',
@@ -1156,10 +667,9 @@ async function exportPDF(){
         y += rH;
       });
 
-      y += 2; // espace entre catégories
+      y += 2;
     });
 
-    // ── PIED DE PAGE ──
     const pages = pdf.internal.getNumberOfPages();
     for(let i = 1; i <= pages; i++){
       pdf.setPage(i);
@@ -1169,7 +679,6 @@ async function exportPDF(){
       pdf.text('Page ' + i + ' / ' + pages, W - M, H - 3, {align:'right'});
     }
 
-    // Nom de fichier avec date
     const d = new Date();
     const fname = `SOY_Inventaire_Global_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.pdf`;
     pdf.save(fname);
@@ -1181,60 +690,12 @@ async function exportPDF(){
   }
 }
 
-// ── TOAST ─────────────────────────────────────────────────────────
 function toast(msg, type='ok'){
   const el = document.createElement('div');
   el.className = 'toast ' + type;
   el.textContent = msg;
   document.getElementById('toasts').appendChild(el);
   setTimeout(() => el.remove(), 4500);
-}
-
-function exportExcel(){
-  if(filteredRows.length === 0){ toast('Aucune donnée à exporter.','err'); return; }
-  try{
-    const grouped = groupRows(filteredRows);
-    const headers = ['Emplacement','Catégorie','Code produit','Description','No. lot','Qté','Poids total (kg)','Date fab.','Date pér.'];
-    const data = [headers];
-
-    const byCat = new Map();
-    grouped.forEach(row => {
-      const rootCat = row._cat ? getRootCategory(row._cat) : null;
-      const catName = rootCat ? rootCat.name : 'Sans catégorie';
-      if(!byCat.has(catName)) byCat.set(catName, []);
-      byCat.get(catName).push(row);
-    });
-
-    [...byCat.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([catName, rows]) => {
-      data.push([catName,'','','','','','','','']);
-      rows.sort((a,b)=>(a.code_produit||'').localeCompare(b.code_produit||'')).forEach(row => {
-        data.push([
-          row.source==='usine' ? 'Usine' : 'GH',
-          catName,
-          row.code_produit||'',
-          row.description||'',
-          row.no_lot||'',
-          parseFloat(row.quantite)||0,
-          parseFloat(row.poids_total)||0,
-          row.date_fab        ? fmtDate(row.date_fab)        : '',
-          row.date_peremption ? fmtDate(row.date_peremption) : ''
-        ]);
-      });
-    });
-
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(data);
-    ws['!cols'] = [{wch:10},{wch:22},{wch:18},{wch:40},{wch:18},{wch:8},{wch:14},{wch:12},{wch:12}];
-    XLSX.utils.book_append_sheet(wb, ws, 'Inventaire Global');
-
-    const d = new Date();
-    const fname = `SOY_Inventaire_Global_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.xlsx`;
-    XLSX.writeFile(wb, fname);
-    toast('Excel exporté ✓','ok');
-  }catch(e){
-    toast('Erreur Excel : '+(e?.message||e),'err');
-    console.error(e);
-  }
 }
 </script>
 </body>
