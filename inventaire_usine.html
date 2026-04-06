@@ -350,14 +350,17 @@ function updateRelEveDateDisplay(){
 }
 
 // ── CATÉGORIES ────────────────────────────────────────────────────
+let allCategories = []; // toutes catégories avec règles (pour matching)
+
 async function loadCategories(){
   try{
-    const {data, error} = await sb.from('gh_categories').select('id,name,icon,color,parent_id').order('created_at');
+    const {data, error} = await sb.from('gh_categories').select('id,name,icon,color,parent_id,cat_rules').order('created_at');
     if(error) throw error;
-    ghCategories = (data||[]).filter(c => !c.parent_id); // racines seulement
+    allCategories = (data||[]).map(c => ({...c, rules: c.cat_rules||[]}));
+    ghCategories  = allCategories.filter(c => !c.parent_id); // racines pour le select
   }catch(e){
     console.error('Erreur chargement catégories:', e);
-    ghCategories = [];
+    ghCategories = []; allCategories = [];
   }
 }
 
@@ -370,7 +373,61 @@ function buildCatOptions(selectedId){
   return opts.join('');
 }
 
-// ── CHARGEMENT RELEVÉ EXISTANT ────────────────────────────────────
+// ── AUTO-CATÉGORISATION ───────────────────────────────────────────
+function matchCategoryForCode(code){
+  if(!code || !allCategories.length) return null;
+  const codeUp = String(code).trim().toUpperCase();
+
+  // Tester sous-catégories en premier (plus spécifiques), puis racines
+  const children = allCategories.filter(c => c.parent_id);
+  const roots    = allCategories.filter(c => !c.parent_id);
+
+  for(const cat of [...children, ...roots]){
+    if(!cat.rules || !cat.rules.length) continue;
+    let result = true;
+    for(let i = 0; i < cat.rules.length; i++){
+      const rule = cat.rules[i];
+      // Dans l'usine on teste uniquement sur no_produit (col=no_produit ou col=1)
+      if(rule.col !== 'no_produit' && rule.col !== '1') continue;
+      const cellVal = codeUp;
+      const ruleVal = (rule.value||'').toUpperCase();
+      let match = false;
+      if(rule.operator==='contains')     match = cellVal.includes(ruleVal);
+      if(rule.operator==='not_contains') match = !cellVal.includes(ruleVal);
+      if(rule.operator==='starts_with')  match = cellVal.startsWith(ruleVal);
+      if(rule.operator==='ends_with')    match = cellVal.endsWith(ruleVal);
+      if(rule.operator==='equals')       match = cellVal === ruleVal;
+      if(rule.operator==='not_equals')   match = cellVal !== ruleVal;
+      if(i===0){ result=match; }
+      else if(rule.logic==='OR'){ result=result||match; }
+      else { result=result&&match; }
+    }
+    if(result){
+      // Retourner la catégorie racine correspondante
+      if(cat.parent_id){
+        const root = allCategories.find(c => c.id === cat.parent_id);
+        return root || null;
+      }
+      return cat;
+    }
+  }
+  return null;
+}
+
+function autoSetCategory(rowIdx, code){
+  const cat = matchCategoryForCode(code);
+  if(!cat) return;
+  // Mettre à jour le select dans le DOM
+  const tr = document.getElementById('row-'+rowIdx);
+  if(!tr) return;
+  const sel = tr.querySelector('.sel-cell');
+  if(sel && sel.value !== cat.id){
+    sel.value = cat.id;
+    rows[rowIdx].categorie_id  = cat.id;
+    rows[rowIdx].categorie_nom = cat.name;
+    rows[rowIdx].dirty = true;
+  }
+}
 async function loadReleve(){
   showSpinner(true);
   try{
@@ -491,6 +548,7 @@ function mark(idx, field, val){
   rows[idx][field] = val;
   rows[idx].dirty = true;
   if(field === 'quantite' || field === 'poids_unit') updatePoidsTotal(idx);
+  if(field === 'code_produit' && val.length >= 3) autoSetCategory(idx, val);
 }
 
 function updateTotaux(){
@@ -718,6 +776,7 @@ function acFill(rowIdx, code, desig){
   if(codeInput){ codeInput.value=code;  mark(rowIdx,'code_produit',code); }
   if(descInput){ descInput.value=desig; mark(rowIdx,'description',desig); }
   dbg('Rempli: code='+code+' desig='+desig.slice(0,25));
+  autoSetCategory(rowIdx, code);
 }
 
 function acClose(){
