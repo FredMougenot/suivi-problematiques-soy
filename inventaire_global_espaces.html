@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Inventaire Global — SOY</title>
+<link rel="stylesheet" href="soy-shared.css">
+<style>
+/* ── Layout global ── */
+.page-eyebrow{font-size:.62rem;font-weight:800;color:var(--sapphire);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;}
+.page-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--text-primary);}
+.page-sub{font-size:.82rem;color:var(--text-muted);margin-top:4px;margin-bottom:20px;}
+
+/* ── Grille KPI ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;}
+@media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+.kpi-card{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);
+  padding:14px 18px;position:relative;overflow:hidden;}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kpi-card.kpi-global::before{background:linear-gradient(90deg,transparent,var(--sapphire),transparent);}
+.kpi-card.kpi-usine::before{background:linear-gradient(90deg,transparent,var(--copper),transparent);}
+.kpi-card.kpi-gh::before{background:linear-gradient(90deg,transparent,var(--emerald),transparent);}
+.kpi-card.kpi-poids::before{background:linear-gradient(90deg,transparent,var(--amber),transparent);}
+.kpi-lbl{font-size:.6rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;}
+.kpi-card.kpi-global .kpi-lbl{color:var(--sapphire);}
+.kpi-card.kpi-usine  .kpi-lbl{color:var(--copper);}
+.kpi-card.kpi-gh     .kpi-lbl{color:var(--emerald);}
+.kpi-card.kpi-poids  .kpi-lbl{color:var(--amber);}
+.kpi-val{font-size:1.6rem;font-weight:800;color:var(--text-primary);}
+.kpi-sub{font-size:.72rem;color:var(--text-muted);margin-top:3px;}
+
+/* ── Barre outils ── */
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;
+  flex-wrap:wrap;gap:12px;}
+.toolbar-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.search-wrap{position:relative;}
+.search-wrap input{background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);
+  border-radius:var(--r-md);padding:8px 12px 8px 34px;font-size:.84rem;font-family:'Outfit',sans-serif;
+  outline:none;width:240px;transition:border-color .15s;}
+.search-wrap input:focus{border-color:var(--sapphire);}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);}
+.fsel{background:var(--bg-float);border:1px solid var(--text-faint);color:var(--text-primary);
+  border-radius:var(--r-md);padding:8px 12px;font-size:.82rem;font-family:'Outfit',sans-serif;
+  outline:none;cursor:pointer;transition:border-color .15s;}
+.fsel:focus{border-color:var(--sapphire);}
+.fsel option{background:var(--bg-float);}
+.btn-pdf{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--sapphire),#1a6bff);color:#fff;
+  font-size:.82rem;font-weight:700;border:none;cursor:pointer;transition:opacity .15s,transform .1s;}
+.btn-pdf:hover{opacity:.9;transform:translateY(-1px);}
+.btn-pdf:disabled{opacity:.4;cursor:default;transform:none;}
+.btn-refresh-all{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-md);
+  background:var(--bg-raised);border:1px solid var(--text-faint);color:var(--text-muted);
+  font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s;}
+.btn-refresh-all:hover{border-color:var(--sapphire);color:var(--sapphire);}
+
+/* ── Layout avec sidebar ── */
+.global-layout{display:grid;grid-template-columns:180px 1fr;gap:0;min-height:60vh;}
+@media(max-width:900px){.global-layout{grid-template-columns:1fr;}}
+
+/* ── Flyout panel ── */
+.cat-flyout{position:fixed;left:0;top:0;width:260px;height:auto;max-height:90vh;
+  background:var(--bg-float);border:1px solid rgba(255,255,255,.08);
+  border-radius:0 12px 12px 0;box-shadow:8px 8px 40px rgba(0,0,0,.5);
+  z-index:49;padding:16px 0;
+  transform:translateX(calc(-100% - 20px));opacity:0;pointer-events:none;visibility:hidden;
+  transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .25s ease,visibility 0s linear .3s;
+  overflow-y:auto;}
+.cat-flyout.open{transform:translateX(0);opacity:1;pointer-events:all;visibility:visible;
+  transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .25s ease,visibility 0s linear 0s;}
+.cat-flyout-header{padding:0 16px 12px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:8px;}
+.cat-flyout-icon{font-size:1.6rem;margin-bottom:4px;}
+.cat-flyout-name{font-size:.9rem;font-weight:700;color:var(--text-primary);}
+.cat-flyout-count{font-size:.72rem;color:var(--text-faint);margin-top:2px;}
+.cat-flyout-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;
+  transition:background .12s;font-size:.8rem;color:var(--text-muted);border-left:2px solid transparent;}
+.cat-flyout-item:hover{background:rgba(255,255,255,.04);color:var(--text-primary);}
+.cat-flyout-item.cat-flyout-item-tout{background:rgba(74,158,232,.06);color:var(--sapphire);}
+.cat-flyout-item.cat-flyout-item-tout:hover{background:rgba(74,158,232,.14);}
+.cat-flyout-item.selected{background:rgba(74,158,232,.08);color:var(--sapphire);border-left-color:var(--sapphire);}
+.cat-flyout-item-dot{width:6px;height:6px;border-radius:50%;background:var(--text-faint);flex-shrink:0;transition:background .12s;}
+.cat-flyout-item:hover .cat-flyout-item-dot,.cat-flyout-item.selected .cat-flyout-item-dot{background:var(--sapphire);}
+.cat-overlay{position:fixed;inset:0;z-index:48;display:none;}
+.cat-overlay.open{display:block;}
+.flyout-back-btn{display:flex;align-items:center;gap:6px;width:100%;padding:10px 16px;
+  background:rgba(74,158,232,.1);border:none;border-bottom:1px solid rgba(255,255,255,.06);
+  color:var(--sapphire);font-size:.82rem;font-weight:700;cursor:pointer;text-align:left;transition:background .15s;}
+.flyout-back-btn:hover{background:rgba(74,158,232,.18);}
+
+/* ── Sidebar catégories ── */
+.cat-sidebar{width:180px;flex-shrink:0;background:var(--bg-raised);
+  border-right:1px solid rgba(255,255,255,.06);padding:12px 8px;
+  display:flex;flex-direction:column;gap:4px;position:sticky;top:0;
+  max-height:80vh;overflow-y:auto;z-index:20;}
+.cat-btn{height:36px;padding:0 8px;border-radius:10px;display:flex;align-items:center;
+  justify-content:flex-start;gap:8px;cursor:pointer;transition:all .18s;
+  border:1.5px solid transparent;background:transparent;}
+.cat-btn:hover{background:rgba(255,255,255,.06);}
+.cat-btn.active{border-color:var(--sapphire);background:rgba(74,158,232,.12);}
+.cat-btn-icon{font-size:1.1rem;flex-shrink:0;}
+.cat-btn-name{font-size:.75rem;font-weight:600;color:var(--text-secondary);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;}
+.cat-btn.active .cat-btn-name{color:var(--text-primary);}
+.cat-btn-count{margin-left:auto;font-size:.62rem;font-weight:700;padding:1px 6px;
+  border-radius:10px;background:rgba(255,255,255,.06);color:var(--text-muted);}
+.cat-btn.active .cat-btn-count{background:rgba(74,158,232,.15);color:var(--sapphire);}
+
+/* ── Contenu principal ── */
+.global-content{flex:1;min-width:0;padding:0 0 0 0;}
+
+/* ── Section catégorie ── */
+.cat-section{margin-bottom:28px;}
+.cat-section-header{display:flex;align-items:center;gap:10px;padding:10px 16px;
+  background:var(--bg-float);border-radius:var(--r-md) var(--r-md) 0 0;
+  border:1px solid var(--text-faint);border-bottom:none;position:sticky;top:0;z-index:10;}
+.cat-section-icon{font-size:1.2rem;}
+.cat-section-name{font-size:.82rem;font-weight:800;color:var(--text-primary);}
+.cat-section-badge{padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:700;}
+.cat-section-badge.badge-multi{background:rgba(74,158,232,.1);border:1px solid rgba(74,158,232,.25);color:var(--sapphire);}
+
+/* ── Groupe produit ── */
+.prod-group{border:1px solid var(--text-faint);border-radius:0 0 var(--r-md) var(--r-md);
+  overflow:hidden;margin-bottom:2px;}
+.prod-group-header{display:flex;align-items:center;gap:10px;padding:8px 16px;
+  background:rgba(255,255,255,.02);border-bottom:1px solid rgba(44,51,80,.5);}
+.prod-code{font-size:.82rem;font-weight:800;color:var(--sapphire);}
+.prod-desc{font-size:.78rem;color:var(--text-secondary);}
+.prod-totaux{margin-left:auto;display:flex;gap:12px;align-items:center;}
+.prod-tot-item{font-size:.7rem;color:var(--text-muted);}
+.prod-tot-item strong{color:var(--amber);font-size:.78rem;}
+
+/* ── Ligne de stock ── MODIFIÉE POUR PLUS D'ESPACE ── */
+.stock-row{display:grid;grid-template-columns:100px 200px 70px 150px 130px 130px;align-items:center;padding:8px 16px;
+  border-bottom:1px solid rgba(44,51,80,.3);transition:background .1s;}
+.stock-row:last-child{border-bottom:none;}
+.stock-row:hover{background:var(--bg-hover);}
+
+/* Badges emplacement */
+.loc-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;
+  font-size:.68rem;font-weight:700;white-space:nowrap;justify-content:center;}
+.loc-badge.loc-usine{background:rgba(200,132,58,.12);border:1px solid rgba(200,132,58,.25);color:var(--copper);}
+.loc-badge.loc-gh{background:rgba(45,212,160,.1);border:1px solid rgba(45,212,160,.25);color:var(--emerald);}
+
+.row-lot{font-size:.78rem;font-weight:700;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.row-sous-lot{font-size:.76rem;color:var(--text-secondary);min-width:90px;margin-right:12px;}
+.row-qte{font-size:.8rem;color:var(--text-primary);text-align:right;padding-right:12px;}
+.row-poids{font-size:.8rem;color:var(--amber);font-weight:700;text-align:right;padding-right:12px;}
+.row-dates{font-size:.72rem;color:var(--text-muted);display:flex;gap:10px;}
+.row-date-item{display:flex;flex-direction:column;gap:1px;min-width:88px;}
+.row-date-lbl{text-transform:uppercase;font-size:.62rem;letter-spacing:.05em;color:var(--text-faint);}
+.row-date-val{font-size:.74rem;color:var(--text-secondary);}
+.row-date-val.peremption-proche{color:#c88c00;}
+.row-date-val.peremption-passee{color:var(--ruby);}
+.row-conflict-icon{color:var(--ruby);font-size:.9rem;cursor:help;}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:20px;right:20px;padding:12px 18px;border-radius:var(--r-md);
+  box-shadow:0 8px 24px rgba(0,0,0,.3);font-size:.82rem;font-weight:600;z-index:99;
+  animation:slideIn .25s ease;}
+.toast.ok{background:var(--emerald);color:#fff;}
+.toast.err{background:var(--ruby);color:#fff;}
+@keyframes slideIn{from{transform:translateX(120%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  .cat-sidebar{display:none;}
+  .global-layout{grid-template-columns:1fr;}
+  .stock-row{grid-template-columns:85px 150px 60px 110px 100px 100px;padding:6px 12px;font-size:.7rem;}
+}
+</style>
+</head>
+<body>
+<div class="app-wrap">
+<div class="page-header">
+  <div class="page-eyebrow">SOY</div>
+  <div class="page-title">Inventaire Global</div>
+  <div class="page-sub">Vue d'ensemble (combinaison usine + GH Logistics)</div>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi-card kpi-global">
+    <div class="kpi-lbl">🌐 Stock Total</div>
+    <div class="kpi-val" id="kpi-total">0</div>
+    <div class="kpi-sub">Toutes sources</div>
+  </div>
+  <div class="kpi-card kpi-usine">
+    <div class="kpi-lbl">🏭 Stock Usine</div>
+    <div class="kpi-val" id="kpi-usine">0</div>
+    <div class="kpi-sub">Usine SOY</div>
+  </div>
+  <div class="kpi-card kpi-gh">
+    <div class="kpi-lbl">📦 Stock GH</div>
+    <div class="kpi-val" id="kpi-gh">0</div>
+    <div class="kpi-sub">Entrepôt externe</div>
+  </div>
+  <div class="kpi-card kpi-poids">
+    <div class="kpi-lbl">⚖️ Poids Total</div>
+    <div class="kpi-val" id="kpi-poids">0</div>
+    <div class="kpi-sub">kg combinés</div>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="toolbar-left">
+    <div class="search-wrap">
+      <svg class="search-icon" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+      </svg>
+      <input id="search-input" type="text" placeholder="Rechercher produit, code, lot…">
+    </div>
+    <select id="filter-empl" class="fsel">
+      <option value="all">Tous les emplacements</option>
+      <option value="usine">🏭 Usine</option>
+      <option value="gh">📦 GH</option>
+    </select>
+    <select id="filter-peremption" class="fsel">
+      <option value="all">Toutes les dates</option>
+      <option value="proche">⚠️ Péremption proche (≤90j)</option>
+      <option value="passee">🔴 Péremption passée</option>
+    </select>
+  </div>
+  <div class="toolbar-right">
+    <button class="btn-refresh-all" onclick="reloadAllData()">
+      <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+        <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+      </svg>
+      Actualiser
+    </button>
+    <button class="btn-pdf" onclick="exportPDF()">
+      <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
+        <path d="M4.603 14.087a.81.81 0 0 1-.438-.42c-.195-.388-.13-.776.08-1.102.198-.307.526-.568.897-.787a7.68 7.68 0 0 1 1.482-.645 19.697 19.697 0 0 0 1.062-2.227 7.269 7.269 0 0 1-.43-1.295c-.086-.4-.119-.796-.046-1.136.075-.354.274-.672.65-.823.192-.077.4-.12.602-.077a.7.7 0 0 1 .477.365c.088.164.12.356.127.538.007.188-.012.396-.047.614-.084.51-.27 1.134-.52 1.794a10.954 10.954 0 0 0 .98 1.686 5.753 5.753 0 0 1 1.334.05c.364.066.734.195.96.465.12.144.193.32.2.518.007.192-.047.382-.138.563a1.04 1.04 0 0 1-.354.416.856.856 0 0 1-.51.138c-.331-.014-.654-.196-.933-.417a5.712 5.712 0 0 1-.911-.95 11.651 11.651 0 0 0-1.997.406 11.307 11.307 0 0 1-1.02 1.51c-.292.35-.609.656-.927.787a.793.793 0 0 1-.58.029zm1.379-1.901c-.166.076-.32.156-.459.238-.328.194-.541.383-.647.547-.094.145-.096.25-.04.361.01.022.02.036.026.044a.266.266 0 0 0 .035-.012c.137-.056.355-.235.635-.572a8.18 8.18 0 0 0 .45-.606zm1.64-1.33a12.71 12.71 0 0 1 1.01-.193 11.744 11.744 0 0 1-.51-.858 20.801 20.801 0 0 1-.5 1.05zm2.446.45c.15.163.296.3.435.41.24.19.407.253.498.256a.107.107 0 0 0 .07-.015.307.307 0 0 0 .094-.125.436.436 0 0 0 .059-.2.095.095 0 0 0-.026-.063c-.052-.062-.2-.152-.518-.209a3.876 3.876 0 0 0-.612-.053zM8.078 7.8a6.7 6.7 0 0 0 .2-.828c.031-.188.043-.343.038-.465a.613.613 0 0 0-.032-.198.517.517 0 0 0-.145.04c-.087.035-.158.106-.196.283-.04.192-.03.469.046.822.024.111.054.227.09.346z"/>
+      </svg>
+      Exporter PDF
+    </button>
+  </div>
+</div>
+
+<div class="global-layout">
+  <div class="cat-sidebar" id="cat-sidebar"></div>
+  <div class="global-content" id="global-content"></div>
+</div>
+
+<div class="cat-overlay" id="cat-overlay" onclick="closeFlyout()"></div>
+<div class="cat-flyout" id="cat-flyout"></div>
+
+<div id="toasts" style="position:fixed;bottom:0;right:0;z-index:99;"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+let RAW_DATA_USINE = [];
+let RAW_DATA_GH = [];
+let ALL_ROWS = [];
+let filteredRows = [];
+let CATEGORIES = [
+  { id: 'matieres_premieres', name: 'Matières Premières', icon: '🥬', children: [
+      { id: 'mp_proteines', name: 'Protéines', icon: '🍖' },
+      { id: 'mp_glucides', name: 'Glucides', icon: '🌾' },
+      { id: 'mp_lipides', name: 'Lipides', icon: '🥑' },
+      { id: 'mp_autres', name: 'Autres MP', icon: '🌿' }
+    ]
+  },
+  { id: 'ingredients', name: 'Ingrédients', icon: '🧪', children: [
+      { id: 'ing_epices', name: 'Épices', icon: '🌶️' },
+      { id: 'ing_saveurs', name: 'Saveurs', icon: '🍯' },
+      { id: 'ing_additifs', name: 'Additifs', icon: '⚗️' }
+    ]
+  },
+  { id: 'emballages', name: 'Emballages', icon: '📦', children: [
+      { id: 'emb_primaire', name: 'Emballage Primaire', icon: '🎁' },
+      { id: 'emb_secondaire', name: 'Emballage Secondaire', icon: '📦' }
+    ]
+  },
+  { id: 'produits_finis', name: 'Produits Finis', icon: '✅', children: [
+      { id: 'pf_clients', name: 'Produits Clients', icon: '🏬' },
+      { id: 'pf_propres', name: 'Marque Propre', icon: '🔖' }
+    ]
+  }
+];
+let selectedCategoryId = null;
+let selectedSubCategoryId = null;
+
+// ── INIT ──────────────────────────────────────────────────────────
+(async function init(){
+  try{
+    const [uRes, ghRes] = await Promise.all([
+      fetch('https://simougenot.github.io/soy/inventaire_usine.json'),
+      fetch('https://simougenot.github.io/soy/inventaire_gh.json')
+    ]);
+    RAW_DATA_USINE = await uRes.json();
+    RAW_DATA_GH = await ghRes.json();
+  }catch(e){
+    console.error('Erreur chargement inventaires:', e);
+    toast('Erreur chargement données.','err');
+  }
+  mergeAll();
+  initUI();
+})();
+
+function mergeAll(){
+  ALL_ROWS = [
+    ...RAW_DATA_USINE.map(r => ({...r, source: 'usine'})),
+    ...RAW_DATA_GH.map(r => ({...r, source: 'gh'}))
+  ];
+  ALL_ROWS.forEach(r => {
+    r._cat = findCatForProduct(r.code_produit);
+  });
+  filterData();
+}
+
+function findCatForProduct(code){
+  if(!code) return null;
+  const c = code.toLowerCase();
+  // Matières Premières
+  if(c.startsWith('ci.')){ if(c.includes('trisodium') || c.includes('calcium') || c.includes('vitamin')) return 'mp_proteines'; return 'mp_autres'; }
+  // Ingrédients
+  if(c.startsWith('cl.')){ if(c.includes('locust') || c.includes('gum') || c.includes('almond') || c.includes('vanilla') || c.includes('flavour')) return 'ing_saveurs'; return 'ing_additifs'; }
+  // Emballages
+  if(c.startsWith('yp11') || c.startsWith('pbc')) return 'emb_primaire';
+  // Produits finis
+  if(c.startsWith('04') || c.startsWith('252871')) return 'pf_clients';
+  return null;
+}
+
+function initUI(){
+  renderSidebar();
+  renderContent();
+  updateKPI();
+  document.getElementById('search-input').addEventListener('input', () => filterData());
+  document.getElementById('filter-empl').addEventListener('change', () => filterData());
+  document.getElementById('filter-peremption').addEventListener('change', () => filterData());
+}
+
+function renderSidebar(){
+  const sb = document.getElementById('cat-sidebar');
+  sb.innerHTML = `
+    <div class="cat-btn ${selectedCategoryId===null?'active':''}" onclick="selectCategory(null)">
+      <span class="cat-btn-icon">🌍</span>
+      <span class="cat-btn-name">Tout</span>
+      <span class="cat-btn-count">${filteredRows.length}</span>
+    </div>
+  ` + CATEGORIES.map(cat => {
+    const count = filteredRows.filter(r => r._cat && getRootCategory(r._cat).id === cat.id).length;
+    return `<div class="cat-btn ${selectedCategoryId===cat.id?'active':''}" onclick="selectCategory('${cat.id}')">
+      <span class="cat-btn-icon">${cat.icon}</span>
+      <span class="cat-btn-name">${cat.name}</span>
+      <span class="cat-btn-count">${count}</span>
+    </div>`;
+  }).join('');
+}
+
+function selectCategory(cid){
+  selectedCategoryId = cid;
+  selectedSubCategoryId = null;
+  filterData();
+}
+
+function selectSubCategory(scid){
+  selectedSubCategoryId = scid;
+  filterData();
+}
+
+function filterData(){
+  let rows = ALL_ROWS;
+  const searchTxt = document.getElementById('search-input').value.toLowerCase();
+  const filterEmpl = document.getElementById('filter-empl').value;
+  const filterPer = document.getElementById('filter-peremption').value;
+
+  if(searchTxt){
+    rows = rows.filter(r => (r.code_produit||'').toLowerCase().includes(searchTxt) ||
+      (r.description||'').toLowerCase().includes(searchTxt) ||
+      (r.no_lot||'').toLowerCase().includes(searchTxt));
+  }
+  if(filterEmpl !== 'all') rows = rows.filter(r => r.source === filterEmpl);
+  if(filterPer !== 'all'){
+    rows = rows.filter(r => {
+      const d = daysUntil(r.date_peremption);
+      if(d===null) return false;
+      if(filterPer==='proche') return d>0 && d<=90;
+      if(filterPer==='passee') return d<0;
+      return false;
+    });
+  }
+
+  if(selectedCategoryId){
+    rows = rows.filter(r => r._cat && getRootCategory(r._cat).id === selectedCategoryId);
+  }
+  if(selectedSubCategoryId){
+    rows = rows.filter(r => r._cat === selectedSubCategoryId);
+  }
+
+  filteredRows = rows;
+  renderSidebar();
+  renderContent();
+  updateKPI();
+}
+
+function renderContent(){
+  const grouped = groupRows(filteredRows);
+  const byCat = new Map();
+  grouped.forEach(row => {
+    const rootCat = row._cat ? getRootCategory(row._cat) : null;
+    const catId = rootCat ? rootCat.id : null;
+    if(!byCat.has(catId)) byCat.set(catId, []);
+    byCat.get(catId).push(row);
+  });
+
+  let html = '';
+  const sortedCats = [...byCat.entries()].sort((a,b) => {
+    const aObj = CATEGORIES.find(c => c.id===a[0]);
+    const bObj = CATEGORIES.find(c => c.id===b[0]);
+    if(!aObj) return 1;
+    if(!bObj) return -1;
+    return aObj.name.localeCompare(bObj.name);
+  });
+
+  sortedCats.forEach(([catId, rows]) => {
+    const catObj = CATEGORIES.find(c => c.id===catId);
+    const catName = catObj ? catObj.name : 'Sans catégorie';
+    const catIcon = catObj ? catObj.icon : '📋';
+
+    const subCatMap = new Map();
+    rows.forEach(r => {
+      const sc = r._cat || 'autre';
+      if(!subCatMap.has(sc)) subCatMap.set(sc, []);
+      subCatMap.get(sc).push(r);
+    });
+
+    const hasSubs = catObj && catObj.children && catObj.children.length > 0;
+    html += `<div class="cat-section">
+      <div class="cat-section-header">
+        <span class="cat-section-icon">${catIcon}</span>
+        <span class="cat-section-name">${catName}</span>
+        ${hasSubs ? `<span class="cat-section-badge badge-multi">${subCatMap.size} sous-cat.</span>` : ''}
+      </div>
+      <div class="prod-group">`;
+
+    const byProd = new Map();
+    rows.forEach(r => {
+      const key = r.code_produit || 'SANS_CODE';
+      if(!byProd.has(key)) byProd.set(key, []);
+      byProd.get(key).push(r);
+    });
+
+    [...byProd.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([code, prows]) => {
+      const desc = prows[0].description || '';
+      const totQty = prows.reduce((s,r)=>s+parseFloat(r.quantite||0),0);
+      const totPoids = prows.reduce((s,r)=>s+parseFloat(r.poids_total||0),0);
+      html += `<div class="prod-group-header">
+        <span class="prod-code">${code}</span>
+        <span class="prod-desc">${desc}</span>
+        <div class="prod-totaux">
+          <div class="prod-tot-item">Qté: <strong>${totQty}</strong></div>
+          <div class="prod-tot-item">Poids: <strong>${totPoids.toFixed(2)} kg</strong></div>
+        </div>
+      </div>`;
+      prows.sort((a,b)=>(a.no_lot||'').localeCompare(b.no_lot||'')).forEach(r => {
+        const d = daysUntil(r.date_peremption);
+        let perClass = '';
+        if(d !== null){
+          if(d<0) perClass='peremption-passee';
+          else if(d<=90) perClass='peremption-proche';
+        }
+        html += `<div class="stock-row">
+          <div><span class="loc-badge ${r.source==='usine'?'loc-usine':'loc-gh'}">
+            ${r.source==='usine'?'🏭 Usine':'📦 GH'}
+          </span></div>
+          <div class="row-lot">${r.no_lot||'—'}</div>
+          <div class="row-qte">${parseFloat(r.quantite||0)}</div>
+          <div class="row-poids">${parseFloat(r.poids_total||0).toFixed(2)} kg</div>
+          <div class="row-dates">
+            <div class="row-date-item">
+              <div class="row-date-lbl">Fab</div>
+              <div class="row-date-val">${fmtDate(r.date_fab)}</div>
+            </div>
+          </div>
+          <div class="row-dates">
+            <div class="row-date-item">
+              <div class="row-date-lbl">Pér</div>
+              <div class="row-date-val ${perClass}">${fmtDate(r.date_peremption)}</div>
+            </div>
+          </div>
+        </div>`;
+      });
+    });
+
+    html += `</div></div>`;
+  });
+
+  document.getElementById('global-content').innerHTML = html || '<div style="padding:20px;color:var(--text-muted);">Aucun résultat.</div>';
+}
+
+function updateKPI(){
+  const total = filteredRows.length;
+  const usine = filteredRows.filter(r => r.source==='usine').length;
+  const gh = filteredRows.filter(r => r.source==='gh').length;
+  const poids = filteredRows.reduce((s,r)=>s+parseFloat(r.poids_total||0),0);
+  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('kpi-usine').textContent = usine;
+  document.getElementById('kpi-gh').textContent = gh;
+  document.getElementById('kpi-poids').textContent = poids.toFixed(0) + ' kg';
+}
+
+function groupRows(rows){
+  const map = new Map();
+  rows.forEach(r => {
+    const key = `${r.code_produit||''}|${r.no_lot||''}|${r.source||''}`;
+    if(!map.has(key)) map.set(key, {...r});
+    else{
+      const ex = map.get(key);
+      ex.quantite = (parseFloat(ex.quantite)||0) + (parseFloat(r.quantite)||0);
+      ex.poids_total = (parseFloat(ex.poids_total)||0) + (parseFloat(r.poids_total)||0);
+    }
+  });
+  return [...map.values()];
+}
+
+function getRootCategory(catId){
+  for(let cat of CATEGORIES){
+    if(cat.id===catId) return cat;
+    if(cat.children && cat.children.find(c=>c.id===catId)) return cat;
+  }
+  return null;
+}
+
+function fmtDate(d){
+  if(!d) return '—';
+  const dt = new Date(d);
+  if(isNaN(dt)) return d;
+  const day = String(dt.getDate()).padStart(2,'0');
+  const mon = String(dt.getMonth()+1).padStart(2,'0');
+  const yr = dt.getFullYear();
+  return `${day}-${mon}-${yr}`;
+}
+
+function daysUntil(d){
+  if(!d) return null;
+  const dt = new Date(d);
+  if(isNaN(dt)) return null;
+  const now = new Date();
+  const diff = dt - now;
+  return Math.floor(diff/(1000*60*60*24));
+}
+
+function reloadAllData(){
+  window.location.reload();
+}
+
+// ── EXPORT PDF ────────────────────────────────────────────────────
+async function exportPDF(){
+  if(filteredRows.length === 0){ toast('Aucune donnée à exporter.','err'); return; }
+  try{
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    const W = 297, H = 210, M = 10;
+    const C = {
+      sapphire:[74,158,232],
+      copper:[200,132,58],
+      emerald:[45,212,160],
+      amber:[255,193,7],
+      ruby:[231,76,60],
+      grey:[96,105,130],
+      faint:[220,222,228],
+      white:[255,255,255]
+    };
+
+    const now = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    pdf.setFontSize(18); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.sapphire);
+    pdf.text('SOY — INVENTAIRE GLOBAL', M, M+6);
+    pdf.setFontSize(8); pdf.setFont('helvetica','normal'); pdf.setTextColor(...C.grey);
+    pdf.text('Combinaison usine + GH Logistics', M, M+11);
+
+    const grouped = groupRows(filteredRows);
+    const byCat = new Map();
+    grouped.forEach(row => {
+      const rootCat = row._cat ? getRootCategory(row._cat) : null;
+      const catName = rootCat ? rootCat.name : 'Sans catégorie';
+      if(!byCat.has(catName)) byCat.set(catName, []);
+      byCat.get(catName).push(row);
+    });
+
+    const cols = [
+      {key:'source',    w:12},
+      {key:'cat',       w:32},
+      {key:'code',      w:28},
+      {key:'desc',      w:58},
+      {key:'lot',       w:32},
+      {key:'slot',      w:20},
+      {key:'qte',       w:15},
+      {key:'poids_u',   w:18},
+      {key:'poids_t',   w:18},
+      {key:'dfab',      w:22},
+      {key:'dper',      w:22}
+    ];
+
+    let y = M + 18;
+    const rH = 6;
+
+    [...byCat.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(catData => {
+      if(y > H - 20){ pdf.addPage(); y = M; }
+
+      pdf.setFillColor(...C.sapphire, 0.1); pdf.rect(M, y, W-2*M, 6, 'F');
+      pdf.setFontSize(9); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.sapphire);
+      pdf.text(catData[0].toUpperCase() + '  ·  ' + catData[1].length + ' ligne' + (catData[1].length>1?'s':''), M + 3, y + 4.5);
+      y += 6;
+
+      catData[1].sort((a,b) => {
+        const codeCmp = (a.code_produit||'').localeCompare(b.code_produit||'');
+        if(codeCmp !== 0) return codeCmp;
+        const lotCmp = (a.no_lot||'').localeCompare(b.no_lot||'');
+        if(lotCmp !== 0) return lotCmp;
+        return a.source === b.source ? 0 : a.source === 'usine' ? -1 : 1;
+      });
+
+      catData[1].forEach((row, ri) => {
+        if(y > H - 14){ pdf.addPage(); y = M; }
+
+        const isUsine = row.source === 'usine';
+        if(ri % 2 === 0){ pdf.setFillColor(252,252,253); pdf.rect(M, y, W-2*M, rH, 'F'); }
+
+        pdf.setFillColor(isUsine ? 200 : 45, isUsine ? 132 : 212, isUsine ? 58 : 160);
+        pdf.roundedRect(M+1, y+1, 10, rH-2, 1, 1, 'F');
+        pdf.setFontSize(4.5); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C.white);
+        pdf.text(isUsine ? 'USINE' : 'GH', M+2.5, y + (rH/2) + 1.5);
+
+        let x = M + cols[0].w;
+        const qteVal   = parseFloat(row.quantite)||0;
+        const poidsU   = parseFloat(row.poids_unit)||0;
+        const poidsT   = parseFloat(row.poids_total)||0;
+        const rowData = {
+          cat:     catData[0],
+          code:    row.code_produit||'',
+          desc:    row.description||'',
+          lot:     row.no_lot||'',
+          slot:    row.no_sous_lot||'',
+          qte:     qteVal > 0 ? (qteVal % 1 === 0 ? String(qteVal) : qteVal.toFixed(2)) : '',
+          poids_u: poidsU > 0 ? poidsU.toFixed(2) : '',
+          poids_t: poidsT > 0 ? poidsT.toFixed(2) : '',
+          dfab:    row.date_fab ? fmtDate(row.date_fab) : '',
+          dper:    row.date_peremption ? fmtDate(row.date_peremption) : '',
+        };
+
+        cols.slice(1).forEach(c => {
+          pdf.setFontSize(5.5); pdf.setFont('helvetica','normal');
+          if(c.key==='code'){ pdf.setTextColor(...C.sapphire); pdf.setFont('helvetica','bold'); }
+          else if(c.key==='poids_t'){ pdf.setTextColor(...C.amber); pdf.setFont('helvetica','bold'); }
+          else if(c.key==='dper'){
+            const d = daysUntil(row.date_peremption);
+            if(d !== null && d < 0) pdf.setTextColor(...C.ruby);
+            else if(d !== null && d <= 90) pdf.setTextColor(200,140,0);
+            else pdf.setTextColor(60,65,80);
+          }
+          else pdf.setTextColor(60, 65, 80);
+
+          const maxW = c.w - 3;
+          let txt = String(rowData[c.key]||'');
+          while(txt.length > 1 && pdf.getTextWidth(txt) > maxW) txt = txt.slice(0,-1);
+          if(txt !== String(rowData[c.key]||'')) txt += '…';
+          pdf.text(txt, x + 1.5, y + 4.3);
+          x += c.w;
+        });
+
+        pdf.setDrawColor(220,222,228); pdf.setLineWidth(0.1); pdf.line(M, y+rH, W-M, y+rH);
+        y += rH;
+      });
+
+      y += 2;
+    });
+
+    const pages = pdf.internal.getNumberOfPages();
+    for(let i = 1; i <= pages; i++){
+      pdf.setPage(i);
+      pdf.setDrawColor(...C.faint); pdf.setLineWidth(0.2); pdf.line(M, H-7, W-M, H-7);
+      pdf.setFontSize(6); pdf.setFont('helvetica','normal'); pdf.setTextColor(...C.grey);
+      pdf.text('SOY — Inventaire Global — ' + now, M, H - 3);
+      pdf.text('Page ' + i + ' / ' + pages, W - M, H - 3, {align:'right'});
+    }
+
+    const d = new Date();
+    const fname = `SOY_Inventaire_Global_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.pdf`;
+    pdf.save(fname);
+    toast('PDF exporté ✓', 'ok');
+
+  }catch(e){
+    console.error(e);
+    toast('Erreur PDF : '+(e?.message||e), 'err');
+  }
+}
+
+function toast(msg, type='ok'){
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 4500);
+}
+</script>
+</body>
+</html>
