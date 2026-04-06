@@ -378,6 +378,25 @@
 .inv-tbl tbody tr:last-child{border-bottom:none;}
 .count-badge{font-size:.72rem;color:var(--text-muted);font-weight:600;padding:4px 10px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:20px;}
 
+/* ── Badge correspondance TRAX ── */
+.trax-badge-ok{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(45,212,160,.15);color:var(--emerald);font-size:.7rem;cursor:default;}
+.trax-badge-missing{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(245,158,11,.15);color:var(--amber);font-size:.7rem;cursor:pointer;border:1px solid rgba(245,158,11,.3);transition:background .15s;}
+.trax-badge-missing:hover{background:rgba(245,158,11,.3);}
+
+/* ── Popup ajout correspondance ── */
+.trax-popup-overlay{position:fixed;inset:0;z-index:9000;background:rgba(7,8,12,.7);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px;}
+.trax-popup-overlay.open{display:flex;}
+.trax-popup{background:var(--bg-raised);border:1px solid rgba(245,158,11,.3);border-radius:var(--r-xl);width:100%;max-width:400px;overflow:hidden;}
+.trax-popup-hd{padding:16px 20px;border-bottom:1px solid var(--text-faint);display:flex;align-items:center;gap:10px;}
+.trax-popup-title{font-size:.92rem;font-weight:700;color:var(--text-primary);flex:1;}
+.trax-popup-body{padding:16px 20px;display:flex;flex-direction:column;gap:12px;}
+.trax-popup-lbl{font-size:.65rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;}
+.trax-popup-inp{background:var(--bg-float);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-md);padding:8px 12px;color:var(--text-primary);font-size:.84rem;font-family:Outfit,sans-serif;outline:none;width:100%;transition:border-color .15s;}
+.trax-popup-inp:focus{border-color:var(--amber);}
+.trax-popup-ft{padding:12px 20px;border-top:1px solid var(--text-faint);display:flex;gap:8px;justify-content:flex-end;}
+.trax-popup-cancel{padding:8px 16px;border-radius:var(--r-md);background:transparent;border:1px solid var(--text-faint);color:var(--text-muted);font-size:.82rem;cursor:pointer;}
+.trax-popup-save{padding:8px 18px;border-radius:var(--r-md);background:var(--amber);border:none;color:#0F1118;font-size:.82rem;font-weight:700;cursor:pointer;}
+
 /* ── Commande panel ── */
 .cmd-panel{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);position:sticky;top:16px;overflow:hidden;}
 .cmd-panel::before{content:'';display:block;height:2px;background:linear-gradient(90deg,transparent,var(--copper),transparent);}
@@ -592,6 +611,7 @@
                 <th>Réception originale</th>
                 <th>Poids unit. (kg)</th>
                 <th>Poids total (kg)</th>
+                <th title="Présent dans la table de correspondance TRAX" style="text-align:center;">TRAX</th>
               </tr>
             </thead>
             <tbody id="inv-tbody"></tbody>
@@ -673,6 +693,7 @@ const GH_PASSE    = 'fred';
 let sb;
 let allInventory = [];  // raw rows
 let filtered     = [];  // after search/filter
+let traxCodes    = new Set(); // codes présents dans correspondance_trax
 let commande     = [];  // selected items (DEPRECATED - sera migré vers camions)
 let sessionId1   = null;
 
@@ -1420,6 +1441,7 @@ async function init(){
   await loadSession();
   await loadGhCategories();
   await loadPoids();  // Charger les poids
+  await loadTraxCodes(); // Charger les codes de correspondance
   initCamions();  // Initialiser les camions
   loadCommande();  // Charger la commande sauvegardée (legacy)
   
@@ -2011,12 +2033,12 @@ function renderTable(){
       <td style="font-size:.72rem">${escH(desc)}</td>
       ${keep.slice(2).map(idx=>{
         let val = raw[idx]||'';
-        // Formater les colonnes de date (13=Date lot, 14=Expiration, 15=Réception)
         if(idx===13||idx===14||idx===15) val = fmtDate(val);
         return `<td style="font-size:.72rem">${escH(val)}</td>`;
       }).join('')}
       <td style="font-size:.72rem;color:var(--amber);font-weight:600">${poidsUnit > 0 ? poidsUnit.toFixed(1) : '—'}</td>
       <td style="font-size:.72rem;color:var(--emerald);font-weight:700">${poidsTotal > 0 ? poidsTotal.toFixed(1) : '—'}</td>
+      <td style="text-align:center;">${traxBadge(code, desc)}</td>
     </tr>`;
   }).join('');
 }
@@ -2537,6 +2559,118 @@ function debugLog(msg) {
 
 <!-- Panneau de DEBUG désactivé -->
 <!-- <div id="debug-panel" ...></div> -->
+
+<!-- Popup ajout correspondance TRAX -->
+<div class="trax-popup-overlay" id="trax-popup-overlay">
+  <div class="trax-popup">
+    <div class="trax-popup-hd">
+      <span style="font-size:1.1rem;">⚠️</span>
+      <div class="trax-popup-title">Ajouter à la correspondance</div>
+      <button onclick="traxPopupClose()" style="background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;padding:4px;">✕</button>
+    </div>
+    <div class="trax-popup-body">
+      <div>
+        <div class="trax-popup-lbl">Code TRAX</div>
+        <input class="trax-popup-inp" id="trax-inp-trax" placeholder="Laisser vide si inconnu…">
+      </div>
+      <div>
+        <div class="trax-popup-lbl">Code interne SOY</div>
+        <input class="trax-popup-inp" id="trax-inp-interne" placeholder="Code produit GH">
+      </div>
+      <div>
+        <div class="trax-popup-lbl">Désignation</div>
+        <input class="trax-popup-inp" id="trax-inp-desig" placeholder="Description du produit">
+      </div>
+    </div>
+    <div class="trax-popup-ft">
+      <button class="trax-popup-cancel" onclick="traxPopupClose()">Annuler</button>
+      <button class="trax-popup-save" onclick="traxPopupSave()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CORRESPONDANCE TRAX ───────────────────────────────────────────
+async function loadTraxCodes(){
+  try{
+    const {data} = await sb.from('correspondance_trax').select('code_trax,code_interne');
+    traxCodes = new Set();
+    (data||[]).forEach(r => {
+      if(r.code_trax)   traxCodes.add(r.code_trax.trim().toUpperCase());
+      if(r.code_interne) traxCodes.add(r.code_interne.trim().toUpperCase());
+    });
+  }catch(e){ traxCodes = new Set(); }
+}
+
+function isInTrax(code){
+  if(!code) return false;
+  return traxCodes.has(String(code).trim().toUpperCase());
+}
+
+function traxBadge(code, desc){
+  if(!code) return '';
+  if(isInTrax(code)){
+    return `<span class="trax-badge-ok" title="Présent dans la correspondance TRAX">✓</span>`;
+  }
+  const safeCode = escH(code).replace(/'/g,'&#39;');
+  const safeDesc = escH(desc).replace(/'/g,'&#39;');
+  return `<span class="trax-badge-missing" title="Absent de la correspondance — cliquer pour ajouter"
+    onclick="event.stopPropagation();traxPopupOpen('${safeCode}','${safeDesc}')">⚠️</span>`;
+}
+
+// ── POPUP ─────────────────────────────────────────────────────────
+function traxPopupOpen(code, desc){
+  document.getElementById('trax-inp-trax').value    = '';
+  document.getElementById('trax-inp-interne').value = code;
+  document.getElementById('trax-inp-desig').value   = desc;
+  document.getElementById('trax-popup-overlay').classList.add('open');
+  document.getElementById('trax-inp-trax').focus();
+}
+
+function traxPopupClose(){
+  document.getElementById('trax-popup-overlay').classList.remove('open');
+}
+
+async function traxPopupSave(){
+  const codeTrax  = document.getElementById('trax-inp-trax').value.trim();
+  const codeInt   = document.getElementById('trax-inp-interne').value.trim();
+  const desig     = document.getElementById('trax-inp-desig').value.trim();
+
+  if(!codeInt && !codeTrax){ alert('Au moins un code est requis.'); return; }
+
+  try{
+    const {error} = await sb.from('correspondance_trax').insert({
+      code_trax:    codeTrax || null,
+      code_interne: codeInt  || null,
+      designation:  desig    || null
+    });
+    if(error) throw error;
+
+    // Mettre à jour le Set local immédiatement
+    if(codeTrax) traxCodes.add(codeTrax.toUpperCase());
+    if(codeInt)  traxCodes.add(codeInt.toUpperCase());
+
+    traxPopupClose();
+    renderTable(); // Rafraîchir les badges
+    showToast('Ajouté à la correspondance ✓', 'ok');
+  }catch(e){
+    showToast('Erreur : ' + e.message, 'err');
+  }
+}
+
+function showToast(msg, type){
+  const bar = document.querySelector('.toast-bar') || document.body;
+  const el = document.createElement('div');
+  el.style.cssText = `position:fixed;bottom:80px;right:20px;z-index:99999;padding:10px 16px;
+    border-radius:8px;font-size:.82rem;font-weight:600;
+    background:${type==='ok'?'rgba(45,212,160,.15)':'rgba(224,85,85,.15)'};
+    border:1px solid ${type==='ok'?'rgba(45,212,160,.3)':'rgba(224,85,85,.3)'};
+    color:${type==='ok'?'var(--emerald)':'var(--ruby)'};`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 3500);
+}
+</script>
 
 </body>
 </html>
