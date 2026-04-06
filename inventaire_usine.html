@@ -224,7 +224,6 @@
             <th class="th-req" style="min-width:110px;">Code produit</th>
             <th style="min-width:180px;">Description</th>
             <th class="th-req" style="min-width:100px;">No. lot</th>
-            <th style="min-width:90px;">No. sous-lot</th>
             <th style="min-width:70px;">Qté</th>
             <th style="min-width:80px;">Poids unit. (kg)</th>
             <th style="min-width:90px;">Poids total (kg)</th>
@@ -337,8 +336,8 @@ async function init(){
 
   inp.addEventListener('change', updateRelEveDateDisplay);
 
-  // Charger catégories GH et données TRAX en parallèle
-  await Promise.all([loadCategories(), loadTraxData()]);
+  // Charger catégories GH, données TRAX et poids en parallèle
+  await Promise.all([loadCategories(), loadTraxData(), loadPoids()]);
 
   // Charger le relevé existant depuis Supabase
   await loadReleve();
@@ -347,6 +346,36 @@ async function init(){
 function updateRelEveDateDisplay(){
   const val = document.getElementById('inp-date-releve').value;
   document.getElementById('releve-date-val').textContent = val ? fmtDate(val) : '—';
+}
+
+
+// ── POIDS UNITAIRES (depuis gh_poids) ────────────────────────────
+async function loadPoids(){
+  try{
+    const {data, error} = await sb.from('gh_poids').select('*');
+    if(error) throw error;
+    poidsList = (data||[]).map(p => ({...p, matchType: p.match_type||'exact'}));
+  }catch(e){ poidsList = []; }
+}
+
+function getPoidsUnitaire(code){
+  if(!code) return 0;
+  const cu = String(code).trim().toUpperCase();
+  const exact = poidsList.find(p => (p.matchType||'exact')==='exact' && String(p.code||'').trim().toUpperCase()===cu);
+  if(exact) return parseFloat(exact.poids_unitaire||0);
+  const cont = poidsList.find(p => (p.matchType||'exact')==='contains' && cu.includes(String(p.code||'').trim().toUpperCase()) && p.code);
+  if(cont) return parseFloat(cont.poids_unitaire||0);
+  return 0;
+}
+
+function autoSetPoids(rowIdx, code){
+  const poids = getPoidsUnitaire(code);
+  rows[rowIdx].poids_unit = poids || '';
+  rows[rowIdx].dirty = true;
+  // Mettre à jour l'affichage
+  const el = document.getElementById('pu-'+rowIdx);
+  if(el) el.textContent = poids > 0 ? poids.toFixed(3) : '—';
+  updatePoidsTotal(rowIdx);
 }
 
 // ── CATÉGORIES ────────────────────────────────────────────────────
@@ -511,9 +540,8 @@ function render(){
           autocomplete="off">
       </td>
       <td><input class="inp-cell inp-req" value="${esc(r.no_lot)}" placeholder="No. lot" oninput="mark(${i},'no_lot',this.value)"></td>
-      <td><input class="inp-cell" value="${esc(r.no_sous_lot)}" placeholder="Sous-lot" oninput="mark(${i},'no_sous_lot',this.value)"></td>
       <td><input class="inp-cell" type="number" min="0" step="0.01" value="${esc(r.quantite)}" placeholder="0" oninput="mark(${i},'quantite',this.value);updatePoidsTotal(${i})"></td>
-      <td><input class="inp-cell" type="number" min="0" step="0.001" value="${esc(r.poids_unit)}" placeholder="kg" oninput="mark(${i},'poids_unit',this.value);updatePoidsTotal(${i})"></td>
+      <td><div class="inp-poids-total" id="pu-${i}" style="color:var(--sapphire);">${parseFloat(r.poids_unit) > 0 ? parseFloat(r.poids_unit).toFixed(3) : '—'}</div></td>
       <td><div class="inp-poids-total" id="pt-${i}">${poidsTotal > 0 ? poidsTotal.toFixed(2) : '—'}</div></td>
       <td><input class="inp-cell" type="date" value="${esc(r.date_fab)}" oninput="mark(${i},'date_fab',this.value)"></td>
       <td><input class="inp-cell" type="date" value="${esc(r.date_peremption)}" oninput="mark(${i},'date_peremption',this.value)"></td>
@@ -550,7 +578,7 @@ function mark(idx, field, val){
   rows[idx][field] = val;
   rows[idx].dirty = true;
   if(field === 'quantite' || field === 'poids_unit') updatePoidsTotal(idx);
-  if(field === 'code_produit' && val.length >= 3) autoSetCategory(idx, val);
+  if(field === 'code_produit' && val.length >= 3){ autoSetCategory(idx, val); autoSetPoids(idx, val); }
 }
 
 function updateTotaux(){
@@ -779,6 +807,7 @@ function acFill(rowIdx, code, desig){
   if(descInput){ descInput.value=desig; mark(rowIdx,'description',desig); }
   dbg('Rempli: code='+code+' desig='+desig.slice(0,25));
   autoSetCategory(rowIdx, code);
+  autoSetPoids(rowIdx, code);
 }
 
 function acClose(){
