@@ -357,7 +357,7 @@ async function loadCategories(){
     const {data, error} = await sb.from('gh_categories').select('id,name,icon,color,parent_id,cat_rules').order('created_at');
     if(error) throw error;
     allCategories = (data||[]).map(c => ({...c, rules: c.cat_rules||[]}));
-    ghCategories  = allCategories.filter(c => !c.parent_id); // racines pour le select
+    ghCategories  = allCategories; // toutes catégories dans le select (racines + sous-catégories)
   }catch(e){
     console.error('Erreur chargement catégories:', e);
     ghCategories = []; allCategories = [];
@@ -366,9 +366,15 @@ async function loadCategories(){
 
 function buildCatOptions(selectedId){
   const opts = ['<option value="">— Sélectionner —</option>'];
-  ghCategories.forEach(c => {
-    const sel = c.id === selectedId ? ' selected' : '';
-    opts.push(`<option value="${esc(c.id)}" data-nom="${esc(c.name)}"${sel}>${c.icon||'📦'} ${esc(c.name)}</option>`);
+  const roots    = allCategories.filter(c => !c.parent_id).sort((a,b) => a.name.localeCompare(b.name));
+  const children = allCategories.filter(c =>  c.parent_id).sort((a,b) => a.name.localeCompare(b.name));
+  roots.forEach(root => {
+    const selR = root.id === selectedId ? ' selected' : '';
+    opts.push(`<option value="${esc(root.id)}" data-nom="${esc(root.name)}"${selR}>${root.icon||'📦'} ${esc(root.name)}</option>`);
+    children.filter(c => c.parent_id === root.id).forEach(child => {
+      const selC = child.id === selectedId ? ' selected' : '';
+      opts.push(`<option value="${esc(child.id)}" data-nom="${esc(child.name)}"${selC}>&nbsp;&nbsp;↳ ${child.icon||'📦'} ${esc(child.name)}</option>`);
+    });
   });
   return opts.join('');
 }
@@ -403,11 +409,7 @@ function matchCategoryForCode(code){
       else { result=result&&match; }
     }
     if(result){
-      // Retourner la catégorie racine correspondante
-      if(cat.parent_id){
-        const root = allCategories.find(c => c.id === cat.parent_id);
-        return root || null;
-      }
+      // Retourner la sous-catégorie directement (prioritaire), ou la racine
       return cat;
     }
   }
