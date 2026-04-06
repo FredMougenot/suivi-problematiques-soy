@@ -266,6 +266,10 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         Exporter PDF
       </button>
+      <button class="btn-pdf" id="btn-excel" onclick="exportExcel()" disabled style="background:linear-gradient(135deg,#1d7044,#2a9a5e);">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+        Exporter Excel
+      </button>
     </div>
 
     <!-- Flyout overlay -->
@@ -324,6 +328,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const SB_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
@@ -423,6 +428,7 @@ async function loadAll(){
   applyFilters();
   updateKPIs();
   document.getElementById('btn-pdf').disabled = allRows.length === 0;
+  document.getElementById('btn-excel').disabled = allRows.length === 0;
 }
 
 // ── CATÉGORIES ────────────────────────────────────────────────────
@@ -1182,6 +1188,53 @@ function toast(msg, type='ok'){
   el.textContent = msg;
   document.getElementById('toasts').appendChild(el);
   setTimeout(() => el.remove(), 4500);
+}
+
+function exportExcel(){
+  if(filteredRows.length === 0){ toast('Aucune donnée à exporter.','err'); return; }
+  try{
+    const grouped = groupRows(filteredRows);
+    const headers = ['Emplacement','Catégorie','Code produit','Description','No. lot','Qté','Poids total (kg)','Date fab.','Date pér.'];
+    const data = [headers];
+
+    const byCat = new Map();
+    grouped.forEach(row => {
+      const rootCat = row._cat ? getRootCategory(row._cat) : null;
+      const catName = rootCat ? rootCat.name : 'Sans catégorie';
+      if(!byCat.has(catName)) byCat.set(catName, []);
+      byCat.get(catName).push(row);
+    });
+
+    [...byCat.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([catName, rows]) => {
+      data.push([catName,'','','','','','','','']);
+      rows.sort((a,b)=>(a.code_produit||'').localeCompare(b.code_produit||'')).forEach(row => {
+        data.push([
+          row.source==='usine' ? 'Usine' : 'GH',
+          catName,
+          row.code_produit||'',
+          row.description||'',
+          row.no_lot||'',
+          parseFloat(row.quantite)||0,
+          parseFloat(row.poids_total)||0,
+          row.date_fab        ? fmtDate(row.date_fab)        : '',
+          row.date_peremption ? fmtDate(row.date_peremption) : ''
+        ]);
+      });
+    });
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    ws['!cols'] = [{wch:10},{wch:22},{wch:18},{wch:40},{wch:18},{wch:8},{wch:14},{wch:12},{wch:12}];
+    XLSX.utils.book_append_sheet(wb, ws, 'Inventaire Global');
+
+    const d = new Date();
+    const fname = `SOY_Inventaire_Global_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.xlsx`;
+    XLSX.writeFile(wb, fname);
+    toast('Excel exporté ✓','ok');
+  }catch(e){
+    toast('Erreur Excel : '+(e?.message||e),'err');
+    console.error(e);
+  }
 }
 </script>
 </body>
