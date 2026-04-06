@@ -226,6 +226,7 @@
             <th class="th-req" style="min-width:100px;">No. lot</th>
             <th style="min-width:70px;">Qté</th>
             <th style="min-width:80px;">Poids unit. (kg)</th>
+            <th style="min-width:80px;">Balance (kg)</th>
             <th style="min-width:90px;">Poids total (kg)</th>
             <th style="min-width:110px;">Date fabrication</th>
             <th style="min-width:110px;">Date péremption</th>
@@ -486,7 +487,7 @@ async function loadReleve(){
         quantite: r.quantite||'',
         poids_unit: r.poids_unit||'',
         poids_total: r.poids_total||'',
-        date_fab: r.date_fab||'',
+        balance:     r.balance||'',
         date_peremption: r.date_peremption||'',
         notes: r.notes||'',
         isNew: false,
@@ -521,7 +522,7 @@ function render(){
   }
 
   tbody.innerHTML = rows.map((r, i) => {
-    const poidsTotal = (parseFloat(r.quantite)||0) * (parseFloat(r.poids_unit)||0);
+    const poidsTotal = (parseFloat(r.quantite)||0) * (parseFloat(r.poids_unit)||0) + (parseFloat(r.balance)||0);
     return `<tr id="row-${i}">
       <td class="td-num">${i+1}</td>
       <td>
@@ -542,6 +543,7 @@ function render(){
       <td><input class="inp-cell inp-req" value="${esc(r.no_lot)}" placeholder="No. lot" oninput="mark(${i},'no_lot',this.value)"></td>
       <td><input class="inp-cell" type="number" min="0" step="0.01" value="${esc(r.quantite)}" placeholder="0" oninput="mark(${i},'quantite',this.value);updatePoidsTotal(${i})"></td>
       <td><div class="inp-poids-total" id="pu-${i}" style="color:var(--sapphire);">${parseFloat(r.poids_unit) > 0 ? parseFloat(r.poids_unit).toFixed(3) : '—'}</div></td>
+      <td><input class="inp-cell" type="number" min="0" step="0.001" value="${esc(r.balance)}" placeholder="0 kg" oninput="mark(${i},'balance',this.value);updatePoidsTotal(${i})"></td>
       <td><div class="inp-poids-total" id="pt-${i}">${poidsTotal > 0 ? poidsTotal.toFixed(2) : '—'}</div></td>
       <td><input class="inp-cell" type="date" value="${esc(r.date_fab)}" oninput="mark(${i},'date_fab',this.value)"></td>
       <td><input class="inp-cell" type="date" value="${esc(r.date_peremption)}" oninput="mark(${i},'date_peremption',this.value)"></td>
@@ -560,7 +562,7 @@ function render(){
 
 function updatePoidsTotal(idx){
   const r = rows[idx];
-  const pt = (parseFloat(r.quantite)||0) * (parseFloat(r.poids_unit)||0);
+  const pt = (parseFloat(r.quantite)||0) * (parseFloat(r.poids_unit)||0) + (parseFloat(r.balance)||0);
   rows[idx].poids_total = pt > 0 ? pt : '';
   const el = document.getElementById('pt-'+idx);
   if(el) el.textContent = pt > 0 ? pt.toFixed(2) : '—';
@@ -678,6 +680,7 @@ async function saveAll(){
         no_sous_lot:     r.no_sous_lot || null,
         quantite:        r.quantite !== '' ? parseFloat(r.quantite) : null,
         poids_unit:      r.poids_unit !== '' ? parseFloat(r.poids_unit) : null,
+        balance:         r.balance !== '' ? parseFloat(r.balance) : null,
         poids_total:     r.poids_total !== '' ? parseFloat(r.poids_total) : null,
         date_fab:        r.date_fab || null,
         date_peremption: r.date_peremption || null,
