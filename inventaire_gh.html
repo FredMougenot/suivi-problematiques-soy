@@ -1997,6 +1997,7 @@ function renderTable(){
 
     // Les colonnes 1 et 2 sont déjà fill-down à l'importation
     const code = raw[keep[0]] || '';  // No. produit (déjà rempli)
+    const codeAffiche = code.toUpperCase().startsWith('DCA') ? code.replace(/-\d{2}$/, '') : code;
     const desc = raw[keep[1]] || '';  // Description (déjà remplie)
     
     // Quantité AFFICHÉE = 3ème colonne = keep[2]
@@ -2012,7 +2013,7 @@ function renderTable(){
     const tdStyle = (base) => expiryColor ? `font-size:.72rem;color:${expiryColor};${base}` : `font-size:.72rem;${base}`;
 
     return `<tr class="${sel}" onclick="toggleItem(event, ${i}, '${escAttr(key)}')">
-      <td style="${tdStyle('')}">${escH(code)}</td>
+      <td style="${tdStyle('')}">${escH(codeAffiche)}</td>
       <td style="${tdStyle('')}">${escH(desc)}</td>
       ${keep.slice(2).map(idx=>{
         let val = raw[idx]||'';
