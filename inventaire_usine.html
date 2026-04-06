@@ -62,19 +62,21 @@
 .td-num{text-align:center;color:var(--text-muted);font-size:.74rem;font-weight:700;width:36px;}
 .td-rm{text-align:center;width:40px;}
 
-/* ── Autocomplete TRAX hybride ── */
+/* ── Autocomplete TRAX ── */
 .ac-wrap{position:relative;}
-.ac-select-native{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;z-index:10;}
-.ac-dropdown-custom{position:fixed;z-index:99999;min-width:280px;max-width:92vw;
-  background:var(--bg-float);border:1px solid rgba(74,158,232,.3);border-radius:var(--r-md);
-  box-shadow:0 8px 24px rgba(0,0,0,.7);max-height:240px;overflow-y:auto;display:none;}
-.ac-dropdown-custom.open{display:block;}
-.ac-item{padding:9px 14px;cursor:pointer;border-bottom:1px solid rgba(44,51,80,.3);}
+/* Overlay transparent pour fermer le dropdown en cliquant ailleurs */
+.ac-overlay{position:fixed;inset:0;z-index:99990;display:none;}
+.ac-overlay.open{display:block;}
+.ac-dropdown{position:fixed;z-index:99999;min-width:300px;max-width:94vw;
+  background:var(--bg-float);border:1px solid rgba(74,158,232,.35);border-radius:var(--r-lg);
+  box-shadow:0 12px 32px rgba(0,0,0,.8);max-height:260px;overflow-y:auto;display:none;}
+.ac-dropdown.open{display:block;}
+.ac-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(44,51,80,.35);}
 .ac-item:last-child{border-bottom:none;}
 .ac-item:hover,.ac-item.active{background:rgba(74,158,232,.12);}
 .ac-code{font-size:.8rem;font-weight:700;color:var(--sapphire);}
-.ac-interne{font-size:.72rem;color:var(--emerald);font-weight:600;margin-left:6px;}
-.ac-desig{font-size:.74rem;color:var(--text-muted);margin-top:2px;}
+.ac-interne{font-size:.72rem;color:var(--emerald);font-weight:600;margin-left:8px;}
+.ac-desig{font-size:.74rem;color:var(--text-muted);margin-top:3px;line-height:1.3;}
 
 /* ── Inputs dans le tableau ── */
 .inp-cell{background:transparent;border:none;border-bottom:1px solid transparent;
@@ -254,6 +256,10 @@
     </div>
   </div>
 </div>
+
+<!-- Autocomplete overlay + dropdown global -->
+<div class="ac-overlay" id="ac-overlay" onclick="acClose()"></div>
+<div class="ac-dropdown" id="ac-dropdown"></div>
 
 <!-- Debug panel -->
 <div id="dbg" style="position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(0,0,0,.92);color:#0f0;font-family:monospace;font-size:.7rem;padding:8px 12px;max-height:160px;overflow-y:auto;border-top:2px solid #0f0;">
@@ -437,27 +443,13 @@ function render(){
       </td>
       <td class="ac-wrap">
         <input class="inp-cell inp-req" id="inp-code-${i}" value="${esc(r.code_produit)}" placeholder="Ex: CI.1750"
-          oninput="mark(${i},'code_produit',this.value);acSearchDesktop(${i},'code',this)"
-          onblur="setTimeout(()=>acCloseCustom(),150)"
+          oninput="mark(${i},'code_produit',this.value);acSearch(${i},'code',this)"
           autocomplete="off">
-        <select class="ac-select-native" id="sel-code-${i}"
-          onchange="acSelectNative(${i},'code',this)"
-          onfocus="acBuildSelect(${i},'code',document.getElementById('inp-code-${i}').value)">
-          <option value="">— Rechercher —</option>
-        </select>
-        <div class="ac-dropdown-custom" id="acd-code-${i}"></div>
       </td>
       <td class="ac-wrap">
         <input class="inp-cell" id="inp-desig-${i}" value="${esc(r.description)}" placeholder="Description…"
-          oninput="mark(${i},'description',this.value);acSearchDesktop(${i},'desig',this)"
-          onblur="setTimeout(()=>acCloseCustom(),150)"
+          oninput="mark(${i},'description',this.value);acSearch(${i},'desig',this)"
           autocomplete="off">
-        <select class="ac-select-native" id="sel-desig-${i}"
-          onchange="acSelectNative(${i},'desig',this)"
-          onfocus="acBuildSelect(${i},'desig',document.getElementById('inp-desig-${i}').value)">
-          <option value="">— Rechercher —</option>
-        </select>
-        <div class="ac-dropdown-custom" id="acd-desig-${i}"></div>
       </td>
       <td><input class="inp-cell inp-req" value="${esc(r.no_lot)}" placeholder="No. lot" oninput="mark(${i},'no_lot',this.value)"></td>
       <td><input class="inp-cell" value="${esc(r.no_sous_lot)}" placeholder="Sous-lot" oninput="mark(${i},'no_sous_lot',this.value)"></td>
@@ -654,22 +646,19 @@ async function loadTraxData(){
       desig:   r.designation||''
     }));
     dbg('TRAX chargé : '+traxData.length+' entrées');
-  }catch(e){ traxData=[]; dbg('TRAX erreur:'+e.message); }
+  }catch(e){ traxData=[]; dbg('Erreur TRAX: '+e.message); }
 }
 
-// ── DESKTOP : dropdown custom ──────────────────────────────────
-let acOpenDropId = null;
+// Ligne et mode actifs
+let acRow = -1, acMode = '';
 
-function acSearchDesktop(rowIdx, mode, input){
-  // Sur mobile (touch), le select natif gère tout — on ne fait rien
-  if('ontouchstart' in window) return;
-
+function acSearch(rowIdx, mode, input){
   const q = (input.value||'').toLowerCase().trim();
-  const dropId = mode==='code' ? 'acd-code-'+rowIdx : 'acd-desig-'+rowIdx;
-  const drop = document.getElementById(dropId);
-  if(!drop) return;
+  const drop = document.getElementById('ac-dropdown');
+  const overlay = document.getElementById('ac-overlay');
+  if(!drop||!overlay) return;
 
-  if(!q){ drop.classList.remove('open'); drop.innerHTML=''; acOpenDropId=null; return; }
+  if(!q){ acClose(); return; }
 
   let results;
   if(mode==='code'){
@@ -682,94 +671,70 @@ function acSearchDesktop(rowIdx, mode, input){
     ).slice(0,10);
   }
 
-  if(!results.length){ drop.classList.remove('open'); drop.innerHTML=''; acOpenDropId=null; return; }
+  dbg('Recherche "'+q+'" mode='+mode+' → '+results.length+' résultats');
+  if(!results.length){ acClose(); return; }
 
-  // Positionner sous l'input
+  // Positionner le dropdown sous l'input
   const rect = input.getBoundingClientRect();
-  drop.style.left  = rect.left+'px';
-  drop.style.top   = (rect.bottom+2)+'px';
-  drop.style.width = Math.max(rect.width,280)+'px';
+  const spaceBelow = window.innerHeight - rect.bottom - 10;
+  const dropH = Math.min(results.length * 55, 260);
+  drop.style.left  = Math.max(4, rect.left) + 'px';
+  drop.style.width = Math.min(Math.max(rect.width, 300), window.innerWidth - 8) + 'px';
+  if(spaceBelow >= dropH || spaceBelow >= 120){
+    drop.style.top    = (rect.bottom + 4) + 'px';
+    drop.style.bottom = '';
+  } else {
+    drop.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+    drop.style.top    = '';
+  }
 
-  drop.innerHTML = results.map((r,i) => `
-    <div class="ac-item"
-      onmousedown="acPickDesktop(event,${rowIdx},'${r.trax.replace(/'/g,"\'")}','${(r.interne||r.trax).replace(/'/g,"\'")}','${r.desig.replace(/'/g,"\'")}')">
+  acRow = rowIdx; acMode = mode;
+
+  drop.innerHTML = results.map((r,i) => {
+    // Sérialiser les données en attributs data- pour éviter les problèmes de quotes
+    return `<div class="ac-item" data-interne="${esc(r.interne||r.trax)}" data-desig="${esc(r.desig)}" data-row="${rowIdx}"
+      onclick="acPick(this)">
       <div class="ac-code">${esc(r.trax)}<span class="ac-interne">${r.interne?'→ '+esc(r.interne):''}</span></div>
       <div class="ac-desig">${esc(r.desig)}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+
   drop.classList.add('open');
-  acOpenDropId = dropId;
+  overlay.classList.add('open');
 }
 
-function acPickDesktop(e, rowIdx, trax, interne, desig){
-  e.preventDefault();
+function acPick(el){
+  const interne = el.getAttribute('data-interne');
+  const desig   = el.getAttribute('data-desig');
+  const rowIdx  = parseInt(el.getAttribute('data-row'));
+  dbg('acPick row='+rowIdx+' code='+interne);
   acFill(rowIdx, interne, desig);
-  acCloseCustom();
+  acClose();
 }
 
-function acCloseCustom(){
-  document.querySelectorAll('.ac-dropdown-custom').forEach(d=>{
-    d.classList.remove('open'); d.innerHTML='';
-  });
-  acOpenDropId = null;
-}
-
-// ── MOBILE : select natif ──────────────────────────────────────
-function acBuildSelect(rowIdx, mode, q){
-  const selId = mode==='code' ? 'sel-code-'+rowIdx : 'sel-desig-'+rowIdx;
-  const sel = document.getElementById(selId);
-  if(!sel) return;
-
-  const qq = (q||'').toLowerCase().trim();
-  let results;
-  if(mode==='code'){
-    results = qq
-      ? traxData.filter(r => r.trax.toLowerCase().includes(qq)||r.interne.toLowerCase().includes(qq))
-      : traxData;
-  } else {
-    results = qq
-      ? traxData.filter(r => r.desig.toLowerCase().includes(qq)||r.trax.toLowerCase().includes(qq))
-      : traxData;
-  }
-  results = results.slice(0,200);
-
-  sel.innerHTML = '<option value="">— Sélectionner —</option>' +
-    results.map(r => {
-      const val = JSON.stringify({interne:r.interne||r.trax, desig:r.desig});
-      const label = mode==='code'
-        ? (r.interne||r.trax)+' — '+r.desig.slice(0,40)
-        : r.desig.slice(0,50)+' ('+( r.interne||r.trax)+')';
-      return `<option value='${val.replace(/'/g,"&apos;")}'>${label}</option>`;
-    }).join('');
-  dbg('select built: '+results.length+' options mode='+mode);
-}
-
-function acSelectNative(rowIdx, mode, sel){
-  if(!sel.value) return;
-  try{
-    const data = JSON.parse(sel.value.replace(/&apos;/g,"'"));
-    dbg('native select: code='+data.interne+' desig='+data.desig.slice(0,20));
-    acFill(rowIdx, data.interne, data.desig);
-    sel.selectedIndex = 0;
-  }catch(e){ dbg('parse error:'+e.message); }
-}
-
-// ── COMMUN ─────────────────────────────────────────────────────
 function acFill(rowIdx, code, desig){
-  const tr = document.getElementById('row-'+rowIdx);
-  if(!tr){ dbg('row-'+rowIdx+' introuvable'); return; }
   const codeInput = document.getElementById('inp-code-'+rowIdx);
   const descInput = document.getElementById('inp-desig-'+rowIdx);
-  if(codeInput){ codeInput.value=code; mark(rowIdx,'code_produit',code); }
+  if(codeInput){ codeInput.value=code;  mark(rowIdx,'code_produit',code); }
   if(descInput){ descInput.value=desig; mark(rowIdx,'description',desig); }
-  dbg('fill OK: code='+code);
+  dbg('Rempli: code='+code+' desig='+desig.slice(0,25));
 }
 
-// Compatibilité avec les fonctions appelées par datalist (maintenant inutilisées mais gardées)
-function acFillFromCode(rowIdx, val){ acFill(rowIdx, val, ''); }
-function acFillFromDesig(rowIdx, val){
-  const match = traxData.find(r=>r.desig.toLowerCase()===val.toLowerCase());
-  if(match) acFill(rowIdx, match.interne||match.trax, match.desig);
+function acClose(){
+  const drop = document.getElementById('ac-dropdown');
+  const overlay = document.getElementById('ac-overlay');
+  if(drop){ drop.classList.remove('open'); drop.innerHTML=''; }
+  if(overlay){ overlay.classList.remove('open'); }
+  acRow=-1; acMode='';
 }
+
+// Compatibilité
+function acFillFromCode(){}
+function acFillFromDesig(){}
+function acSearchDesktop(){}
+function acBuildSelect(){}
+function acSelectNative(){}
+function acCloseCustom(){ acClose(); }
 
 </script>
 </body>
