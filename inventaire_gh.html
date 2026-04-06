@@ -2028,20 +2028,43 @@ function renderTable(){
     const poidsUnit = getPoidsUnitaire(code);
     const poidsTotal = qte * poidsUnit;
 
-    return `<tr class="${sel}" onclick="toggleItem(event, ${i}, '${escAttr(key)}')">
+    const expiration = raw[19] || ''; // colonne expiration
+    const expiryClass = getExpiryClass(expiration);
+    const expiryStyle = expiryClass === 'expired' ? 'color:var(--ruby)' : expiryClass === 'expiring' ? 'color:var(--amber)' : '';
+
+    return `<tr class="${sel}" onclick="toggleItem(event, ${i}, '${escAttr(key)}')" ${expiryStyle ? `style="${expiryStyle}"` : ''}>
       <td style="font-size:.72rem">${escH(code)}</td>
       <td style="font-size:.72rem">${escH(desc)}</td>
       ${keep.slice(2).map(idx=>{
         let val = raw[idx]||'';
-        // Formater les colonnes de date (13=Date lot, 14=Expiration, 15=Réception)
         if(idx===13||idx===14||idx===15) val = fmtDate(val);
         return `<td style="font-size:.72rem">${escH(val)}</td>`;
       }).join('')}
-      <td style="font-size:.72rem;color:var(--amber);font-weight:600">${poidsUnit > 0 ? poidsUnit.toFixed(1) : '—'}</td>
-      <td style="font-size:.72rem;color:var(--emerald);font-weight:700">${poidsTotal > 0 ? poidsTotal.toFixed(1) : '—'}</td>
+      <td style="font-size:.72rem;${expiryStyle||'color:var(--amber);font-weight:600'}">${poidsUnit > 0 ? poidsUnit.toFixed(1) : '—'}</td>
+      <td style="font-size:.72rem;${expiryStyle||'color:var(--emerald);font-weight:700'}">${poidsTotal > 0 ? poidsTotal.toFixed(1) : '—'}</td>
       <td style="text-align:center;">${traxBadge(code, desc)}</td>
     </tr>`;
   }).join('');
+}
+
+function getExpiryClass(dateStr){
+  if(!dateStr) return '';
+  try{
+    // Parser les formats DD/MM/YYYY et YYYY-MM-DD
+    let d;
+    const m1 = dateStr.trim().match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/);
+    const m2 = dateStr.trim().match(/^(\d{4})[\/\-](\d{2})[\/\-](\d{2})$/);
+    if(m1)      d = new Date(m1[3], m1[2]-1, m1[1]);
+    else if(m2) d = new Date(m2[1], m2[2]-1, m2[3]);
+    else        d = new Date(dateStr);
+    if(isNaN(d)) return '';
+    const now = new Date();
+    const oneMonth = new Date();
+    oneMonth.setMonth(oneMonth.getMonth() + 1);
+    if(d < now)      return 'expired';
+    if(d < oneMonth) return 'expiring';
+    return '';
+  }catch(e){ return ''; }
 }
 
 function isExpired(dateStr){
