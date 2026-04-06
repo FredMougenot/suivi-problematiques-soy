@@ -130,8 +130,8 @@
 .prod-tot-item strong{color:var(--amber);font-size:.78rem;}
 
 /* ── Ligne de stock ── */
-.stock-row{display:grid;grid-template-columns:80px 1fr 56px 110px 100px 100px;align-items:center;padding:6px 16px;
-  border-bottom:1px solid rgba(44,51,80,.3);transition:background .1s;gap:8px;}
+.stock-row{display:grid;grid-template-columns:76px 148px 48px 100px 96px 96px;align-items:center;padding:6px 14px;
+  border-bottom:1px solid rgba(44,51,80,.3);transition:background .1s;gap:6px;}
 .stock-row:last-child{border-bottom:none;}
 .stock-row:hover{background:var(--bg-hover);}
 
@@ -960,10 +960,7 @@ function renderMain(){
 
         html += `<div class="stock-row">
           <span class="loc-badge ${badgeCls}">${badgeTxt}</span>
-          <div class="row-lot" title="${esc(row.no_lot||'')}">
-            <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(row.no_lot||'—')}</div>
-            ${palBadge ? `<div style="margin-top:2px;">${palBadge}</div>` : ''}
-          </div>
+          <span class="row-lot" title="${esc(row.no_lot||'')}">${esc(row.no_lot||'—')}${palBadge}</span>
           <span class="row-qte">${row.quantite > 0 ? (row.quantite % 1 === 0 ? row.quantite : row.quantite.toFixed(2)) : '<span style="color:var(--text-faint);">—</span>'}</span>
           <span class="row-poids">${row.poids_total > 0 ? row.poids_total.toFixed(2)+' kg' : '<span style="color:var(--text-faint);">—</span>'}</span>
           <div class="row-dates">
