@@ -1076,8 +1076,8 @@ async function exportPDF(){
     // ── COLONNES ──
     const cols = [
       {label:'Emplacement', w:20, key:'source'},
-      {label:'Catégorie',   w:30, key:'cat'},
       {label:'Code produit',w:25, key:'code'},
+      {label:'Code TRAX',   w:22, key:'trax'},
       {label:'Description', w:0,  key:'desc'},
       {label:'No. lot',     w:25, key:'lot'},
       {label:'Qté',         w:12, key:'qte'},
@@ -1144,9 +1144,10 @@ async function exportPDF(){
         const qteVal   = parseFloat(row.quantite)||0;
         const poidsU   = parseFloat(row.poids_unit)||0;
         const poidsT   = parseFloat(row.poids_total)||0;
+        const traxVal = traxMap.get((row.code_produit||'').trim().toUpperCase()) || '';
         const rowData = {
-          cat:     catData.name,
           code:    row.code_produit||'',
+          trax:    traxVal,
           desc:    row.description||'',
           lot:     row.no_lot||'',
           slot:    row.no_sous_lot||'',
@@ -1160,6 +1161,7 @@ async function exportPDF(){
         cols.slice(1).forEach(c => {
           pdf.setFontSize(5.5); pdf.setFont('helvetica','normal');
           if(c.key==='code'){ pdf.setTextColor(...C.sapphire); pdf.setFont('helvetica','bold'); }
+          else if(c.key==='trax'){ pdf.setTextColor(...C.copper); pdf.setFont('helvetica','bold'); }
           else if(c.key==='poids_t'){ pdf.setTextColor(...C.amber); pdf.setFont('helvetica','bold'); }
           else if(c.key==='dper'){
             const d = daysUntil(row.date_peremption);
@@ -1219,7 +1221,7 @@ function exportExcel(){
   if(filteredRows.length === 0){ toast('Aucune donnée à exporter.','err'); return; }
   try{
     const grouped = groupRows(filteredRows);
-    const headers = ['Emplacement','Catégorie','Code produit','Description','No. lot','Qté','Poids total (kg)','Date fab.','Date pér.'];
+    const headers = ['Emplacement','Code produit','Code TRAX','Description','No. lot','Qté','Poids total (kg)','Date fab.','Date pér.'];
     const data = [headers];
 
     const byCat = new Map();
@@ -1233,10 +1235,11 @@ function exportExcel(){
     [...byCat.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([catName, rows]) => {
       data.push([catName,'','','','','','','','']);
       rows.sort((a,b)=>(a.code_produit||'').localeCompare(b.code_produit||'')).forEach(row => {
+        const traxCodeXls = traxMap.get((row.code_produit||'').trim().toUpperCase()) || '';
         data.push([
           row.source==='usine' ? 'Usine' : 'GH',
-          catName,
           row.code_produit||'',
+          traxCodeXls,
           row.description||'',
           row.no_lot||'',
           parseFloat(row.quantite)||0,
