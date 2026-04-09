@@ -345,6 +345,7 @@ let allRows      = [];   // Fusion des deux
 let filteredRows = [];   // Après filtres
 let activeCat    = null; // Catégorie active dans sidebar
 let dateReleveUsine = null;
+let traxMap      = new Map(); // code_interne → code_trax
 
 // ── UTILS ─────────────────────────────────────────────────────────
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -384,6 +385,18 @@ function waitSB(){
 }
 let poidsList = [];
 
+async function loadTraxMap(){
+  try{
+    const {data} = await sb.from('correspondance_trax').select('code_trax,code_interne');
+    traxMap = new Map();
+    (data||[]).forEach(r => {
+      if(r.code_interne && r.code_trax){
+        traxMap.set(r.code_interne.trim().toUpperCase(), r.code_trax.trim());
+      }
+    });
+  }catch(e){ traxMap = new Map(); }
+}
+
 async function loadPoids(){
   try{
     const {data, error} = await sb.from('gh_poids').select('*');
@@ -413,8 +426,8 @@ async function loadAll(){
   showState('spinner');
   document.getElementById('btn-pdf').disabled = true;
 
-  // Charger catégories ET poids en parallèle
-  await Promise.all([loadCategories(), loadPoids()]);
+  // Charger catégories, poids ET correspondance TRAX en parallèle
+  await Promise.all([loadCategories(), loadPoids(), loadTraxMap()]);
 
   // Charger usine (Supabase) + GH (localStorage)
   await Promise.all([loadUsine(), loadGH()]);
@@ -919,8 +932,11 @@ function renderMain(){
 
       if(ci > 0) html += `<div style="height:1px;background:rgba(44,51,80,.4);margin:0 16px;"></div>`;
 
+      const traxCode = traxMap.get((code||'').trim().toUpperCase()) || '';
+
       html += `<div class="prod-group-header">
         <span class="prod-code">${esc(code)}</span>
+        ${traxCode ? `<span style="font-size:.72rem;font-weight:700;color:var(--copper);margin-left:8px;white-space:nowrap;">${esc(traxCode)}</span>` : ''}
         ${description ? `<span class="prod-desc">— ${esc(description)}</span>` : ''}
         <div class="prod-totaux">
           <span class="prod-tot-item">Qté : <strong>${totalQte % 1 === 0 ? totalQte : totalQte.toFixed(2)}</strong></span>
