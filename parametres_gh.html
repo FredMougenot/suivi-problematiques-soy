@@ -823,20 +823,83 @@ function displayCorr() {
     return;
   }
   const esc2 = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  tbody.innerHTML = corrFiltered.map((row, i) => `<tr style="border-bottom:1px solid rgba(255,255,255,.04);transition:background .1s;" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background=''">
+  tbody.innerHTML = corrFiltered.map((row, i) => {
+    const idx = corrRows.indexOf(row);
+    return `<tr id="corr-row-${idx}" style="border-bottom:1px solid rgba(255,255,255,.04);transition:background .1s;" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background=''">
     <td style="padding:7px 14px;font-size:.72rem;color:var(--text-faint);font-weight:700;text-align:center;">${i+1}</td>
     <td style="padding:7px 14px;font-size:.78rem;color:var(--sapphire);font-weight:700;white-space:nowrap;">${esc2(row.trax)}</td>
     <td style="padding:7px 14px;font-size:.78rem;color:var(--emerald);font-weight:600;white-space:nowrap;">${esc2(row.interne)}</td>
     <td style="padding:7px 14px;font-size:.78rem;color:var(--text-secondary);">${esc2(row.desig)}</td>
-    <td style="padding:7px 8px;text-align:center;">
-      <button onclick="deleteCorr(${corrRows.indexOf(row)})" title="Supprimer"
+    <td style="padding:7px 8px;text-align:center;white-space:nowrap;display:flex;gap:4px;justify-content:center;">
+      <button onclick="editCorr(${idx})" title="Modifier"
+        style="width:22px;height:22px;border-radius:4px;background:transparent;border:none;color:var(--text-faint);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;"
+        onmouseover="this.style.background='rgba(74,158,232,.15)';this.style.color='var(--sapphire)'"
+        onmouseout="this.style.background='transparent';this.style.color='var(--text-faint)'">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
+      <button onclick="deleteCorr(${idx})" title="Supprimer"
         style="width:22px;height:22px;border-radius:4px;background:transparent;border:none;color:var(--text-faint);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;"
         onmouseover="this.style.background='rgba(224,85,85,.15)';this.style.color='var(--ruby)'"
         onmouseout="this.style.background='transparent';this.style.color='var(--text-faint)'">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </td>
-  </tr>`).join('');
+  </tr>`;
+  }).join('');
+}
+
+// ── ÉDITION INLINE ─────────────────────────────────────────────
+function editCorr(idx) {
+  const row = corrRows[idx];
+  if(!row) return;
+  const tr = document.getElementById('corr-row-'+idx);
+  if(!tr) return;
+  const inpStyle = 'background:var(--bg-raised);border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:3px 7px;color:var(--text-primary);font-size:.78rem;font-family:Outfit,sans-serif;outline:none;width:100%;';
+  tr.innerHTML = `
+    <td style="padding:7px 14px;font-size:.72rem;color:var(--text-faint);font-weight:700;text-align:center;">✏️</td>
+    <td style="padding:4px 8px;"><input id="edit-trax-${idx}" value="${String(row.trax||'').replace(/"/g,'&quot;')}" placeholder="Code TRAX" style="${inpStyle}color:var(--sapphire);font-weight:700;"></td>
+    <td style="padding:4px 8px;"><input id="edit-int-${idx}" value="${String(row.interne||'').replace(/"/g,'&quot;')}" placeholder="Code interne" style="${inpStyle}color:var(--emerald);font-weight:600;"></td>
+    <td style="padding:4px 8px;"><input id="edit-des-${idx}" value="${String(row.desig||'').replace(/"/g,'&quot;')}" placeholder="Désignation" style="${inpStyle}" onkeydown="if(event.key==='Enter')saveEditCorr(${idx});if(event.key==='Escape')displayCorr();"></td>
+    <td style="padding:7px 8px;text-align:center;white-space:nowrap;display:flex;gap:4px;justify-content:center;">
+      <button onclick="saveEditCorr(${idx})" title="Enregistrer"
+        style="width:22px;height:22px;border-radius:4px;background:rgba(45,212,160,.15);border:none;color:var(--emerald);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+      <button onclick="displayCorr()" title="Annuler"
+        style="width:22px;height:22px;border-radius:4px;background:transparent;border:none;color:var(--text-faint);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </td>`;
+  document.getElementById('edit-trax-'+idx).focus();
+}
+
+async function saveEditCorr(idx) {
+  const row = corrRows[idx];
+  if(!row) return;
+  const trax   = document.getElementById('edit-trax-'+idx)?.value.trim() || '';
+  const interne= document.getElementById('edit-int-' +idx)?.value.trim() || '';
+  const desig  = document.getElementById('edit-des-' +idx)?.value.trim() || '';
+
+  try {
+    if(row.supabase_id) {
+      const {error} = await sb.from('correspondance_trax').update({
+        code_trax: trax||null, code_interne: interne||null, designation: desig||null
+      }).eq('id', row.supabase_id);
+      if(error) throw error;
+    } else {
+      // Pas encore dans Supabase — insérer maintenant
+      const {data, error} = await sb.from('correspondance_trax').insert({
+        code_trax: trax||null, code_interne: interne||null, designation: desig||null
+      }).select().single();
+      if(!error && data) corrRows[idx].supabase_id = data.id;
+    }
+    corrRows[idx].trax    = trax;
+    corrRows[idx].interne = interne;
+    corrRows[idx].desig   = desig;
+    filterCorrespondance();
+  } catch(e) {
+    alert('Erreur : ' + e.message);
+  }
 }
 
 // ── AJOUT ──────────────────────────────────────────────────────
