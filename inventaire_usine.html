@@ -261,12 +261,6 @@
 <div class="ac-overlay" id="ac-overlay" onclick="acClose()"></div>
 <div class="ac-dropdown" id="ac-dropdown"></div>
 
-<!-- Debug panel -->
-<div id="dbg" style="position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(0,0,0,.92);color:#0f0;font-family:monospace;font-size:.7rem;padding:8px 12px;max-height:160px;overflow-y:auto;border-top:2px solid #0f0;">
-  <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-    <strong style="color:#ff0;">DEBUG AUTOCOMPLETE</strong>
-    <button onclick="document.getElementById('dbg-log').innerHTML=''" style="background:none;border:1px solid #555;color:#aaa;font-size:.65rem;padding:2px 6px;cursor:pointer;">Effacer</button>
-  </div>
   <div id="dbg-log"></div>
 </div>
 
@@ -488,6 +482,7 @@ async function loadReleve(){
         poids_unit: r.poids_unit||'',
         poids_total: r.poids_total||'',
         balance:     r.balance||'',
+        date_fab:        r.date_fab||'',
         date_peremption: r.date_peremption||'',
         notes: r.notes||'',
         isNew: false,
@@ -721,12 +716,7 @@ function toast(msg, type='ok'){
 }
 
 // ── CORRESPONDANCE TRAX — AUTOCOMPLETE ───────────────────────────
-function dbg(msg){
-  const el = document.getElementById('dbg-log');
-  if(!el) return;
-  const t = new Date().toTimeString().slice(0,8);
-  el.innerHTML = '<div>['+t+'] '+msg+'</div>' + el.innerHTML;
-}
+function dbg(){}
 
 async function loadTraxData(){
   try{
