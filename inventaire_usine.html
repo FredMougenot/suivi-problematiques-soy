@@ -222,16 +222,15 @@
             <th style="width:36px;">#</th>
             <th class="th-req" style="min-width:140px;">Catégorie</th>
             <th class="th-req" style="min-width:110px;">Code produit</th>
-            <th style="min-width:420px;">Description</th>
+            <th style="min-width:180px;">Description</th>
             <th class="th-req" style="min-width:100px;">No. lot</th>
-            <th style="min-width:18px;">Qté</th>
+            <th style="min-width:70px;">Qté</th>
             <th style="min-width:80px;">Poids unit. (kg)</th>
             <th style="min-width:80px;">Balance (kg)</th>
             <th style="min-width:90px;">Poids total (kg)</th>
             <th style="min-width:110px;">Date fabrication</th>
             <th style="min-width:110px;">Date péremption</th>
             <th style="min-width:120px;">Notes</th>
-            <th style="width:30px;"></th>
             <th style="width:40px;"></th>
           </tr>
         </thead>
@@ -262,6 +261,12 @@
 <div class="ac-overlay" id="ac-overlay" onclick="acClose()"></div>
 <div class="ac-dropdown" id="ac-dropdown"></div>
 
+<!-- Debug panel -->
+<div id="dbg" style="position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(0,0,0,.92);color:#0f0;font-family:monospace;font-size:.7rem;padding:8px 12px;max-height:160px;overflow-y:auto;border-top:2px solid #0f0;">
+  <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+    <strong style="color:#ff0;">DEBUG AUTOCOMPLETE</strong>
+    <button onclick="document.getElementById('dbg-log').innerHTML=''" style="background:none;border:1px solid #555;color:#aaa;font-size:.65rem;padding:2px 6px;cursor:pointer;">Effacer</button>
+  </div>
   <div id="dbg-log"></div>
 </div>
 
@@ -483,7 +488,6 @@ async function loadReleve(){
         poids_unit: r.poids_unit||'',
         poids_total: r.poids_total||'',
         balance:     r.balance||'',
-        date_fab:        r.date_fab||'',
         date_peremption: r.date_peremption||'',
         notes: r.notes||'',
         isNew: false,
@@ -545,14 +549,6 @@ function render(){
       <td><input class="inp-cell" type="date" value="${esc(r.date_peremption)}" oninput="mark(${i},'date_peremption',this.value)"></td>
       <td><input class="inp-cell" value="${esc(r.notes)}" placeholder="Notes…" oninput="mark(${i},'notes',this.value)"></td>
       <td class="td-rm">
-        <button onclick="toggleEditRow(${i})" id="btn-edit-${i}" title="Modifier / Verrouiller"
-          style="width:28px;height:28px;border-radius:var(--r-sm);background:transparent;border:1px solid transparent;color:var(--text-muted);font-size:.85rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;"
-          onmouseover="this.style.background='rgba(74,158,232,.1)';this.style.borderColor='rgba(74,158,232,.3)';this.style.color='var(--sapphire)'"
-          onmouseout="this.style.background='transparent';this.style.borderColor='transparent';this.style.color='var(--text-muted)'">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        </button>
-      </td>
-      <td class="td-rm">
         <button onclick="removeRow(${i})" title="Supprimer" style="width:28px;height:28px;border-radius:var(--r-sm);background:transparent;border:1px solid transparent;color:var(--text-muted);font-size:.85rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;" onmouseover="this.style.background='rgba(224,85,85,.1)';this.style.borderColor='rgba(224,85,85,.3)';this.style.color='var(--ruby)'" onmouseout="this.style.background='transparent';this.style.borderColor='transparent';this.style.color='var(--text-muted)'">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -564,31 +560,7 @@ function render(){
   document.getElementById('releve-count').textContent = rows.length + ' produit' + (rows.length > 1 ? 's' : '');
 }
 
-function toggleEditRow(idx){
-  const tr = document.getElementById('row-'+idx);
-  if(!tr) return;
-  const inputs = tr.querySelectorAll('.inp-cell');
-  const btn = document.getElementById('btn-edit-'+idx);
-  const isLocked = inputs[0]?.readOnly;
-
-  if(isLocked){
-    // Déverrouiller
-    inputs.forEach(inp => {
-      inp.readOnly = false;
-      inp.style.opacity = '';
-      inp.style.pointerEvents = '';
-    });
-    if(btn){ btn.style.color='var(--sapphire)'; btn.style.background='rgba(74,158,232,.1)'; btn.style.borderColor='rgba(74,158,232,.3)'; }
-  } else {
-    // Verrouiller
-    inputs.forEach(inp => {
-      inp.readOnly = true;
-      inp.style.opacity = '0.6';
-      inp.style.pointerEvents = 'none';
-    });
-    if(btn){ btn.style.color=''; btn.style.background='transparent'; btn.style.borderColor='transparent'; }
-  }
-}
+function updatePoidsTotal(idx){
   const r = rows[idx];
   const pt = (parseFloat(r.quantite)||0) * (parseFloat(r.poids_unit)||0) + (parseFloat(r.balance)||0);
   rows[idx].poids_total = pt > 0 ? pt : '';
@@ -749,7 +721,12 @@ function toast(msg, type='ok'){
 }
 
 // ── CORRESPONDANCE TRAX — AUTOCOMPLETE ───────────────────────────
-function dbg(){}
+function dbg(msg){
+  const el = document.getElementById('dbg-log');
+  if(!el) return;
+  const t = new Date().toTimeString().slice(0,8);
+  el.innerHTML = '<div>['+t+'] '+msg+'</div>' + el.innerHTML;
+}
 
 async function loadTraxData(){
   try{
