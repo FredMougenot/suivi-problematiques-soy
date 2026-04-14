@@ -2104,12 +2104,29 @@ async function exportPDF(pageFormat) {
             if (totalLines > maxLines) maxLines = totalLines;
           } else {
             // Autres colonnes texte (Cause, Action, Résultat)
+            // Extraire le texte en respectant les <br> → \n
             pdf.setFontSize(cellFontSize);
             pdf.setFont('helvetica', 'normal');
-            const raw = td ? td.textContent.trim().replace(/\s+/g, ' ') : '';
-            const lines = splitLines(raw || '—', col.w);
-            wrappedLines[col.key] = lines;
-            if (lines.length > maxLines) maxLines = lines.length;
+            let raw = '—';
+            if (td) {
+              const div = td.querySelector('div');
+              if (div) {
+                // Remplacer les <br> par \n avant de lire le texte
+                const clone = div.cloneNode(true);
+                clone.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+                raw = clone.textContent.trim() || '—';
+              } else {
+                raw = td.textContent.trim().replace(/\s+/g, ' ') || '—';
+              }
+            }
+            // Découper en respectant les sauts de ligne explicites
+            const allLines = [];
+            for (const segment of raw.split('\n')) {
+              const segLines = splitLines(segment.trim() || ' ', col.w);
+              allLines.push(...segLines);
+            }
+            wrappedLines[col.key] = allLines.length ? allLines : ['—'];
+            if (allLines.length > maxLines) maxLines = allLines.length;
           }
         });
 
