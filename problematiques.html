@@ -757,6 +757,87 @@ body { font-size: 0.9375rem; }
 
 @media(max-width:600px){.chart-grid{grid-template-columns:1fr;}}
 
+/* ── PDF FORMAT MODAL ───────────────────────────────────────────── */
+.pdf-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.72);
+  z-index: 1000; display: none; align-items: center; justify-content: center;
+  backdrop-filter: blur(6px);
+}
+.pdf-modal-overlay.open { display: flex; }
+.pdf-modal {
+  background: var(--bg-float);
+  border: 1px solid rgba(200,132,58,.25);
+  border-radius: var(--r-xl);
+  padding: 36px 32px 28px;
+  width: 480px; max-width: 96vw;
+  box-shadow: 0 32px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(200,132,58,.08);
+  position: relative;
+  animation: modalIn .22s cubic-bezier(0,0,.2,1);
+}
+@keyframes modalIn { from{opacity:0;transform:translateY(14px) scale(.97)} to{opacity:1;transform:none} }
+.pdf-modal::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--copper), transparent);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+}
+.pdf-modal-title {
+  font-size: 1.05rem; font-weight: 700; color: var(--text-primary);
+  margin-bottom: 6px;
+}
+.pdf-modal-sub {
+  font-size: .76rem; color: var(--text-muted); margin-bottom: 24px; font-weight: 300;
+}
+.pdf-format-cards {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px;
+}
+.pdf-format-card {
+  border: 1.5px solid var(--text-faint);
+  border-radius: var(--r-lg);
+  padding: 18px 16px;
+  cursor: pointer;
+  transition: all .18s var(--ease);
+  background: var(--bg-raised);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.pdf-format-card:hover {
+  border-color: var(--copper); background: var(--copper-dim);
+}
+.pdf-format-card.selected {
+  border-color: var(--copper); background: var(--copper-dim);
+  box-shadow: 0 0 0 3px var(--copper-glow);
+}
+.pdf-format-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 48px; height: 34px;
+  border-radius: 5px; border: 1.5px solid var(--text-muted);
+  background: var(--bg-active); position: relative;
+}
+.pdf-format-card.selected .pdf-format-icon { border-color: var(--copper); }
+.pdf-format-name {
+  font-size: .82rem; font-weight: 700; color: var(--text-primary); text-align: center;
+}
+.pdf-format-dims {
+  font-size: .68rem; color: var(--text-muted); font-weight: 300; text-align: center;
+}
+.pdf-modal-footer {
+  display: flex; gap: 10px; justify-content: flex-end;
+}
+.pdf-btn-cancel {
+  padding: 9px 18px; border-radius: var(--r-md);
+  background: transparent; border: 1px solid var(--text-faint);
+  color: var(--text-secondary); font-size: .82rem; font-weight: 600;
+  cursor: pointer; transition: all .15s; font-family: 'Outfit', sans-serif;
+}
+.pdf-btn-cancel:hover { border-color: var(--text-muted); color: var(--text-primary); }
+.pdf-btn-export {
+  padding: 9px 22px; border-radius: var(--r-md);
+  background: linear-gradient(135deg, var(--copper), var(--copper-light));
+  color: #0B0D13; font-size: .82rem; font-weight: 700;
+  cursor: pointer; border: none; transition: opacity .15s; font-family: 'Outfit', sans-serif;
+  display: flex; align-items: center; gap: 7px;
+}
+.pdf-btn-export:hover { opacity: .88; }
+
 /* ── PILIER BTNS ────────────────────────────────────────────────── */
 .pilier-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
 .pilier-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--text-faint);background:var(--bg-raised);color:var(--text-muted);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;font-family:'Outfit',sans-serif;}
@@ -777,7 +858,7 @@ body { font-size: 0.9375rem; }
       Registre des problématiques
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
-      <button onclick="exportPDF()" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:#1A1E2A;border:1px solid rgba(45,212,160,.3);color:#2DD4A0;font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;" onmouseover="this.style.borderColor='#2DD4A0'" onmouseout="this.style.borderColor='rgba(45,212,160,.3)'">
+      <button onclick="openPdfModal()" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:#1A1E2A;border:1px solid rgba(45,212,160,.3);color:#2DD4A0;font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;" onmouseover="this.style.borderColor='#2DD4A0'" onmouseout="this.style.borderColor='rgba(45,212,160,.3)'">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         Exporter PDF
       </button>
@@ -1793,10 +1874,17 @@ async function init() {
 }
 
 // ── EXPORT PDF ────────────────────────────────────────────────────
-async function exportPDF() {
+async function exportPDF(pageFormat) {
+  // pageFormat: 'letter' (279x216mm, paysage) ou 'ledger' (432x279mm, paysage)
+  const fmt = pageFormat || 'letter';
   try {
     const { jsPDF } = window.jspdf;
-    const pdf  = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    // Dimensions paysage : letter = 279×216, ledger = 432×279
+    const fmtDims = fmt === 'ledger'
+      ? [432, 279]   // ledger paysage (w × h en mm)
+      : [279, 216];  // letter US paysage
+
+    const pdf  = new jsPDF({ orientation: 'landscape', unit: 'mm', format: fmtDims });
     const W    = pdf.internal.pageSize.getWidth();
     const H    = pdf.internal.pageSize.getHeight();
     const M    = 10;
@@ -1901,13 +1989,16 @@ async function exportPDF() {
       pdf.setTextColor(...C.grey);
       pdf.text('Aucune problématique à afficher.', M, y + 8);
     } else {
-      // ── Calcul des largeurs PDF ──
-      // ID: 12mm | Statut: 15mm | Soumis: 22mm (augmenté) | RESP.: 18mm
-      // Date prévue: 20mm | Retard: 12mm | Date résolue: 20mm
-      // Fixes total : 12+15+22+18+20+12+20 = 119mm
-      // Reste pour 4 colonnes texte : (W - 2*M - 119) / 4 = ~40mm chacune
+      // ── Calcul des largeurs PDF (adapté au format) ──
+      // Colonnes fixes : ID(12) + Statut(15) + Soumis(22) + RESP.(18) + DatePrév(20) + Retard(12) + DateRésolue(20) = 119mm
+      // Letter  paysage : W=279, M=10 → dispo = 259mm → texte = (259-119)/4 = 35mm chacune
+      // Ledger  paysage : W=432, M=10 → dispo = 412mm → texte = (412-119)/4 = 73mm chacune
       const fixedW = 12 + 15 + 22 + 18 + 20 + 12 + 20; // = 119mm
-      const textW  = Math.floor((W - 2*M - fixedW) / 4); // ≈ 40mm
+      const textW  = Math.floor((W - 2*M - fixedW) / 4);
+
+      // Taille de police des cellules : plus grande sur ledger pour profiter de l'espace
+      const cellFontSize   = fmt === 'ledger' ? 7.5 : 7;
+      const headerFontSize = fmt === 'ledger' ? 7   : 6.5;
 
       const cols = [
         { key: 0,  label: 'ID',            w: 12,    isText: false },
@@ -1923,14 +2014,14 @@ async function exportPDF() {
         { key: 12, label: 'Date résolue',  w: 20,    isText: false },
       ];
 
-      const rowH   = 9;
-      const headerH = 8;
+      const rowH    = fmt === 'ledger' ? 10 : 9;
+      const headerH = fmt === 'ledger' ? 9  : 8;
 
       // En-tête tableau
       let x = M;
       pdf.setFillColor(245, 245, 248);
       pdf.rect(M, y, W - 2*M, headerH, 'F');
-      pdf.setFontSize(6.5);
+      pdf.setFontSize(headerFontSize);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(...C.copper);
       cols.forEach(col => {
@@ -1972,7 +2063,7 @@ async function exportPDF() {
         let hx = M;
         pdf.setFillColor(245, 245, 248);
         pdf.rect(M, y, W - 2*M, headerH, 'F');
-        pdf.setFontSize(6.5);
+        pdf.setFontSize(headerFontSize);
         pdf.setFont('helvetica', 'bold');
         pdf.setTextColor(...C.copper);
         cols.forEach(col => { pdf.text(col.label.toUpperCase(), hx + 2, y + 5.5); hx += col.w; });
@@ -1999,7 +2090,7 @@ async function exportPDF() {
             const desc = descSpan?.textContent.trim() || '';
             
             // IMPORTANT : Définir BOLD avant de calculer splitLines pour le titre
-            pdf.setFontSize(7);
+            pdf.setFontSize(cellFontSize);
             pdf.setFont('helvetica', 'bold');
             const titreLines = titre ? splitLines(titre, col.w) : [];
             
@@ -2012,7 +2103,7 @@ async function exportPDF() {
             if (totalLines > maxLines) maxLines = totalLines;
           } else {
             // Autres colonnes texte (Cause, Action, Résultat)
-            pdf.setFontSize(7);
+            pdf.setFontSize(cellFontSize);
             pdf.setFont('helvetica', 'normal');
             const raw = td ? td.textContent.trim().replace(/\s+/g, ' ') : '';
             const lines = splitLines(raw || '—', col.w);
@@ -2047,7 +2138,7 @@ async function exportPDF() {
           const td = tds[col.key];
           const raw = td ? td.textContent.trim().replace(/\s+/g, ' ') : '';
 
-          pdf.setFontSize(7);
+          pdf.setFontSize(cellFontSize);
           pdf.setFont('helvetica', 'normal');
 
           // Couleur selon colonne
@@ -2081,7 +2172,7 @@ async function exportPDF() {
               
               // Titre en gras - IMPORTANT : définir font AVANT de calculer
               if (titre) {
-                pdf.setFontSize(7);
+                pdf.setFontSize(cellFontSize);
                 pdf.setFont('helvetica', 'bold');
                 const titreLines = splitLines(titre, col.w);
                 titreLines.forEach((line, li) => {
@@ -2092,7 +2183,7 @@ async function exportPDF() {
               
               // Description en normal
               if (desc) {
-                pdf.setFontSize(7);
+                pdf.setFontSize(cellFontSize);
                 pdf.setFont('helvetica', 'normal');
                 const descLines = splitLines(desc, col.w);
                 descLines.forEach((line, li) => {
@@ -2101,7 +2192,7 @@ async function exportPDF() {
               }
             } else {
               // Autres colonnes texte (Cause, Action, Résultat)
-              pdf.setFontSize(7);
+              pdf.setFontSize(cellFontSize);
               pdf.setFont('helvetica', 'normal');
               const lines = wrappedLines[col.key] || ['—'];
               lines.forEach((line, li) => {
@@ -2145,7 +2236,7 @@ async function exportPDF() {
             
             // Affichage
             if (prenom || nom) {
-              pdf.setFontSize(6.5);
+              pdf.setFontSize(cellFontSize - 0.5);
               pdf.setFont('helvetica', 'normal');
               const maxW = col.w - 4;
               
@@ -2168,10 +2259,10 @@ async function exportPDF() {
               if (nomDisplay) {
                 pdf.text(nomDisplay, x + 2, yCenter + 2);
               }
-              pdf.setFontSize(7);
+              pdf.setFontSize(cellFontSize);
             } else {
               // Pas de responsable ou "—"
-              pdf.setFontSize(7);
+              pdf.setFontSize(cellFontSize);
               pdf.setFont('helvetica', 'normal');
               pdf.text('—', x + 2, y + dynRowH / 2 + 2);
             }
@@ -2207,7 +2298,7 @@ async function exportPDF() {
       pdf.text(`Page ${i} / ${pages}`, W - M, H - 3, { align: 'right' });
     }
 
-    pdf.save('problematiques_' + new Date().toISOString().slice(0, 10) + '.pdf');
+    pdf.save('problematiques_' + (fmt === 'ledger' ? 'ledger_' : 'letter_') + new Date().toISOString().slice(0, 10) + '.pdf');
   } catch(err) {
     console.error('Export PDF:', err);
     alert('Erreur export PDF : ' + (err?.message || err));
@@ -2223,7 +2314,6 @@ window.addEventListener('load', () => {
   waitSB();
 });
 
-// Fermer les overlays uniquement via les boutons Annuler / Enregistrer / ✕
 // (le clic sur l'overlay ne ferme plus le modal)
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -2274,5 +2364,79 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 </script>
+
+<!-- PDF FORMAT MODAL -->
+<div class="pdf-modal-overlay" id="pdf-modal-overlay">
+  <div class="pdf-modal">
+    <div class="pdf-modal-title">Choisir le format d'export</div>
+    <div class="pdf-modal-sub">Sélectionnez le format de page pour votre PDF</div>
+    <div class="pdf-format-cards">
+      <div class="pdf-format-card selected" id="pdf-card-letter" onclick="selectPdfFormat('letter')">
+        <div class="pdf-format-icon">
+          <svg width="44" height="34" viewBox="0 0 44 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="1" width="42" height="32" rx="3" stroke="currentColor" stroke-width="1.5" fill="rgba(200,132,58,.08)"/>
+            <line x1="7" y1="8" x2="37" y2="8" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity=".5"/>
+            <line x1="7" y1="13" x2="37" y2="13" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity=".35"/>
+            <line x1="7" y1="18" x2="28" y2="18" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity=".25"/>
+          </svg>
+        </div>
+        <div class="pdf-format-name">Letter US Paysage</div>
+        <div class="pdf-format-dims">279 × 216 mm (11" × 8.5")</div>
+      </div>
+      <div class="pdf-format-card" id="pdf-card-ledger" onclick="selectPdfFormat('ledger')">
+        <div class="pdf-format-icon" style="width:60px;height:34px;">
+          <svg width="58" height="34" viewBox="0 0 58 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="1" width="56" height="32" rx="3" stroke="currentColor" stroke-width="1.5" fill="rgba(200,132,58,.08)"/>
+            <line x1="7" y1="8" x2="51" y2="8" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity=".5"/>
+            <line x1="7" y1="13" x2="51" y2="13" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity=".35"/>
+            <line x1="7" y1="18" x2="38" y2="18" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity=".25"/>
+          </svg>
+        </div>
+        <div class="pdf-format-name">Ledger Paysage</div>
+        <div class="pdf-format-dims">432 × 279 mm (17" × 11")</div>
+      </div>
+    </div>
+    <div class="pdf-modal-footer">
+      <button class="pdf-btn-cancel" onclick="closePdfModal()">Annuler</button>
+      <button class="pdf-btn-export" onclick="confirmExportPDF()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Exporter PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── PDF FORMAT MODAL ──────────────────────────────────────────────
+let _pdfSelectedFormat = 'letter';
+
+function openPdfModal() {
+  _pdfSelectedFormat = 'letter';
+  document.getElementById('pdf-card-letter').classList.add('selected');
+  document.getElementById('pdf-card-ledger').classList.remove('selected');
+  document.getElementById('pdf-modal-overlay').classList.add('open');
+}
+
+function closePdfModal() {
+  document.getElementById('pdf-modal-overlay').classList.remove('open');
+}
+
+function selectPdfFormat(fmt) {
+  _pdfSelectedFormat = fmt;
+  document.getElementById('pdf-card-letter').classList.toggle('selected', fmt === 'letter');
+  document.getElementById('pdf-card-ledger').classList.toggle('selected', fmt === 'ledger');
+}
+
+function confirmExportPDF() {
+  closePdfModal();
+  exportPDF(_pdfSelectedFormat);
+}
+
+// Fermer si clic sur l'overlay (fond)
+document.getElementById('pdf-modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closePdfModal();
+});
+</script>
+
 </body>
 </html>
