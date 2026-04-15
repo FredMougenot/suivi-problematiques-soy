@@ -157,7 +157,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .kpi{background:var(--bg-raised);border:1px solid rgba(255,255,255,.06);border-radius:var(--r-lg);padding:22px 20px;position:relative;overflow:hidden;transition:all var(--t-base) var(--ease);cursor:default;}
 .kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
 .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;z-index:2;}
-.kpi::after{content:'';position:absolute;inset:0;border-radius:var(--r-lg);pointer-events:none;z-index:0;}
+.kpi::after{content:'';position:absolute;top:-40px;right:-40px;width:110px;height:110px;border-radius:50%;opacity:.35;pointer-events:none;z-index:0;}
 .kpi.copper::before{background:linear-gradient(90deg,transparent,var(--copper),transparent);}
 .kpi.copper::after{background:radial-gradient(circle,rgba(184,115,51,.14),transparent 70%);}
 .kpi.emerald::before{background:linear-gradient(90deg,transparent,var(--emerald),transparent);}
@@ -168,11 +168,6 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .kpi.sapphire::after{background:radial-gradient(circle,rgba(74,158,232,.1),transparent 70%);}
 .kpi.amber::before{background:linear-gradient(90deg,transparent,var(--amber),transparent);}
 .kpi.amber::after{background:radial-gradient(circle,rgba(232,164,58,.1),transparent 70%);}
-.kpi.copper:hover{background:linear-gradient(145deg,rgba(184,115,51,.22) 0%,rgba(184,115,51,.08) 40%,var(--bg-raised) 100%);border-color:rgba(184,115,51,.28);}
-.kpi.emerald:hover{background:linear-gradient(145deg,rgba(45,212,160,.18) 0%,rgba(45,212,160,.07) 40%,var(--bg-raised) 100%);border-color:rgba(45,212,160,.25);}
-.kpi.ruby:hover{background:linear-gradient(145deg,rgba(224,85,85,.2) 0%,rgba(224,85,85,.07) 40%,var(--bg-raised) 100%);border-color:rgba(224,85,85,.28);}
-.kpi.sapphire:hover{background:linear-gradient(145deg,rgba(74,158,232,.2) 0%,rgba(74,158,232,.07) 40%,var(--bg-raised) 100%);border-color:rgba(74,158,232,.28);}
-.kpi.amber:hover{background:linear-gradient(145deg,rgba(232,164,58,.2) 0%,rgba(232,164,58,.07) 40%,var(--bg-raised) 100%);border-color:rgba(232,164,58,.28);}
 
 .kpi-lbl{font-size:.65rem;font-weight:700;color:var(--text-muted);letter-spacing:.18em;text-transform:uppercase;}
 
