@@ -182,6 +182,31 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .kpi.amber .kpi-val{color:var(--amber);}
 .kpi-sub{font-size:.71rem;color:var(--text-muted);margin-top:5px;font-weight:300;position:relative;z-index:1;}
 
+
+/* KPI – Gradient radial qui suit la souris (comme dans la vidéo) */
+.kpi{
+  --gx: 50%; --gy: 50%; --gop: 0;
+}
+.kpi::before{
+  content:'';
+  position:absolute;inset:0;
+  background: radial-gradient(
+    circle 160px at var(--gx) var(--gy),
+    var(--kpi-glow-col, rgba(200,132,58,.22)),
+    transparent 70%
+  );
+  opacity: var(--gop);
+  transition: opacity .4s ease;
+  z-index:0;
+  pointer-events:none;
+  border-radius:inherit;
+}
+/* Couleur du glow par type */
+.kpi.copper  { --kpi-glow-col: rgba(200,132,58,.30); }
+.kpi.ruby    { --kpi-glow-col: rgba(224,85,85,.30);  }
+.kpi.sapphire{ --kpi-glow-col: rgba(74,158,232,.30); }
+.kpi.emerald { --kpi-glow-col: rgba(45,212,160,.28); }
+.kpi.amber   { --kpi-glow-col: rgba(232,164,58,.30); }
 /* SECTION HEADER */
 .sec-h{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--text-faint);position:relative;}
 .sec-h::after{content:'';position:absolute;bottom:-1px;left:0;width:36px;height:1px;background:var(--copper);}
@@ -1313,6 +1338,7 @@ function showApp(){
     }
   }catch(e){ showPage('dashboard'); }
   setTimeout(()=>{ if(window._initKpiGroupElectric) window._initKpiGroupElectric(); }, 300);
+  setTimeout(()=>{ if(window._initKpiGradient) window._initKpiGradient(); }, 400);
 }
 async function checkRole(){
   try { const {data}=await sb.from('admins').select('email').eq('email',currentUser.email).single(); isAdmin=!!data; }
@@ -2425,8 +2451,8 @@ function closeCritereBtn(){
 
     // Deux arcs décalés, vitesses légèrement différentes (comme l'original 2.4s)
     const particles=[
-      makeParticle(0.0,  0.0014),
-      makeParticle(0.52, 0.0011),
+      makeParticle(0.0,  0.0013),
+      makeParticle(0.5,  0.0013),
     ];
 
     function loop(){
@@ -2482,6 +2508,40 @@ function closeCritereBtn(){
   }
 
   window._initKpiGroupElectric=init;
+})();
+</script>
+
+<script>
+/* ── KPI GRADIENT MOUSE-FOLLOW ──────────────────────────────────────────── */
+(function(){
+  function initKpiGradient(){
+    document.querySelectorAll('.kpi').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width  * 100).toFixed(1) + '%';
+        const y = ((e.clientY - rect.top)  / rect.height * 100).toFixed(1) + '%';
+        card.style.setProperty('--gx', x);
+        card.style.setProperty('--gy', y);
+        card.style.setProperty('--gop', '1');
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.setProperty('--gop', '0');
+      });
+    });
+  }
+
+  /* Lancer après login */
+  const _orig = window.showApp;
+  window.showApp = function(...a){
+    if(_orig) _orig.apply(this, a);
+    setTimeout(initKpiGradient, 350);
+  };
+  /* Fallback si déjà connecté */
+  document.addEventListener('DOMContentLoaded', () => {
+    const app = document.getElementById('app');
+    if(app && app.style.display !== 'none') setTimeout(initKpiGradient, 350);
+  });
+  window._initKpiGradient = initKpiGradient;
 })();
 </script>
 </body>
