@@ -141,14 +141,45 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:26px;}
 
 /* Electric Border wrapper */
-.kpi-electric{position:relative;border-radius:var(--r-lg);}
-.kpi-electric canvas.elec-canvas{
-  position:absolute;inset:-6px;width:calc(100% + 12px);height:calc(100% + 12px);
-  pointer-events:none;z-index:0;border-radius:calc(var(--r-lg) + 6px);
+.kpi-electric{position:relative;border-radius:var(--r-lg);padding:2px;}
+.kpi-electric::before{
+  content:'';position:absolute;inset:-1px;border-radius:calc(var(--r-lg) + 2px);
+  background:conic-gradient(from var(--elec-angle,0deg),
+    transparent 0deg, transparent 60deg,
+    var(--elec-col,#C8843A) 90deg,
+    transparent 120deg, transparent 180deg,
+    var(--elec-col2,rgba(255,255,255,.3)) 210deg,
+    transparent 240deg, transparent 360deg);
+  animation:electricSpin 2.4s linear infinite;z-index:0;
+}
+.kpi-electric::after{
+  content:'';position:absolute;inset:0px;border-radius:var(--r-lg);
+  background:inherit;filter:blur(8px);opacity:.55;
+  background:conic-gradient(from var(--elec-angle,0deg),
+    transparent 0deg, transparent 60deg,
+    var(--elec-col,#C8843A) 90deg,
+    transparent 120deg, transparent 180deg,
+    var(--elec-col2,rgba(255,255,255,.3)) 210deg,
+    transparent 240deg, transparent 360deg);
+  animation:electricSpin 2.4s linear infinite;z-index:0;
+}
+@property --elec-angle{syntax:'<angle>';initial-value:0deg;inherits:false;}
+@keyframes electricSpin{
+  from{--elec-angle:0deg}
+  to{--elec-angle:360deg}
 }
 
-.kpi{background:var(--bg-raised);border:1px solid rgba(255,255,255,.06);border-radius:var(--r-lg);padding:22px 20px;position:relative;overflow:hidden;transition:all var(--t-base) var(--ease);cursor:default;z-index:1;}
+/* Per-color electric vars */
+.kpi-electric.copper{--elec-col:#C8843A;--elec-col2:rgba(224,168,112,.5);}
+.kpi-electric.ruby{--elec-col:#E05555;--elec-col2:rgba(255,120,120,.4);}
+.kpi-electric.sapphire{--elec-col:#4A9EE8;--elec-col2:rgba(140,200,255,.4);}
+.kpi-electric.emerald{--elec-col:#2DD4A0;--elec-col2:rgba(100,255,200,.4);}
+.kpi-electric.amber{--elec-col:#E8A43A;--elec-col2:rgba(255,210,100,.4);}
+
+.kpi{background:var(--bg-raised);border:1px solid transparent;border-radius:var(--r-lg);padding:22px 20px;position:relative;overflow:hidden;transition:all var(--t-base) var(--ease);cursor:default;z-index:1;}
 .kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+
+/* Subtle top shimmer + corner glow kept inside the inner card */
 .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;z-index:2;}
 .kpi::after{content:'';position:absolute;top:-40px;right:-40px;width:110px;height:110px;border-radius:50%;opacity:.35;pointer-events:none;z-index:0;}
 .kpi.copper::before{background:linear-gradient(90deg,transparent,var(--copper),transparent);}
@@ -1304,8 +1335,6 @@ function showApp(){
       showPage('dashboard');
     }
   }catch(e){ showPage('dashboard'); }
-  // Init electric borders after layout settles
-  setTimeout(()=>{ if(window.initElectricBorders) window.initElectricBorders(); }, 250);
 }
 async function checkRole(){
   try { const {data}=await sb.from('admins').select('email').eq('email',currentUser.email).single(); isAdmin=!!data; }
@@ -2226,361 +2255,6 @@ function closeCritereBtn(){
 
 
 
-</script>
-
-<script>
-/* ── ELECTRIC BORDER – Canvas particle system ─────────────────────────────
-   Reproduces the "lightswind.com" Electric Border effect:
-   • Particles travel along the rectangle perimeter
-   • Each particle spawns short branching sparks (forks)
-   • A soft glow halo pulses around the border
-   • The border itself crackles with noise-displaced lines
-──────────────────────────────────────────────────────────────────────────── */
-(function(){
-  const COLOR_MAP = {
-    copper:  { base:'#C8843A', bright:'#FFD080', glow:'rgba(200,132,58,',  white:'rgba(255,230,160,' },
-    ruby:    { base:'#E05555', bright:'#FF9090', glow:'rgba(224,85,85,',   white:'rgba(255,180,180,' },
-    sapphire:{ base:'#4A9EE8', bright:'#A0D8FF', glow:'rgba(74,158,232,',  white:'rgba(180,220,255,' },
-    emerald: { base:'#2DD4A0', bright:'#80FFD0', glow:'rgba(45,212,160,',  white:'rgba(160,255,220,' },
-    amber:   { base:'#E8A43A', bright:'#FFE080', glow:'rgba(232,164,58,',  white:'rgba(255,230,140,' },
-  };
-
-  // --- Perimeter helpers ---
-  function perimeterLength(w,h,r){ return 2*(w+h) - 8*r + 2*Math.PI*r; }
-
-  // Map a 0-1 progress value to {x,y,tx,ty} on a rounded rectangle perimeter
-  function perimPointAndTangent(t, w, h, r){
-    // Segments: top, right, bottom, left, 4 arcs (corners)
-    // We split the rect perimeter into 8 segments: 4 straight + 4 arc
-    const straightW = w - 2*r, straightH = h - 2*r;
-    const arcLen = Math.PI*r/2;
-    const segs = [
-      {type:'line', len:straightW},  // top
-      {type:'arc',  len:arcLen, cx:w-r, cy:r,     a0:-Math.PI/2, da:Math.PI/2},  // top-right
-      {type:'line', len:straightH},  // right
-      {type:'arc',  len:arcLen, cx:w-r, cy:h-r,   a0:0,          da:Math.PI/2},  // bottom-right
-      {type:'line', len:straightW},  // bottom
-      {type:'arc',  len:arcLen, cx:r,   cy:h-r,   a0:Math.PI/2,  da:Math.PI/2},  // bottom-left
-      {type:'line', len:straightH},  // left
-      {type:'arc',  len:arcLen, cx:r,   cy:r,      a0:Math.PI,    da:Math.PI/2},  // top-left
-    ];
-    const total = segs.reduce((s,seg)=>s+seg.len, 0);
-    let dist = ((t % 1) + 1) % 1 * total;
-    let sx=r, sy=0; // start at top-left corner of top edge
-    for(let i=0;i<segs.length;i++){
-      const seg = segs[i];
-      if(dist <= seg.len){
-        const u = dist / seg.len;
-        if(seg.type==='line'){
-          switch(i){
-            case 0: return {x:sx+u*straightW, y:0,          tx:1,  ty:0};
-            case 2: return {x:w,              y:r+u*straightH, tx:0, ty:1};
-            case 4: return {x:w-r-u*straightW, y:h,          tx:-1, ty:0};
-            case 6: return {x:0,              y:h-r-u*straightH, tx:0, ty:-1};
-          }
-        } else {
-          const angle = seg.a0 + u*seg.da;
-          return {
-            x: seg.cx + r*Math.cos(angle),
-            y: seg.cy + r*Math.sin(angle),
-            tx: -Math.sin(angle),
-            ty:  Math.cos(angle)
-          };
-        }
-      }
-      dist -= seg.len;
-      // advance start position
-      if(i===0){sx=w-r; sy=0;}
-    }
-    return {x:r,y:0,tx:1,ty:0};
-  }
-
-  // --- Spark / Fork ---
-  class Spark {
-    constructor(x,y,vx,vy,life,col,size){
-      this.x=x; this.y=y; this.vx=vx; this.vy=vy;
-      this.life=life; this.maxLife=life;
-      this.col=col; this.size=size;
-    }
-    update(){
-      this.x+=this.vx; this.y+=this.vy;
-      this.vx*=0.92; this.vy*=0.92;
-      this.life--;
-    }
-    draw(ctx){
-      const a = this.life/this.maxLife;
-      ctx.save();
-      ctx.globalAlpha = a * 0.9;
-      ctx.shadowColor = this.col.base;
-      ctx.shadowBlur  = 6;
-      ctx.fillStyle   = a > 0.6 ? this.col.bright : this.col.base;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size * a, 0, Math.PI*2);
-      ctx.fill();
-      ctx.restore();
-    }
-  }
-
-  // --- Particle (travels along perimeter) ---
-  class Particle {
-    constructor(col, speed, offset){
-      this.col   = col;
-      this.speed = speed;
-      this.t     = offset;
-      this.sparks= [];
-      this.spawnTimer = 0;
-      this.trail = [];
-      this.trailLen = 12;
-    }
-    update(w,h,r){
-      this.t = (this.t + this.speed) % 1;
-      const pos = perimPointAndTangent(this.t, w, h, r);
-      this.x = pos.x; this.y = pos.y;
-      this.tx= pos.tx; this.ty= pos.ty;
-
-      this.trail.push({x:this.x, y:this.y});
-      if(this.trail.length > this.trailLen) this.trail.shift();
-
-      // Spawn sparks
-      this.spawnTimer--;
-      if(this.spawnTimer <= 0){
-        this.spawnTimer = 3 + Math.random()*4;
-        const norm = {x:-this.ty, y:this.tx};
-        const speed = 0.5 + Math.random()*1.8;
-        const angle = Math.random()*Math.PI*0.5 - Math.PI*0.25;
-        const cos=Math.cos(angle), sin=Math.sin(angle);
-        const vx = (norm.x*cos - norm.y*sin)*speed + (Math.random()-.5)*0.5;
-        const vy = (norm.x*sin + norm.y*cos)*speed + (Math.random()-.5)*0.5;
-        this.sparks.push(new Spark(this.x,this.y, vx,vy, 8+Math.random()*12, this.col, 1+Math.random()*1.5));
-        // Occasionally a bigger burst
-        if(Math.random()<0.15){
-          for(let i=0;i<4;i++){
-            const a2 = Math.random()*Math.PI*2;
-            this.sparks.push(new Spark(this.x,this.y,
-              Math.cos(a2)*(1+Math.random()),
-              Math.sin(a2)*(1+Math.random()),
-              5+Math.random()*8, this.col, 0.8+Math.random()));
-          }
-        }
-      }
-      this.sparks = this.sparks.filter(s=>{s.update();return s.life>0;});
-    }
-    draw(ctx){
-      // Draw trail
-      for(let i=1;i<this.trail.length;i++){
-        const a = i/this.trail.length;
-        ctx.save();
-        ctx.globalAlpha = a * 0.7;
-        ctx.strokeStyle = this.col.bright;
-        ctx.shadowColor = this.col.base;
-        ctx.shadowBlur  = 8;
-        ctx.lineWidth   = a * 2.5;
-        ctx.lineCap     = 'round';
-        ctx.beginPath();
-        ctx.moveTo(this.trail[i-1].x, this.trail[i-1].y);
-        ctx.lineTo(this.trail[i].x,   this.trail[i].y);
-        ctx.stroke();
-        ctx.restore();
-      }
-      // Draw head
-      ctx.save();
-      ctx.shadowColor = this.col.bright;
-      ctx.shadowBlur  = 14;
-      ctx.fillStyle   = '#ffffff';
-      ctx.globalAlpha = 0.95;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, 2.2, 0, Math.PI*2);
-      ctx.fill();
-      ctx.restore();
-      // Draw sparks
-      this.sparks.forEach(s=>s.draw(ctx));
-    }
-  }
-
-  // --- Crackle border (noisy rect outline) ---
-  function drawCrackleBorder(ctx, w, h, r, col, t){
-    const segments = 120;
-    ctx.save();
-    ctx.globalAlpha = 0.45 + 0.2*Math.sin(t*0.05);
-    ctx.strokeStyle = col.base;
-    ctx.shadowColor = col.base;
-    ctx.shadowBlur  = 8;
-    ctx.lineWidth   = 1.2;
-    ctx.beginPath();
-    for(let i=0;i<=segments;i++){
-      const progress = i/segments;
-      const pos = perimPointAndTangent(progress, w, h, r);
-      const nx = -pos.ty, ny = pos.tx; // normal
-      const noise = (Math.sin(progress*31+t*0.07)*0.5 + Math.sin(progress*17-t*0.11)*0.5);
-      const offset = noise * 1.8;
-      const px = pos.x + nx*offset;
-      const py = pos.y + ny*offset;
-      if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
-    }
-    ctx.closePath();
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  // --- Glow halo ---
-  function drawGlow(ctx, w, h, r, col, t){
-    const pulse = 0.55 + 0.2*Math.sin(t*0.04);
-    // Use a thick blurred stroke as a glow
-    ctx.save();
-    ctx.globalAlpha = pulse * 0.55;
-    ctx.strokeStyle = col.base;
-    ctx.shadowColor = col.base;
-    ctx.shadowBlur  = 22;
-    ctx.lineWidth   = 4;
-    ctx.beginPath();
-    ctx.roundRect(r, r, w-2*r, h-2*r, r);
-    ctx.stroke();
-    ctx.restore();
-    // Inner thin bright line
-    ctx.save();
-    ctx.globalAlpha = 0.3 + 0.15*Math.sin(t*0.06+1);
-    ctx.strokeStyle = col.bright;
-    ctx.lineWidth   = 0.8;
-    ctx.beginPath();
-    ctx.roundRect(r, r, w-2*r, h-2*r, r);
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  // --- Main ElectricBorder class ---
-  class ElectricBorder {
-    constructor(wrapper, colorName){
-      this.wrapper = wrapper;
-      this.col     = COLOR_MAP[colorName] || COLOR_MAP.copper;
-      this.canvas  = document.createElement('canvas');
-      this.canvas.className = 'elec-canvas';
-      this.wrapper.insertBefore(this.canvas, this.wrapper.firstChild);
-      this.ctx = this.canvas.getContext('2d');
-      this.particles = [];
-      this.t = 0;
-      this.dpr = Math.min(window.devicePixelRatio||1, 2);
-      this.resize();
-      // Create 2-3 particles with different speeds & offsets
-      const numP = 2 + Math.floor(Math.random());
-      for(let i=0;i<numP;i++){
-        this.particles.push(new Particle(
-          this.col,
-          0.0018 + Math.random()*0.001,
-          i/numP + Math.random()*0.1
-        ));
-      }
-    }
-    resize(){
-      const rect = this.wrapper.getBoundingClientRect();
-      this.W = rect.width  || this.wrapper.offsetWidth;
-      this.H = rect.height || this.wrapper.offsetHeight;
-      const pad = 6;
-      const cw = this.W + pad*2;
-      const ch = this.H + pad*2;
-      this.canvas.width  = cw * this.dpr;
-      this.canvas.height = ch * this.dpr;
-      this.canvas.style.width  = cw+'px';
-      this.canvas.style.height = ch+'px';
-      this.canvas.style.left   = -pad+'px';
-      this.canvas.style.top    = -pad+'px';
-      this.ctx.scale(this.dpr, this.dpr);
-      // Internal draw dimensions (with padding offset)
-      this.dw = cw; this.dh = ch; this.pad = pad;
-    }
-    draw(){
-      const ctx = this.ctx;
-      const w = this.dw, h = this.dh, pad = this.pad;
-      const r = 16 + pad; // border-radius + padding
-      ctx.clearRect(0,0,w,h);
-      ctx.save();
-      ctx.translate(pad, pad);
-      const iw = this.W, ih = this.H, ir = 16;
-      this.t++;
-      // 1. Glow halo
-      drawGlow(ctx, iw, ih, ir, this.col, this.t);
-      // 2. Crackle border
-      drawCrackleBorder(ctx, iw, ih, ir, this.col, this.t);
-      // 3. Particles
-      this.particles.forEach(p=>{
-        p.update(iw, ih, ir);
-        p.draw(ctx);
-      });
-      ctx.restore();
-    }
-  }
-
-  // --- Init all KPI wrappers ---
-  function initElectricBorders(){
-    const wrappers = document.querySelectorAll('.kpi-electric');
-    const borders = [];
-    wrappers.forEach(w=>{
-      const colorClass = ['copper','ruby','sapphire','emerald','amber']
-        .find(c=>w.classList.contains(c)) || 'copper';
-      borders.push(new ElectricBorder(w, colorClass));
-    });
-
-    let resizeTimer;
-    window.addEventListener('resize', ()=>{
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(()=>{ borders.forEach(b=>b.resize()); }, 150);
-    });
-
-    function loop(){
-      borders.forEach(b=>b.draw());
-      requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
-  }
-
-  // Wait until the app is visible (login may delay rendering)
-  const observer = new MutationObserver(()=>{
-    const app = document.getElementById('app');
-    if(app && app.style.display !== 'none'){
-      observer.disconnect();
-      // Small delay to ensure layout is done
-      setTimeout(initElectricBorders, 200);
-    }
-  });
-  // Also try immediately in case app is already visible
-  document.addEventListener('DOMContentLoaded', ()=>{
-    const app = document.getElementById('app');
-    if(app && app.style.display !== 'none'){
-      setTimeout(initElectricBorders, 200);
-    } else {
-      observer.observe(document.getElementById('app') || document.body, {
-        attributes:true, attributeFilter:['style'], subtree:false
-      });
-    }
-    // Patch showApp / login to trigger init
-    const origShow = window.showApp;
-    window.showApp = function(...args){
-      if(origShow) origShow.apply(this,args);
-      setTimeout(initElectricBorders, 300);
-    };
-  });
-  // Fallback: also hook into any function that shows the app
-  const _origFetch = window.fetch;
-  let _electricInited = false;
-  window.addEventListener('load', ()=>{
-    setTimeout(()=>{
-      if(!_electricInited){
-        const app = document.getElementById('app');
-        if(app && app.style.display !== 'none'){
-          _electricInited = true;
-          initElectricBorders();
-        }
-      }
-    }, 1000);
-  });
-
-  // Expose for manual call after login
-  window.initElectricBorders = function(){
-    if(!_electricInited){
-      _electricInited = true;
-      initElectricBorders();
-    }
-  };
-})();
 </script>
 </body>
 </html>
