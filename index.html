@@ -140,46 +140,79 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 /* KPI */
 .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:26px;}
 
-/* Electric Border wrapper */
-.kpi-electric{position:relative;border-radius:var(--r-lg);padding:2px;}
-.kpi-electric::before{
-  content:'';position:absolute;inset:-1px;border-radius:calc(var(--r-lg) + 2px);
-  background:conic-gradient(from var(--elec-angle,0deg),
-    transparent 0deg, transparent 60deg,
-    var(--elec-col,#C8843A) 90deg,
-    transparent 120deg, transparent 180deg,
-    var(--elec-col2,rgba(255,255,255,.3)) 210deg,
-    transparent 240deg, transparent 360deg);
-  animation:electricSpin 2.4s linear infinite;z-index:0;
-}
-.kpi-electric::after{
-  content:'';position:absolute;inset:0px;border-radius:var(--r-lg);
-  background:inherit;filter:blur(8px);opacity:.55;
-  background:conic-gradient(from var(--elec-angle,0deg),
-    transparent 0deg, transparent 60deg,
-    var(--elec-col,#C8843A) 90deg,
-    transparent 120deg, transparent 180deg,
-    var(--elec-col2,rgba(255,255,255,.3)) 210deg,
-    transparent 240deg, transparent 360deg);
-  animation:electricSpin 2.4s linear infinite;z-index:0;
-}
-@property --elec-angle{syntax:'<angle>';initial-value:0deg;inherits:false;}
-@keyframes electricSpin{
-  from{--elec-angle:0deg}
-  to{--elec-angle:360deg}
+/* Electric Border – SVG turbulence displacement */
+.kpi-electric{
+  position:relative;
+  border-radius:var(--r-lg);
+  padding:2px;
 }
 
-/* Per-color electric vars */
-.kpi-electric.copper{--elec-col:#C8843A;--elec-col2:rgba(224,168,112,.5);}
-.kpi-electric.ruby{--elec-col:#E05555;--elec-col2:rgba(255,120,120,.4);}
-.kpi-electric.sapphire{--elec-col:#4A9EE8;--elec-col2:rgba(140,200,255,.4);}
-.kpi-electric.emerald{--elec-col:#2DD4A0;--elec-col2:rgba(100,255,200,.4);}
-.kpi-electric.amber{--elec-col:#E8A43A;--elec-col2:rgba(255,210,100,.4);}
+/* The displaced border lives here – one per color */
+.kpi-electric .elec-border{
+  position:absolute;inset:0;
+  border-radius:var(--r-lg);
+  pointer-events:none;
+  z-index:0;
+}
+/* The border line that gets displaced */
+.kpi-electric .elec-border::before{
+  content:'';
+  position:absolute;inset:0;
+  border-radius:var(--r-lg);
+  border:2px solid var(--elec-color, #C8843A);
+  filter:url(#kpi-turbulent-displace);
+}
+/* Soft outer glow (blurred duplicate) */
+.kpi-electric .elec-border::after{
+  content:'';
+  position:absolute;inset:-2px;
+  border-radius:calc(var(--r-lg) + 2px);
+  border:3px solid var(--elec-color, #C8843A);
+  filter:url(#kpi-turbulent-displace) blur(4px);
+  opacity:0.6;
+}
 
-.kpi{background:var(--bg-raised);border:1px solid transparent;border-radius:var(--r-lg);padding:22px 20px;position:relative;overflow:hidden;transition:all var(--t-base) var(--ease);cursor:default;z-index:1;}
+/* Diagonal gradient shimmer overlays */
+.kpi-electric .elec-overlay1,
+.kpi-electric .elec-overlay2{
+  position:absolute;inset:0;
+  border-radius:var(--r-lg);
+  pointer-events:none;
+  z-index:2;
+  transform:scale(1.08);
+  filter:blur(14px);
+  mix-blend-mode:overlay;
+}
+.kpi-electric .elec-overlay1{
+  opacity:0.9;
+  background:linear-gradient(-30deg, white, transparent 30%, transparent 70%, white);
+}
+.kpi-electric .elec-overlay2{
+  opacity:0.4;
+  background:linear-gradient(-30deg, white, transparent 30%, transparent 70%, white);
+}
+/* Background color glow behind card */
+.kpi-electric .elec-bg-glow{
+  position:absolute;inset:0;
+  border-radius:var(--r-lg);
+  pointer-events:none;
+  z-index:-1;
+  transform:scale(1.12);
+  filter:blur(28px);
+  opacity:0.35;
+  background:linear-gradient(-30deg, var(--elec-color,#C8843A), transparent, var(--elec-color,#C8843A));
+}
+
+/* Per-color variables */
+.kpi-electric.copper  { --elec-color:#C8843A; }
+.kpi-electric.ruby    { --elec-color:#E05555; }
+.kpi-electric.sapphire{ --elec-color:#4A9EE8; }
+.kpi-electric.emerald { --elec-color:#2DD4A0; }
+.kpi-electric.amber   { --elec-color:#E8A43A; }
+
+/* Inner card */
+.kpi{background:var(--bg-raised);border:1px solid rgba(255,255,255,.05);border-radius:var(--r-lg);padding:22px 20px;position:relative;overflow:hidden;transition:all var(--t-base) var(--ease);cursor:default;z-index:1;}
 .kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
-
-/* Subtle top shimmer + corner glow kept inside the inner card */
 .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;z-index:2;}
 .kpi::after{content:'';position:absolute;top:-40px;right:-40px;width:110px;height:110px;border-radius:50%;opacity:.35;pointer-events:none;z-index:0;}
 .kpi.copper::before{background:linear-gradient(90deg,transparent,var(--copper),transparent);}
@@ -638,6 +671,33 @@ body { font-size: 0.9375rem; }
 </style>
 </head>
 <body>
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden;">
+  <defs>
+    <filter id="kpi-turbulent-displace" colorInterpolationFilters="sRGB" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="turbulence" baseFrequency="0.025" numOctaves="10" result="noise1" seed="1"/>
+      <feOffset in="noise1" dx="0" dy="0" result="offsetNoise1">
+        <animate attributeName="dy" values="700; 0" dur="6s" repeatCount="indefinite" calcMode="linear"/>
+      </feOffset>
+      <feTurbulence type="turbulence" baseFrequency="0.025" numOctaves="10" result="noise2" seed="1"/>
+      <feOffset in="noise2" dx="0" dy="0" result="offsetNoise2">
+        <animate attributeName="dy" values="0; -700" dur="6s" repeatCount="indefinite" calcMode="linear"/>
+      </feOffset>
+      <feTurbulence type="turbulence" baseFrequency="0.025" numOctaves="10" result="noise3" seed="2"/>
+      <feOffset in="noise3" dx="0" dy="0" result="offsetNoise3">
+        <animate attributeName="dx" values="490; 0" dur="6s" repeatCount="indefinite" calcMode="linear"/>
+      </feOffset>
+      <feTurbulence type="turbulence" baseFrequency="0.025" numOctaves="10" result="noise4" seed="2"/>
+      <feOffset in="noise4" dx="0" dy="0" result="offsetNoise4">
+        <animate attributeName="dx" values="0; -490" dur="6s" repeatCount="indefinite" calcMode="linear"/>
+      </feOffset>
+      <feComposite in="offsetNoise1" in2="offsetNoise2" result="part1"/>
+      <feComposite in="offsetNoise3" in2="offsetNoise4" result="part2"/>
+      <feBlend in="part1" in2="part2" mode="color-dodge" result="combinedNoise"/>
+      <feDisplacementMap in="SourceGraphic" in2="combinedNoise" scale="18" xChannelSelector="R" yChannelSelector="B"/>
+    </filter>
+  </defs>
+</svg>
+
 
 <!-- LOADING -->
 <div id="loading-screen">
@@ -833,11 +893,41 @@ body { font-size: 0.9375rem; }
           <button class="dash-today-btn" onclick="dashGoToday()">Aujourd'hui</button>
         </div>
         <div class="kpi-row">
-          <div class="kpi-electric copper"><div class="kpi copper" onclick="goToRegistre('')" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">Total actif</div></div><div class="kpi-val" id="kpi-total">—</div><div class="kpi-sub">Voir le registre →</div></div></div>
-          <div class="kpi-electric ruby"><div class="kpi ruby" onclick="goToRegistre('À traiter')" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">À traiter</div></div><div class="kpi-val" id="kpi-ouvert">—</div><div class="kpi-sub">Voir le registre →</div></div></div>
-          <div class="kpi-electric sapphire"><div class="kpi sapphire" onclick="goToRegistre('En cours')" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">En cours</div></div><div class="kpi-val" id="kpi-cours">—</div><div class="kpi-sub">Voir le registre →</div></div></div>
-          <div class="kpi-electric emerald"><div class="kpi emerald" onclick="goToRegistre('Résolu')" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">Résolues</div></div><div class="kpi-val" id="kpi-resolu">—</div><div class="kpi-sub">Voir le registre →</div></div></div>
-          <div class="kpi-electric amber"><div class="kpi amber" onclick="goToIncompletes()" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">Incomplètes</div></div><div class="kpi-val" id="kpi-incomplet">—</div><div class="kpi-sub">Champs manquants →</div></div></div>
+          <div class="kpi-electric copper">
+            <div class="elec-border"></div>
+            <div class="elec-overlay1"></div>
+            <div class="elec-overlay2"></div>
+            <div class="elec-bg-glow"></div>
+            <div class="kpi copper" onclick="goToRegistre('')" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">Total actif</div></div><div class="kpi-val" id="kpi-total">—</div><div class="kpi-sub">Voir le registre →</div></div>
+          </div>
+          <div class="kpi-electric ruby">
+            <div class="elec-border"></div>
+            <div class="elec-overlay1"></div>
+            <div class="elec-overlay2"></div>
+            <div class="elec-bg-glow"></div>
+            <div class="kpi ruby" onclick="goToRegistre('À traiter')" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">À traiter</div></div><div class="kpi-val" id="kpi-ouvert">—</div><div class="kpi-sub">Voir le registre →</div></div>
+          </div>
+          <div class="kpi-electric sapphire">
+            <div class="elec-border"></div>
+            <div class="elec-overlay1"></div>
+            <div class="elec-overlay2"></div>
+            <div class="elec-bg-glow"></div>
+            <div class="kpi sapphire" onclick="goToRegistre('En cours')" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">En cours</div></div><div class="kpi-val" id="kpi-cours">—</div><div class="kpi-sub">Voir le registre →</div></div>
+          </div>
+          <div class="kpi-electric emerald">
+            <div class="elec-border"></div>
+            <div class="elec-overlay1"></div>
+            <div class="elec-overlay2"></div>
+            <div class="elec-bg-glow"></div>
+            <div class="kpi emerald" onclick="goToRegistre('Résolu')" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">Résolues</div></div><div class="kpi-val" id="kpi-resolu">—</div><div class="kpi-sub">Voir le registre →</div></div>
+          </div>
+          <div class="kpi-electric amber">
+            <div class="elec-border"></div>
+            <div class="elec-overlay1"></div>
+            <div class="elec-overlay2"></div>
+            <div class="elec-bg-glow"></div>
+            <div class="kpi amber" onclick="goToIncompletes()" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">Incomplètes</div></div><div class="kpi-val" id="kpi-incomplet">—</div><div class="kpi-sub">Champs manquants →</div></div>
+          </div>
         </div>
         <div class="stat-row">
           <div class="stat-card">
@@ -2256,5 +2346,6 @@ function closeCritereBtn(){
 
 
 </script>
+
 </body>
 </html>
