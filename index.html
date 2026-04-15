@@ -138,45 +138,19 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 @keyframes pgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* KPI */
-.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:26px;}
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:0;}
 
-/* Electric Border wrapper */
-.kpi-electric{position:relative;border-radius:var(--r-lg);padding:2px;}
-.kpi-electric::before{
-  content:'';position:absolute;inset:-1px;border-radius:calc(var(--r-lg) + 2px);
-  background:conic-gradient(from var(--elec-angle,0deg),
-    transparent 0deg, transparent 60deg,
-    var(--elec-col,#C8843A) 90deg,
-    transparent 120deg, transparent 180deg,
-    var(--elec-col2,rgba(255,255,255,.3)) 210deg,
-    transparent 240deg, transparent 360deg);
-  animation:electricSpin 2.4s linear infinite;z-index:0;
-}
-.kpi-electric::after{
-  content:'';position:absolute;inset:0px;border-radius:var(--r-lg);
-  background:inherit;filter:blur(8px);opacity:.55;
-  background:conic-gradient(from var(--elec-angle,0deg),
-    transparent 0deg, transparent 60deg,
-    var(--elec-col,#C8843A) 90deg,
-    transparent 120deg, transparent 180deg,
-    var(--elec-col2,rgba(255,255,255,.3)) 210deg,
-    transparent 240deg, transparent 360deg);
-  animation:electricSpin 2.4s linear infinite;z-index:0;
-}
-@property --elec-angle{syntax:'<angle>';initial-value:0deg;inherits:false;}
-@keyframes electricSpin{
-  from{--elec-angle:0deg}
-  to{--elec-angle:360deg}
+/* Electric Border – canvas sur le groupe entier */
+.kpi-electric{position:relative;border-radius:var(--r-lg);}
+.kpi-group{position:relative;margin-bottom:26px;}
+.kpi-group .kpi-row{margin-bottom:0;}
+.kpi-group-canvas{
+  position:absolute;pointer-events:none;z-index:10;
+  top:-12px;left:-12px;
+  width:calc(100% + 24px);height:calc(100% + 24px);
 }
 
-/* Per-color electric vars */
-.kpi-electric.copper{--elec-col:#C8843A;--elec-col2:rgba(224,168,112,.5);}
-.kpi-electric.ruby{--elec-col:#E05555;--elec-col2:rgba(255,120,120,.4);}
-.kpi-electric.sapphire{--elec-col:#4A9EE8;--elec-col2:rgba(140,200,255,.4);}
-.kpi-electric.emerald{--elec-col:#2DD4A0;--elec-col2:rgba(100,255,200,.4);}
-.kpi-electric.amber{--elec-col:#E8A43A;--elec-col2:rgba(255,210,100,.4);}
-
-.kpi{background:var(--bg-raised);border:1px solid transparent;border-radius:var(--r-lg);padding:22px 20px;position:relative;overflow:hidden;transition:all var(--t-base) var(--ease);cursor:default;z-index:1;}
+.kpi{background:var(--bg-raised);border:1px solid rgba(255,255,255,.06);border-radius:var(--r-lg);padding:22px 20px;position:relative;overflow:hidden;transition:all var(--t-base) var(--ease);cursor:default;z-index:1;}
 .kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
 
 /* Subtle top shimmer + corner glow kept inside the inner card */
@@ -832,12 +806,15 @@ body { font-size: 0.9375rem; }
           <button class="dash-date-arr" onclick="dashChangeDay(1)">&#8594;</button>
           <button class="dash-today-btn" onclick="dashGoToday()">Aujourd'hui</button>
         </div>
-        <div class="kpi-row">
-          <div class="kpi-electric copper"><div class="kpi copper" onclick="goToRegistre('')" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">Total actif</div></div><div class="kpi-val" id="kpi-total">—</div><div class="kpi-sub">Voir le registre →</div></div></div>
-          <div class="kpi-electric ruby"><div class="kpi ruby" onclick="goToRegistre('À traiter')" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">À traiter</div></div><div class="kpi-val" id="kpi-ouvert">—</div><div class="kpi-sub">Voir le registre →</div></div></div>
-          <div class="kpi-electric sapphire"><div class="kpi sapphire" onclick="goToRegistre('En cours')" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">En cours</div></div><div class="kpi-val" id="kpi-cours">—</div><div class="kpi-sub">Voir le registre →</div></div></div>
-          <div class="kpi-electric emerald"><div class="kpi emerald" onclick="goToRegistre('Résolu')" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">Résolues</div></div><div class="kpi-val" id="kpi-resolu">—</div><div class="kpi-sub">Voir le registre →</div></div></div>
-          <div class="kpi-electric amber"><div class="kpi amber" onclick="goToIncompletes()" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">Incomplètes</div></div><div class="kpi-val" id="kpi-incomplet">—</div><div class="kpi-sub">Voir le registre →</div></div></div>
+        <div class="kpi-group" id="kpi-group">
+          <canvas class="kpi-group-canvas" id="kpi-group-canvas"></canvas>
+          <div class="kpi-row">
+            <div class="kpi-electric copper"><div class="kpi copper" onclick="goToRegistre('')" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">Total actif</div></div><div class="kpi-val" id="kpi-total">—</div><div class="kpi-sub">Voir le registre →</div></div></div>
+            <div class="kpi-electric ruby"><div class="kpi ruby" onclick="goToRegistre('À traiter')" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">À traiter</div></div><div class="kpi-val" id="kpi-ouvert">—</div><div class="kpi-sub">Voir le registre →</div></div></div>
+            <div class="kpi-electric sapphire"><div class="kpi sapphire" onclick="goToRegistre('En cours')" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">En cours</div></div><div class="kpi-val" id="kpi-cours">—</div><div class="kpi-sub">Voir le registre →</div></div></div>
+            <div class="kpi-electric emerald"><div class="kpi emerald" onclick="goToRegistre('Résolu')" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">Résolues</div></div><div class="kpi-val" id="kpi-resolu">—</div><div class="kpi-sub">Voir le registre →</div></div></div>
+            <div class="kpi-electric amber"><div class="kpi amber" onclick="goToIncompletes()" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">Incomplètes</div></div><div class="kpi-val" id="kpi-incomplet">—</div><div class="kpi-sub">Voir le registre →</div></div></div>
+          </div>
         </div>
         <div class="stat-row">
           <div class="stat-card">
@@ -1335,6 +1312,7 @@ function showApp(){
       showPage('dashboard');
     }
   }catch(e){ showPage('dashboard'); }
+  setTimeout(()=>{ if(window._initKpiGroupElectric) window._initKpiGroupElectric(); }, 300);
 }
 async function checkRole(){
   try { const {data}=await sb.from('admins').select('email').eq('email',currentUser.email).single(); isAdmin=!!data; }
@@ -2255,6 +2233,256 @@ function closeCritereBtn(){
 
 
 
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   ELECTRIC GROUP BORDER
+   Même animation conic-gradient que l'original (arc lumineux + blur),
+   mais appliquée sur le périmètre du groupe entier des 5 KPI.
+   La couleur interpole graduellement entre les 5 couleurs KPI selon
+   la position X de l'arc sur le groupe.
+═══════════════════════════════════════════════════════════════════════════ */
+(function(){
+
+  // Couleurs des 5 KPI dans l'ordre gauche→droite
+  const KPI_COLORS = [
+    {r:200,g:132,b: 58},  // copper
+    {r:224,g: 85,b: 85},  // ruby
+    {r: 74,g:158,b:232},  // sapphire
+    {r: 45,g:212,b:160},  // emerald
+    {r:232,g:164,b: 58},  // amber
+  ];
+
+  function lerp(a,b,t){ return a+(b-a)*t; }
+  function lerpCol(a,b,t){
+    return {r:Math.round(lerp(a.r,b.r,t)), g:Math.round(lerp(a.g,b.g,t)), b:Math.round(lerp(a.b,b.b,t))};
+  }
+  // Retourne la couleur interpolée pour une position X normalisée 0-1 sur le groupe
+  function colorAtNX(nx){
+    nx = Math.max(0, Math.min(1, nx));
+    const n = KPI_COLORS.length;
+    const s = nx * (n-1);
+    const i = Math.min(Math.floor(s), n-2);
+    return lerpCol(KPI_COLORS[i], KPI_COLORS[i+1], s-i);
+  }
+
+  // ── Parcours du périmètre d'un rect arrondi ──────────────────────────
+  // Retourne {x, y, tx, ty} (position + tangente) pour un progrès 0-1
+  function perimPoint(prog, W, H, R){
+    prog = ((prog%1)+1)%1;
+    const sT=W-2*R, sR=H-2*R, sB=W-2*R, sL=H-2*R, aC=Math.PI*R/2;
+    const segs=[
+      [sT, u=>({x:R+u*sT,    y:0,           tx:1, ty:0})],
+      [aC, u=>{ const a=-Math.PI/2+u*Math.PI/2; return {x:W-R+Math.cos(a)*R,y:R+Math.sin(a)*R,tx:-Math.sin(a),ty:Math.cos(a)};}],
+      [sR, u=>({x:W,          y:R+u*sR,      tx:0, ty:1})],
+      [aC, u=>{ const a=u*Math.PI/2;           return {x:W-R+Math.cos(a)*R,y:H-R+Math.sin(a)*R,tx:-Math.sin(a),ty:Math.cos(a)};}],
+      [sB, u=>({x:W-R-u*sB,  y:H,           tx:-1,ty:0})],
+      [aC, u=>{ const a=Math.PI/2+u*Math.PI/2;return {x:R+Math.cos(a)*R,  y:H-R+Math.sin(a)*R,tx:-Math.sin(a),ty:Math.cos(a)};}],
+      [sL, u=>({x:0,          y:H-R-u*sL,    tx:0, ty:-1})],
+      [aC, u=>{ const a=Math.PI+u*Math.PI/2;  return {x:R+Math.cos(a)*R,  y:R+Math.sin(a)*R,  tx:-Math.sin(a),ty:Math.cos(a)};}],
+    ];
+    const total=segs.reduce((s,[l])=>s+l,0);
+    let d=prog*total;
+    for(const [len,fn] of segs){
+      if(d<=len) return fn(d/len);
+      d-=len;
+    }
+    return segs[0][1](0);
+  }
+
+  // ── Étincelle ────────────────────────────────────────────────────────
+  class Spark{
+    constructor(x,y,vx,vy,life,col,sz){
+      this.x=x;this.y=y;this.vx=vx;this.vy=vy;
+      this.life=life;this.maxLife=life;this.col=col;this.sz=sz;
+    }
+    update(){this.x+=this.vx;this.y+=this.vy;this.vx*=0.88;this.vy*=0.88;this.life--;}
+    draw(ctx){
+      const a=this.life/this.maxLife;
+      const {r,g,b}=this.col;
+      ctx.save();
+      ctx.globalAlpha=a*0.85;
+      ctx.shadowColor=`rgb(${r},${g},${b})`;
+      ctx.shadowBlur=7;
+      ctx.fillStyle=a>0.5
+        ?`rgb(${Math.min(255,r+80)},${Math.min(255,g+80)},${Math.min(255,b+80)})`
+        :`rgb(${r},${g},${b})`;
+      ctx.beginPath();ctx.arc(this.x,this.y,this.sz*a,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // ── Arc lumineux (reproduit l'effet conic-gradient de l'original) ──────
+  // On dessine l'arc en traçant le périmètre avec un gradient de couleur
+  // qui va de transparent → couleur → transparent sur ~120° de périmètre,
+  // en suivant l'avancement du progrès, exactement comme le conic original.
+  function drawArc(ctx, prog, W, H, R, col, PAD){
+    const {r,g,b}=col;
+    const base=`rgb(${r},${g},${b})`;
+    const TRAIL_STEPS=80;   // nb de points de la trainée
+    const TRAIL_SPAN=0.18;  // portion du périmètre couverte par l'arc (≈120°/360°)
+
+    // Arc principal
+    ctx.save();
+    for(let i=0;i<TRAIL_STEPS;i++){
+      const t=i/TRAIL_STEPS; // 0=queue, 1=tête
+      const pp=prog-TRAIL_SPAN*(1-t);
+      const pos=perimPoint(pp, W, H, R);
+      const px=pos.x+PAD, py=pos.y+PAD;
+
+      // Intensité: bell curve centrée sur la tête, nulle aux extrémités
+      const intensity = Math.sin(t*Math.PI);
+      const alpha = intensity * (t>0.8 ? 1 : 0.6+t*0.4);
+
+      // Couleur interpolée selon X
+      const nx_norm = Math.max(0,Math.min(1, pos.x/W));
+      const c2=colorAtNX(nx_norm);
+
+      ctx.globalAlpha=alpha*0.9;
+      ctx.strokeStyle=`rgb(${c2.r},${c2.g},${c2.b})`;
+      ctx.shadowColor=`rgb(${c2.r},${c2.g},${c2.b})`;
+      ctx.shadowBlur=14;
+      ctx.lineWidth=2.5*intensity+0.5;
+      ctx.lineCap='round';
+
+      if(i>0){
+        const pp2=prog-TRAIL_SPAN*(1-(i-1)/TRAIL_STEPS);
+        const pos2=perimPoint(pp2, W, H, R);
+        ctx.beginPath();
+        ctx.moveTo(pos2.x+PAD, pos2.y+PAD);
+        ctx.lineTo(px, py);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+
+    // Couche blur (reproduit le ::after blur:8px de l'original)
+    ctx.save();
+    ctx.filter='blur(6px)';
+    for(let i=40;i<TRAIL_STEPS;i++){
+      const t=i/TRAIL_STEPS;
+      const pp=prog-TRAIL_SPAN*(1-t);
+      const pos=perimPoint(pp, W, H, R);
+      const px=pos.x+PAD, py=pos.y+PAD;
+      const intensity=Math.sin(t*Math.PI);
+      const nx_norm=Math.max(0,Math.min(1,pos.x/W));
+      const c2=colorAtNX(nx_norm);
+      ctx.globalAlpha=intensity*0.5;
+      ctx.strokeStyle=`rgb(${c2.r},${c2.g},${c2.b})`;
+      ctx.lineWidth=4*intensity;
+      ctx.lineCap='round';
+      if(i>40){
+        const pp2=prog-TRAIL_SPAN*(1-(i-1)/TRAIL_STEPS);
+        const pos2=perimPoint(pp2, W, H, R);
+        ctx.beginPath();
+        ctx.moveTo(pos2.x+PAD,pos2.y+PAD);
+        ctx.lineTo(px,py);
+        ctx.stroke();
+      }
+    }
+    ctx.filter='none';
+    ctx.restore();
+
+    // Tête lumineuse blanche
+    const headPos=perimPoint(prog, W, H, R);
+    ctx.save();
+    ctx.shadowColor=base;ctx.shadowBlur=20;
+    ctx.fillStyle='#ffffff';ctx.globalAlpha=0.95;
+    ctx.beginPath();ctx.arc(headPos.x+PAD,headPos.y+PAD,2.8,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=0.45;ctx.fillStyle=base;
+    ctx.beginPath();ctx.arc(headPos.x+PAD,headPos.y+PAD,5.5,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  }
+
+  // ── Particule (progrès + étincelles) ──────────────────────────────────
+  function makeParticle(startT, speed){
+    return {t:startT, speed, sparks:[], spawnTimer:0};
+  }
+
+  // ── Init principal ────────────────────────────────────────────────────
+  function init(){
+    const group  = document.getElementById('kpi-group');
+    const canvas = document.getElementById('kpi-group-canvas');
+    if(!group||!canvas) return;
+
+    const ctx=canvas.getContext('2d');
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    const PAD=12;
+    let W,H,cW,cH,R;
+
+    function resize(){
+      const rect=group.getBoundingClientRect();
+      W=rect.width; H=rect.height;
+      cW=W+PAD*2; cH=H+PAD*2;
+      canvas.width=cW*dpr; canvas.height=cH*dpr;
+      canvas.style.width=cW+'px'; canvas.style.height=cH+'px';
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      R=16+PAD; // border-radius KPI (16px) + padding canvas
+    }
+    resize();
+    window.addEventListener('resize',()=>{clearTimeout(window._kpiRT);window._kpiRT=setTimeout(resize,150);});
+
+    // Deux arcs décalés, vitesses légèrement différentes (comme l'original 2.4s)
+    const particles=[
+      makeParticle(0.0,  0.0014),
+      makeParticle(0.52, 0.0011),
+    ];
+
+    function loop(){
+      ctx.clearRect(0,0,cW,cH);
+
+      // Bordure de fond très subtile
+      ctx.save();
+      ctx.strokeStyle='rgba(255,255,255,0.05)';
+      ctx.lineWidth=1;
+      ctx.beginPath();
+      ctx.roundRect(PAD,PAD,W,H,16);
+      ctx.stroke();
+      ctx.restore();
+
+      for(const p of particles){
+        p.t=(p.t+p.speed)%1;
+        const pos=perimPoint(p.t, W, H, R-PAD);
+        const px=pos.x+PAD, py=pos.y+PAD;
+        const nx_norm=Math.max(0,Math.min(1,pos.x/W));
+        const col=colorAtNX(nx_norm);
+
+        // Dessin de l'arc lumineux
+        drawArc(ctx, p.t, W, H, R-PAD, col, PAD);
+
+        // Étincelles
+        p.spawnTimer--;
+        if(p.spawnTimer<=0){
+          p.spawnTimer=4+Math.random()*6;
+          const nx2=pos.ty, ny2=-pos.tx; // normale sortante
+          const spd=0.5+Math.random()*1.8;
+          const ang=Math.random()*Math.PI*0.5-Math.PI*0.25;
+          const cos=Math.cos(ang),sin=Math.sin(ang);
+          p.sparks.push(new Spark(px,py,
+            (nx2*cos-ny2*sin)*spd+(Math.random()-.5)*0.4,
+            (nx2*sin+ny2*cos)*spd+(Math.random()-.5)*0.4,
+            8+Math.random()*12,{...col},1+Math.random()*1.2));
+          if(Math.random()<0.15){
+            for(let i=0;i<4;i++){
+              const ba=Math.random()*Math.PI*2;
+              p.sparks.push(new Spark(px,py,
+                Math.cos(ba)*(0.8+Math.random()*1.4),
+                Math.sin(ba)*(0.8+Math.random()*1.4),
+                5+Math.random()*8,{...col},0.6+Math.random()*0.8));
+            }
+          }
+        }
+        p.sparks=p.sparks.filter(s=>{s.update();return s.life>0;});
+        p.sparks.forEach(s=>s.draw(ctx));
+      }
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  }
+
+  window._initKpiGroupElectric=init;
+})();
 </script>
 </body>
 </html>
