@@ -183,30 +183,26 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .kpi-sub{font-size:.71rem;color:var(--text-muted);margin-top:5px;font-weight:300;position:relative;z-index:1;}
 
 
-/* KPI – Gradient radial qui suit la souris (comme dans la vidéo) */
-.kpi{
-  --gx: 50%; --gy: 50%; --gop: 0;
-}
-.kpi::before{
-  content:'';
-  position:absolute;inset:0;
+/* KPI – Gradient radial mouse-follow via div dédié */
+.kpi-glow-spot {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity .35s ease;
   background: radial-gradient(
-    circle 160px at var(--gx) var(--gy),
-    var(--kpi-glow-col, rgba(200,132,58,.22)),
+    circle 180px at var(--gx, 50%) var(--gy, 50%),
+    var(--kpi-glow-col),
     transparent 70%
   );
-  opacity: var(--gop);
-  transition: opacity .4s ease;
-  z-index:0;
-  pointer-events:none;
-  border-radius:inherit;
 }
-/* Couleur du glow par type */
-.kpi.copper  { --kpi-glow-col: rgba(200,132,58,.30); }
-.kpi.ruby    { --kpi-glow-col: rgba(224,85,85,.30);  }
-.kpi.sapphire{ --kpi-glow-col: rgba(74,158,232,.30); }
-.kpi.emerald { --kpi-glow-col: rgba(45,212,160,.28); }
-.kpi.amber   { --kpi-glow-col: rgba(232,164,58,.30); }
+.kpi.copper   { --kpi-glow-col: rgba(200,132,58,.35); }
+.kpi.ruby     { --kpi-glow-col: rgba(224,85,85,.35);  }
+.kpi.sapphire { --kpi-glow-col: rgba(74,158,232,.35); }
+.kpi.emerald  { --kpi-glow-col: rgba(45,212,160,.32); }
+.kpi.amber    { --kpi-glow-col: rgba(232,164,58,.35); }
 /* SECTION HEADER */
 .sec-h{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--text-faint);position:relative;}
 .sec-h::after{content:'';position:absolute;bottom:-1px;left:0;width:36px;height:1px;background:var(--copper);}
@@ -2516,16 +2512,24 @@ function closeCritereBtn(){
 (function(){
   function initKpiGradient(){
     document.querySelectorAll('.kpi').forEach(card => {
+      // Injecter un div dédié si pas encore présent
+      if(!card.querySelector('.kpi-glow-spot')){
+        const spot = document.createElement('div');
+        spot.className = 'kpi-glow-spot';
+        card.insertBefore(spot, card.firstChild);
+      }
+      const spot = card.querySelector('.kpi-glow-spot');
+
       card.addEventListener('mousemove', e => {
         const rect = card.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / rect.width  * 100).toFixed(1) + '%';
         const y = ((e.clientY - rect.top)  / rect.height * 100).toFixed(1) + '%';
-        card.style.setProperty('--gx', x);
-        card.style.setProperty('--gy', y);
-        card.style.setProperty('--gop', '1');
+        spot.style.setProperty('--gx', x);
+        spot.style.setProperty('--gy', y);
+        spot.style.opacity = '1';
       });
       card.addEventListener('mouseleave', () => {
-        card.style.setProperty('--gop', '0');
+        spot.style.opacity = '0';
       });
     });
   }
