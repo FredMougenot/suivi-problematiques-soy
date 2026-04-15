@@ -140,46 +140,22 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 /* KPI */
 .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:26px;}
 
-/* Electric Border wrapper */
-.kpi-electric{position:relative;border-radius:var(--r-lg);padding:2px;}
-.kpi-electric::before{
-  content:'';position:absolute;inset:-1px;border-radius:calc(var(--r-lg) + 2px);
-  background:conic-gradient(from var(--elec-angle,0deg),
-    transparent 0deg, transparent 60deg,
-    var(--elec-col,#C8843A) 90deg,
-    transparent 120deg, transparent 180deg,
-    var(--elec-col2,rgba(255,255,255,.3)) 210deg,
-    transparent 240deg, transparent 360deg);
-  animation:electricSpin 2.4s linear infinite;z-index:0;
-}
-.kpi-electric::after{
-  content:'';position:absolute;inset:0px;border-radius:var(--r-lg);
-  background:inherit;filter:blur(8px);opacity:.55;
-  background:conic-gradient(from var(--elec-angle,0deg),
-    transparent 0deg, transparent 60deg,
-    var(--elec-col,#C8843A) 90deg,
-    transparent 120deg, transparent 180deg,
-    var(--elec-col2,rgba(255,255,255,.3)) 210deg,
-    transparent 240deg, transparent 360deg);
-  animation:electricSpin 2.4s linear infinite;z-index:0;
-}
-@property --elec-angle{syntax:'<angle>';initial-value:0deg;inherits:false;}
-@keyframes electricSpin{
-  from{--elec-angle:0deg}
-  to{--elec-angle:360deg}
+/* Electric group wrapper */
+.kpi-group{position:relative;margin-bottom:26px;}
+.kpi-group .kpi-row{margin-bottom:0;}
+.kpi-group-canvas{
+  position:absolute;
+  pointer-events:none;
+  z-index:10;
+  top:-10px; left:-10px;
+  width:calc(100% + 20px);
+  height:calc(100% + 20px);
 }
 
-/* Per-color electric vars */
-.kpi-electric.copper{--elec-col:#C8843A;--elec-col2:rgba(224,168,112,.5);}
-.kpi-electric.ruby{--elec-col:#E05555;--elec-col2:rgba(255,120,120,.4);}
-.kpi-electric.sapphire{--elec-col:#4A9EE8;--elec-col2:rgba(140,200,255,.4);}
-.kpi-electric.emerald{--elec-col:#2DD4A0;--elec-col2:rgba(100,255,200,.4);}
-.kpi-electric.amber{--elec-col:#E8A43A;--elec-col2:rgba(255,210,100,.4);}
-
-.kpi{background:var(--bg-raised);border:1px solid transparent;border-radius:var(--r-lg);padding:22px 20px;position:relative;overflow:hidden;transition:all var(--t-base) var(--ease);cursor:default;z-index:1;}
+/* Individual KPI cards */
+.kpi-electric{position:relative;border-radius:var(--r-lg);}
+.kpi{background:var(--bg-raised);border:1px solid rgba(255,255,255,.06);border-radius:var(--r-lg);padding:22px 20px;position:relative;overflow:hidden;transition:all var(--t-base) var(--ease);cursor:default;}
 .kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
-
-/* Subtle top shimmer + corner glow kept inside the inner card */
 .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;z-index:2;}
 .kpi::after{content:'';position:absolute;top:-40px;right:-40px;width:110px;height:110px;border-radius:50%;opacity:.35;pointer-events:none;z-index:0;}
 .kpi.copper::before{background:linear-gradient(90deg,transparent,var(--copper),transparent);}
@@ -832,12 +808,15 @@ body { font-size: 0.9375rem; }
           <button class="dash-date-arr" onclick="dashChangeDay(1)">&#8594;</button>
           <button class="dash-today-btn" onclick="dashGoToday()">Aujourd'hui</button>
         </div>
-        <div class="kpi-row">
+        <div class="kpi-group" id="kpi-group">
+          <canvas class="kpi-group-canvas" id="kpi-group-canvas"></canvas>
+          <div class="kpi-row">
           <div class="kpi-electric copper"><div class="kpi copper" onclick="goToRegistre('')" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">Total actif</div></div><div class="kpi-val" id="kpi-total">—</div><div class="kpi-sub">Voir le registre →</div></div></div>
           <div class="kpi-electric ruby"><div class="kpi ruby" onclick="goToRegistre('À traiter')" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">À traiter</div></div><div class="kpi-val" id="kpi-ouvert">—</div><div class="kpi-sub">Voir le registre →</div></div></div>
           <div class="kpi-electric sapphire"><div class="kpi sapphire" onclick="goToRegistre('En cours')" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">En cours</div></div><div class="kpi-val" id="kpi-cours">—</div><div class="kpi-sub">Voir le registre →</div></div></div>
           <div class="kpi-electric emerald"><div class="kpi emerald" onclick="goToRegistre('Résolu')" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">Résolues</div></div><div class="kpi-val" id="kpi-resolu">—</div><div class="kpi-sub">Voir le registre →</div></div></div>
           <div class="kpi-electric amber"><div class="kpi amber" onclick="goToIncompletes()" style="cursor:pointer"><div class="kpi-top"><div class="kpi-lbl">Incomplètes</div></div><div class="kpi-val" id="kpi-incomplet">—</div><div class="kpi-sub">Voir le registre →</div></div></div>
+          </div>
         </div>
         <div class="stat-row">
           <div class="stat-card">
@@ -1335,6 +1314,7 @@ function showApp(){
       showPage('dashboard');
     }
   }catch(e){ showPage('dashboard'); }
+  setTimeout(()=>{ if(window._initKpiElectric) window._initKpiElectric(); }, 300);
 }
 async function checkRole(){
   try { const {data}=await sb.from('admins').select('email').eq('email',currentUser.email).single(); isAdmin=!!data; }
@@ -2256,5 +2236,246 @@ function closeCritereBtn(){
 
 
 </script>
+
+<script>
+/* ── ELECTRIC GROUP BORDER ────────────────────────────────────────────────
+   A single electric spark travels around the outer perimeter of the 5-KPI
+   group. Its colour interpolates gradually through the 5 KPI colours based
+   on the spark's X position over each card.
+──────────────────────────────────────────────────────────────────────────── */
+(function(){
+
+  // KPI colours in order: copper, ruby, sapphire, emerald, amber
+  const KPI_COLORS = [
+    { r:200, g:132, b: 58 },  // copper
+    { r:224, g: 85, b: 85 },  // ruby
+    { r: 74, g:158, b:232 },  // sapphire
+    { r: 45, g:212, b:160 },  // emerald
+    { r:232, g:164, b: 58 },  // amber
+  ];
+
+  function lerpColor(a, b, t){
+    return {
+      r: Math.round(a.r + (b.r - a.r) * t),
+      g: Math.round(a.g + (b.g - a.g) * t),
+      b: Math.round(a.b + (b.b - a.b) * t),
+    };
+  }
+
+  // Given a normalised x position (0-1) across the group, return interpolated colour
+  function colorAtX(nx){
+    const n = KPI_COLORS.length;
+    const scaled = nx * (n - 1);           // 0 → n-1
+    const i = Math.min(Math.floor(scaled), n - 2);
+    const t = scaled - i;
+    return lerpColor(KPI_COLORS[i], KPI_COLORS[i + 1], t);
+  }
+
+  // ── Perimeter walk helpers (rounded-rect) ───────────────────────────────
+  function perimPoint(progress, W, H, R){
+    const sTop = W - 2*R, sRight = H - 2*R, sBot = W - 2*R, sLeft = H - 2*R;
+    const aLen = Math.PI * R / 2;
+    const segs = [
+      // segment: [length, fn(u)→{x,y,tx,ty}]
+      [sTop,   u=>({x:R+u*sTop,   y:0,           tx:1, ty:0})],
+      [aLen,   u=>{ const a=-Math.PI/2+u*Math.PI/2; return {x:W-R+Math.cos(a)*R, y:R+Math.sin(a)*R, tx:-Math.sin(a), ty:Math.cos(a)};}],
+      [sRight, u=>({x:W,           y:R+u*sRight,  tx:0, ty:1})],
+      [aLen,   u=>{ const a=u*Math.PI/2;           return {x:W-R+Math.cos(a)*R, y:H-R+Math.sin(a)*R, tx:-Math.sin(a), ty:Math.cos(a)};}],
+      [sBot,   u=>({x:W-R-u*sBot, y:H,           tx:-1,ty:0})],
+      [aLen,   u=>{ const a=Math.PI/2+u*Math.PI/2;return {x:R+Math.cos(a)*R,   y:H-R+Math.sin(a)*R, tx:-Math.sin(a), ty:Math.cos(a)};}],
+      [sLeft,  u=>({x:0,           y:H-R-u*sLeft, tx:0, ty:-1})],
+      [aLen,   u=>{ const a=Math.PI+u*Math.PI/2;  return {x:R+Math.cos(a)*R,   y:R+Math.sin(a)*R,   tx:-Math.sin(a), ty:Math.cos(a)};}],
+    ];
+    const total = segs.reduce((s,[l])=>s+l, 0);
+    let d = ((progress % 1) + 1) % 1 * total;
+    for(const [len, fn] of segs){
+      if(d <= len) return fn(d / len);
+      d -= len;
+    }
+    return segs[0][1](0);
+  }
+
+  // ── Spark class ─────────────────────────────────────────────────────────
+  class Spark {
+    constructor(x,y,vx,vy,life,col,sz){
+      this.x=x; this.y=y; this.vx=vx; this.vy=vy;
+      this.life=life; this.maxLife=life; this.col=col; this.sz=sz;
+    }
+    update(){ this.x+=this.vx; this.y+=this.vy; this.vx*=0.88; this.vy*=0.88; this.life--; }
+    draw(ctx){
+      const a = this.life / this.maxLife;
+      const {r,g,b} = this.col;
+      ctx.save();
+      ctx.globalAlpha = a * 0.85;
+      ctx.shadowColor = `rgb(${r},${g},${b})`;
+      ctx.shadowBlur  = 7;
+      ctx.fillStyle   = a > 0.5
+        ? `rgb(${Math.min(255,r+80)},${Math.min(255,g+80)},${Math.min(255,b+80)})`
+        : `rgb(${r},${g},${b})`;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.sz * a, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // ── Main setup ───────────────────────────────────────────────────────────
+  function init(){
+    const group  = document.getElementById('kpi-group');
+    const canvas = document.getElementById('kpi-group-canvas');
+    if(!group || !canvas) return;
+
+    const ctx  = canvas.getContext('2d');
+    const dpr  = Math.min(window.devicePixelRatio || 1, 2);
+    const PAD  = 10; // matches CSS top/left -10px
+
+    let W, H, cW, cH;
+
+    function resize(){
+      const rect = group.getBoundingClientRect();
+      W = rect.width; H = rect.height;
+      cW = W + PAD*2; cH = H + PAD*2;
+      canvas.width  = cW * dpr;
+      canvas.height = cH * dpr;
+      canvas.style.width  = cW + 'px';
+      canvas.style.height = cH + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    resize();
+    window.addEventListener('resize', ()=>{ clearTimeout(window._kpiRT); window._kpiRT=setTimeout(resize,150); });
+
+    const R = 16 + PAD; // border-radius of the group outline (card radius + padding)
+
+    // Two sparks with different speeds and offsets
+    const sparks_list = [];
+    const particles = [
+      { t: 0.0,  speed: 0.0014, sparks: [], spawnT: 0 },
+      { t: 0.52, speed: 0.0011, sparks: [], spawnT: 0 },
+    ];
+
+    let frame = 0;
+
+    function loop(){
+      ctx.clearRect(0, 0, cW, cH);
+
+      // ── Static border glow (very faint) ─────────────────────────────────
+      // Draw a full rounded-rect stroke with a faint colour derived from current positions
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.lineWidth = 1.5;
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = 'rgba(255,255,255,0.06)';
+      ctx.beginPath();
+      ctx.roundRect(PAD, PAD, W, H, 16);
+      ctx.stroke();
+      ctx.restore();
+
+      for(const p of particles){
+        p.t = (p.t + p.speed) % 1;
+        const pos = perimPoint(p.t, W, H, R - PAD);
+        // Offset into canvas space (canvas origin is PAD px before group origin)
+        const px = pos.x + PAD;
+        const py = pos.y + PAD;
+        const nx = pos.ty;   // normal outward
+        const ny = -pos.tx;
+
+        // Colour based on normalised X across the group width
+        const nx_norm = Math.max(0, Math.min(1, pos.x / W));
+        const col = colorAtX(nx_norm);
+        const {r,g,b} = col;
+        const colStr = `rgb(${r},${g},${b})`;
+
+        // ── Trail ──────────────────────────────────────────────────────────
+        if(!p.trail) p.trail = [];
+        p.trail.push({x:px, y:py, col:{...col}});
+        if(p.trail.length > 18) p.trail.shift();
+
+        for(let i=1; i<p.trail.length; i++){
+          const ta = i / p.trail.length;
+          const tc = p.trail[i].col;
+          ctx.save();
+          ctx.globalAlpha = ta * 0.75;
+          ctx.strokeStyle = `rgb(${tc.r},${tc.g},${tc.b})`;
+          ctx.shadowColor = `rgb(${tc.r},${tc.g},${tc.b})`;
+          ctx.shadowBlur  = 10;
+          ctx.lineWidth   = ta * 3;
+          ctx.lineCap     = 'round';
+          ctx.beginPath();
+          ctx.moveTo(p.trail[i-1].x, p.trail[i-1].y);
+          ctx.lineTo(p.trail[i].x,   p.trail[i].y);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // ── Head ──────────────────────────────────────────────────────────
+        ctx.save();
+        ctx.shadowColor = colStr;
+        ctx.shadowBlur  = 18;
+        ctx.fillStyle   = '#ffffff';
+        ctx.globalAlpha = 0.95;
+        ctx.beginPath();
+        ctx.arc(px, py, 2.5, 0, Math.PI*2);
+        ctx.fill();
+        // Outer glow dot
+        ctx.globalAlpha = 0.4;
+        ctx.fillStyle = colStr;
+        ctx.beginPath();
+        ctx.arc(px, py, 5, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+
+        // ── Spawn sparks ──────────────────────────────────────────────────
+        p.spawnT--;
+        if(p.spawnT <= 0){
+          p.spawnT = 3 + Math.random() * 5;
+          const spd = 0.6 + Math.random() * 1.8;
+          const ang = Math.random() * Math.PI * 0.5 - Math.PI * 0.25;
+          const cos = Math.cos(ang), sin = Math.sin(ang);
+          // Outward direction
+          const vx = (nx*cos - ny*sin)*spd + (Math.random()-.5)*0.4;
+          const vy = (nx*sin + ny*cos)*spd + (Math.random()-.5)*0.4;
+          p.sparks.push(new Spark(px, py, vx, vy, 8+Math.random()*12, {...col}, 1.2+Math.random()*1.2));
+
+          // Occasional burst
+          if(Math.random() < 0.18){
+            for(let i=0;i<5;i++){
+              const ba = Math.random()*Math.PI*2;
+              p.sparks.push(new Spark(px, py,
+                Math.cos(ba)*(1+Math.random()*1.5),
+                Math.sin(ba)*(1+Math.random()*1.5),
+                5+Math.random()*8, {...col}, 0.7+Math.random()*0.8));
+            }
+          }
+        }
+
+        // ── Update & draw sparks ──────────────────────────────────────────
+        p.sparks = p.sparks.filter(s=>{ s.update(); return s.life>0; });
+        p.sparks.forEach(s => s.draw(ctx));
+      }
+
+      frame++;
+      requestAnimationFrame(loop);
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  // Hook into showApp
+  const _origShowApp = window.showApp;
+  window.showApp = function(...args){
+    if(_origShowApp) _origShowApp.apply(this, args);
+    setTimeout(init, 300);
+  };
+  // Also try on load in case already shown
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const app = document.getElementById('app');
+    if(app && app.style.display !== 'none') setTimeout(init, 300);
+  });
+
+  window._initKpiElectric = init;
+})();
+</script>
+
 </body>
 </html>
