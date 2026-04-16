@@ -1215,8 +1215,6 @@ function filterTable() {
   }
   renderTable(allProblems.filter(p => {
     if (localDate(p.created_at) > curDate) return false;
-    const resolue = p.date_resolue ? localDate(p.date_resolue) : null;
-    if (resolue && resolue <= curDate && MASQUEES.includes(p.statut)) return false;
     if (!showCloture && MASQUEES.includes(p.statut)) return false;
     if (q      && !(p.intitule||'').toLowerCase().includes(q)
                && !(p.description||'').toLowerCase().includes(q)) return false;
