@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Expédition SOY · Intentions de production</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-void:#06070B;--bg-deep:#0B0D13;--bg-base:#0F1118;
+  --bg-raised:#15181F;--bg-float:#1A1E2A;--bg-hover:#1F2436;--bg-active:#242B40;
+  --copper:#C8843A;--copper-light:#E0A870;--copper-pale:#EDD4A8;
+  --copper-glow:rgba(200,132,58,.22);--copper-dim:rgba(200,132,58,.10);
+  --text-primary:#F0EAE0;--text-secondary:#BEC5D6;
+  --text-muted:#7A82A0;--text-faint:#2C3350;
+  --emerald:#2DD4A0;--emerald-bg:rgba(45,212,160,.08);
+  --ruby:#E05555;--ruby-bg:rgba(224,85,85,.08);
+  --amber:#E8A43A;--amber-bg:rgba(232,164,58,.08);
+  --sapphire:#4A9EE8;--sapphire-bg:rgba(74,158,232,.08);
+  --r-sm:4px;--r-md:10px;--r-lg:16px;--r-xl:24px;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 16px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.3);
+  --shadow-lg:0 16px 48px rgba(0,0,0,.6),0 4px 16px rgba(0,0,0,.4);
+  --ease:cubic-bezier(.4,0,.2,1);--ease-out:cubic-bezier(0,0,.2,1);
+  --t-fast:.15s;--t-base:.25s;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:15px;scroll-behavior:smooth;}
+body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-primary);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit;}
+input,select,textarea{font-family:inherit;font-size:inherit;border:none;outline:none;color:inherit;}
+a{color:inherit;text-decoration:none;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--text-faint);border-radius:5px;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px;}
+
+/* LOADING */
+#loading-screen{position:fixed;inset:0;z-index:9999;background:var(--bg-void);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;transition:opacity .6s,visibility .6s;}
+#loading-screen.hidden{opacity:0;visibility:hidden;pointer-events:none;}
+.ls-ring{width:66px;height:66px;border:1px solid rgba(184,115,51,.28);border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;}
+.ls-ring::before{content:'';position:absolute;inset:-6px;border:1px solid rgba(184,115,51,.08);border-radius:50%;animation:spin 3s linear infinite;}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.ls-inner{font-family:'Playfair Display',serif;font-style:italic;font-size:1.4rem;color:var(--copper-light);}
+.ls-name{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:600;color:var(--text-primary);letter-spacing:.12em;text-transform:uppercase;}
+.ls-sub{font-size:.62rem;font-weight:500;color:var(--text-muted);letter-spacing:.25em;text-transform:uppercase;}
+.ls-bar{width:100px;height:1px;background:var(--text-faint);border-radius:1px;overflow:hidden;}
+.ls-bar-fill{height:100%;background:linear-gradient(90deg,var(--copper),var(--copper-light));animation:barAnim 1.6s ease infinite;}
+@keyframes barAnim{0%{width:0;margin-left:0}50%{width:60%;margin-left:0}100%{width:0;margin-left:100%}}
+
+/* AUTH */
+#auth-page{display:none;min-height:100vh;position:relative;overflow:hidden;}
+.auth-glow{position:absolute;pointer-events:none;border-radius:50%;}
+.auth-glow:nth-child(1){top:-20%;left:60%;width:700px;height:700px;background:radial-gradient(circle,rgba(184,115,51,.06),transparent 65%);animation:breathe 6s ease-in-out infinite;}
+.auth-glow:nth-child(2){bottom:-10%;left:-10%;width:500px;height:500px;background:radial-gradient(circle,rgba(184,115,51,.04),transparent 65%);animation:breathe 8s ease-in-out infinite reverse;}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.1);opacity:.7}}
+.auth-wrap{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.auth-panel{width:100%;max-width:440px;animation:panelIn .8s var(--ease-out) forwards;opacity:0;}
+@keyframes panelIn{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+.auth-logo-zone{text-align:center;margin-bottom:44px;padding-bottom:32px;border-bottom:1px solid var(--text-faint);position:relative;}
+.auth-logo-zone::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:48px;height:1px;background:var(--copper);}
+.auth-monogram{display:inline-flex;align-items:center;justify-content:center;width:60px;height:60px;border:1px solid rgba(184,115,51,.25);border-radius:50%;margin-bottom:18px;position:relative;}
+.auth-monogram::before{content:'';position:absolute;inset:-5px;border:1px solid rgba(184,115,51,.08);border-radius:50%;}
+.auth-letter{font-family:'Playfair Display',serif;font-style:italic;font-size:1.4rem;color:var(--copper-light);}
+.auth-name{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:600;color:var(--text-primary);margin-bottom:5px;}
+.auth-tagline{font-size:.68rem;font-weight:500;color:var(--text-muted);letter-spacing:.2em;text-transform:uppercase;}
+.auth-h{font-family:'Playfair Display',serif;font-size:1.65rem;font-weight:400;color:var(--text-primary);margin-bottom:8px;}
+.auth-p{font-size:.82rem;color:var(--text-secondary);margin-bottom:32px;font-weight:300;line-height:1.6;}
+.fld{margin-bottom:20px;}
+.fld-lbl{display:block;font-size:.67rem;font-weight:700;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;margin-bottom:9px;}
+.fld-inp{width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:13px 16px;font-size:.88rem;font-weight:300;color:var(--text-primary);transition:all var(--t-base) var(--ease);}
+.fld-inp:focus{border-color:var(--copper);background:var(--bg-float);box-shadow:0 0 0 3px var(--copper-glow);}
+.btn-auth{width:100%;padding:14px;background:var(--copper);color:var(--bg-void);font-size:.85rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border-radius:var(--r-md);margin-top:8px;transition:all var(--t-base) var(--ease);}
+.btn-auth:hover{background:var(--copper-light);transform:translateY(-1px);box-shadow:0 8px 24px rgba(184,115,51,.35);}
+.auth-err{margin-top:16px;padding:12px 16px;background:var(--ruby-bg);border:1px solid rgba(224,85,85,.2);border-radius:var(--r-md);font-size:.82rem;color:var(--ruby);display:none;}
+.auth-err.show{display:block;}
+
+/* APP */
+#app{display:none;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:264px;background:var(--bg-deep);border-right:1px solid var(--text-faint);display:flex;flex-direction:column;z-index:200;}
+.sidebar::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--copper),transparent);}
+.sb-brand{padding:28px 22px 22px;border-bottom:1px solid var(--text-faint);}
+.sb-logo-row{display:flex;align-items:center;gap:13px;margin-bottom:14px;}
+.sb-icon{width:38px;height:38px;border:1px solid rgba(184,115,51,.3);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-style:italic;font-size:.95rem;color:var(--copper-light);background:var(--copper-dim);flex-shrink:0;}
+.sb-name{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:600;color:var(--text-primary);}
+.sb-rule{height:1px;background:linear-gradient(90deg,var(--copper),transparent);width:36px;margin-bottom:4px;}
+.sb-sub{font-size:.6rem;font-weight:500;color:var(--text-muted);letter-spacing:.22em;text-transform:uppercase;}
+.sb-nav{flex:1;padding:18px 12px;overflow-y:auto;}
+.sb-sec{font-size:.62rem;font-weight:700;color:var(--text-muted);letter-spacing:.22em;text-transform:uppercase;padding:0 10px;margin:22px 0 8px;}
+.sb-sec:first-child{margin-top:0;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:var(--r-md);font-size:.87rem;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:all var(--t-fast) var(--ease);margin-bottom:2px;border:1px solid transparent;position:relative;}
+.sb-item:hover{background:var(--bg-raised);color:var(--text-primary);border-color:var(--text-faint);}
+.sb-item.active{background:var(--copper-dim);color:var(--copper-pale);border-color:rgba(184,115,51,.18);font-weight:500;}
+.sb-item.active::before{content:'';position:absolute;left:-12px;top:50%;transform:translateY(-50%);width:3px;height:18px;background:var(--copper);border-radius:0 2px 2px 0;}
+.sb-ico{width:17px;text-align:center;font-size:.9rem;flex-shrink:0;opacity:.65;}
+.sb-item.active .sb-ico{opacity:1;}
+.sb-badge{margin-left:auto;background:var(--ruby);color:#fff;font-size:.6rem;font-weight:800;padding:2px 6px;border-radius:20px;min-width:18px;text-align:center;}
+.sb-foot{padding:12px;border-top:1px solid var(--text-faint);}
+.sb-user{display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);}
+.sb-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--copper),var(--copper-light));display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:var(--bg-void);flex-shrink:0;font-family:'Playfair Display',serif;}
+.sb-uinfo{flex:1;min-width:0;}
+.sb-uname{font-size:.85rem;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-urole{font-size:.72rem;color:var(--text-secondary);margin-top:1px;}
+.sb-logout{padding:6px;border-radius:var(--r-sm);color:var(--text-muted);font-size:.85rem;transition:all var(--t-fast) var(--ease);cursor:pointer;}
+.sb-logout:hover{color:var(--ruby);}
+
+/* MAIN */
+.main{margin-left:264px;min-height:100vh;background:var(--bg-base);display:flex;flex-direction:column;}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:100;height:60px;background:rgba(16,18,26,.88);backdrop-filter:blur(16px) saturate(180%);border-bottom:1px solid var(--text-faint);padding:0 30px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.tb-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--text-primary);}
+.tb-sub{font-size:.72rem;color:var(--text-muted);font-weight:300;}
+
+/* CONTENT */
+.content{flex:1;padding:30px;max-width:900px;}
+
+/* TOAST */
+.toasts{position:fixed;bottom:22px;right:22px;z-index:9997;display:flex;flex-direction:column;gap:9px;}
+.toast{display:flex;align-items:center;gap:11px;padding:12px 16px;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);box-shadow:var(--shadow-lg);font-size:.82rem;font-weight:400;color:var(--text-primary);min-width:270px;max-width:350px;animation:toastIn .3s var(--ease-out);border-left:2px solid var(--copper);}
+.toast.success{border-left-color:var(--emerald);}
+.toast.error{border-left-color:var(--ruby);}
+@keyframes toastIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
+
+/* SECTION HEADER */
+.sec-h{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--text-faint);position:relative;}
+.sec-h::after{content:'';position:absolute;bottom:-1px;left:0;width:36px;height:1px;background:var(--copper);}
+.sec-title{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:600;color:var(--text-primary);}
+.sec-sub{font-size:.73rem;color:var(--text-muted);margin-top:3px;font-weight:300;}
+
+/* DATE BADGE */
+.date-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:24px;}
+.date-badge span{color:var(--copper-light);}
+
+/* LIGNE CARDS */
+.lignes-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;}
+@media(max-width:700px){.lignes-grid{grid-template-columns:1fr;}}
+
+.ligne-card{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow:hidden;transition:border-color var(--t-base);}
+.ligne-card:hover{border-color:var(--text-muted);}
+.ligne-card.active-on{border-color:rgba(45,212,160,.3);}
+
+.ligne-card-head{padding:18px 22px 16px;border-bottom:1px solid var(--text-faint);background:var(--bg-float);display:flex;align-items:center;justify-content:space-between;}
+.ligne-card-head::before{content:'';display:block;width:3px;height:18px;border-radius:2px;flex-shrink:0;margin-right:10px;}
+.ligne-1 .ligne-card-head::before{background:var(--copper);}
+.ligne-2 .ligne-card-head::before{background:var(--sapphire);}
+.ligne-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--text-primary);}
+
+/* TOGGLE SWITCH */
+.toggle-wrap{display:flex;align-items:center;gap:10px;}
+.toggle-lbl{font-size:.75rem;font-weight:600;color:var(--text-muted);transition:color var(--t-fast);}
+.toggle-lbl.on{color:var(--emerald);}
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-slider{position:absolute;inset:0;background:var(--bg-active);border:1px solid var(--text-faint);border-radius:24px;cursor:pointer;transition:all var(--t-base) var(--ease);}
+.toggle-slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:var(--text-muted);border-radius:50%;transition:all var(--t-base) var(--ease);}
+.toggle input:checked + .toggle-slider{background:rgba(45,212,160,.15);border-color:var(--emerald);}
+.toggle input:checked + .toggle-slider::before{transform:translateX(20px);background:var(--emerald);box-shadow:0 0 8px rgba(45,212,160,.4);}
+
+.ligne-card-body{padding:20px 22px;}
+
+/* FORM GROUPS */
+.fg{margin-bottom:16px;}
+.fg:last-child{margin-bottom:0;}
+.fg-lbl{display:block;font-size:.67rem;font-weight:700;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px;}
+.fg-inp{width:100%;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:10px 14px;font-size:.88rem;font-weight:400;color:var(--text-primary);transition:all var(--t-base) var(--ease);}
+.fg-inp:focus{border-color:var(--copper);box-shadow:0 0 0 3px var(--copper-glow);}
+.fg-inp:disabled{opacity:.4;cursor:not-allowed;}
+.fg-inp[type="number"]{-moz-appearance:textfield;}
+.fg-inp[type="number"]::-webkit-outer-spin-button,
+.fg-inp[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;}
+
+select.fg-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234A5168'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer;}
+
+/* STATUS PILL */
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:700;letter-spacing:.04em;}
+.status-pill.on{background:var(--emerald-bg);color:var(--emerald);border:1px solid rgba(45,212,160,.2);}
+.status-pill.off{background:var(--ruby-bg);color:var(--ruby);border:1px solid rgba(224,85,85,.2);}
+.status-dot{width:6px;height:6px;border-radius:50%;}
+.status-pill.on .status-dot{background:var(--emerald);box-shadow:0 0 5px rgba(45,212,160,.5);}
+.status-pill.off .status-dot{background:var(--ruby);}
+
+/* SAVE BUTTON */
+.btn-save{display:flex;align-items:center;gap:8px;padding:11px 24px;background:var(--copper);color:var(--bg-void);font-size:.82rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-radius:var(--r-md);transition:all var(--t-base) var(--ease);}
+.btn-save:hover{background:var(--copper-light);transform:translateY(-1px);box-shadow:0 6px 20px rgba(184,115,51,.3);}
+.btn-save:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
+.btn-save:active{transform:translateY(0);}
+
+/* LAST UPDATE */
+.last-update{font-size:.72rem;color:var(--text-muted);font-weight:300;}
+.last-update strong{color:var(--text-secondary);font-weight:500;}
+
+/* INFO BOX */
+.info-box{background:var(--sapphire-bg);border:1px solid rgba(74,158,232,.15);border-radius:var(--r-md);padding:14px 18px;margin-bottom:24px;font-size:.8rem;color:var(--text-secondary);line-height:1.6;display:flex;gap:10px;align-items:flex-start;}
+.info-box-ico{color:var(--sapphire);font-size:1rem;flex-shrink:0;margin-top:1px;}
+
+/* HISTORIQUE */
+.histo-card{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow:hidden;}
+.histo-head{padding:14px 22px;border-bottom:1px solid var(--text-faint);background:var(--bg-float);font-size:.72rem;font-weight:700;color:var(--text-muted);letter-spacing:.15em;text-transform:uppercase;}
+.histo-body{padding:0;}
+.histo-row{display:flex;align-items:center;gap:16px;padding:12px 22px;border-bottom:1px solid var(--text-faint);font-size:.8rem;}
+.histo-row:last-child{border-bottom:none;}
+.histo-time{color:var(--text-muted);flex-shrink:0;width:120px;}
+.histo-ligne{color:var(--copper-light);font-weight:600;flex-shrink:0;width:60px;}
+.histo-desc{color:var(--text-secondary);flex:1;}
+.histo-empty{padding:24px;text-align:center;color:var(--text-muted);font-size:.82rem;font-style:italic;}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading-screen">
+  <div class="ls-ring"><div class="ls-inner">S</div></div>
+  <div class="ls-name">Expédition SOY</div>
+  <div class="ls-sub">Intentions de production</div>
+  <div class="ls-bar"><div class="ls-bar-fill"></div></div>
+</div>
+
+<!-- AUTH -->
+<div id="auth-page">
+  <div class="auth-glow"></div>
+  <div class="auth-glow"></div>
+  <div class="auth-wrap">
+    <div class="auth-panel">
+      <div class="auth-logo-zone">
+        <div class="auth-monogram"><span class="auth-letter">S</span></div>
+        <div class="auth-name">Expédition SOY</div>
+        <div class="auth-tagline">Intentions de production</div>
+      </div>
+      <div class="auth-h">Connexion</div>
+      <div class="auth-p">Accès réservé aux membres autorisés.</div>
+      <div class="fld">
+        <label class="fld-lbl">Adresse courriel</label>
+        <input type="email" id="auth-email" class="fld-inp" placeholder="votre@courriel.com">
+      </div>
+      <div class="fld">
+        <label class="fld-lbl">Mot de passe</label>
+        <input type="password" id="auth-password" class="fld-inp" placeholder="••••••••">
+      </div>
+      <button class="btn-auth" onclick="doLogin()">Accéder</button>
+      <div class="auth-err" id="auth-err"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <nav class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-logo-row">
+        <div class="sb-icon">S</div>
+        <div class="sb-name">Expédition SOY</div>
+      </div>
+      <div class="sb-rule"></div>
+      <div class="sb-sub">Suivi · Problématiques</div>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-sec">Navigation</div>
+      <div class="sb-item" onclick="window.location.href='index.html'">
+        <span class="sb-ico">◈</span> Tableau de bord
+      </div>
+      <div class="sb-item" onclick="window.location.href='problematiques.html'">
+        <span class="sb-ico">◉</span> Problématiques
+      </div>
+      <div class="sb-sec">Outils</div>
+      <div class="sb-item" onclick="window.location.href='criteres_piliers.html'">
+        <span class="sb-ico">◆</span> Critères des piliers
+      </div>
+      <div class="sb-item" onclick="window.location.href='sst.html'">
+        <span class="sb-ico">🦺</span> SST
+      </div>
+      <div class="sb-item" onclick="window.location.href='inventaire_cyclique.html'">
+        <span class="sb-ico">⊞</span> Inventaire cyclique
+      </div>
+      <div class="sb-item" onclick="window.location.href='bris.html'">
+        <span class="sb-ico">🔧</span> Bris
+      </div>
+      <div class="sb-item" onclick="window.location.href='planning_camions.html'">
+        <span class="sb-ico">🚛</span> Planification camions
+      </div>
+      <div class="sb-item active">
+        <span class="sb-ico">🏭</span> Intentions de production
+      </div>
+      <div class="sb-item" onclick="window.location.href='erreurs_papier.html'">
+        <span class="sb-ico">✎</span> Erreurs papier
+      </div>
+      <div class="sb-item" onclick="window.location.href='irritants.html'">
+        <span class="sb-ico">💬</span> Gestion des irritants
+      </div>
+      <div class="sb-item" onclick="window.location.href='environnement.html'">
+        <span class="sb-ico">🌿</span> Non-conformité
+      </div>
+      <div class="sb-item" onclick="window.location.href='inventaire_gh.html'">
+        <span class="sb-ico">📦</span> Inventaire GH
+      </div>
+      <div class="sb-sec">Mon compte</div>
+      <div class="sb-item" onclick="window.location.href='index.html#profil'">
+        <span class="sb-ico">◎</span> Mon profil
+      </div>
+      <div class="sb-item" onclick="doLogout()">
+        <span class="sb-ico">⏻</span> Déconnexion
+      </div>
+    </div>
+    <div class="sb-foot">
+      <div class="sb-user">
+        <div class="sb-avatar" id="user-avatar">?</div>
+        <div class="sb-uinfo">
+          <div class="sb-uname" id="user-name">—</div>
+          <div class="sb-urole" id="user-role">—</div>
+        </div>
+        <button class="sb-logout" onclick="doLogout()" title="Déconnexion">⎋</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="tb-title">Intentions de production</div>
+        <div class="tb-sub">Planification journalière des lignes</div>
+      </div>
+      <button class="btn-save" id="btn-save" onclick="sauvegarder()">
+        💾 Sauvegarder
+      </button>
+    </div>
+
+    <div class="content">
+
+      <!-- Date -->
+      <div class="date-badge">
+        📅 Journée du <span id="date-affichee">—</span>
+      </div>
+
+      <!-- Info box -->
+      <div class="info-box">
+        <span class="info-box-ico">ℹ</span>
+        <div>Ces informations sont lues automatiquement par N8n à chaque cycle. Mettez à jour dès qu'une décision de production change. Les modifications sont effectives immédiatement.</div>
+      </div>
+
+      <!-- Lignes -->
+      <div class="sec-h">
+        <div>
+          <div class="sec-title">Lignes de production</div>
+          <div class="sec-sub">Configurez l'intention pour chaque ligne</div>
+        </div>
+        <div class="last-update" id="last-update">Chargement…</div>
+      </div>
+
+      <div class="lignes-grid">
+
+        <!-- LIGNE 1 -->
+        <div class="ligne-card ligne-1" id="card-L1">
+          <div class="ligne-card-head">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="ligne-title">Ligne 1</div>
+              <span class="status-pill off" id="pill-L1">
+                <span class="status-dot"></span> Inactif
+              </span>
+            </div>
+            <div class="toggle-wrap">
+              <span class="toggle-lbl" id="toggle-lbl-L1">OFF</span>
+              <label class="toggle">
+                <input type="checkbox" id="toggle-L1" onchange="onToggle('L1')">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="ligne-card-body">
+            <div class="fg">
+              <label class="fg-lbl">Nombre de camions prévus</label>
+              <input type="number" class="fg-inp" id="L1_nb_camions" min="0" max="20" value="0" placeholder="0" disabled>
+            </div>
+            <div class="fg">
+              <label class="fg-lbl">Caisses par palette</label>
+              <select class="fg-inp" id="L1_caisses_par_palette" disabled>
+                <option value="80">80 caisses / palette</option>
+                <option value="75">75 caisses / palette</option>
+                <option value="132">132 caisses / palette</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- LIGNE 2 -->
+        <div class="ligne-card ligne-2" id="card-L2">
+          <div class="ligne-card-head">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="ligne-title">Ligne 2</div>
+              <span class="status-pill off" id="pill-L2">
+                <span class="status-dot"></span> Inactif
+              </span>
+            </div>
+            <div class="toggle-wrap">
+              <span class="toggle-lbl" id="toggle-lbl-L2">OFF</span>
+              <label class="toggle">
+                <input type="checkbox" id="toggle-L2" onchange="onToggle('L2')">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="ligne-card-body">
+            <div class="fg">
+              <label class="fg-lbl">Nombre de camions prévus</label>
+              <input type="number" class="fg-inp" id="L2_nb_camions" min="0" max="20" value="0" placeholder="0" disabled>
+            </div>
+            <div class="fg">
+              <label class="fg-lbl">Caisses par palette</label>
+              <select class="fg-inp" id="L2_caisses_par_palette" disabled>
+                <option value="80">80 caisses / palette</option>
+                <option value="75">75 caisses / palette</option>
+                <option value="132">132 caisses / palette</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historique des modifications -->
+      <div class="sec-h" style="margin-top:10px;">
+        <div>
+          <div class="sec-title">Historique du jour</div>
+          <div class="sec-sub">Modifications enregistrées aujourd'hui</div>
+        </div>
+      </div>
+      <div class="histo-card">
+        <div class="histo-head">Dernières modifications</div>
+        <div class="histo-body" id="histo-body">
+          <div class="histo-empty">Aucune modification aujourd'hui</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let historiqueJour = [];
+
+// ── Helpers ──────────────────────────────────────────────────────────
+function localToday(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function fmtDate(d){
+  return new Date(d+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+function fmtTime(iso){
+  return new Date(iso).toLocaleTimeString('fr-CA',{hour:'2-digit',minute:'2-digit'});
+}
+function toast(msg, type='info'){
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+function hideLoading(){
+  document.getElementById('loading-screen').classList.add('hidden');
+}
+
+// ── Auth ─────────────────────────────────────────────────────────────
+async function doLogin(){
+  const email = document.getElementById('auth-email').value.trim();
+  const pwd   = document.getElementById('auth-password').value;
+  const err   = document.getElementById('auth-err');
+  const btn   = document.querySelector('#auth-page .btn-auth');
+  err.classList.remove('show');
+  if(!email||!pwd){err.textContent='Remplissez tous les champs.';err.classList.add('show');return;}
+  btn.disabled=true; btn.textContent='Connexion…';
+  const {data, error} = await sb.auth.signInWithPassword({email, password: pwd});
+  btn.disabled=false; btn.textContent='Accéder';
+  if(error){err.textContent='Identifiants incorrects.';err.classList.add('show');return;}
+  currentUser = data.user;
+  showApp();
+}
+async function doLogout(){
+  await sb.auth.signOut();
+  currentUser = null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('auth-page').style.display='block';
+}
+function updateUserUI(){
+  const meta = currentUser?.user_metadata || {};
+  const dn = [meta.prenom, meta.nom].filter(Boolean).join(' ') || (currentUser?.email||'').split('@')[0];
+  document.getElementById('user-avatar').textContent = dn.substring(0,2).toUpperCase();
+  document.getElementById('user-name').textContent = dn;
+  document.getElementById('user-role').textContent = 'Opérateur';
+}
+
+// ── Toggle ───────────────────────────────────────────────────────────
+function onToggle(ligne){
+  const checked = document.getElementById('toggle-'+ligne).checked;
+  const lbl = document.getElementById('toggle-lbl-'+ligne);
+  const pill = document.getElementById('pill-'+ligne);
+  const card = document.getElementById('card-'+ligne);
+  const inputs = [
+    document.getElementById(ligne+'_nb_camions'),
+    document.getElementById(ligne+'_caisses_par_palette')
+  ];
+
+  lbl.textContent = checked ? 'ON' : 'OFF';
+  lbl.className = 'toggle-lbl' + (checked ? ' on' : '');
+  pill.className = 'status-pill ' + (checked ? 'on' : 'off');
+  pill.innerHTML = `<span class="status-dot"></span> ${checked ? 'Actif' : 'Inactif'}`;
+  card.className = 'ligne-card ligne-' + ligne.slice(-1) + (checked ? ' active-on' : '');
+  inputs.forEach(inp => { if(inp) inp.disabled = !checked; });
+}
+
+// ── Load données du jour ──────────────────────────────────────────────
+async function chargerIntentions(){
+  const today = localToday();
+  document.getElementById('date-affichee').textContent = fmtDate(today);
+
+  try {
+    const {data, error} = await sb
+      .from('intentions_production')
+      .select('*')
+      .eq('date', today)
+      .maybeSingle();
+
+    if(data){
+      // Ligne 1
+      document.getElementById('toggle-L1').checked = data.l1_actif;
+      document.getElementById('L1_nb_camions').value = data.l1_nb_camions || 0;
+      document.getElementById('L1_caisses_par_palette').value = data.l1_caisses_par_palette || 80;
+      onToggle('L1');
+
+      // Ligne 2
+      document.getElementById('toggle-L2').checked = data.l2_actif;
+      document.getElementById('L2_nb_camions').value = data.l2_nb_camions || 0;
+      document.getElementById('L2_caisses_par_palette').value = data.l2_caisses_par_palette || 80;
+      onToggle('L2');
+
+      const maj = data.updated_at ? fmtTime(data.updated_at) : '—';
+      document.getElementById('last-update').innerHTML = `Dernière sauvegarde : <strong>${maj}</strong>`;
+    } else {
+      document.getElementById('last-update').textContent = 'Aucune intention enregistrée aujourd\'hui';
+    }
+  } catch(e) {
+    toast('Erreur de chargement: '+e.message, 'error');
+  }
+}
+
+// ── Sauvegarder ───────────────────────────────────────────────────────
+async function sauvegarder(){
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true; btn.textContent = '⏳ Sauvegarde…';
+
+  const today = localToday();
+  const payload = {
+    date: today,
+    l1_actif:              document.getElementById('toggle-L1').checked,
+    l1_nb_camions:         parseInt(document.getElementById('L1_nb_camions').value) || 0,
+    l1_caisses_par_palette:parseInt(document.getElementById('L1_caisses_par_palette').value) || 80,
+    l2_actif:              document.getElementById('toggle-L2').checked,
+    l2_nb_camions:         parseInt(document.getElementById('L2_nb_camions').value) || 0,
+    l2_caisses_par_palette:parseInt(document.getElementById('L2_caisses_par_palette').value) || 80,
+    updated_at:            new Date().toISOString(),
+  };
+
+  try {
+    const {error} = await sb
+      .from('intentions_production')
+      .upsert(payload, {onConflict: 'date'});
+
+    if(error) throw error;
+
+    toast('Intentions sauvegardées avec succès.', 'success');
+    const now = fmtTime(new Date().toISOString());
+    document.getElementById('last-update').innerHTML = `Dernière sauvegarde : <strong>${now}</strong>`;
+
+    // Ajouter à l'historique local
+    ajouterHistorique(payload, now);
+
+  } catch(e) {
+    toast('Erreur: '+e.message, 'error');
+  }
+
+  btn.disabled = false; btn.innerHTML = '💾 Sauvegarder';
+}
+
+// ── Historique ────────────────────────────────────────────────────────
+function ajouterHistorique(payload, heure){
+  historiqueJour.unshift({payload, heure});
+  renderHistorique();
+}
+function renderHistorique(){
+  const body = document.getElementById('histo-body');
+  if(historiqueJour.length === 0){
+    body.innerHTML = '<div class="histo-empty">Aucune modification aujourd\'hui</div>';
+    return;
+  }
+  body.innerHTML = historiqueJour.slice(0,10).map(h => {
+    const p = h.payload;
+    const L1txt = p.l1_actif ? `Active · ${p.l1_nb_camions} camion(s) · ${p.l1_caisses_par_palette} c/pal` : 'Inactive';
+    const L2txt = p.l2_actif ? `Active · ${p.l2_nb_camions} camion(s) · ${p.l2_caisses_par_palette} c/pal` : 'Inactive';
+    return `
+      <div class="histo-row">
+        <span class="histo-time">${h.heure}</span>
+        <span class="histo-ligne">L1</span>
+        <span class="histo-desc">${L1txt}</span>
+      </div>
+      <div class="histo-row">
+        <span class="histo-time"></span>
+        <span class="histo-ligne" style="color:var(--sapphire)">L2</span>
+        <span class="histo-desc">${L2txt}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── App ───────────────────────────────────────────────────────────────
+function showApp(){
+  document.getElementById('auth-page').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  updateUserUI();
+  chargerIntentions();
+}
+
+// ── Init ──────────────────────────────────────────────────────────────
+async function init(){
+  try {
+    const {data:{session}} = await sb.auth.getSession();
+    hideLoading();
+    if(session){ currentUser = session.user; showApp(); }
+    else {
+      document.getElementById('auth-page').style.display = 'block';
+      document.getElementById('auth-password').addEventListener('keydown', e => {
+        if(e.key === 'Enter') doLogin();
+      });
+    }
+  } catch(e) { hideLoading(); document.getElementById('auth-page').style.display = 'block'; }
+}
+
+init();
+</script>
+</body>
+</html>
