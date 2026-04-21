@@ -1421,7 +1421,7 @@ function renderCmCharts(probs, params){
   const weekDays=[], weekLabels=[];
   for(let i=0;i<7;i++){
     const d=new Date(monday); d.setDate(monday.getDate()+i);
-    const ds=d.toISOString().slice(0,10);
+    const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
     weekDays.push(ds);
     weekLabels.push(d.toLocaleDateString('fr-CA',{weekday:'short',day:'numeric'}));
   }
