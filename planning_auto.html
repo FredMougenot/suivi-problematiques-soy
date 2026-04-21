@@ -320,6 +320,31 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
         </div>
       </div>
 
+      <!-- Section slots de ramassage -->
+      <div class="sec-h" style="margin-top:10px;">
+        <div>
+          <div class="sec-title">Slots de ramassage</div>
+          <div class="sec-sub">Planning du transporteur · 06h00 à 22h00</div>
+        </div>
+      </div>
+
+      <div class="slots-outer">
+        <table class="slots-tbl">
+          <thead>
+            <tr>
+              <th>Slot</th>
+              <th>Statut</th>
+              <th>Ligne</th>
+              <th>Camion</th>
+              <th>Heure de fin</th>
+            </tr>
+          </thead>
+          <tbody id="slots-tbody">
+            <tr><td colspan="5"><div class="empty-state"><div class="empty-ico">⏳</div><div class="empty-txt">Chargement…</div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
     </div>
   </div>
 </div>
@@ -461,6 +486,47 @@ function renderLigne(numero, data){
   `;
 }
 
+// ── Rendu slots ──────────────────────────────────────────────────────
+function renderSlots(slots){
+  if(!slots || slots.length === 0){
+    document.getElementById('slots-tbody').innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-txt">Aucun slot disponible</div></div></td></tr>';
+    return;
+  }
+
+  const maintenant = new Date();
+  const minutesMaintenant = maintenant.getHours() * 60 + maintenant.getMinutes();
+
+  function slotPasse(heure){
+    const [h, m] = heure.split(':').map(Number);
+    return (h * 60 + m) < minutesMaintenant;
+  }
+
+  function badgeStatut(statut){
+    const labels = { confirme: 'Confirmé', annule: 'Annulé', inactive: 'Inactif', cadence_inconnue: 'En attente' };
+    const label = labels[statut] || statut;
+    return `<span class="slot-badge ${statut}"><span class="slot-badge-dot"></span>${label}</span>`;
+  }
+
+  document.getElementById('slots-tbody').innerHTML = slots.map(slot => {
+    const passe = slotPasse(slot.heure);
+    const globalClass = `slot-global-${slot.statut}`;
+    const passeClass = passe ? 'slot-passe' : '';
+    const ligneLabel = slot.ligne ? `<span style="color:${slot.ligne==='L1'?'var(--copper)':'var(--sapphire)'};font-weight:700;">${slot.ligne}</span>` : '—';
+    const camionLabel = slot.camion ? `Camion ${slot.camion}` : '—';
+    const heureFinLabel = slot.heureFinCamion || '—';
+
+    return `
+      <tr class="${globalClass} ${passeClass}">
+        <td><div class="slot-label">${slot.label || slot.heure}</div></td>
+        <td>${badgeStatut(slot.statut)}</td>
+        <td>${ligneLabel}</td>
+        <td style="font-family:'Playfair Display',serif;font-size:.95rem;font-weight:600;">${camionLabel}</td>
+        <td style="font-family:'Playfair Display',serif;font-size:.95rem;color:var(--copper-light);">${heureFinLabel}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
 // ── Chargement données ─────────────────────────────────────────────────
 async function chargerDonnees(){
   const today = localToday();
@@ -492,6 +558,9 @@ async function chargerDonnees(){
     document.getElementById('lignes-grid').innerHTML =
       renderLigne(1, data) +
       renderLigne(2, data);
+
+    // Rendre les slots
+    renderSlots(data.slots);
 
   } catch(e) {
     toast('Erreur de chargement: '+e.message, 'error');
