@@ -504,8 +504,17 @@ function showApp(){
   document.getElementById('app').style.display = 'block';
   updateUserUI();
   chargerDonnees();
-  // Rafraîchissement automatique toutes les 5 minutes
-  setInterval(chargerDonnees, 5 * 60 * 1000);
+
+  // Abonnement Supabase Realtime — mise à jour instantanée dès que N8n écrit
+  sb.channel('production_temps_reel')
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'production_temps_reel' },
+      () => {
+        chargerDonnees();
+        toast('Planning mis à jour automatiquement', 'success');
+      }
+    )
+    .subscribe();
 }
 
 // ── Init ──────────────────────────────────────────────────────────────
