@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Expédition SOY · Planning Automatique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-void:#06070B;--bg-deep:#0B0D13;--bg-base:#0F1118;
+  --bg-raised:#15181F;--bg-float:#1A1E2A;--bg-hover:#1F2436;--bg-active:#242B40;
+  --copper:#C8843A;--copper-light:#E0A870;--copper-pale:#EDD4A8;
+  --copper-glow:rgba(200,132,58,.22);--copper-dim:rgba(200,132,58,.10);
+  --text-primary:#F0EAE0;--text-secondary:#BEC5D6;
+  --text-muted:#7A82A0;--text-faint:#2C3350;
+  --emerald:#2DD4A0;--emerald-bg:rgba(45,212,160,.08);
+  --ruby:#E05555;--ruby-bg:rgba(224,85,85,.08);
+  --amber:#E8A43A;--amber-bg:rgba(232,164,58,.08);
+  --sapphire:#4A9EE8;--sapphire-bg:rgba(74,158,232,.08);
+  --r-sm:4px;--r-md:10px;--r-lg:16px;--r-xl:24px;
+  --shadow-md:0 4px 16px rgba(0,0,0,.5);
+  --shadow-lg:0 16px 48px rgba(0,0,0,.6);
+  --ease:cubic-bezier(.4,0,.2,1);--t-fast:.15s;--t-base:.25s;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:15px;scroll-behavior:smooth;}
+body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-primary);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit;}
+a{color:inherit;text-decoration:none;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--text-faint);border-radius:5px;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px;}
+
+/* AUTH */
+#auth-page{display:none;min-height:100vh;position:relative;overflow:hidden;}
+.auth-glow{position:absolute;pointer-events:none;border-radius:50%;}
+.auth-glow:nth-child(1){top:-20%;left:60%;width:700px;height:700px;background:radial-gradient(circle,rgba(184,115,51,.06),transparent 65%);animation:breathe 6s ease-in-out infinite;}
+.auth-glow:nth-child(2){bottom:-10%;left:-10%;width:500px;height:500px;background:radial-gradient(circle,rgba(184,115,51,.04),transparent 65%);animation:breathe 8s ease-in-out infinite reverse;}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.1);opacity:.7}}
+.auth-wrap{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.auth-panel{width:100%;max-width:440px;animation:panelIn .8s var(--ease) forwards;opacity:0;}
+@keyframes panelIn{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+.auth-logo-zone{text-align:center;margin-bottom:44px;padding-bottom:32px;border-bottom:1px solid var(--text-faint);position:relative;}
+.auth-logo-zone::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:48px;height:1px;background:var(--copper);}
+.auth-monogram{display:inline-flex;align-items:center;justify-content:center;width:60px;height:60px;border:1px solid rgba(184,115,51,.25);border-radius:50%;margin-bottom:18px;position:relative;}
+.auth-monogram::before{content:'';position:absolute;inset:-5px;border:1px solid rgba(184,115,51,.08);border-radius:50%;}
+.auth-letter{font-family:'Playfair Display',serif;font-style:italic;font-size:1.4rem;color:var(--copper-light);}
+.auth-name{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:600;color:var(--text-primary);margin-bottom:5px;}
+.auth-tagline{font-size:.68rem;font-weight:500;color:var(--text-muted);letter-spacing:.2em;text-transform:uppercase;}
+.auth-h{font-family:'Playfair Display',serif;font-size:1.65rem;color:var(--text-primary);margin-bottom:8px;}
+.auth-p{font-size:.82rem;color:var(--text-secondary);margin-bottom:32px;font-weight:300;line-height:1.6;}
+.fld{margin-bottom:20px;}
+.fld-lbl{display:block;font-size:.67rem;font-weight:700;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;margin-bottom:9px;}
+.fld-inp{width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:13px 16px;font-size:.88rem;color:var(--text-primary);transition:all var(--t-base) var(--ease);}
+.fld-inp:focus{border-color:var(--copper);outline:none;box-shadow:0 0 0 3px var(--copper-glow);}
+.btn-auth{width:100%;padding:14px;background:var(--copper);color:var(--bg-void);font-size:.85rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border-radius:var(--r-md);transition:all var(--t-base) var(--ease);}
+.btn-auth:hover{background:var(--copper-light);transform:translateY(-1px);}
+.auth-err{margin-top:16px;padding:12px 16px;background:var(--ruby-bg);border:1px solid rgba(224,85,85,.2);border-radius:var(--r-md);font-size:.82rem;color:var(--ruby);display:none;}
+.auth-err.show{display:block;}
+
+/* APP */
+#app{display:none;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:264px;background:var(--bg-deep);border-right:1px solid var(--text-faint);display:flex;flex-direction:column;z-index:200;}
+.sidebar::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--copper),transparent);}
+.sb-brand{padding:28px 22px 22px;border-bottom:1px solid var(--text-faint);}
+.sb-logo-row{display:flex;align-items:center;gap:13px;margin-bottom:14px;}
+.sb-icon{width:38px;height:38px;border:1px solid rgba(184,115,51,.3);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-style:italic;font-size:.95rem;color:var(--copper-light);background:var(--copper-dim);flex-shrink:0;}
+.sb-name{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:600;color:var(--text-primary);}
+.sb-rule{height:1px;background:linear-gradient(90deg,var(--copper),transparent);width:36px;margin-bottom:4px;}
+.sb-sub{font-size:.6rem;font-weight:500;color:var(--text-muted);letter-spacing:.22em;text-transform:uppercase;}
+.sb-nav{flex:1;padding:18px 12px;overflow-y:auto;}
+.sb-sec{font-size:.62rem;font-weight:700;color:var(--text-muted);letter-spacing:.22em;text-transform:uppercase;padding:0 10px;margin:22px 0 8px;}
+.sb-sec:first-child{margin-top:0;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:var(--r-md);font-size:.87rem;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:all var(--t-fast) var(--ease);margin-bottom:2px;border:1px solid transparent;position:relative;}
+.sb-item:hover{background:var(--bg-raised);color:var(--text-primary);border-color:var(--text-faint);}
+.sb-item.active{background:var(--copper-dim);color:var(--copper-pale);border-color:rgba(184,115,51,.18);font-weight:500;}
+.sb-item.active::before{content:'';position:absolute;left:-12px;top:50%;transform:translateY(-50%);width:3px;height:18px;background:var(--copper);border-radius:0 2px 2px 0;}
+.sb-ico{width:17px;text-align:center;font-size:.9rem;flex-shrink:0;opacity:.65;}
+.sb-item.active .sb-ico{opacity:1;}
+.sb-foot{padding:12px;border-top:1px solid var(--text-faint);}
+.sb-user{display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:var(--r-md);background:var(--bg-raised);border:1px solid var(--text-faint);}
+.sb-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--copper),var(--copper-light));display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:var(--bg-void);flex-shrink:0;}
+.sb-uinfo{flex:1;min-width:0;}
+.sb-uname{font-size:.85rem;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-urole{font-size:.72rem;color:var(--text-secondary);margin-top:1px;}
+.sb-logout{padding:6px;border-radius:var(--r-sm);color:var(--text-muted);transition:all var(--t-fast);}
+.sb-logout:hover{color:var(--ruby);}
+
+/* MAIN */
+.main{margin-left:264px;min-height:100vh;background:var(--bg-base);display:flex;flex-direction:column;}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:100;height:60px;background:rgba(16,18,26,.88);backdrop-filter:blur(16px) saturate(180%);border-bottom:1px solid var(--text-faint);padding:0 30px;display:flex;align-items:center;justify-content:space-between;}
+.tb-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--text-primary);}
+.tb-sub{font-size:.72rem;color:var(--text-muted);font-weight:300;}
+.btn-refresh{display:flex;align-items:center;gap:7px;padding:8px 16px;background:var(--copper-dim);border:1px solid rgba(200,132,58,.25);border-radius:var(--r-md);color:var(--copper-light);font-size:.8rem;font-weight:600;transition:all var(--t-base) var(--ease);cursor:pointer;}
+.btn-refresh:hover{background:rgba(200,132,58,.2);transform:translateY(-1px);}
+
+/* CONTENT */
+.content{flex:1;padding:30px;}
+
+/* TOAST */
+.toasts{position:fixed;bottom:22px;right:22px;z-index:9997;display:flex;flex-direction:column;gap:9px;}
+.toast{display:flex;align-items:center;gap:11px;padding:12px 16px;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);box-shadow:var(--shadow-lg);font-size:.82rem;color:var(--text-primary);min-width:270px;animation:toastIn .3s var(--ease);border-left:2px solid var(--copper);}
+.toast.success{border-left-color:var(--emerald);}
+.toast.error{border-left-color:var(--ruby);}
+@keyframes toastIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
+
+/* MISE À JOUR */
+.maj-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding:12px 18px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);}
+.maj-info{font-size:.78rem;color:var(--text-muted);}
+.maj-info strong{color:var(--text-secondary);}
+.maj-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--emerald);box-shadow:0 0 6px rgba(45,212,160,.5);margin-right:6px;animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* LIGNES GRID */
+.lignes-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:30px;}
+@media(max-width:900px){.lignes-grid{grid-template-columns:1fr;}}
+
+/* LIGNE CARD */
+.ligne-card{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow:hidden;transition:border-color var(--t-base);}
+.ligne-card:hover{border-color:var(--text-muted);}
+.ligne-card.statut-en-cours{border-color:rgba(200,132,58,.3);}
+.ligne-card.statut-camion-pret{border-color:rgba(45,212,160,.3);}
+.ligne-card.statut-inactive{opacity:.6;}
+
+.ligne-head{padding:16px 22px;border-bottom:1px solid var(--text-faint);background:var(--bg-float);display:flex;align-items:center;justify-content:space-between;}
+.ligne-head-left{display:flex;align-items:center;gap:10px;}
+.ligne-num{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--text-primary);}
+.ligne-accent{display:block;width:3px;height:18px;border-radius:2px;flex-shrink:0;}
+.ligne-1 .ligne-accent{background:var(--copper);}
+.ligne-2 .ligne-accent{background:var(--sapphire);}
+
+/* STATUT PILL */
+.statut-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:700;}
+.statut-pill.en-cours{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(232,164,58,.2);}
+.statut-pill.camion-pret{background:var(--emerald-bg);color:var(--emerald);border:1px solid rgba(45,212,160,.2);}
+.statut-pill.inactive{background:var(--ruby-bg);color:var(--ruby);border:1px solid rgba(224,85,85,.2);}
+.statut-dot{width:6px;height:6px;border-radius:50%;}
+.statut-pill.en-cours .statut-dot{background:var(--amber);}
+.statut-pill.camion-pret .statut-dot{background:var(--emerald);box-shadow:0 0 5px rgba(45,212,160,.5);}
+.statut-pill.inactive .statut-dot{background:var(--ruby);}
+
+.ligne-body{padding:20px 22px;}
+
+/* KPI ROW */
+.kpi-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
+.kpi-mini{background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:12px 14px;}
+.kpi-mini-lbl{font-size:.62rem;font-weight:700;color:var(--text-muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px;}
+.kpi-mini-val{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:var(--copper-light);}
+.kpi-mini-sub{font-size:.7rem;color:var(--text-muted);margin-top:2px;}
+
+/* CAMIONS TABLE */
+.camions-title{font-size:.67rem;font-weight:700;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px;}
+.camions-list{display:flex;flex-direction:column;gap:6px;}
+.camion-row{display:flex;align-items:center;gap:12px;padding:9px 14px;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);transition:border-color var(--t-fast);}
+.camion-row:hover{border-color:var(--text-muted);}
+.camion-row.pret{border-color:rgba(45,212,160,.2);background:rgba(45,212,160,.04);}
+.camion-num{font-size:.72rem;font-weight:700;color:var(--text-muted);width:60px;flex-shrink:0;}
+.camion-heure{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--text-primary);flex:1;}
+.camion-badge{font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px;}
+.camion-badge.pret{background:var(--emerald-bg);color:var(--emerald);border:1px solid rgba(45,212,160,.2);}
+.camion-badge.en-cours{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(232,164,58,.2);}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-muted);}
+.empty-ico{font-size:2rem;margin-bottom:12px;}
+.empty-txt{font-size:.85rem;}
+
+/* SECTION HEADER */
+.sec-h{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--text-faint);position:relative;}
+.sec-h::after{content:'';position:absolute;bottom:-1px;left:0;width:36px;height:1px;background:var(--copper);}
+.sec-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:600;color:var(--text-primary);}
+.sec-sub{font-size:.73rem;color:var(--text-muted);margin-top:3px;font-weight:300;}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-page">
+  <div class="auth-glow"></div>
+  <div class="auth-glow"></div>
+  <div class="auth-wrap">
+    <div class="auth-panel">
+      <div class="auth-logo-zone">
+        <div class="auth-monogram"><span class="auth-letter">S</span></div>
+        <div class="auth-name">Expédition SOY</div>
+        <div class="auth-tagline">Planning automatique</div>
+      </div>
+      <div class="auth-h">Connexion</div>
+      <div class="auth-p">Accès réservé aux membres autorisés.</div>
+      <div class="fld">
+        <label class="fld-lbl">Adresse courriel</label>
+        <input type="email" id="auth-email" class="fld-inp" placeholder="votre@courriel.com">
+      </div>
+      <div class="fld">
+        <label class="fld-lbl">Mot de passe</label>
+        <input type="password" id="auth-password" class="fld-inp" placeholder="••••••••">
+      </div>
+      <button class="btn-auth" onclick="doLogin()">Accéder</button>
+      <div class="auth-err" id="auth-err"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <nav class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-logo-row">
+        <div class="sb-icon">S</div>
+        <div class="sb-name">Expédition SOY</div>
+      </div>
+      <div class="sb-rule"></div>
+      <div class="sb-sub">Suivi · Problématiques</div>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-sec">Navigation</div>
+      <div class="sb-item" onclick="window.location.href='index.html'">
+        <span class="sb-ico">◈</span> Tableau de bord
+      </div>
+      <div class="sb-item" onclick="window.location.href='problematiques.html'">
+        <span class="sb-ico">◉</span> Problématiques
+      </div>
+      <div class="sb-sec">Outils</div>
+      <div class="sb-item" onclick="window.location.href='criteres_piliers.html'">
+        <span class="sb-ico">◆</span> Critères des piliers
+      </div>
+      <div class="sb-item" onclick="window.location.href='sst.html'">
+        <span class="sb-ico">🦺</span> SST
+      </div>
+      <div class="sb-item" onclick="window.location.href='inventaire_cyclique.html'">
+        <span class="sb-ico">⊞</span> Inventaire cyclique
+      </div>
+      <div class="sb-item" onclick="window.location.href='bris.html'">
+        <span class="sb-ico">🔧</span> Bris
+      </div>
+      <div class="sb-item" onclick="window.location.href='planning_camions.html'">
+        <span class="sb-ico">🚛</span> Planification camions
+      </div>
+      <div class="sb-item active">
+        <span class="sb-ico">⚡</span> Planning automatique
+      </div>
+      <div class="sb-item" onclick="window.location.href='intentions_production.html'">
+        <span class="sb-ico">🏭</span> Intentions de production
+      </div>
+      <div class="sb-item" onclick="window.location.href='erreurs_papier.html'">
+        <span class="sb-ico">✎</span> Erreurs papier
+      </div>
+      <div class="sb-item" onclick="window.location.href='irritants.html'">
+        <span class="sb-ico">💬</span> Gestion des irritants
+      </div>
+      <div class="sb-item" onclick="window.location.href='environnement.html'">
+        <span class="sb-ico">🌿</span> Non-conformité
+      </div>
+      <div class="sb-item" onclick="window.location.href='inventaire_gh.html'">
+        <span class="sb-ico">📦</span> Inventaire GH
+      </div>
+      <div class="sb-sec">Mon compte</div>
+      <div class="sb-item" onclick="window.location.href='index.html'">
+        <span class="sb-ico">◎</span> Mon profil
+      </div>
+      <div class="sb-item" onclick="doLogout()">
+        <span class="sb-ico">⏻</span> Déconnexion
+      </div>
+    </div>
+    <div class="sb-foot">
+      <div class="sb-user">
+        <div class="sb-avatar" id="user-avatar">?</div>
+        <div class="sb-uinfo">
+          <div class="sb-uname" id="user-name">—</div>
+          <div class="sb-urole" id="user-role">—</div>
+        </div>
+        <button class="sb-logout" onclick="doLogout()" title="Déconnexion">⎋</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="tb-title">Planning automatique</div>
+        <div class="tb-sub">Données en temps réel · Mise à jour toutes les 5 minutes</div>
+      </div>
+      <button class="btn-refresh" onclick="chargerDonnees()">
+        ↻ Actualiser
+      </button>
+    </div>
+
+    <div class="content">
+
+      <!-- Barre de statut -->
+      <div class="maj-bar">
+        <div class="maj-info">
+          <span class="maj-dot"></span>
+          Dernière mise à jour N8n : <strong id="derniere-maj">Chargement…</strong>
+        </div>
+        <div class="maj-info">
+          Date : <strong id="date-affichee">—</strong>
+        </div>
+      </div>
+
+      <!-- Section lignes -->
+      <div class="sec-h">
+        <div>
+          <div class="sec-title">Lignes de production</div>
+          <div class="sec-sub">Heures de fin estimées par camion</div>
+        </div>
+      </div>
+
+      <div class="lignes-grid" id="lignes-grid">
+        <div class="empty-state">
+          <div class="empty-ico">⏳</div>
+          <div class="empty-txt">Chargement des données…</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+let currentUser = null;
+
+// ── Helpers ──────────────────────────────────────────────────────────
+function localToday(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function fmtDate(d){
+  return new Date(d+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+function fmtTime(iso){
+  return new Date(iso).toLocaleTimeString('fr-CA',{hour:'2-digit',minute:'2-digit'});
+}
+function toast(msg, type='info'){
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+// ── Auth ─────────────────────────────────────────────────────────────
+async function doLogin(){
+  const email = document.getElementById('auth-email').value.trim();
+  const pwd   = document.getElementById('auth-password').value;
+  const err   = document.getElementById('auth-err');
+  const btn   = document.querySelector('#auth-page .btn-auth');
+  err.classList.remove('show');
+  if(!email||!pwd){err.textContent='Remplissez tous les champs.';err.classList.add('show');return;}
+  btn.disabled=true; btn.textContent='Connexion…';
+  const {data, error} = await sb.auth.signInWithPassword({email, password: pwd});
+  btn.disabled=false; btn.textContent='Accéder';
+  if(error){err.textContent='Identifiants incorrects.';err.classList.add('show');return;}
+  currentUser = data.user;
+  showApp();
+}
+async function doLogout(){
+  await sb.auth.signOut();
+  currentUser = null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('auth-page').style.display='block';
+}
+function updateUserUI(){
+  const meta = currentUser?.user_metadata || {};
+  const dn = [meta.prenom, meta.nom].filter(Boolean).join(' ') || (currentUser?.email||'').split('@')[0];
+  document.getElementById('user-avatar').textContent = dn.substring(0,2).toUpperCase();
+  document.getElementById('user-name').textContent = dn;
+  document.getElementById('user-role').textContent = 'Opérateur';
+}
+
+// ── Rendu ─────────────────────────────────────────────────────────────
+function getStatutClass(statut){
+  if(statut === 'en_cours') return 'en-cours';
+  if(statut === 'camion_pret') return 'camion-pret';
+  return 'inactive';
+}
+function getStatutLabel(statut){
+  if(statut === 'en_cours') return 'En cours';
+  if(statut === 'camion_pret') return 'Camion prêt';
+  return 'Inactive';
+}
+
+function renderLigne(numero, data){
+  const caisses = numero === 1 ? data.l1_caisses_produites : data.l2_caisses_produites;
+  const heureFin = numero === 1 ? data.l1_heure_fin_estimee : data.l2_heure_fin_estimee;
+  const statut = numero === 1 ? data.l1_statut : data.l2_statut;
+  const camions = numero === 1 ? data.l1_camions : data.l2_camions;
+  const statutClass = getStatutClass(statut);
+  const statutLabel = getStatutLabel(statut);
+
+  // Formater l'heure de fin (HH:MM:SS → HH h MM)
+  function formatHeure(h){
+    if(!h) return '—';
+    const parts = h.split(':');
+    if(parts.length >= 2) return `${parts[0]} h ${parts[1]}`;
+    return h;
+  }
+
+  // Rendu des camions
+  let camionsHTML = '';
+  if(statut === 'inactive'){
+    camionsHTML = '<div class="empty-state" style="padding:20px"><div class="empty-txt">Ligne inactive aujourd\'hui</div></div>';
+  } else if(!camions || camions.length === 0){
+    camionsHTML = '<div class="empty-state" style="padding:20px"><div class="empty-txt">Aucun camion prévu</div></div>';
+  } else {
+    camionsHTML = `<div class="camions-list">` + camions.map(c => {
+      const estPret = c.statut === 'camion_pret';
+      return `
+        <div class="camion-row ${estPret ? 'pret' : ''}">
+          <span class="camion-num">Camion ${c.camion}</span>
+          <span class="camion-heure">${formatHeure(c.heure)}</span>
+          <span class="camion-badge ${estPret ? 'pret' : 'en-cours'}">${estPret ? 'Prêt' : 'En cours'}</span>
+        </div>
+      `;
+    }).join('') + `</div>`;
+  }
+
+  return `
+    <div class="ligne-card ligne-${numero} statut-${statutClass}">
+      <div class="ligne-head">
+        <div class="ligne-head-left">
+          <span class="ligne-accent"></span>
+          <span class="ligne-num">Ligne ${numero}</span>
+        </div>
+        <span class="statut-pill ${statutClass}">
+          <span class="statut-dot"></span>
+          ${statutLabel}
+        </span>
+      </div>
+      <div class="ligne-body">
+        <div class="kpi-row">
+          <div class="kpi-mini">
+            <div class="kpi-mini-lbl">Caisses produites</div>
+            <div class="kpi-mini-val">${(caisses || 0).toLocaleString('fr-CA')}</div>
+            <div class="kpi-mini-sub">depuis le début du remplissage</div>
+          </div>
+          <div class="kpi-mini">
+            <div class="kpi-mini-lbl">Heure de fin estimée</div>
+            <div class="kpi-mini-val">${formatHeure(heureFin)}</div>
+            <div class="kpi-mini-sub">dernier camion</div>
+          </div>
+        </div>
+        <div class="camions-title">Planning des camions</div>
+        ${camionsHTML}
+      </div>
+    </div>
+  `;
+}
+
+// ── Chargement données ─────────────────────────────────────────────────
+async function chargerDonnees(){
+  const today = localToday();
+  document.getElementById('date-affichee').textContent = fmtDate(today);
+
+  try {
+    const {data, error} = await sb
+      .from('production_temps_reel')
+      .select('*')
+      .eq('date', today)
+      .maybeSingle();
+
+    if(error) throw error;
+
+    if(!data){
+      document.getElementById('lignes-grid').innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1">
+          <div class="empty-ico">📡</div>
+          <div class="empty-txt">Aucune donnée disponible pour aujourd'hui.<br>N8n n'a pas encore envoyé de données.</div>
+        </div>`;
+      document.getElementById('derniere-maj').textContent = 'Aucune donnée';
+      return;
+    }
+
+    // Afficher la dernière mise à jour
+    document.getElementById('derniere-maj').textContent = data.updated_at ? fmtTime(data.updated_at) : '—';
+
+    // Rendre les deux lignes
+    document.getElementById('lignes-grid').innerHTML =
+      renderLigne(1, data) +
+      renderLigne(2, data);
+
+  } catch(e) {
+    toast('Erreur de chargement: '+e.message, 'error');
+  }
+}
+
+// ── App ───────────────────────────────────────────────────────────────
+function showApp(){
+  document.getElementById('auth-page').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  updateUserUI();
+  chargerDonnees();
+  // Rafraîchissement automatique toutes les 5 minutes
+  setInterval(chargerDonnees, 5 * 60 * 1000);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────
+async function init(){
+  try {
+    const {data:{session}} = await sb.auth.getSession();
+    if(session){
+      currentUser = session.user;
+      showApp();
+    } else {
+      document.getElementById('auth-page').style.display = 'block';
+      document.getElementById('auth-password').addEventListener('keydown', e => {
+        if(e.key === 'Enter') doLogin();
+      });
+    }
+  } catch(e) {
+    document.getElementById('auth-page').style.display = 'block';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
