@@ -177,6 +177,37 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .sec-h::after{content:'';position:absolute;bottom:-1px;left:0;width:36px;height:1px;background:var(--copper);}
 .sec-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:600;color:var(--text-primary);}
 .sec-sub{font-size:.73rem;color:var(--text-muted);margin-top:3px;font-weight:300;}
+
+/* SLOTS TABLE */
+.slots-outer{background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow:hidden;margin-bottom:30px;}
+.slots-tbl{width:100%;border-collapse:collapse;}
+.slots-tbl thead tr{background:var(--bg-float);border-bottom:2px solid var(--text-faint);}
+.slots-tbl thead th{padding:12px 16px;text-align:left;font-size:.62rem;font-weight:800;color:var(--copper);letter-spacing:.15em;text-transform:uppercase;white-space:nowrap;}
+.slots-tbl thead th:not(:first-child){text-align:center;}
+.slots-tbl tbody tr{border-bottom:1px solid var(--text-faint);transition:background var(--t-fast);}
+.slots-tbl tbody tr:last-child{border-bottom:none;}
+.slots-tbl tbody tr:hover td{background:rgba(200,132,58,.025);}
+.slots-tbl tbody td{padding:12px 16px;font-size:.84rem;color:var(--text-primary);vertical-align:middle;}
+.slots-tbl tbody td:not(:first-child){text-align:center;}
+.slots-tbl tbody tr.slot-passe td{opacity:.35;}
+.slots-tbl tbody tr.slot-global-confirme{border-left:3px solid var(--emerald);}
+.slots-tbl tbody tr.slot-global-annule{border-left:3px solid var(--ruby);}
+.slots-tbl tbody tr.slot-global-inactif{border-left:3px solid var(--text-faint);}
+.slot-label{font-family:'Playfair Display',serif;font-size:.92rem;font-weight:600;color:var(--text-primary);}
+.slot-label-chauffeur{font-size:.68rem;color:var(--copper);font-weight:600;margin-top:2px;}
+.slot-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:700;}
+.slot-badge.confirme{background:var(--emerald-bg);color:var(--emerald);border:1px solid rgba(45,212,160,.2);}
+.slot-badge.annule{background:var(--ruby-bg);color:var(--ruby);border:1px solid rgba(224,85,85,.2);}
+.slot-badge.inactive{background:var(--bg-float);color:var(--text-muted);border:1px solid var(--text-faint);}
+.slot-badge.cadence-inconnue{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(232,164,58,.2);}
+.slot-badge-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.slot-badge.confirme .slot-badge-dot{background:var(--emerald);box-shadow:0 0 4px rgba(45,212,160,.5);}
+.slot-badge.annule .slot-badge-dot{background:var(--ruby);}
+.slot-badge.inactive .slot-badge-dot{background:var(--text-muted);}
+.slot-badge.cadence-inconnue .slot-badge-dot{background:var(--amber);}
+.camions-count{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;}
+.camions-count.zero{color:var(--text-muted);}
+.camions-count.positif{color:var(--emerald);}
 </style>
 </head>
 <body>
@@ -320,6 +351,32 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
         </div>
       </div>
 
+      <!-- Section slots de ramassage -->
+      <div class="sec-h" style="margin-top:10px;">
+        <div>
+          <div class="sec-title">Slots de ramassage</div>
+          <div class="sec-sub">Planning du transporteur · 06h00 à 22h00</div>
+        </div>
+      </div>
+
+      <div class="slots-outer">
+        <table class="slots-tbl">
+          <thead>
+            <tr>
+              <th>Heure</th>
+              <th>Ligne 1 — TBA</th>
+              <th>Camions L1</th>
+              <th>Ligne 2 — EH1</th>
+              <th>Camions L2</th>
+              <th>Statut global</th>
+            </tr>
+          </thead>
+          <tbody id="slots-tbody">
+            <tr><td colspan="6"><div class="empty-state"><div class="empty-ico">⏳</div><div class="empty-txt">Chargement…</div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
     </div>
   </div>
 </div>
@@ -461,6 +518,63 @@ function renderLigne(numero, data){
   `;
 }
 
+// ── Rendu slots ──────────────────────────────────────────────────────
+function renderSlots(slots){
+  if(!slots || slots.length === 0){
+    document.getElementById('slots-tbody').innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="empty-txt">Aucun slot disponible</div></div></td></tr>';
+    return;
+  }
+
+  const maintenant = new Date();
+  const minutesMaintenant = maintenant.getHours() * 60 + maintenant.getMinutes();
+
+  function slotPasse(heure){
+    const [h, m] = heure.split(':').map(Number);
+    return (h * 60 + m) < minutesMaintenant;
+  }
+
+  function badgeStatut(statut){
+    const labels = {
+      confirme: 'Confirmé',
+      annule: 'Annulé',
+      inactive: 'Inactif',
+      cadence_inconnue: 'En attente'
+    };
+    const label = labels[statut] || statut;
+    return `<span class="slot-badge ${statut}"><span class="slot-badge-dot"></span>${label}</span>`;
+  }
+
+  function compteCamions(ligne){
+    const n = ligne.camions_prets || 0;
+    return `<span class="camions-count ${n > 0 ? 'positif' : 'zero'}">${n > 0 ? n + ' 🚛' : '—'}</span>`;
+  }
+
+  const isChauffeurA = (slot) => slot.label && slot.label.includes('Chauffeur A');
+  const isChauffeurB = (slot) => slot.label && slot.label.includes('Chauffeur B');
+
+  document.getElementById('slots-tbody').innerHTML = slots.map(slot => {
+    const passe = slotPasse(slot.heure);
+    const globalClass = `slot-global-${slot.statut}`;
+    const passeClass = passe ? 'slot-passe' : '';
+    const labelSub = isChauffeurA(slot) ? '<div class="slot-label-chauffeur">Chauffeur A</div>' :
+                     isChauffeurB(slot) ? '<div class="slot-label-chauffeur">Chauffeur B</div>' : '';
+
+    return `
+      <tr class="${globalClass} ${passeClass}">
+        <td>
+          <div class="slot-label">${slot.label || slot.heure}</div>
+          ${labelSub}
+        </td>
+        <td>${badgeStatut(slot.L1.statut)}</td>
+        <td>${compteCamions(slot.L1)}</td>
+        <td>${badgeStatut(slot.L2.statut)}</td>
+        <td>${compteCamions(slot.L2)}</td>
+        <td>${badgeStatut(slot.statut)}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
 // ── Chargement données ─────────────────────────────────────────────────
 async function chargerDonnees(){
   const today = localToday();
@@ -492,6 +606,9 @@ async function chargerDonnees(){
     document.getElementById('lignes-grid').innerHTML =
       renderLigne(1, data) +
       renderLigne(2, data);
+
+    // Rendre les slots
+    renderSlots(data.slots);
 
   } catch(e) {
     toast('Erreur de chargement: '+e.message, 'error');
