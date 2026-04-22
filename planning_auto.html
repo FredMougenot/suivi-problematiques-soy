@@ -208,6 +208,43 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .camions-count{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;}
 .camions-count.zero{color:var(--text-muted);}
 .camions-count.positif{color:var(--emerald);}
+
+/* TOGGLE TEMPÉRATURE */
+.temp-toggle{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.temp-btn{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:700;cursor:pointer;border:1px solid transparent;transition:all .3s var(--ease);user-select:none;}
+.temp-btn.froid{background:rgba(30,58,95,.3);border-color:rgba(96,165,250,.2);color:#93C5FD;}
+.temp-btn.froid:hover{background:rgba(30,58,95,.6);border-color:rgba(96,165,250,.5);}
+.temp-btn.froid.active{background:linear-gradient(135deg,rgba(10,22,40,.9),rgba(30,58,95,.9));border-color:#60A5FA;color:#BAE6FD;box-shadow:0 0 12px rgba(96,165,250,.3);}
+.temp-btn.chaud{background:rgba(61,18,0,.3);border-color:rgba(251,146,60,.2);color:#FCA5A5;}
+.temp-btn.chaud:hover{background:rgba(61,18,0,.6);border-color:rgba(251,146,60,.5);}
+.temp-btn.chaud.active{background:linear-gradient(135deg,rgba(26,8,0,.9),rgba(61,18,0,.9));border-color:#F97316;color:#FED7AA;box-shadow:0 0 12px rgba(249,115,22,.3);}
+.temp-label{font-size:.6rem;font-weight:700;letter-spacing:.1em;opacity:.6;margin-left:2px;}
+
+/* EFFETS RÉFRIGÉRÉ */
+@keyframes shimmer-froid{0%{background-position:200% center}100%{background-position:-200% center}}
+@keyframes shimmer-chaud{0%{background-position:200% center}100%{background-position:-200% center}}
+@keyframes pulse-froid{0%,100%{box-shadow:inset 3px 0 0 #1D4ED8,0 0 0 rgba(96,165,250,0)}50%{box-shadow:inset 3px 0 0 #60A5FA,0 0 8px rgba(96,165,250,.15)}}
+@keyframes pulse-chaud{0%,100%{box-shadow:inset 3px 0 0 #C2410C,0 0 0 rgba(249,115,22,0)}50%{box-shadow:inset 3px 0 0 #F97316,0 0 8px rgba(249,115,22,.2)}}
+@keyframes spin-slow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes flicker{0%,100%{opacity:1;transform:scaleY(1)}25%{opacity:.85;transform:scaleY(.96)}50%{opacity:.95;transform:scaleY(1.02)}75%{opacity:.9;transform:scaleY(.98)}}
+
+tr.type-froid{
+  background:linear-gradient(90deg,rgba(10,22,40,.95) 0%,rgba(20,40,80,.6) 40%,rgba(232,244,253,.04) 100%) !important;
+  animation:pulse-froid 3s ease-in-out infinite;
+}
+tr.type-froid:hover td{background:rgba(96,165,250,.04) !important;}
+tr.type-chaud{
+  background:linear-gradient(90deg,rgba(26,8,0,.95) 0%,rgba(80,20,0,.6) 40%,rgba(254,215,170,.04) 100%) !important;
+  animation:pulse-chaud 2.5s ease-in-out infinite;
+}
+tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
+
+.temp-indicator{font-size:.65rem;font-weight:800;letter-spacing:.05em;margin-left:4px;opacity:.7;}
+.temp-indicator.froid{color:#93C5FD;}
+.temp-indicator.chaud{color:#FCA5A5;}
+
+.ico-froid{display:inline-block;animation:spin-slow 8s linear infinite;font-size:.8rem;}
+.ico-chaud{display:inline-block;animation:flicker 1.5s ease-in-out infinite;font-size:.8rem;}
 </style>
 </head>
 <body>
@@ -363,6 +400,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
         <table class="slots-tbl">
           <thead>
             <tr>
+              <th>Type</th>
               <th>Slot</th>
               <th>Ligne 1 — TBA</th>
               <th>Heure fin L1</th>
@@ -372,7 +410,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
             </tr>
           </thead>
           <tbody id="slots-tbody">
-            <tr><td colspan="6"><div class="empty-state"><div class="empty-ico">⏳</div><div class="empty-txt">Chargement…</div></div></td></tr>
+            <tr><td colspan="7"><div class="empty-state"><div class="empty-ico">⏳</div><div class="empty-txt">Chargement…</div></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -518,10 +556,34 @@ function renderLigne(numero, data){
   `;
 }
 
+// ── État des types de camion par slot ────────────────────────────────
+const slotTypes = {}; // index → 'neutre' | 'froid' | 'chaud'
+
+function toggleType(index){
+  const current = slotTypes[index] || 'neutre';
+  const next = current === 'neutre' ? 'froid' : current === 'froid' ? 'chaud' : 'neutre';
+  slotTypes[index] = next;
+
+  const row = document.getElementById(`slot-row-${index}`);
+  row.classList.remove('type-froid','type-chaud');
+  if(next === 'froid') row.classList.add('type-froid');
+  if(next === 'chaud') row.classList.add('type-chaud');
+
+  const btn = document.getElementById(`temp-btn-${index}`);
+  const ico = next === 'froid' ? '<span class="ico-froid">❄️</span>' :
+              next === 'chaud' ? '<span class="ico-chaud">🔥</span>' : '🌡️';
+  const label = next === 'froid' ? '<span class="temp-indicator froid">-18°C</span>' :
+                next === 'chaud' ? '<span class="temp-indicator chaud">+4°C</span>' : '';
+  const btnClass = next === 'froid' ? 'temp-btn froid active' :
+                   next === 'chaud' ? 'temp-btn chaud active' : 'temp-btn';
+  btn.className = btnClass;
+  btn.innerHTML = ico + label;
+}
+
 // ── Rendu slots ──────────────────────────────────────────────────────
 function renderSlots(slots){
   if(!slots || slots.length === 0){
-    document.getElementById('slots-tbody').innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="empty-txt">Aucun slot disponible</div></div></td></tr>';
+    document.getElementById('slots-tbody').innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-txt">Aucun slot disponible</div></div></td></tr>';
     return;
   }
 
@@ -537,10 +599,6 @@ function renderSlots(slots){
     return `<span class="slot-badge confirme"><span class="slot-badge-dot"></span>Confirmé</span>`;
   }
 
-  function badgeAnnule(){
-    return `<span class="slot-badge annule"><span class="slot-badge-dot"></span>Annulé</span>`;
-  }
-
   function badgeStatutGlobal(statut){
     const labels = { confirme: 'Confirmé', annule: 'Annulé', inactive: 'Inactif', cadence_inconnue: 'En attente' };
     return `<span class="slot-badge ${statut}"><span class="slot-badge-dot"></span>${labels[statut] || statut}</span>`;
@@ -551,25 +609,26 @@ function renderSlots(slots){
     return `<span style="font-family:'Playfair Display',serif;font-size:.95rem;color:var(--copper-light);font-weight:600;">${heure}</span>`;
   }
 
-  document.getElementById('slots-tbody').innerHTML = slots.map(slot => {
+  document.getElementById('slots-tbody').innerHTML = slots.map((slot, index) => {
     const passe = slotPasse(slot.heure);
     const globalClass = `slot-global-${slot.statut}`;
     const passeClass = passe ? 'slot-passe' : '';
+    const typeClass = slotTypes[index] === 'froid' ? 'type-froid' : slotTypes[index] === 'chaud' ? 'type-chaud' : '';
 
-    // Déterminer quelle ligne est active sur ce slot
     const L1active = slot.ligne === 'L1';
     const L2active = slot.ligne === 'L2';
-
-    // Colonne L1
     const L1badge = L1active ? badgeConfirme() : '<span style="color:var(--text-muted)">—</span>';
     const L1heure = L1active ? heureLabel(slot.heureFinCamion) : '<span style="color:var(--text-muted)">—</span>';
-
-    // Colonne L2
     const L2badge = L2active ? badgeConfirme() : '<span style="color:var(--text-muted)">—</span>';
     const L2heure = L2active ? heureLabel(slot.heureFinCamion) : '<span style="color:var(--text-muted)">—</span>';
 
     return `
-      <tr class="${globalClass} ${passeClass}">
+      <tr id="slot-row-${index}" class="${globalClass} ${passeClass} ${typeClass}">
+        <td style="text-align:center;width:60px;">
+          <button id="temp-btn-${index}" class="temp-btn" onclick="toggleType(${index})" title="Cliquer pour changer le type">
+            🌡️
+          </button>
+        </td>
         <td><div class="slot-label">${slot.label || slot.heure}</div></td>
         <td>${L1badge}</td>
         <td>${L1heure}</td>
