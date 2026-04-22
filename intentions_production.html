@@ -371,10 +371,6 @@ select.fg-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
           </div>
           <div class="ligne-card-body">
             <div class="fg">
-              <label class="fg-lbl">Nombre de camions prévus</label>
-              <input type="number" class="fg-inp" id="L1_nb_camions" min="0" max="20" value="0" placeholder="0" disabled>
-            </div>
-            <div class="fg">
               <label class="fg-lbl">Caisses par palette</label>
               <select class="fg-inp" id="L1_caisses_par_palette" disabled>
                 <option value="80">80 caisses / palette</option>
@@ -403,10 +399,6 @@ select.fg-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
             </div>
           </div>
           <div class="ligne-card-body">
-            <div class="fg">
-              <label class="fg-lbl">Nombre de camions prévus</label>
-              <input type="number" class="fg-inp" id="L2_nb_camions" min="0" max="20" value="0" placeholder="0" disabled>
-            </div>
             <div class="fg">
               <label class="fg-lbl">Caisses par palette</label>
               <select class="fg-inp" id="L2_caisses_par_palette" disabled>
@@ -507,7 +499,6 @@ function onToggle(ligne){
   const pill = document.getElementById('pill-'+ligne);
   const card = document.getElementById('card-'+ligne);
   const inputs = [
-    document.getElementById(ligne+'_nb_camions'),
     document.getElementById(ligne+'_caisses_par_palette')
   ];
 
@@ -534,13 +525,11 @@ async function chargerIntentions(){
     if(data){
       // Ligne 1
       document.getElementById('toggle-L1').checked = data.l1_actif;
-      document.getElementById('L1_nb_camions').value = data.l1_nb_camions || 0;
       document.getElementById('L1_caisses_par_palette').value = data.l1_caisses_par_palette || 80;
       onToggle('L1');
 
       // Ligne 2
       document.getElementById('toggle-L2').checked = data.l2_actif;
-      document.getElementById('L2_nb_camions').value = data.l2_nb_camions || 0;
       document.getElementById('L2_caisses_par_palette').value = data.l2_caisses_par_palette || 80;
       onToggle('L2');
 
@@ -563,10 +552,8 @@ async function sauvegarder(){
   const payload = {
     date: today,
     l1_actif:              document.getElementById('toggle-L1').checked,
-    l1_nb_camions:         parseInt(document.getElementById('L1_nb_camions').value) || 0,
     l1_caisses_par_palette:parseInt(document.getElementById('L1_caisses_par_palette').value) || 80,
     l2_actif:              document.getElementById('toggle-L2').checked,
-    l2_nb_camions:         parseInt(document.getElementById('L2_nb_camions').value) || 0,
     l2_caisses_par_palette:parseInt(document.getElementById('L2_caisses_par_palette').value) || 80,
     updated_at:            new Date().toISOString(),
   };
@@ -605,8 +592,8 @@ function renderHistorique(){
   }
   body.innerHTML = historiqueJour.slice(0,10).map(h => {
     const p = h.payload;
-    const L1txt = p.l1_actif ? `Active · ${p.l1_nb_camions} camion(s) · ${p.l1_caisses_par_palette} c/pal` : 'Inactive';
-    const L2txt = p.l2_actif ? `Active · ${p.l2_nb_camions} camion(s) · ${p.l2_caisses_par_palette} c/pal` : 'Inactive';
+    const L1txt = p.l1_actif ? `Active · ${p.l1_caisses_par_palette} c/palette` : 'Inactive';
+    const L2txt = p.l2_actif ? `Active · ${p.l2_caisses_par_palette} c/palette` : 'Inactive';
     return `
       <div class="histo-row">
         <span class="histo-time">${h.heure}</span>
