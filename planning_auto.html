@@ -112,11 +112,17 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 @keyframes toastIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
 
 /* MISE À JOUR */
-.maj-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding:12px 18px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);}
+.maj-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding:12px 18px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);position:relative;}
 .maj-info{font-size:.78rem;color:var(--text-muted);}
 .maj-info strong{color:var(--text-secondary);}
 .maj-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--emerald);box-shadow:0 0 6px rgba(45,212,160,.5);margin-right:6px;animation:pulse 2s ease-in-out infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.statut-systeme{position:absolute;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:20px;font-size:.72rem;font-weight:700;}
+.statut-systeme.actif{background:var(--emerald-bg);color:var(--emerald);border:1px solid rgba(45,212,160,.2);}
+.statut-systeme.arrete{background:var(--ruby-bg);color:var(--ruby);border:1px solid rgba(224,85,85,.2);}
+.statut-systeme-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.statut-systeme.actif .statut-systeme-dot{background:var(--emerald);box-shadow:0 0 5px rgba(45,212,160,.6);animation:pulse 2s ease-in-out infinite;}
+.statut-systeme.arrete .statut-systeme-dot{background:var(--ruby);}
 
 /* LIGNES GRID */
 .lignes-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:30px;}
@@ -367,6 +373,10 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
         <div class="maj-info">
           <span class="maj-dot"></span>
           Dernière mise à jour N8n : <strong id="derniere-maj">Chargement…</strong>
+        </div>
+        <div id="statut-systeme" class="statut-systeme actif">
+          <span class="statut-systeme-dot"></span>
+          <span id="statut-systeme-txt">Système actif</span>
         </div>
         <div class="maj-info">
           Date : <strong id="date-affichee">—</strong>
@@ -666,6 +676,22 @@ async function chargerDonnees(){
 
     // Afficher la dernière mise à jour
     document.getElementById('derniere-maj').textContent = data.updated_at ? fmtTime(data.updated_at) : '—';
+
+    // Vérifier statut système — arrêté si plus de 10 minutes sans mise à jour
+    const statutEl = document.getElementById('statut-systeme');
+    const statutTxt = document.getElementById('statut-systeme-txt');
+    if(data.updated_at){
+      const derniereMaj = new Date(data.updated_at);
+      const maintenant = new Date();
+      const diffMinutes = (maintenant - derniereMaj) / 60000;
+      if(diffMinutes > 10){
+        statutEl.className = 'statut-systeme arrete';
+        statutTxt.textContent = 'Système arrêté';
+      } else {
+        statutEl.className = 'statut-systeme actif';
+        statutTxt.textContent = 'Système actif';
+      }
+    }
 
     // Rendre les deux lignes
     document.getElementById('lignes-grid').innerHTML =
