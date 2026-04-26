@@ -849,7 +849,7 @@ function animerLigne1(){
 
   // Anneaux de choc magnétique
   let shockRings = [];
-  function spawnRing(){ shockRings.push({ r: SR * 0.88, life: 0, maxLife: 160, alpha: 0.55 }); }
+  function spawnRing(){ shockRings.push({ r: SR * 0.88, life: 0, maxLife: 320, alpha: 0.25 }); }
   spawnRing();
 
   function draw(){
@@ -1104,7 +1104,10 @@ function animerLigne1(){
       ring.life++;
       ring.r += SR * 0.012;
       const prog  = ring.life / ring.maxLife;
-      const fade  = (1 - prog) * (prog < 0.1 ? prog * 10 : 1);
+      // Montée douce sur 15%, plateau, descente cubique très progressive
+      const fadeIn  = Math.min(prog / 0.15, 1);
+      const fadeOut = Math.pow(1 - prog, 1.6);
+      const fade    = fadeIn * fadeOut;
       ctx.beginPath();
       ctx.arc(cx, cy, ring.r, -Math.PI * 0.8, -Math.PI * 0.05);
       ctx.strokeStyle = `rgba(255,200,80,${ring.alpha * fade})`;
