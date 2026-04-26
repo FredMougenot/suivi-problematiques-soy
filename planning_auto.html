@@ -139,7 +139,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .ligne-bg-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;border-radius:var(--r-lg);overflow:hidden;}
 .ligne-head,.ligne-body{position:relative;z-index:1;}
 
-.ligne-head{padding:16px 22px;border-bottom:1px solid var(--text-faint);background:var(--bg-float);display:flex;align-items:center;justify-content:space-between;}
+.ligne-head.ligne-1{padding:16px 22px;border-bottom:1px solid var(--text-faint);background:linear-gradient(to right, rgba(200,132,58,0) 0%, rgba(200,132,58,0.3) 50%, rgba(200,132,58,1) 100%);display:flex;align-items:center;justify-content:space-between;}.ligne-head.ligne-2{padding:16px 22px;border-bottom:1px solid var(--text-faint);background:linear-gradient(to right, rgba(6,24,69,1) 0%, rgba(6,24,69,0.3) 50%, rgba(6,24,69,0) 100%);display:flex;align-items:center;justify-content:space-between;}
 .ligne-head-left{display:flex;align-items:center;gap:10px;}
 .ligne-num{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--text-primary);}
 .ligne-accent{display:block;width:3px;height:18px;border-radius:2px;flex-shrink:0;}
@@ -552,7 +552,7 @@ function renderLigne(numero, data, heuresReelles = {}){
   return `
     <div class="ligne-card ligne-${numero} statut-${statutClass}">
       <div class="ligne-bg-canvas" id="bg-ligne-${numero}"></div>
-      <div class="ligne-head">
+      <div class="ligne-head ligne-${numero}">
         <div class="ligne-head-left">
           <span class="ligne-accent"></span>
           <span class="ligne-num">Ligne ${numero}</span>
@@ -731,12 +731,8 @@ async function chargerDonnees(){
     // Appliquer les dégradés de fond aux cartes
     const bg1 = document.getElementById('bg-ligne-1');
     const bg2 = document.getElementById('bg-ligne-2');
-    if(bg1){
-      bg1.style.background = 'linear-gradient(to right, rgba(200,132,58,0) 0%, rgba(200,132,58,0.3) 50%, rgba(200,132,58,1) 100%)';
-    }
-    if(bg2){
-      bg2.style.background = 'linear-gradient(to right, rgba(6,24,69,1) 0%, rgba(6,24,69,0.3) 50%, rgba(6,24,69,0) 100%)';
-    }
+    // Pas de dégradé sur le fond des cartes
+    
 
     // Rendre les slots
     renderSlots(data.slots);
