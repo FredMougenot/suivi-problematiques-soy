@@ -1099,7 +1099,7 @@ function animerLigne1(){
     });
 
     // === COUCHE 7 : Anneaux de choc magnétique ===
-    shockRings = shockRings.filter(r => r.life < r.maxLife);
+    shockRings = shockRings.filter(r => r.life < r.maxLife && r.r < Math.hypot(W - cx, -cy) * 1.1);
     shockRings.forEach(ring => {
       ring.life++;
       // Expansion rapide au début puis accélère — sort vite de l'écran
