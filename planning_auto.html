@@ -503,7 +503,7 @@ function getStatutLabel(statut){
   return 'Inactive';
 }
 
-function renderLigne(numero, data){
+function renderLigne(numero, data, heuresReelles = {}){
   const caisses = numero === 1 ? data.l1_caisses_produites : data.l2_caisses_produites;
   const heureFin = numero === 1 ? data.l1_heure_fin_estimee : data.l2_heure_fin_estimee;
   const statut = numero === 1 ? data.l1_statut : data.l2_statut;
@@ -536,10 +536,13 @@ function renderLigne(numero, data){
   } else {
     camionsHTML = `<div class="camions-list">` + camions.map(c => {
       const estPret = c.statut === 'camion_pret';
+      // Utiliser l'heure réelle de historique_camions si disponible
+      const ligneKey = numero === 1 ? 'L1' : 'L2';
+      const heureAffichee = heuresReelles[`${ligneKey}-${c.camion}`] || formatHeure(c.heure);
       return `
         <div class="camion-row ${estPret ? 'pret' : ''}">
           <span class="camion-num">Camion ${c.camion}</span>
-          <span class="camion-heure">${formatHeure(c.heure)}</span>
+          <span class="camion-heure">${heureAffichee}</span>
           <span class="camion-badge ${estPret ? 'pret' : 'en-cours'}">${estPret ? 'Prêt' : 'En cours'}</span>
         </div>
       `;
@@ -706,10 +709,24 @@ async function chargerDonnees(){
       }
     }
 
-    // Rendre les deux lignes
+    // Charger historique_camions pour aujourd'hui (heure réelle de fin)
+    const { data: historique } = await sb
+      .from('historique_camions')
+      .select('ligne, camion, heure_fin')
+      .eq('date', today);
+
+    // Construire un index rapide : "L1-1" → "11h59"
+    const heuresReelles = {};
+    if(historique){
+      historique.forEach(h => {
+        heuresReelles[`${h.ligne}-${h.camion}`] = h.heure_fin;
+      });
+    }
+
+    // Rendre les deux lignes en passant l'index des heures réelles
     document.getElementById('lignes-grid').innerHTML =
-      renderLigne(1, data) +
-      renderLigne(2, data);
+      renderLigne(1, data, heuresReelles) +
+      renderLigne(2, data, heuresReelles);
 
     // Lancer les animations d'arrière-plan après injection DOM
     requestAnimationFrame(() => lancerAnimationsLignes());
