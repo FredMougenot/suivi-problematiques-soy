@@ -1146,7 +1146,7 @@ function animerLigne1(){
 }
 
 
-// ── LIGNE 2 : Borealis (réfrigéré) ──────────────────────────────────
+// ── LIGNE 2 : Fond de glace vive (réfrigéré) ────────────────────────
 function animerLigne2(){
   const canvas = document.getElementById('canvas-ligne-2');
   if(!canvas) return;
@@ -1157,190 +1157,211 @@ function animerLigne2(){
   const W = canvas.width, H = canvas.height;
   let t = 0;
 
-  // ── Voiles d'aurore : larges bandes ondulantes ──
-  const voiles = Array.from({length: 7}, (_, i) => ({
-    yBase:   0.08 + i * 0.13,
-    amp:     0.06 + Math.random() * 0.10,
-    freq:    0.003 + Math.random() * 0.004,
-    speed:   0.0004 + Math.random() * 0.0006,
-    phase:   Math.random() * Math.PI * 2,
-    width:   0.12 + Math.random() * 0.20,
-    hue:     i % 3 === 0 ? [0,255,180] : i % 3 === 1 ? [30,160,255] : [100,80,255],
-    alpha:   0.06 + Math.random() * 0.10,
-    pulse:   Math.random() * Math.PI * 2,
-    pSpeed:  0.005 + Math.random() * 0.008,
+  // ── Réseau de fissures de glace ──
+  function genererFissures(nb){
+    const fissures = [];
+    for(let i = 0; i < nb; i++){
+      const x0 = Math.random() * W;
+      const y0 = Math.random() * H;
+      const angle = Math.random() * Math.PI * 2;
+      const len   = 30 + Math.random() * 120;
+      const segs  = [];
+      let cx2 = x0, cy2 = y0, a = angle;
+      const nbSegs = 3 + Math.floor(Math.random() * 5);
+      for(let s = 0; s < nbSegs; s++){
+        a += (Math.random() - 0.5) * 0.8;
+        const slen = len / nbSegs * (0.6 + Math.random() * 0.8);
+        const nx = cx2 + Math.cos(a) * slen;
+        const ny = cy2 + Math.sin(a) * slen;
+        segs.push({x1: cx2, y1: cy2, x2: nx, y2: ny});
+        cx2 = nx; cy2 = ny;
+        // Branche secondaire aléatoire
+        if(Math.random() > 0.5){
+          const ba = a + (Math.random() - 0.5) * 1.2;
+          const bl = slen * (0.3 + Math.random() * 0.5);
+          segs.push({x1: cx2, y1: cy2, x2: cx2 + Math.cos(ba)*bl, y2: cy2 + Math.sin(ba)*bl, branch: true});
+        }
+      }
+      fissures.push({
+        segs,
+        alpha:  0.06 + Math.random() * 0.14,
+        pulse:  Math.random() * Math.PI * 2,
+        pSpeed: 0.005 + Math.random() * 0.012,
+        bright: Math.random() > 0.6,
+      });
+    }
+    return fissures;
+  }
+  const fissures = genererFissures(28);
+
+  // ── Cellules de Voronoi glacées (facettes) ──
+  const centres = Array.from({length: 18}, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    pulse: Math.random() * Math.PI * 2,
+    pSpeed: 0.003 + Math.random() * 0.006,
+    alpha: 0.025 + Math.random() * 0.055,
+    hue: Math.random() > 0.5 ? [80,180,255] : [120,220,255],
   }));
 
-  // ── Rayons verticaux de lumière polaire ──
-  const rayons = Array.from({length: 14}, (_, i) => ({
-    x:      (i / 13) * W * 1.1 - W * 0.05,
-    width:   8 + Math.random() * 30,
-    alpha:   0.03 + Math.random() * 0.08,
-    speed:   0.002 + Math.random() * 0.004,
-    phase:   Math.random() * Math.PI * 2,
-    hue:     Math.random() > 0.5 ? [0,220,160] : [40,140,255],
-    height:  0.4 + Math.random() * 0.6,
-    yOff:    Math.random() * 0.3,
-  }));
-
-  // ── Étoiles polaires fixes ──
-  const etoiles = Array.from({length: 55}, () => ({
+  // ── Reflets lumineux sur la glace ──
+  const reflets = Array.from({length: 8}, () => ({
     x:     Math.random() * W,
     y:     Math.random() * H,
-    r:     0.4 + Math.random() * 1.4,
-    alpha: 0.1 + Math.random() * 0.5,
-    pulse: Math.random() * Math.PI * 2,
-    pSpeed:0.01 + Math.random() * 0.025,
+    rx:    20 + Math.random() * 60,
+    ry:    5  + Math.random() * 20,
+    angle: Math.random() * Math.PI,
+    alpha: 0.0,
+    targetAlpha: 0.08 + Math.random() * 0.18,
+    fadeSpeed: 0.003 + Math.random() * 0.008,
+    life:  0,
+    maxLife: 120 + Math.random() * 200,
+    hue: Math.random() > 0.4 ? [180,235,255] : [220,240,255],
   }));
 
-  // ── Particules de poussière stellaire ──
-  const poussiere = Array.from({length: 40}, () => ({
+  // ── Bulles de glace emprisonnées ──
+  const bulles = Array.from({length: 20}, () => ({
     x:     Math.random() * W,
     y:     Math.random() * H,
-    vx:    (Math.random() - 0.5) * 0.15,
-    vy:    -(0.05 + Math.random() * 0.15),
-    r:     0.5 + Math.random() * 1.2,
-    alpha: 0.05 + Math.random() * 0.18,
-    hue:   Math.random() > 0.5 ? [80,220,255] : [160,120,255],
+    r:     3 + Math.random() * 14,
+    alpha: 0.04 + Math.random() * 0.10,
+    pulse: Math.random() * Math.PI * 2,
+    pSpeed:0.008 + Math.random() * 0.015,
   }));
 
-  // ── Halos de lumière diffuse ──
-  const halos = Array.from({length: 3}, (_, i) => ({
-    x:     W * (0.2 + i * 0.3),
-    y:     H * (0.1 + Math.random() * 0.4),
-    r:     W * (0.18 + Math.random() * 0.22),
-    alpha: 0.04 + Math.random() * 0.06,
-    pulse: Math.random() * Math.PI * 2,
-    pSpeed:0.003 + Math.random() * 0.005,
-    hue:   i === 0 ? [0,200,150] : i === 1 ? [20,120,255] : [120,60,255],
+  // ── Particules de givre en suspension ──
+  const particules = Array.from({length: 35}, () => ({
+    x:     Math.random() * W,
+    y:     Math.random() * H,
+    vx:    (Math.random() - 0.5) * 0.12,
+    vy:    (Math.random() - 0.5) * 0.12,
+    r:     0.6 + Math.random() * 1.8,
+    alpha: 0.08 + Math.random() * 0.22,
   }));
 
   function draw(){
     ctx.clearRect(0, 0, W, H);
 
-    // === COUCHE 0 : Fond nuit arctique profond ===
-    const nuit = ctx.createLinearGradient(0, H, 0, 0);
-    nuit.addColorStop(0,    'rgba(2, 8, 35, 0.92)');
-    nuit.addColorStop(0.35, 'rgba(4, 15, 55, 0.70)');
-    nuit.addColorStop(0.70, 'rgba(6, 25, 70, 0.40)');
-    nuit.addColorStop(1,    'rgba(0,  0,  0, 0)');
-    ctx.fillStyle = nuit;
+    // === COUCHE 0 : Fond glace sombre translucide ===
+    const fond = ctx.createLinearGradient(0, H, 0, 0);
+    fond.addColorStop(0,    'rgba(5,  20, 60, 0.85)');
+    fond.addColorStop(0.4,  'rgba(8,  30, 80, 0.55)');
+    fond.addColorStop(0.75, 'rgba(10, 40, 90, 0.25)');
+    fond.addColorStop(1,    'rgba(0,   0,  0, 0)');
+    ctx.fillStyle = fond;
     ctx.fillRect(0, 0, W, H);
 
-    // === COUCHE 1 : Rayons verticaux polaires ===
-    rayons.forEach(r => {
-      r.phase += r.speed;
-      const pa    = 0.5 + 0.5 * Math.sin(r.phase);
-      const yTop  = H * r.yOff;
-      const yBot  = H * (r.yOff + r.height);
-      const [rr,gg,bb] = r.hue;
-      const rg = ctx.createLinearGradient(0, yTop, 0, yBot);
-      rg.addColorStop(0,    `rgba(${rr},${gg},${bb},0)`);
-      rg.addColorStop(0.15, `rgba(${rr},${gg},${bb},${r.alpha * pa * 1.4})`);
-      rg.addColorStop(0.5,  `rgba(${rr},${gg},${bb},${r.alpha * pa})`);
-      rg.addColorStop(0.85, `rgba(${rr},${gg},${bb},${r.alpha * pa * 0.6})`);
-      rg.addColorStop(1,    `rgba(${rr},${gg},${bb},0)`);
-      ctx.fillStyle = rg;
-      ctx.fillRect(r.x - r.width/2, yTop, r.width, yBot - yTop);
-    });
-
-    // === COUCHE 2 : Halos diffus ===
-    halos.forEach(h => {
-      h.pulse += h.pSpeed;
-      const pa = 0.7 + 0.3 * Math.sin(h.pulse);
-      const [rr,gg,bb] = h.hue;
-      const hg = ctx.createRadialGradient(h.x, h.y, 0, h.x, h.y, h.r * pa);
-      hg.addColorStop(0,   `rgba(${rr},${gg},${bb},${h.alpha * pa * 1.5})`);
-      hg.addColorStop(0.4, `rgba(${rr},${gg},${bb},${h.alpha * pa * 0.6})`);
-      hg.addColorStop(1,   `rgba(${rr},${gg},${bb},0)`);
-      ctx.fillStyle = hg;
+    // === COUCHE 1 : Facettes Voronoi ===
+    centres.forEach(c => {
+      c.pulse += c.pSpeed;
+      const pa = 0.5 + 0.5 * Math.sin(c.pulse);
+      const [rr,gg,bb] = c.hue;
+      const cg = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, 80 + pa * 40);
+      cg.addColorStop(0,   `rgba(${rr},${gg},${bb},${c.alpha * pa * 1.5})`);
+      cg.addColorStop(0.5, `rgba(${rr},${gg},${bb},${c.alpha * pa * 0.5})`);
+      cg.addColorStop(1,   `rgba(${rr},${gg},${bb},0)`);
+      ctx.fillStyle = cg;
       ctx.fillRect(0, 0, W, H);
     });
 
-    // === COUCHE 3 : Voiles d'aurore ondulants ===
-    voiles.forEach(v => {
-      v.phase += v.speed * 100;
-      v.pulse += v.pSpeed;
-      const pa     = 0.55 + 0.45 * Math.sin(v.pulse);
-      const yC     = v.yBase * H;
-      const halfH  = v.width * H * 0.5;
-      const [rr,gg,bb] = v.hue;
+    // === COUCHE 2 : Réseau de fissures ===
+    fissures.forEach(f => {
+      f.pulse += f.pSpeed;
+      const pa = 0.5 + 0.5 * Math.sin(f.pulse);
+      f.segs.forEach(seg => {
+        ctx.beginPath();
+        ctx.moveTo(seg.x1, seg.y1);
+        ctx.lineTo(seg.x2, seg.y2);
+        const baseAlpha = seg.branch ? f.alpha * 0.5 : f.alpha;
+        // Halo de la fissure
+        ctx.strokeStyle = `rgba(100,200,255,${baseAlpha * pa * 0.4})`;
+        ctx.lineWidth   = seg.branch ? 2 : 3.5;
+        ctx.shadowColor = 'rgba(100,200,255,0.6)';
+        ctx.shadowBlur  = 6 * pa;
+        ctx.stroke();
+        // Fissure centrale fine et brillante
+        ctx.beginPath();
+        ctx.moveTo(seg.x1, seg.y1);
+        ctx.lineTo(seg.x2, seg.y2);
+        ctx.strokeStyle = f.bright
+          ? `rgba(220,245,255,${baseAlpha * pa * 1.2})`
+          : `rgba(140,210,255,${baseAlpha * pa * 0.8})`;
+        ctx.lineWidth   = seg.branch ? 0.5 : 1;
+        ctx.shadowBlur  = 0;
+        ctx.stroke();
+      });
+    });
 
-      // Dessiner le voile comme une bande ondulante avec des points
-      const steps = 60;
-      const pts   = [];
-      for(let i = 0; i <= steps; i++){
-        const x = (i / steps) * W;
-        const wave =
-          Math.sin(x * v.freq + v.phase) * v.amp * H +
-          Math.sin(x * v.freq * 2.1 + v.phase * 0.7 + 1.5) * v.amp * H * 0.4;
-        pts.push({x, y: yC + wave});
-      }
-
-      // Bord supérieur fondu
+    // === COUCHE 3 : Bulles emprisonnées ===
+    bulles.forEach(b => {
+      b.pulse += b.pSpeed;
+      const pa = 0.6 + 0.4 * Math.sin(b.pulse);
+      // Anneau de la bulle
       ctx.beginPath();
-      pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y - halfH) : ctx.lineTo(p.x, p.y - halfH));
-      pts.slice().reverse().forEach(p => ctx.lineTo(p.x, p.y + halfH));
-      ctx.closePath();
-      const vg = ctx.createLinearGradient(0, yC - halfH, 0, yC + halfH);
-      vg.addColorStop(0,    `rgba(${rr},${gg},${bb},0)`);
-      vg.addColorStop(0.25, `rgba(${rr},${gg},${bb},${v.alpha * pa * 0.6})`);
-      vg.addColorStop(0.5,  `rgba(${rr},${gg},${bb},${v.alpha * pa})`);
-      vg.addColorStop(0.75, `rgba(${rr},${gg},${bb},${v.alpha * pa * 0.6})`);
-      vg.addColorStop(1,    `rgba(${rr},${gg},${bb},0)`);
-      ctx.fillStyle = vg;
-      ctx.fill();
-
-      // Ligne centrale lumineuse
-      ctx.beginPath();
-      pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
-      ctx.strokeStyle = `rgba(${rr},${gg},${bb},${v.alpha * pa * 1.8})`;
-      ctx.lineWidth   = 1.2;
-      ctx.shadowColor = `rgba(${rr},${gg},${bb},0.8)`;
-      ctx.shadowBlur  = 8 * pa;
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(160,225,255,${b.alpha * pa})`;
+      ctx.lineWidth   = 0.8;
+      ctx.shadowColor = 'rgba(100,200,255,0.4)';
+      ctx.shadowBlur  = 4;
       ctx.stroke();
       ctx.shadowBlur  = 0;
-    });
-
-    // === COUCHE 4 : Étoiles polaires ===
-    etoiles.forEach(e => {
-      e.pulse += e.pSpeed;
-      const pa = 0.4 + 0.6 * Math.abs(Math.sin(e.pulse));
+      // Reflet interne
       ctx.beginPath();
-      ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(200,235,255,${e.alpha * pa})`;
+      ctx.arc(b.x - b.r * 0.28, b.y - b.r * 0.28, b.r * 0.25, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(220,245,255,${b.alpha * pa * 0.6})`;
       ctx.fill();
-      // Halo sur les plus brillantes
-      if(e.alpha > 0.4){
-        const sg = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.r * 5);
-        sg.addColorStop(0,   `rgba(160,220,255,${e.alpha * pa * 0.3})`);
-        sg.addColorStop(1,   'rgba(0,0,0,0)');
-        ctx.fillStyle = sg;
-        ctx.beginPath();
-        ctx.arc(e.x, e.y, e.r * 5, 0, Math.PI * 2);
-        ctx.fill();
-      }
     });
 
-    // === COUCHE 5 : Poussière stellaire ===
-    poussiere.forEach(p => {
-      p.x += p.vx + Math.sin(t * 0.01 + p.y * 0.02) * 0.1;
+    // === COUCHE 4 : Reflets lumineux ===
+    reflets.forEach(r => {
+      r.life++;
+      if(r.life < r.maxLife * 0.2){
+        r.alpha = Math.min(r.alpha + r.fadeSpeed, r.targetAlpha);
+      } else if(r.life > r.maxLife * 0.7){
+        r.alpha = Math.max(r.alpha - r.fadeSpeed * 0.5, 0);
+      }
+      if(r.life >= r.maxLife){
+        r.x = Math.random() * W;
+        r.y = Math.random() * H;
+        r.life = 0; r.alpha = 0;
+        r.targetAlpha = 0.08 + Math.random() * 0.18;
+        r.maxLife = 120 + Math.random() * 200;
+        r.angle = Math.random() * Math.PI;
+      }
+      if(r.alpha < 0.005) return;
+      const [rr,gg,bb] = r.hue;
+      ctx.save();
+      ctx.translate(r.x, r.y);
+      ctx.rotate(r.angle);
+      const rg = ctx.createRadialGradient(0, 0, 0, 0, 0, r.rx);
+      rg.addColorStop(0,   `rgba(${rr},${gg},${bb},${r.alpha})`);
+      rg.addColorStop(0.4, `rgba(${rr},${gg},${bb},${r.alpha * 0.4})`);
+      rg.addColorStop(1,   `rgba(${rr},${gg},${bb},0)`);
+      ctx.scale(1, r.ry / r.rx);
+      ctx.beginPath();
+      ctx.arc(0, 0, r.rx, 0, Math.PI * 2);
+      ctx.fillStyle = rg;
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // === COUCHE 5 : Particules de givre ===
+    particules.forEach(p => {
+      p.x += p.vx;
       p.y += p.vy;
-      if(p.y < -5){ p.y = H + 5; p.x = Math.random() * W; }
-      const [rr,gg,bb] = p.hue;
+      if(p.x < 0) p.x = W; if(p.x > W) p.x = 0;
+      if(p.y < 0) p.y = H; if(p.y > H) p.y = 0;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${rr},${gg},${bb},${p.alpha})`;
+      ctx.fillStyle = `rgba(180,230,255,${p.alpha})`;
       ctx.fill();
     });
 
-    // === COUCHE 6 : Lueur froide depuis le bas (dégradé existant renforcé) ===
+    // === COUCHE 6 : Lueur froide bas ===
     const froid = ctx.createLinearGradient(0, H, 0, 0);
-    const pulse6 = 0.5 + 0.5 * Math.sin(t * 0.012);
-    froid.addColorStop(0,    `rgba(10, 40,120,${0.18 + pulse6 * 0.08})`);
-    froid.addColorStop(0.3,  `rgba(5,  25, 90,${0.08 + pulse6 * 0.04})`);
-    froid.addColorStop(0.65, 'rgba(0,  10, 50,0.02)');
-    froid.addColorStop(1,    'rgba(0,   0,  0,0)');
+    const pf = 0.5 + 0.5 * Math.sin(t * 0.011);
+    froid.addColorStop(0,    `rgba(8, 35,110,${0.16 + pf * 0.07})`);
+    froid.addColorStop(0.35, `rgba(4, 20, 70,${0.06 + pf * 0.03})`);
+    froid.addColorStop(1,    'rgba(0,  0,  0,0)');
     ctx.fillStyle = froid;
     ctx.fillRect(0, 0, W, H);
 
