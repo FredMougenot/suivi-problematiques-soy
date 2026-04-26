@@ -849,7 +849,7 @@ function animerLigne1(){
 
   // Anneaux de choc magnétique
   let shockRings = [];
-  function spawnRing(){ shockRings.push({ r: SR * 0.9, life: 0, maxLife: 140, alpha: 0.25 }); }
+  function spawnRing(){ shockRings.push({ r: SR * 0.88, life: 0, maxLife: 160, alpha: 0.55 }); }
   spawnRing();
 
   function draw(){
@@ -1108,13 +1108,19 @@ function animerLigne1(){
       ctx.beginPath();
       ctx.arc(cx, cy, ring.r, -Math.PI * 0.8, -Math.PI * 0.05);
       ctx.strokeStyle = `rgba(255,200,80,${ring.alpha * fade})`;
-      ctx.lineWidth   = 2;
-      ctx.shadowColor = 'rgba(255,180,50,0.6)';
-      ctx.shadowBlur  = 12;
+      ctx.lineWidth   = 2 + (1 - prog) * 2;
+      ctx.shadowColor = 'rgba(255,200,80,0.9)';
+      ctx.shadowBlur  = 18 * (1 - prog);
       ctx.stroke();
+      // Double anneau intérieur plus fin
+      ctx.beginPath();
+      ctx.arc(cx, cy, ring.r * 0.94, -Math.PI * 0.8, -Math.PI * 0.05);
+      ctx.strokeStyle = `rgba(255,240,160,${ring.alpha * fade * 0.4})`;
+      ctx.lineWidth   = 1;
       ctx.shadowBlur  = 0;
+      ctx.stroke();
     });
-    if(Math.random() < 0.004) spawnRing();
+    if(Math.random() < 0.009) spawnRing();
 
     // === COUCHE 8 : Limbe solaire ===
     const limbeGrad = ctx.createRadialGradient(cx, cy, SR*0.82, cx, cy, SR*1.02);
