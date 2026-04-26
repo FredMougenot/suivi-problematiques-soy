@@ -761,7 +761,7 @@ function lancerAnimationsLignes(){
   animerLigne2();
 }
 
-// ── LIGNE 1 : Gradient pulsant + lignes de chaleur distordues (tempéré) ──
+// ── LIGNE 1 : Animation solaire (tempéré) ────────────────────────────
 function animerLigne1(){
   const canvas = document.getElementById('canvas-ligne-1');
   if(!canvas) return;
@@ -771,63 +771,153 @@ function animerLigne1(){
   const ctx = canvas.getContext('2d');
   let t = 0;
 
-  // Lignes de chaleur horizontales distordues (effet mirage)
-  const lignes = Array.from({length:10}, (_, i) => ({
-    yBase:  (i / 9) * canvas.height,
-    freq1:  0.006 + Math.random() * 0.006,
-    freq2:  0.003 + Math.random() * 0.004,
-    amp1:   4 + Math.random() * 8,
-    amp2:   2 + Math.random() * 5,
-    speed1: 0.8 + Math.random() * 0.8,
-    speed2: 0.5 + Math.random() * 0.6,
-    phase:  Math.random() * Math.PI * 2,
-    alpha:  0.06 + Math.random() * 0.08,
+  const cx = canvas.width  * 0.08;  // soleil ancré en bas à gauche
+  const cy = canvas.height * 1.15;
+  const R  = canvas.height * 0.75;  // rayon du disque solaire
+
+  // Rayons solaires : longs traits qui émanent du soleil
+  const rayons = Array.from({length:22}, (_, i) => ({
+    angle:    (i / 22) * Math.PI * 2,
+    len:      canvas.width * (0.35 + Math.random() * 0.55),
+    width:    1.2 + Math.random() * 2.2,
+    speed:    (Math.random() > 0.5 ? 1 : -1) * (0.0003 + Math.random() * 0.0004),
+    alpha:    0.04 + Math.random() * 0.09,
+    pulse:    Math.random() * Math.PI * 2,
+    pulseSpd: 0.015 + Math.random() * 0.02,
   }));
+
+  // Protubérances solaires : arcs qui jaillissent du bord du soleil
+  const protub = Array.from({length:5}, (_, i) => ({
+    angle:    (i / 5) * Math.PI - Math.PI * 0.15,
+    arcH:     15 + Math.random() * 35,
+    arcW:     20 + Math.random() * 30,
+    speed:    0.003 + Math.random() * 0.003,
+    phase:    Math.random() * Math.PI * 2,
+    alpha:    0.25 + Math.random() * 0.3,
+  }));
+
+  // Particules solaires qui voyagent le long des rayons
+  const particules = Array.from({length:40}, () => {
+    const ray = rayons[Math.floor(Math.random() * rayons.length)];
+    return {
+      ray,
+      t:      Math.random(),   // position sur le rayon 0→1
+      speed:  0.002 + Math.random() * 0.004,
+      r:      1 + Math.random() * 2,
+      alpha:  0.15 + Math.random() * 0.35,
+    };
+  });
 
   function draw(){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Fond qui pulse entre brun foncé et cuivré
-    const pulse = (Math.sin(t * 0.018) + 1) / 2; // 0 → 1
-    const grad = ctx.createLinearGradient(0, canvas.height, 0, 0);
-    grad.addColorStop(0,   `rgba(${120 + pulse*40}, ${50 + pulse*20}, ${5 + pulse*8}, ${0.16 + pulse*0.06})`);
-    grad.addColorStop(0.5, `rgba(${80  + pulse*30}, ${30 + pulse*15}, 0, ${0.07 + pulse*0.04})`);
-    grad.addColorStop(1,   'rgba(0,0,0,0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // ── Couche 1 : halo solaire diffus multi-couches ──
+    [
+      { r: R * 2.8, a: 0.04 },
+      { r: R * 2.0, a: 0.07 },
+      { r: R * 1.4, a: 0.11 },
+      { r: R * 1.0, a: 0.18 },
+    ].forEach(h => {
+      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, h.r);
+      g.addColorStop(0,   `rgba(255,200, 80,${h.a})`);
+      g.addColorStop(0.4, `rgba(240,130, 30,${h.a * 0.6})`);
+      g.addColorStop(0.7, `rgba(200, 80, 10,${h.a * 0.25})`);
+      g.addColorStop(1,   'rgba(0,0,0,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    });
 
-    // Lignes de chaleur distordues (mirage thermique)
-    lignes.forEach(l => {
+    // ── Couche 2 : rayons solaires ──
+    rayons.forEach(ray => {
+      ray.angle += ray.speed;
+      ray.pulse += ray.pulseSpd;
+      const pulsedAlpha = ray.alpha * (0.7 + 0.3 * Math.sin(ray.pulse));
+      const pulsedLen   = ray.len   * (0.88 + 0.12 * Math.sin(ray.pulse * 0.7));
+
+      // Seulement les rayons qui pointent vers la carte (demi-espace droit/haut)
+      const ex = cx + Math.cos(ray.angle) * pulsedLen;
+      const ey = cy + Math.sin(ray.angle) * pulsedLen;
+      if(ex < -20 || ey > canvas.height + 20) return;
+
+      const rg = ctx.createLinearGradient(cx, cy, ex, ey);
+      rg.addColorStop(0,    `rgba(255,200, 70,${pulsedAlpha * 1.5})`);
+      rg.addColorStop(0.15, `rgba(240,160, 40,${pulsedAlpha})`);
+      rg.addColorStop(0.6,  `rgba(220,110, 20,${pulsedAlpha * 0.4})`);
+      rg.addColorStop(1,    'rgba(180,80,10,0)');
+
       ctx.beginPath();
-      for(let x = 0; x <= canvas.width; x += 3){
-        const distortion =
-          Math.sin(x * l.freq1 + t * l.speed1 * 0.05 + l.phase) * l.amp1 +
-          Math.sin(x * l.freq2 + t * l.speed2 * 0.04 + l.phase * 1.3) * l.amp2;
-        const y = l.yBase + distortion;
-        x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-      }
-      // Ligne plus lumineuse au centre, fondue aux bords
-      const lg = ctx.createLinearGradient(0, 0, canvas.width, 0);
-      lg.addColorStop(0,    'rgba(200,132,58,0)');
-      lg.addColorStop(0.25, `rgba(220,155,70,${l.alpha})`);
-      lg.addColorStop(0.5,  `rgba(240,170,80,${l.alpha * 1.4})`);
-      lg.addColorStop(0.75, `rgba(220,155,70,${l.alpha})`);
-      lg.addColorStop(1,    'rgba(200,132,58,0)');
-      ctx.strokeStyle = lg;
-      ctx.lineWidth = 1.2;
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(ex, ey);
+      ctx.strokeStyle = rg;
+      ctx.lineWidth   = ray.width * (0.8 + 0.2 * Math.sin(ray.pulse));
       ctx.stroke();
     });
 
-    // Lueur cuivrée pulsante en bas
-    const glowAlpha = 0.08 + pulse * 0.07;
-    const glow = ctx.createRadialGradient(
-      canvas.width * 0.5, canvas.height * 1.05, 0,
-      canvas.width * 0.5, canvas.height * 1.05, canvas.width * 0.6
-    );
-    glow.addColorStop(0,   `rgba(210,120,40,${glowAlpha})`);
-    glow.addColorStop(0.5, `rgba(180, 90,20,${glowAlpha * 0.4})`);
-    glow.addColorStop(1,   'rgba(0,0,0,0)');
-    ctx.fillStyle = glow;
+    // ── Couche 3 : protubérances (arcs de plasma) ──
+    protub.forEach(p => {
+      p.phase += p.speed;
+      const breathe = 0.7 + 0.3 * Math.sin(p.phase);
+      const baseAngle = p.angle - Math.PI * 0.5; // depuis le bord du soleil
+      const sx = cx + Math.cos(baseAngle) * R * 0.82;
+      const sy = cy + Math.sin(baseAngle) * R * 0.82;
+      const ex2 = cx + Math.cos(baseAngle + 0.5) * R * 0.82;
+      const ey2 = cy + Math.sin(baseAngle + 0.5) * R * 0.82;
+      // Point de contrôle : jaillit vers l'extérieur
+      const midAngle = baseAngle + 0.25;
+      const cpx = cx + Math.cos(midAngle) * (R + p.arcH * breathe);
+      const cpy = cy + Math.sin(midAngle) * (R + p.arcH * breathe);
+
+      if(sx > canvas.width || sy > canvas.height + 10) return;
+
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.quadraticCurveTo(cpx, cpy, ex2, ey2);
+      ctx.strokeStyle = `rgba(255,160,50,${p.alpha * breathe})`;
+      ctx.lineWidth   = 2.5;
+      ctx.shadowColor = 'rgba(255,140,30,0.6)';
+      ctx.shadowBlur  = 8;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    });
+
+    // ── Couche 4 : disque solaire ──
+    const diskPulse = 0.97 + 0.03 * Math.sin(t * 0.022);
+    const diskR = R * diskPulse;
+    const disk = ctx.createRadialGradient(cx, cy, 0, cx, cy, diskR);
+    disk.addColorStop(0,    'rgba(255,240,180,0.95)');
+    disk.addColorStop(0.25, 'rgba(255,200, 80,0.85)');
+    disk.addColorStop(0.55, 'rgba(240,140, 30,0.70)');
+    disk.addColorStop(0.82, 'rgba(210, 80, 10,0.45)');
+    disk.addColorStop(1,    'rgba(160, 40,  0,0)');
+    ctx.beginPath();
+    ctx.arc(cx, cy, diskR, 0, Math.PI * 2);
+    ctx.fillStyle = disk;
+    ctx.fill();
+
+    // ── Couche 5 : particules qui filent le long des rayons ──
+    particules.forEach(p => {
+      p.t += p.speed;
+      if(p.t > 1){ p.t = 0; }
+      const angle = p.ray.angle;
+      const len   = p.ray.len * p.t;
+      const px    = cx + Math.cos(angle) * len;
+      const py    = cy + Math.sin(angle) * len;
+      if(px < 0 || px > canvas.width || py < 0 || py > canvas.height) return;
+      const fade = Math.sin(p.t * Math.PI);
+      ctx.beginPath();
+      ctx.arc(px, py, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,210,100,${p.alpha * fade})`;
+      ctx.fill();
+    });
+
+    // ── Couche 6 : nappe de chaleur qui se répand vers la droite ──
+    const heatPulse = 0.5 + 0.5 * Math.sin(t * 0.014);
+    const heat = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    heat.addColorStop(0,    `rgba(200,100,20,${0.07 + heatPulse * 0.04})`);
+    heat.addColorStop(0.35, `rgba(180, 70,10,${0.03 + heatPulse * 0.02})`);
+    heat.addColorStop(0.7,  'rgba(150,50,5,0.01)');
+    heat.addColorStop(1,    'rgba(0,0,0,0)');
+    ctx.fillStyle = heat;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     t += 1;
