@@ -136,7 +136,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .ligne-card.statut-inactive{opacity:.6;}
 
 /* ANIMATION CANVAS FOND */
-.ligne-bg-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;border-radius:var(--r-lg);}
+.ligne-bg-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;border-radius:var(--r-lg);overflow:hidden;}
 .ligne-head,.ligne-body{position:relative;z-index:1;}
 
 .ligne-head{padding:16px 22px;border-bottom:1px solid var(--text-faint);background:var(--bg-float);display:flex;align-items:center;justify-content:space-between;}
@@ -551,7 +551,7 @@ function renderLigne(numero, data, heuresReelles = {}){
 
   return `
     <div class="ligne-card ligne-${numero} statut-${statutClass}">
-      <canvas class="ligne-bg-canvas" id="canvas-ligne-${numero}"></canvas>
+      <div class="ligne-bg-canvas" id="bg-ligne-${numero}"></div>
       <div class="ligne-head">
         <div class="ligne-head-left">
           <span class="ligne-accent"></span>
@@ -728,8 +728,199 @@ async function chargerDonnees(){
       renderLigne(1, data, heuresReelles) +
       renderLigne(2, data, heuresReelles);
 
-    // Lancer les animations d'arrière-plan après injection DOM
-    requestAnimationFrame(() => lancerAnimationsLignes());
+    // Injecter les SVG statiques dans les fonds des cartes
+    const bg1 = document.getElementById('bg-ligne-1');
+    const bg2 = document.getElementById('bg-ligne-2');
+    if(bg1) bg1.innerHTML = `<svg width="100%" height="100%" viewBox="0 0 680 220" preserveAspectRatio="xMidYMid slice" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>Fond solaire Ligne 1</title><desc>Soleil avec couronne et protubérances</desc>
+<defs>
+  <radialGradient id="atmoL1" cx="18%" cy="115%" r="95%">
+    <stop offset="0%" stop-color="#FFF4A0" stop-opacity="0.30"/>
+    <stop offset="18%" stop-color="#FFB830" stop-opacity="0.22"/>
+    <stop offset="40%" stop-color="#E06010" stop-opacity="0.14"/>
+    <stop offset="70%" stop-color="#90250A" stop-opacity="0.06"/>
+    <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="diskL1" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#FFFDE8"/>
+    <stop offset="10%" stop-color="#FFE87A"/>
+    <stop offset="28%" stop-color="#FFB830"/>
+    <stop offset="52%" stop-color="#FF7010"/>
+    <stop offset="76%" stop-color="#C03808"/>
+    <stop offset="100%" stop-color="#601800" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="glowL1" cx="18%" cy="115%" r="65%">
+    <stop offset="0%" stop-color="#FF9020" stop-opacity="0.22"/>
+    <stop offset="50%" stop-color="#E05010" stop-opacity="0.09"/>
+    <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+  </radialGradient>
+  <clipPath id="cardL1"><rect width="680" height="220" rx="12"/></clipPath>
+</defs>
+<g clip-path="url(#cardL1)">
+  <rect width="680" height="220" fill="#0D0A04"/>
+  <rect width="680" height="220" fill="url(#atmoL1)"/>
+  <rect width="680" height="220" fill="url(#glowL1)"/>
+  <g opacity="0.14" stroke="#FFB830" stroke-linecap="round">
+    <line x1="50" y1="280" x2="460" y2="-15" stroke-width="20"/>
+    <line x1="50" y1="280" x2="560" y2="20" stroke-width="14"/>
+    <line x1="50" y1="280" x2="640" y2="70" stroke-width="9"/>
+    <line x1="50" y1="280" x2="660" y2="135" stroke-width="7"/>
+    <line x1="50" y1="280" x2="635" y2="195" stroke-width="6"/>
+    <line x1="50" y1="280" x2="340" y2="-20" stroke-width="16"/>
+    <line x1="50" y1="280" x2="220" y2="-25" stroke-width="11"/>
+    <line x1="50" y1="280" x2="130" y2="5" stroke-width="8"/>
+    <line x1="50" y1="280" x2="510" y2="5" stroke-width="10"/>
+    <line x1="50" y1="280" x2="590" y2="45" stroke-width="7"/>
+  </g>
+  <g opacity="0.24" stroke="#FFD060" stroke-linecap="round">
+    <line x1="50" y1="280" x2="420" y2="-18" stroke-width="5.5"/>
+    <line x1="50" y1="280" x2="540" y2="12" stroke-width="4.5"/>
+    <line x1="50" y1="280" x2="620" y2="58" stroke-width="3.5"/>
+    <line x1="50" y1="280" x2="648" y2="105" stroke-width="3"/>
+    <line x1="50" y1="280" x2="265" y2="-22" stroke-width="5"/>
+    <line x1="50" y1="280" x2="165" y2="-8" stroke-width="4"/>
+  </g>
+  <g fill="none" stroke-linecap="round">
+    <path d="M 50,280 Q 180,-50 420,5" stroke="#FFB020" stroke-width="1.5" opacity="0.28"/>
+    <path d="M 50,280 Q 120,-30 330,-18" stroke="#FF9020" stroke-width="1.2" opacity="0.22"/>
+    <path d="M 50,280 Q 220,-20 540,28" stroke="#FFC040" stroke-width="1.0" opacity="0.18"/>
+    <path d="M 50,280 Q 80,100 580,58" stroke="#FFB020" stroke-width="0.8" opacity="0.14"/>
+    <path d="M 50,280 Q 160,-5 480,2" stroke="#FFD060" stroke-width="1.3" opacity="0.20"/>
+    <path d="M 50,280 Q 260,-40 610,35" stroke="#FF8010" stroke-width="0.9" opacity="0.16"/>
+  </g>
+  <g fill="none" stroke-linecap="round">
+    <path d="M 95,220 Q 165,-55 235,205" stroke="#FF6010" stroke-width="3.8" opacity="0.58"/>
+    <path d="M 95,220 Q 165,-55 235,205" stroke="#FFCC60" stroke-width="1.4" opacity="0.48"/>
+    <path d="M 115,228 Q 210,10 285,218" stroke="#FF7020" stroke-width="3.0" opacity="0.46"/>
+    <path d="M 115,228 Q 210,10 285,218" stroke="#FFB840" stroke-width="1.0" opacity="0.38"/>
+    <path d="M 70,215 Q 120,50 162,208" stroke="#FF5010" stroke-width="2.4" opacity="0.42"/>
+    <path d="M 70,215 Q 120,50 162,208" stroke="#FFD060" stroke-width="0.8" opacity="0.36"/>
+    <path d="M 140,232 Q 250,-15 318,218" stroke="#FF8020" stroke-width="2.2" opacity="0.36"/>
+    <path d="M 50,218 Q 85,75 118,210" stroke="#FF4000" stroke-width="1.8" opacity="0.34"/>
+  </g>
+  <circle cx="50" cy="280" r="240" fill="url(#diskL1)"/>
+  <circle cx="50" cy="280" r="240" fill="none" stroke="#FFD060" stroke-width="14" opacity="0.20"/>
+  <circle cx="50" cy="280" r="240" fill="none" stroke="#FFF0A0" stroke-width="4" opacity="0.30"/>
+  <circle cx="50" cy="280" r="285" fill="none" stroke="#FFB020" stroke-width="7" opacity="0.09"/>
+  <circle cx="50" cy="280" r="325" fill="none" stroke="#FF8010" stroke-width="5" opacity="0.06"/>
+  <path d="M 170,-5 A 330,330 0 0 1 620,145" fill="none" stroke="#FFD060" stroke-width="1.5" opacity="0.18"/>
+  <path d="M 210,-8 A 375,375 0 0 1 655,170" fill="none" stroke="#FFB830" stroke-width="1" opacity="0.11"/>
+  <g stroke="#FFD080" stroke-linecap="round" opacity="0.30">
+    <line x1="260" y1="12" x2="315" y2="7" stroke-width="1.2"/>
+    <line x1="325" y1="3" x2="385" y2="0" stroke-width="1.0"/>
+    <line x1="395" y1="16" x2="445" y2="12" stroke-width="0.8"/>
+    <line x1="455" y1="6" x2="505" y2="3" stroke-width="0.7"/>
+    <line x1="285" y1="38" x2="345" y2="33" stroke-width="0.9"/>
+    <line x1="240" y1="55" x2="298" y2="50" stroke-width="0.9"/>
+    <line x1="565" y1="33" x2="615" y2="28" stroke-width="0.6"/>
+  </g>
+  <g fill="#FFE090" opacity="0.48">
+    <circle cx="315" cy="7" r="1.8"/><circle cx="385" cy="0" r="1.5"/>
+    <circle cx="445" cy="12" r="1.3"/><circle cx="505" cy="3" r="1.1"/>
+    <circle cx="345" cy="33" r="1.4"/><circle cx="298" cy="50" r="1.3"/>
+    <circle cx="615" cy="28" r="0.9"/>
+  </g>
+  <rect x="0" y="155" width="680" height="65" fill="url(#glowL1)" opacity="0.45"/>
+</g>
+</svg>`;
+    if(bg2) bg2.innerHTML = `<svg width="100%" height="100%" viewBox="0 0 680 220" preserveAspectRatio="xMidYMid slice" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>Fond glace Ligne 2</title><desc>Glace vive avec cristaux de givre hexagonaux</desc>
+<defs>
+  <radialGradient id="fgL2" cx="50%" cy="110%" r="80%">
+    <stop offset="0%" stop-color="#0A2060" stop-opacity="0.92"/>
+    <stop offset="40%" stop-color="#061840" stop-opacity="0.65"/>
+    <stop offset="80%" stop-color="#030C25" stop-opacity="0.35"/>
+    <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="hL1" cx="25%" cy="40%" r="45%">
+    <stop offset="0%" stop-color="#40C8FF" stop-opacity="0.12"/>
+    <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="hL2" cx="70%" cy="30%" r="40%">
+    <stop offset="0%" stop-color="#6080FF" stop-opacity="0.09"/>
+    <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="hL3" cx="50%" cy="65%" r="50%">
+    <stop offset="0%" stop-color="#2060C0" stop-opacity="0.14"/>
+    <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+  </radialGradient>
+  <clipPath id="cardL2"><rect width="680" height="220" rx="12"/></clipPath>
+</defs>
+<g clip-path="url(#cardL2)">
+  <rect width="680" height="220" fill="#04091E"/>
+  <rect width="680" height="220" fill="url(#fgL2)"/>
+  <rect width="680" height="220" fill="url(#hL1)"/>
+  <rect width="680" height="220" fill="url(#hL2)"/>
+  <rect width="680" height="220" fill="url(#hL3)"/>
+  <g opacity="0.10">
+    <rect x="60" y="0" width="18" height="180" fill="#20C0FF" rx="9"/>
+    <rect x="120" y="10" width="12" height="150" fill="#4080FF" rx="6"/>
+    <rect x="190" y="0" width="22" height="200" fill="#00D0C0" rx="11"/>
+    <rect x="265" y="15" width="10" height="130" fill="#2090FF" rx="5"/>
+    <rect x="330" y="5" width="16" height="165" fill="#40C0FF" rx="8"/>
+    <rect x="400" y="0" width="20" height="185" fill="#2060E0" rx="10"/>
+    <rect x="470" y="20" width="12" height="140" fill="#00C8D0" rx="6"/>
+    <rect x="540" y="8" width="15" height="155" fill="#3080FF" rx="7"/>
+    <rect x="610" y="0" width="18" height="175" fill="#20B0FF" rx="9"/>
+  </g>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 80,0 L 95,45 L 75,90 L 110,140 L 90,220" stroke="#60C0FF" stroke-width="0.6" opacity="0.35"/>
+    <path d="M 80,0 L 95,45 L 75,90 L 110,140 L 90,220" stroke="#C0E8FF" stroke-width="0.25" opacity="0.55"/>
+    <path d="M 95,45 L 145,30 L 185,55" stroke="#60C0FF" stroke-width="0.5" opacity="0.28"/>
+    <path d="M 75,90 L 35,110 L 20,145" stroke="#60C0FF" stroke-width="0.4" opacity="0.22"/>
+    <path d="M 220,0 L 240,55 L 210,100 L 250,165 L 230,220" stroke="#4090E0" stroke-width="0.7" opacity="0.32"/>
+    <path d="M 220,0 L 240,55 L 210,100 L 250,165 L 230,220" stroke="#B0D8FF" stroke-width="0.28" opacity="0.48"/>
+    <path d="M 240,55 L 290,40 L 340,65 L 310,100" stroke="#4090E0" stroke-width="0.5" opacity="0.25"/>
+    <path d="M 210,100 L 165,120 L 140,155" stroke="#4090E0" stroke-width="0.4" opacity="0.20"/>
+    <path d="M 380,10 L 365,60 L 400,115 L 375,175 L 395,220" stroke="#50A8FF" stroke-width="0.6" opacity="0.30"/>
+    <path d="M 380,10 L 365,60 L 400,115 L 375,175 L 395,220" stroke="#C8E4FF" stroke-width="0.25" opacity="0.45"/>
+    <path d="M 365,60 L 320,45 L 295,70" stroke="#50A8FF" stroke-width="0.4" opacity="0.22"/>
+    <path d="M 400,115 L 445,100 L 480,120 L 465,155" stroke="#50A8FF" stroke-width="0.5" opacity="0.25"/>
+    <path d="M 530,0 L 545,50 L 520,105 L 555,160 L 535,220" stroke="#3080C0" stroke-width="0.65" opacity="0.28"/>
+    <path d="M 530,0 L 545,50 L 520,105 L 555,160 L 535,220" stroke="#A0D0FF" stroke-width="0.26" opacity="0.42"/>
+    <path d="M 545,50 L 595,35 L 635,58" stroke="#3080C0" stroke-width="0.45" opacity="0.22"/>
+    <path d="M 150,80 L 210,70 L 265,85" stroke="#50B0E0" stroke-width="0.5" opacity="0.20"/>
+    <path d="M 420,140 L 470,128 L 510,142" stroke="#3090D0" stroke-width="0.4" opacity="0.18"/>
+    <path d="M 50,155 L 95,148 L 130,158" stroke="#40A0E0" stroke-width="0.4" opacity="0.18"/>
+    <path d="M 580,90 L 625,80 L 660,95" stroke="#3080C0" stroke-width="0.4" opacity="0.18"/>
+  </g>
+  <g transform="translate(118,85)" opacity="0.75"><g stroke="#90D0FF" stroke-linecap="round" fill="none"><line x1="0" y1="0" x2="0" y2="-32" stroke-width="1.0"/><line x1="0" y1="0" x2="27.7" y2="-16" stroke-width="1.0"/><line x1="0" y1="0" x2="27.7" y2="16" stroke-width="1.0"/><line x1="0" y1="0" x2="0" y2="32" stroke-width="1.0"/><line x1="0" y1="0" x2="-27.7" y2="16" stroke-width="1.0"/><line x1="0" y1="0" x2="-27.7" y2="-16" stroke-width="1.0"/><line x1="0" y1="-16" x2="8" y2="-22" stroke-width="0.6"/><line x1="0" y1="-16" x2="-8" y2="-22" stroke-width="0.6"/><line x1="13.8" y1="-8" x2="19" y2="-3" stroke-width="0.6"/><line x1="13.8" y1="-8" x2="16" y2="-15" stroke-width="0.6"/><line x1="13.8" y1="8" x2="19" y2="3" stroke-width="0.6"/><line x1="13.8" y1="8" x2="19" y2="14" stroke-width="0.6"/><line x1="0" y1="16" x2="8" y2="22" stroke-width="0.6"/><line x1="0" y1="16" x2="-8" y2="22" stroke-width="0.6"/><line x1="-13.8" y1="8" x2="-19" y2="3" stroke-width="0.6"/><line x1="-13.8" y1="8" x2="-19" y2="14" stroke-width="0.6"/><line x1="-13.8" y1="-8" x2="-19" y2="-3" stroke-width="0.6"/><line x1="-13.8" y1="-8" x2="-16" y2="-15" stroke-width="0.6"/></g><circle cx="0" cy="0" r="3" fill="#D0F0FF" opacity="0.9"/></g>
+  <g transform="translate(310,52)" opacity="0.62"><g stroke="#70B8F0" stroke-linecap="round" fill="none"><line x1="0" y1="0" x2="0" y2="-22" stroke-width="0.8"/><line x1="0" y1="0" x2="19.1" y2="-11" stroke-width="0.8"/><line x1="0" y1="0" x2="19.1" y2="11" stroke-width="0.8"/><line x1="0" y1="0" x2="0" y2="22" stroke-width="0.8"/><line x1="0" y1="0" x2="-19.1" y2="11" stroke-width="0.8"/><line x1="0" y1="0" x2="-19.1" y2="-11" stroke-width="0.8"/><line x1="0" y1="-11" x2="5" y2="-15" stroke-width="0.5"/><line x1="0" y1="-11" x2="-5" y2="-15" stroke-width="0.5"/><line x1="9.5" y1="-5.5" x2="13" y2="-2" stroke-width="0.5"/><line x1="9.5" y1="-5.5" x2="12" y2="-10" stroke-width="0.5"/><line x1="9.5" y1="5.5" x2="13" y2="2" stroke-width="0.5"/><line x1="9.5" y1="5.5" x2="13" y2="10" stroke-width="0.5"/><line x1="0" y1="11" x2="5" y2="15" stroke-width="0.5"/><line x1="0" y1="11" x2="-5" y2="15" stroke-width="0.5"/><line x1="-9.5" y1="5.5" x2="-13" y2="2" stroke-width="0.5"/><line x1="-9.5" y1="5.5" x2="-13" y2="10" stroke-width="0.5"/><line x1="-9.5" y1="-5.5" x2="-13" y2="-2" stroke-width="0.5"/><line x1="-9.5" y1="-5.5" x2="-12" y2="-10" stroke-width="0.5"/></g><circle cx="0" cy="0" r="2.2" fill="#C0E8FF" opacity="0.88"/></g>
+  <g transform="translate(460,130)" opacity="0.68"><g stroke="#80C0F0" stroke-linecap="round" fill="none"><line x1="0" y1="0" x2="0" y2="-28" stroke-width="0.9"/><line x1="0" y1="0" x2="24.2" y2="-14" stroke-width="0.9"/><line x1="0" y1="0" x2="24.2" y2="14" stroke-width="0.9"/><line x1="0" y1="0" x2="0" y2="28" stroke-width="0.9"/><line x1="0" y1="0" x2="-24.2" y2="14" stroke-width="0.9"/><line x1="0" y1="0" x2="-24.2" y2="-14" stroke-width="0.9"/><line x1="0" y1="-14" x2="7" y2="-19" stroke-width="0.55"/><line x1="0" y1="-14" x2="-7" y2="-19" stroke-width="0.55"/><line x1="12.1" y1="-7" x2="17" y2="-3" stroke-width="0.55"/><line x1="12.1" y1="-7" x2="14" y2="-13" stroke-width="0.55"/><line x1="12.1" y1="7" x2="17" y2="3" stroke-width="0.55"/><line x1="12.1" y1="7" x2="17" y2="12" stroke-width="0.55"/><line x1="0" y1="14" x2="7" y2="19" stroke-width="0.55"/><line x1="0" y1="14" x2="-7" y2="19" stroke-width="0.55"/><line x1="-12.1" y1="7" x2="-17" y2="3" stroke-width="0.55"/><line x1="-12.1" y1="7" x2="-17" y2="12" stroke-width="0.55"/><line x1="-12.1" y1="-7" x2="-17" y2="-3" stroke-width="0.55"/><line x1="-12.1" y1="-7" x2="-14" y2="-13" stroke-width="0.55"/></g><circle cx="0" cy="0" r="2.8" fill="#E0F4FF" opacity="0.92"/></g>
+  <g transform="translate(55,48)" opacity="0.52"><g stroke="#60A8E0" stroke-linecap="round" fill="none"><line x1="0" y1="0" x2="0" y2="-16" stroke-width="0.7"/><line x1="0" y1="0" x2="13.8" y2="-8" stroke-width="0.7"/><line x1="0" y1="0" x2="13.8" y2="8" stroke-width="0.7"/><line x1="0" y1="0" x2="0" y2="16" stroke-width="0.7"/><line x1="0" y1="0" x2="-13.8" y2="8" stroke-width="0.7"/><line x1="0" y1="0" x2="-13.8" y2="-8" stroke-width="0.7"/><line x1="0" y1="-8" x2="4" y2="-11" stroke-width="0.45"/><line x1="0" y1="-8" x2="-4" y2="-11" stroke-width="0.45"/><line x1="6.9" y1="-4" x2="9.5" y2="-1.5" stroke-width="0.45"/><line x1="6.9" y1="4" x2="9.5" y2="1.5" stroke-width="0.45"/></g><circle cx="0" cy="0" r="1.8" fill="#B0DCF8" opacity="0.80"/></g>
+  <g transform="translate(598,75)" opacity="0.58"><g stroke="#6090D8" stroke-linecap="round" fill="none"><line x1="0" y1="0" x2="0" y2="-20" stroke-width="0.75"/><line x1="0" y1="0" x2="17.3" y2="-10" stroke-width="0.75"/><line x1="0" y1="0" x2="17.3" y2="10" stroke-width="0.75"/><line x1="0" y1="0" x2="0" y2="20" stroke-width="0.75"/><line x1="0" y1="0" x2="-17.3" y2="10" stroke-width="0.75"/><line x1="0" y1="0" x2="-17.3" y2="-10" stroke-width="0.75"/><line x1="0" y1="-10" x2="5" y2="-14" stroke-width="0.48"/><line x1="0" y1="-10" x2="-5" y2="-14" stroke-width="0.48"/><line x1="8.6" y1="-5" x2="12" y2="-2" stroke-width="0.48"/><line x1="8.6" y1="5" x2="12" y2="2" stroke-width="0.48"/></g><circle cx="0" cy="0" r="2" fill="#C8E8FF" opacity="0.85"/></g>
+  <g transform="translate(185,168)" opacity="0.50"><g stroke="#5090C8" stroke-linecap="round" fill="none"><line x1="0" y1="0" x2="0" y2="-14" stroke-width="0.65"/><line x1="0" y1="0" x2="12.1" y2="-7" stroke-width="0.65"/><line x1="0" y1="0" x2="12.1" y2="7" stroke-width="0.65"/><line x1="0" y1="0" x2="0" y2="14" stroke-width="0.65"/><line x1="0" y1="0" x2="-12.1" y2="7" stroke-width="0.65"/><line x1="0" y1="0" x2="-12.1" y2="-7" stroke-width="0.65"/><line x1="0" y1="-7" x2="3.5" y2="-10" stroke-width="0.4"/><line x1="0" y1="-7" x2="-3.5" y2="-10" stroke-width="0.4"/></g><circle cx="0" cy="0" r="1.6" fill="#A8D8F8" opacity="0.78"/></g>
+  <g transform="translate(200,38)" opacity="0.60"><g stroke="#78B8F0" stroke-linecap="round" fill="none"><line x1="0" y1="0" x2="0" y2="-26" stroke-width="0.88"/><line x1="0" y1="0" x2="22.5" y2="-13" stroke-width="0.88"/><line x1="0" y1="0" x2="22.5" y2="13" stroke-width="0.88"/><line x1="0" y1="0" x2="0" y2="26" stroke-width="0.88"/><line x1="0" y1="0" x2="-22.5" y2="13" stroke-width="0.88"/><line x1="0" y1="0" x2="-22.5" y2="-13" stroke-width="0.88"/><line x1="0" y1="-13" x2="6.5" y2="-17.5" stroke-width="0.52"/><line x1="0" y1="-13" x2="-6.5" y2="-17.5" stroke-width="0.52"/><line x1="11.2" y1="-6.5" x2="15.5" y2="-2.5" stroke-width="0.52"/><line x1="11.2" y1="-6.5" x2="13.5" y2="-12" stroke-width="0.52"/><line x1="11.2" y1="6.5" x2="15.5" y2="2.5" stroke-width="0.52"/><line x1="11.2" y1="6.5" x2="15.5" y2="11" stroke-width="0.52"/><line x1="0" y1="13" x2="6.5" y2="17.5" stroke-width="0.52"/><line x1="0" y1="13" x2="-6.5" y2="17.5" stroke-width="0.52"/><line x1="-11.2" y1="6.5" x2="-15.5" y2="2.5" stroke-width="0.52"/><line x1="-11.2" y1="-6.5" x2="-15.5" y2="-2.5" stroke-width="0.52"/></g><circle cx="0" cy="0" r="2.5" fill="#CCE8FF" opacity="0.88"/></g>
+  <g transform="translate(340,185)" opacity="0.48"><g stroke="#5898D0" stroke-linecap="round" fill="none"><line x1="0" y1="0" x2="0" y2="-15" stroke-width="0.65"/><line x1="0" y1="0" x2="13" y2="-7.5" stroke-width="0.65"/><line x1="0" y1="0" x2="13" y2="7.5" stroke-width="0.65"/><line x1="0" y1="0" x2="0" y2="15" stroke-width="0.65"/><line x1="0" y1="0" x2="-13" y2="7.5" stroke-width="0.65"/><line x1="0" y1="0" x2="-13" y2="-7.5" stroke-width="0.65"/><line x1="0" y1="-7.5" x2="3.7" y2="-10.5" stroke-width="0.4"/><line x1="0" y1="-7.5" x2="-3.7" y2="-10.5" stroke-width="0.4"/><line x1="6.5" y1="-3.7" x2="9" y2="-1.5" stroke-width="0.4"/><line x1="6.5" y1="3.7" x2="9" y2="1.5" stroke-width="0.4"/></g><circle cx="0" cy="0" r="1.7" fill="#B0D8F8" opacity="0.78"/></g>
+  <g transform="translate(560,150)" opacity="0.55"><g stroke="#6898D8" stroke-linecap="round" fill="none"><line x1="0" y1="0" x2="0" y2="-20" stroke-width="0.75"/><line x1="0" y1="0" x2="17.3" y2="-10" stroke-width="0.75"/><line x1="0" y1="0" x2="17.3" y2="10" stroke-width="0.75"/><line x1="0" y1="0" x2="0" y2="20" stroke-width="0.75"/><line x1="0" y1="0" x2="-17.3" y2="10" stroke-width="0.75"/><line x1="0" y1="0" x2="-17.3" y2="-10" stroke-width="0.75"/><line x1="0" y1="-10" x2="5" y2="-14" stroke-width="0.48"/><line x1="0" y1="-10" x2="-5" y2="-14" stroke-width="0.48"/><line x1="8.6" y1="-5" x2="12" y2="-2" stroke-width="0.48"/><line x1="8.6" y1="5" x2="12" y2="2" stroke-width="0.48"/><line x1="0" y1="10" x2="5" y2="14" stroke-width="0.48"/><line x1="0" y1="10" x2="-5" y2="14" stroke-width="0.48"/></g><circle cx="0" cy="0" r="2" fill="#C0E4FF" opacity="0.84"/></g>
+  <g transform="translate(42,155)" opacity="0.46"><g stroke="#5080C0" stroke-linecap="round" fill="none"><line x1="0" y1="0" x2="0" y2="-13" stroke-width="0.6"/><line x1="0" y1="0" x2="11.3" y2="-6.5" stroke-width="0.6"/><line x1="0" y1="0" x2="11.3" y2="6.5" stroke-width="0.6"/><line x1="0" y1="0" x2="0" y2="13" stroke-width="0.6"/><line x1="0" y1="0" x2="-11.3" y2="6.5" stroke-width="0.6"/><line x1="0" y1="0" x2="-11.3" y2="-6.5" stroke-width="0.6"/><line x1="0" y1="-6.5" x2="3" y2="-9" stroke-width="0.38"/><line x1="0" y1="-6.5" x2="-3" y2="-9" stroke-width="0.38"/></g><circle cx="0" cy="0" r="1.5" fill="#A0CCEC" opacity="0.75"/></g>
+  <g transform="translate(640,38)" opacity="0.58"><g stroke="#70A8E8" stroke-linecap="round" fill="none"><line x1="0" y1="0" x2="0" y2="-24" stroke-width="0.85"/><line x1="0" y1="0" x2="20.8" y2="-12" stroke-width="0.85"/><line x1="0" y1="0" x2="20.8" y2="12" stroke-width="0.85"/><line x1="0" y1="0" x2="0" y2="24" stroke-width="0.85"/><line x1="0" y1="0" x2="-20.8" y2="12" stroke-width="0.85"/><line x1="0" y1="0" x2="-20.8" y2="-12" stroke-width="0.85"/><line x1="0" y1="-12" x2="6" y2="-16" stroke-width="0.52"/><line x1="0" y1="-12" x2="-6" y2="-16" stroke-width="0.52"/><line x1="10.4" y1="-6" x2="14.5" y2="-2.5" stroke-width="0.52"/><line x1="10.4" y1="6" x2="14.5" y2="2.5" stroke-width="0.52"/><line x1="0" y1="12" x2="6" y2="16" stroke-width="0.52"/><line x1="0" y1="12" x2="-6" y2="16" stroke-width="0.52"/></g><circle cx="0" cy="0" r="2.4" fill="#C8E8FF" opacity="0.86"/></g>
+  <g transform="translate(420,18)" opacity="0.45"><g stroke="#5888C8" stroke-linecap="round" fill="none"><line x1="0" y1="0" x2="0" y2="-13" stroke-width="0.6"/><line x1="0" y1="0" x2="11.3" y2="-6.5" stroke-width="0.6"/><line x1="0" y1="0" x2="11.3" y2="6.5" stroke-width="0.6"/><line x1="0" y1="0" x2="0" y2="13" stroke-width="0.6"/><line x1="0" y1="0" x2="-11.3" y2="6.5" stroke-width="0.6"/><line x1="0" y1="0" x2="-11.3" y2="-6.5" stroke-width="0.6"/><line x1="0" y1="-6.5" x2="3" y2="-9.2" stroke-width="0.38"/><line x1="0" y1="-6.5" x2="-3" y2="-9.2" stroke-width="0.38"/><line x1="5.6" y1="-3.2" x2="7.8" y2="-1.2" stroke-width="0.38"/><line x1="5.6" y1="3.2" x2="7.8" y2="1.2" stroke-width="0.38"/></g><circle cx="0" cy="0" r="1.5" fill="#A8D0F0" opacity="0.75"/></g>
+  <g transform="translate(500,72)" opacity="0.72"><g stroke="#88C8F8" stroke-linecap="round" fill="none"><line x1="0" y1="0" x2="0" y2="-36" stroke-width="1.1"/><line x1="0" y1="0" x2="31.2" y2="-18" stroke-width="1.1"/><line x1="0" y1="0" x2="31.2" y2="18" stroke-width="1.1"/><line x1="0" y1="0" x2="0" y2="36" stroke-width="1.1"/><line x1="0" y1="0" x2="-31.2" y2="18" stroke-width="1.1"/><line x1="0" y1="0" x2="-31.2" y2="-18" stroke-width="1.1"/><line x1="0" y1="-18" x2="9" y2="-24.5" stroke-width="0.65"/><line x1="0" y1="-18" x2="-9" y2="-24.5" stroke-width="0.65"/><line x1="15.6" y1="-9" x2="21.5" y2="-4" stroke-width="0.65"/><line x1="15.6" y1="-9" x2="18.5" y2="-17" stroke-width="0.65"/><line x1="15.6" y1="9" x2="21.5" y2="4" stroke-width="0.65"/><line x1="15.6" y1="9" x2="21.5" y2="16" stroke-width="0.65"/><line x1="0" y1="18" x2="9" y2="24.5" stroke-width="0.65"/><line x1="0" y1="18" x2="-9" y2="24.5" stroke-width="0.65"/><line x1="-15.6" y1="9" x2="-21.5" y2="4" stroke-width="0.65"/><line x1="-15.6" y1="9" x2="-21.5" y2="16" stroke-width="0.65"/><line x1="-15.6" y1="-9" x2="-21.5" y2="-4" stroke-width="0.65"/><line x1="-15.6" y1="-9" x2="-18.5" y2="-17" stroke-width="0.65"/><line x1="0" y1="-28" x2="5" y2="-33" stroke-width="0.45"/><line x1="0" y1="-28" x2="-5" y2="-33" stroke-width="0.45"/><line x1="24.2" y1="-14" x2="29" y2="-10" stroke-width="0.45"/><line x1="24.2" y1="-14" x2="27" y2="-20" stroke-width="0.45"/><line x1="24.2" y1="14" x2="29" y2="10" stroke-width="0.45"/><line x1="24.2" y1="14" x2="29" y2="20" stroke-width="0.45"/><line x1="0" y1="28" x2="5" y2="33" stroke-width="0.45"/><line x1="0" y1="28" x2="-5" y2="33" stroke-width="0.45"/><line x1="-24.2" y1="14" x2="-29" y2="10" stroke-width="0.45"/><line x1="-24.2" y1="-14" x2="-29" y2="-10" stroke-width="0.45"/></g><circle cx="0" cy="0" r="3.5" fill="#E8F8FF" opacity="0.95"/></g>
+  <g fill="none">
+    <circle cx="155" cy="138" r="8" stroke="#80C0FF" stroke-width="0.7" opacity="0.28"/><circle cx="155" cy="136" r="2" fill="#C0E4FF" opacity="0.35"/>
+    <circle cx="350" cy="95" r="12" stroke="#60A8E0" stroke-width="0.6" opacity="0.22"/><circle cx="350" cy="92" r="3" fill="#B0D8FF" opacity="0.30"/>
+    <circle cx="500" cy="180" r="6" stroke="#70B0F0" stroke-width="0.6" opacity="0.25"/>
+    <circle cx="420" cy="45" r="9" stroke="#5090D0" stroke-width="0.6" opacity="0.20"/>
+    <circle cx="260" cy="170" r="7" stroke="#60A0E0" stroke-width="0.55" opacity="0.22"/>
+    <circle cx="640" cy="140" r="10" stroke="#4880C0" stroke-width="0.6" opacity="0.20"/>
+  </g>
+  <ellipse cx="200" cy="80" rx="45" ry="12" fill="#A0D8FF" opacity="0.07" transform="rotate(-20,200,80)"/>
+  <ellipse cx="420" cy="55" rx="38" ry="9" fill="#C0E4FF" opacity="0.08" transform="rotate(15,420,55)"/>
+  <ellipse cx="560" cy="150" rx="50" ry="11" fill="#80B8F0" opacity="0.06" transform="rotate(-8,560,150)"/>
+  <g fill="#C0E8FF">
+    <circle cx="38" cy="95" r="1.3" opacity="0.38"/><circle cx="142" cy="25" r="1.1" opacity="0.32"/>
+    <circle cx="275" cy="130" r="1.4" opacity="0.35"/><circle cx="355" cy="185" r="1.0" opacity="0.28"/>
+    <circle cx="495" cy="30" r="1.2" opacity="0.33"/><circle cx="570" cy="105" r="1.3" opacity="0.30"/>
+    <circle cx="630" cy="55" r="1.0" opacity="0.28"/><circle cx="90" cy="165" r="1.1" opacity="0.30"/>
+    <circle cx="380" cy="15" r="1.2" opacity="0.32"/><circle cx="448" cy="200" r="1.0" opacity="0.26"/>
+    <circle cx="165" cy="205" r="1.1" opacity="0.28"/><circle cx="605" cy="190" r="0.9" opacity="0.24"/>
+    <circle cx="30" cy="40" r="1.0" opacity="0.28"/><circle cx="305" cy="210" r="1.1" opacity="0.25"/>
+    <circle cx="520" cy="200" r="0.9" opacity="0.23"/>
+  </g>
+  <rect x="0" y="140" width="680" height="80" fill="url(#fgL2)" opacity="0.6"/>
+</g>
+</svg>`;
 
     // Rendre les slots
     renderSlots(data.slots);
@@ -778,639 +969,6 @@ async function init(){
 
 init();
 
-// ── Animations arrière-plan lignes ────────────────────────────────────
-
-// Lance les deux animations après que les cartes sont rendues dans le DOM
-function lancerAnimationsLignes(){
-  animerLigne1();
-  animerLigne2();
-}
-
-// ── LIGNE 1 : Animation solaire épique ───────────────────────────────
-function animerLigne1(){
-  const canvas = document.getElementById('canvas-ligne-1');
-  if(!canvas) return;
-  const card = canvas.closest('.ligne-card');
-  canvas.width  = card.offsetWidth;
-  canvas.height = card.offsetHeight;
-  const ctx = canvas.getContext('2d');
-  let t = 0;
-
-  const W = canvas.width, H = canvas.height;
-  const cx = W * 0.06, cy = H * 1.3;
-  const SR = H * 1.05;
-
-  // Filaments magnétiques de la couronne
-  const filaments = Array.from({length: 38}, (_, i) => {
-    const baseA = (i / 38) * Math.PI * 2;
-    return {
-      baseAngle: baseA,
-      driftSpeed: (Math.random() - 0.5) * 0.0006,
-      len:    SR * (0.18 + Math.random() * 0.55),
-      curve:  (Math.random() - 0.5) * 1.2,
-      width:  0.8 + Math.random() * 1.8,
-      alpha:  0.05 + Math.random() * 0.13,
-      pulse:  Math.random() * Math.PI * 2,
-      pSpeed: 0.008 + Math.random() * 0.015,
-      color:  Math.random() > 0.5 ? [255,180,60] : [255,120,30],
-    };
-  });
-
-  // Protubérances : arcs de plasma dramatiques
-  const protos = Array.from({length: 8}, (_, i) => ({
-    angle:   -Math.PI * 0.55 + i * (Math.PI * 0.18),
-    h:       SR * (0.08 + Math.random() * 0.22),
-    w:       0.12 + Math.random() * 0.18,
-    phase:   Math.random() * Math.PI * 2,
-    speed:   0.004 + Math.random() * 0.006,
-    alpha:   0.35 + Math.random() * 0.45,
-    hue:     Math.random() > 0.4 ? [255,140,20] : [255,80,10],
-    glow:    8 + Math.random() * 16,
-  }));
-
-  // Éruptions solaires éphémères
-  let eruptions = [];
-  function spawnEruption(){
-    const a = -Math.PI * 0.7 + Math.random() * Math.PI * 0.6;
-    eruptions.push({
-      angle: a, life: 0,
-      maxLife: 80 + Math.random() * 120,
-      len: SR * (0.15 + Math.random() * 0.4),
-      width: 3 + Math.random() * 6,
-      curve: (Math.random() - 0.5) * 0.8,
-      alpha: 0.6 + Math.random() * 0.4,
-    });
-  }
-  for(let i = 0; i < 3; i++) spawnEruption();
-
-  // Vent solaire avec traînes
-  const windParts = Array.from({length: 80}, () => {
-    const a = -Math.PI * 0.75 + Math.random() * Math.PI * 0.65;
-    const d = SR * (0.05 + Math.random() * 0.1);
-    return {
-      x: cx + Math.cos(a) * d, y: cy + Math.sin(a) * d,
-      vx: (2 + Math.random() * 4) * Math.cos(a - Math.PI * 0.05),
-      vy: (2 + Math.random() * 4) * Math.sin(a - Math.PI * 0.05),
-      r:  0.8 + Math.random() * 2,
-      alpha: 0.2 + Math.random() * 0.5,
-      life: Math.random(), decay: 0.006 + Math.random() * 0.008,
-      trail: [],
-    };
-  });
-
-  // Granules de surface bouillonnante
-  const granules = Array.from({length: 60}, () => {
-    const a = Math.random() * Math.PI * 2;
-    const r = SR * Math.random() * 0.92;
-    return {
-      x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r,
-      r: 4 + Math.random() * 18,
-      alpha: 0.04 + Math.random() * 0.12,
-      pulse: Math.random() * Math.PI * 2,
-      pSpeed: 0.02 + Math.random() * 0.03,
-      bright: Math.random() > 0.3,
-    };
-  });
-
-  // Anneaux de choc magnétique
-  let shockRings = [];
-  function spawnRing(){ shockRings.push({ r: SR * 0.88, life: 0, maxLife: 160, alpha: 0.25 }); }
-  spawnRing();
-
-  function draw(){
-    ctx.clearRect(0, 0, W, H);
-
-    // === COUCHE 0 : Atmosphère coronale profonde ===
-    const atmo = ctx.createRadialGradient(cx, cy, SR*0.3, cx, cy, SR*4.5);
-    atmo.addColorStop(0,    'rgba(255,220,100,0.22)');
-    atmo.addColorStop(0.12, 'rgba(255,160, 40,0.16)');
-    atmo.addColorStop(0.28, 'rgba(220, 90, 15,0.10)');
-    atmo.addColorStop(0.50, 'rgba(160, 40,  5,0.05)');
-    atmo.addColorStop(0.75, 'rgba( 80, 15,  0,0.02)');
-    atmo.addColorStop(1,    'rgba(0,0,0,0)');
-    ctx.fillStyle = atmo;
-    ctx.fillRect(0, 0, W, H);
-
-    // === COUCHE 1 : Filaments de la couronne ===
-    filaments.forEach(f => {
-      f.baseAngle += f.driftSpeed;
-      f.pulse     += f.pSpeed;
-      const pa = f.pulse;
-      const pAlpha = f.alpha * (0.6 + 0.4 * Math.sin(pa));
-      const pLen   = f.len   * (0.85 + 0.15 * Math.sin(pa * 0.7 + 1));
-      const a = f.baseAngle;
-      const sx = cx + Math.cos(a) * SR * 0.88;
-      const sy = cy + Math.sin(a) * SR * 0.88;
-      const ex = cx + Math.cos(a + f.curve * 0.3) * (SR * 0.88 + pLen);
-      const ey = cy + Math.sin(a + f.curve * 0.3) * (SR * 0.88 + pLen);
-      const cpx = cx + Math.cos(a + f.curve * 0.15) * (SR * 0.88 + pLen * 0.5);
-      const cpy = cy + Math.sin(a + f.curve * 0.15) * (SR * 0.88 + pLen * 0.5);
-      if(ex < -10 && ey > H + 10) return;
-      const [r,g,b] = f.color;
-      const lg = ctx.createLinearGradient(sx, sy, ex, ey);
-      lg.addColorStop(0,   `rgba(${r},${g},${b},${pAlpha * 1.5})`);
-      lg.addColorStop(0.5, `rgba(${r},${g},${b},${pAlpha})`);
-      lg.addColorStop(1,   `rgba(${r},${g},${b},0)`);
-      ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.quadraticCurveTo(cpx, cpy, ex, ey);
-      ctx.strokeStyle = lg;
-      ctx.lineWidth   = f.width * (0.7 + 0.3 * Math.sin(pa));
-      ctx.stroke();
-    });
-
-    // === COUCHE 2 : Granules de surface ===
-    granules.forEach(g => {
-      g.pulse += g.pSpeed;
-      const dist = Math.hypot(g.x - cx, g.y - cy);
-      if(dist > SR) return;
-      const fade = 1 - dist / SR;
-      const pa   = 0.6 + 0.4 * Math.sin(g.pulse);
-      const col  = g.bright
-        ? `rgba(255,230,150,${g.alpha * pa * fade})`
-        : `rgba(200, 80, 10,${g.alpha * pa * fade * 0.7})`;
-      const gr = ctx.createRadialGradient(g.x, g.y, 0, g.x, g.y, g.r * pa);
-      gr.addColorStop(0,   col);
-      gr.addColorStop(1,   'rgba(0,0,0,0)');
-      ctx.beginPath();
-      ctx.arc(g.x, g.y, g.r * pa, 0, Math.PI * 2);
-      ctx.fillStyle = gr;
-      ctx.fill();
-    });
-
-    // === COUCHE 3 : Disque solaire ===
-    const pulse3 = 0.985 + 0.015 * Math.sin(t * 0.018);
-    const disk = ctx.createRadialGradient(cx, cy, 0, cx, cy, SR * pulse3);
-    disk.addColorStop(0,    'rgba(255,255,220,1.0)');
-    disk.addColorStop(0.08, 'rgba(255,240,160,0.98)');
-    disk.addColorStop(0.22, 'rgba(255,210, 80,0.92)');
-    disk.addColorStop(0.45, 'rgba(255,160, 30,0.82)');
-    disk.addColorStop(0.68, 'rgba(230,100, 10,0.65)');
-    disk.addColorStop(0.85, 'rgba(180, 50,  5,0.38)');
-    disk.addColorStop(1,    'rgba(120, 20,  0,0)');
-    ctx.beginPath();
-    ctx.arc(cx, cy, SR * pulse3, 0, Math.PI * 2);
-    ctx.fillStyle = disk;
-    ctx.fill();
-
-    // === COUCHE 4 : Protubérances ===
-    protos.forEach(p => {
-      p.phase += p.speed;
-      const breathe = 0.65 + 0.35 * Math.sin(p.phase);
-      const a   = p.angle;
-      const a2  = a + p.w;
-      const sx  = cx + Math.cos(a)  * SR * 0.9;
-      const sy  = cy + Math.sin(a)  * SR * 0.9;
-      const ex2 = cx + Math.cos(a2) * SR * 0.9;
-      const ey2 = cy + Math.sin(a2) * SR * 0.9;
-      const midA = a + p.w * 0.5;
-      const cpx  = cx + Math.cos(midA) * (SR * 0.9 + p.h * breathe * 1.4);
-      const cpy  = cy + Math.sin(midA) * (SR * 0.9 + p.h * breathe * 1.4);
-      if(Math.max(sx,ex2) < 0 || Math.min(sy,ey2) > H + 20) return;
-      const [r,g,b] = p.hue;
-      ctx.save();
-      ctx.shadowColor = `rgba(${r},${g},${b},0.8)`;
-      ctx.shadowBlur  = p.glow * breathe;
-      ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.quadraticCurveTo(cpx, cpy, ex2, ey2);
-      ctx.strokeStyle = `rgba(${r},${g},${b},${p.alpha * breathe})`;
-      ctx.lineWidth   = 3 + breathe * 2;
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.quadraticCurveTo(cpx, cpy, ex2, ey2);
-      ctx.strokeStyle = `rgba(255,220,180,${p.alpha * breathe * 0.5})`;
-      ctx.lineWidth   = 1;
-      ctx.stroke();
-      ctx.restore();
-    });
-
-    // === COUCHE 5 : Éruptions solaires (smooth multi-pass) ===
-    eruptions = eruptions.filter(e => e.life < e.maxLife);
-    eruptions.forEach(e => {
-      e.life++;
-      const prog = e.life / e.maxLife;
-
-      // Courbe de fade très douce : montée cubique lente, descente exponentielle
-      const fadeIn  = 1 - Math.pow(1 - Math.min(prog / 0.35, 1), 3);
-      const fadeOut = Math.pow(1 - Math.max((prog - 0.35) / 0.65, 0), 2.2);
-      const fade    = fadeIn * fadeOut;
-      if(fade < 0.004) return;
-
-      // Longueur qui pousse puis se rétracte en fondu — jamais brusque
-      const curLen = e.len * Math.pow(Math.sin(prog * Math.PI * 0.92), 0.7);
-
-      const a   = e.angle;
-      const sx  = cx + Math.cos(a) * SR * 0.88;
-      const sy  = cy + Math.sin(a) * SR * 0.88;
-      const ex  = cx + Math.cos(a + e.curve) * (SR * 0.88 + curLen);
-      const ey  = cy + Math.sin(a + e.curve) * (SR * 0.88 + curLen);
-      const cpx = cx + Math.cos(a + e.curve * 0.5) * (SR * 0.88 + curLen * 0.62);
-      const cpy = cy + Math.sin(a + e.curve * 0.5) * (SR * 0.88 + curLen * 0.62);
-      if(ex < -20 && ey > H + 20) return;
-
-      // Largeur qui respire : plus épaisse à la base, effilée à la pointe
-      const baseW = e.width * fade;
-
-      ctx.save();
-
-      // --- Passe 1 : halo extérieur très diffus (le plus large) ---
-      const halo = ctx.createLinearGradient(sx, sy, ex, ey);
-      halo.addColorStop(0,    `rgba(255,140, 30,${fade * 0.12})`);
-      halo.addColorStop(0.3,  `rgba(255,100, 15,${fade * 0.08})`);
-      halo.addColorStop(0.65, `rgba(220, 60,  5,${fade * 0.04})`);
-      halo.addColorStop(1,    `rgba(180, 30,  0,0)`);
-      ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.quadraticCurveTo(cpx, cpy, ex, ey);
-      ctx.strokeStyle = halo;
-      ctx.lineWidth   = baseW * 9;
-      ctx.lineCap     = 'round';
-      ctx.stroke();
-
-      // --- Passe 2 : glow intermédiaire ---
-      ctx.shadowColor = `rgba(255,160,40,${fade * 0.6})`;
-      ctx.shadowBlur  = 14 * fade;
-      const mid = ctx.createLinearGradient(sx, sy, ex, ey);
-      mid.addColorStop(0,    `rgba(255,200, 80,${fade * 0.55})`);
-      mid.addColorStop(0.4,  `rgba(255,130, 25,${fade * 0.38})`);
-      mid.addColorStop(0.75, `rgba(230, 70, 10,${fade * 0.15})`);
-      mid.addColorStop(1,    `rgba(200, 40,  0,0)`);
-      ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.quadraticCurveTo(cpx, cpy, ex, ey);
-      ctx.strokeStyle = mid;
-      ctx.lineWidth   = baseW * 3.5;
-      ctx.stroke();
-      ctx.shadowBlur  = 0;
-
-      // --- Passe 3 : cœur lumineux fin et chaud ---
-      ctx.shadowColor = `rgba(255,240,160,${fade * 0.9})`;
-      ctx.shadowBlur  = 6 * fade;
-      const core = ctx.createLinearGradient(sx, sy, ex, ey);
-      core.addColorStop(0,    `rgba(255,250,200,${fade * 0.95})`);
-      core.addColorStop(0.25, `rgba(255,220,100,${fade * 0.80})`);
-      core.addColorStop(0.55, `rgba(255,160, 40,${fade * 0.50})`);
-      core.addColorStop(0.80, `rgba(255, 90, 10,${fade * 0.20})`);
-      core.addColorStop(1,    `rgba(220, 40,  0,0)`);
-      ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.quadraticCurveTo(cpx, cpy, ex, ey);
-      ctx.strokeStyle = core;
-      ctx.lineWidth   = Math.max(baseW * 0.9, 0.5);
-      ctx.stroke();
-      ctx.shadowBlur  = 0;
-
-      // --- Passe 4 : particules de dissipation à la pointe ---
-      if(prog > 0.25 && curLen > 5){
-        const tipX = ex, tipY = ey;
-        const nb = 4;
-        for(let i = 0; i < nb; i++){
-          const spread = (i / nb) * Math.PI * 0.5 - Math.PI * 0.25;
-          const dist   = curLen * 0.08 * (1 + i * 0.4) * fade;
-          const px     = tipX + Math.cos(a + e.curve + spread) * dist;
-          const py     = tipY + Math.sin(a + e.curve + spread) * dist;
-          const r      = (1.5 - i * 0.25) * fade;
-          if(r < 0.1) continue;
-          const pGrad = ctx.createRadialGradient(px, py, 0, px, py, r * 4);
-          pGrad.addColorStop(0,   `rgba(255,220,100,${fade * 0.6})`);
-          pGrad.addColorStop(0.5, `rgba(255,140, 30,${fade * 0.2})`);
-          pGrad.addColorStop(1,   'rgba(0,0,0,0)');
-          ctx.beginPath();
-          ctx.arc(px, py, r * 4, 0, Math.PI * 2);
-          ctx.fillStyle = pGrad;
-          ctx.fill();
-        }
-      }
-
-      ctx.restore();
-    });
-    if(Math.random() < 0.008) spawnEruption();
-
-    // === COUCHE 6 : Vent solaire avec traînes ===
-    windParts.forEach(p => {
-      p.trail.push({x: p.x, y: p.y});
-      if(p.trail.length > 10) p.trail.shift();
-      p.x += p.vx;
-      p.y += p.vy;
-      p.life -= p.decay;
-      if(p.life <= 0 || p.x > W + 10 || p.y < -10 || p.y > H + 10){
-        const a = -Math.PI * 0.75 + Math.random() * Math.PI * 0.65;
-        const d = SR * (0.05 + Math.random() * 0.08);
-        p.x = cx + Math.cos(a) * d;
-        p.y = cy + Math.sin(a) * d;
-        p.vx = (1.5 + Math.random() * 3.5) * Math.cos(a - Math.PI * 0.05);
-        p.vy = (1.5 + Math.random() * 3.5) * Math.sin(a - Math.PI * 0.05);
-        p.life = 0.6 + Math.random() * 0.4;
-        p.trail = [];
-        return;
-      }
-      if(p.trail.length > 1){
-        ctx.beginPath();
-        ctx.moveTo(p.trail[0].x, p.trail[0].y);
-        p.trail.forEach(pt => ctx.lineTo(pt.x, pt.y));
-        const tg = ctx.createLinearGradient(p.trail[0].x, p.trail[0].y, p.x, p.y);
-        tg.addColorStop(0,   'rgba(255,180,60,0)');
-        tg.addColorStop(1,   `rgba(255,220,120,${p.alpha * p.life * 0.6})`);
-        ctx.strokeStyle = tg;
-        ctx.lineWidth   = p.r * 0.8;
-        ctx.stroke();
-      }
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255,210,100,${p.alpha * p.life})`;
-      ctx.fill();
-    });
-
-    // === COUCHE 7 : Anneaux de choc magnétique ===
-    shockRings = shockRings.filter(r => r.life < r.maxLife && r.r < Math.hypot(W - cx, -cy) * 1.1);
-    shockRings.forEach(ring => {
-      ring.life++;
-      // Expansion rapide au début puis accélère — sort vite de l'écran
-      // mais le fade est tellement lent qu'il reste visible longtemps
-      const prog  = ring.life / ring.maxLife;
-      ring.r += SR * (0.006 + 0.018 * prog);
-      // Fade : montée instantanée, descente très plate (puissance 0.4 = reste opaque longtemps)
-      const fadeIn  = Math.min(prog / 0.05, 1);
-      const fadeOut = Math.pow(1 - prog, 0.4);
-      const fade    = fadeIn * fadeOut;
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, ring.r, -Math.PI * 0.8, -Math.PI * 0.05);
-      ctx.strokeStyle = `rgba(255,200,80,${ring.alpha * fade})`;
-      ctx.lineWidth   = 2 + (1 - prog) * 2;
-      ctx.shadowColor = 'rgba(255,200,80,0.9)';
-      ctx.shadowBlur  = 18 * (1 - prog);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(cx, cy, ring.r * 0.94, -Math.PI * 0.8, -Math.PI * 0.05);
-      ctx.strokeStyle = `rgba(255,240,160,${ring.alpha * fade * 0.4})`;
-      ctx.lineWidth   = 1;
-      ctx.shadowBlur  = 0;
-      ctx.stroke();
-      ctx.restore();
-    });
-    if(Math.random() < 0.009) spawnRing();
-
-    // === COUCHE 8 : Limbe solaire ===
-    const limbeGrad = ctx.createRadialGradient(cx, cy, SR*0.82, cx, cy, SR*1.02);
-    limbeGrad.addColorStop(0,   'rgba(0,0,0,0)');
-    limbeGrad.addColorStop(0.5, 'rgba(255,180,60,0.08)');
-    limbeGrad.addColorStop(0.8, 'rgba(255,220,100,0.18)');
-    limbeGrad.addColorStop(1,   'rgba(0,0,0,0)');
-    ctx.beginPath();
-    ctx.arc(cx, cy, SR * 1.02, 0, Math.PI * 2);
-    ctx.fillStyle = limbeGrad;
-    ctx.fill();
-
-    t++;
-    requestAnimationFrame(draw);
-  }
-  draw();
-}
-
-
-// ── LIGNE 2 : Glace vive + cristaux de givre (réfrigéré) ─────────────
-function animerLigne2(){
-  const canvas = document.getElementById('canvas-ligne-2');
-  if(!canvas) return;
-  const card = canvas.closest('.ligne-card');
-  canvas.width  = card.offsetWidth;
-  canvas.height = card.offsetHeight;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  let t = 0;
-
-  // ── Réseau de fissures de glace (Option D) ──
-  function genererFissures(nb){
-    const fissures = [];
-    for(let i = 0; i < nb; i++){
-      const x0 = Math.random() * W;
-      const y0 = Math.random() * H;
-      const angle = Math.random() * Math.PI * 2;
-      const len   = 30 + Math.random() * 120;
-      const segs  = [];
-      let cx2 = x0, cy2 = y0, a = angle;
-      const nbSegs = 3 + Math.floor(Math.random() * 5);
-      for(let s = 0; s < nbSegs; s++){
-        a += (Math.random() - 0.5) * 0.8;
-        const slen = len / nbSegs * (0.6 + Math.random() * 0.8);
-        const nx = cx2 + Math.cos(a) * slen;
-        const ny = cy2 + Math.sin(a) * slen;
-        segs.push({x1: cx2, y1: cy2, x2: nx, y2: ny});
-        cx2 = nx; cy2 = ny;
-        if(Math.random() > 0.5){
-          const ba = a + (Math.random() - 0.5) * 1.2;
-          const bl = slen * (0.3 + Math.random() * 0.5);
-          segs.push({x1: cx2, y1: cy2, x2: cx2 + Math.cos(ba)*bl, y2: cy2 + Math.sin(ba)*bl, branch: true});
-        }
-      }
-      fissures.push({
-        segs,
-        alpha:  0.08 + Math.random() * 0.18,
-        pulse:  Math.random() * Math.PI * 2,
-        pSpeed: 0.005 + Math.random() * 0.012,
-        bright: Math.random() > 0.6,
-      });
-    }
-    return fissures;
-  }
-  const fissures = genererFissures(28);
-
-  // Facettes Voronoi
-  const centres = Array.from({length: 18}, () => ({
-    x: Math.random() * W, y: Math.random() * H,
-    pulse: Math.random() * Math.PI * 2,
-    pSpeed: 0.003 + Math.random() * 0.006,
-    alpha: 0.025 + Math.random() * 0.055,
-    hue: Math.random() > 0.5 ? [80,180,255] : [120,220,255],
-  }));
-
-  // Reflets lumineux
-  const reflets = Array.from({length: 8}, () => ({
-    x: Math.random() * W, y: Math.random() * H,
-    rx: 20 + Math.random() * 60, ry: 5 + Math.random() * 20,
-    angle: Math.random() * Math.PI,
-    alpha: 0.0, targetAlpha: 0.08 + Math.random() * 0.18,
-    fadeSpeed: 0.003 + Math.random() * 0.008,
-    life: 0, maxLife: 120 + Math.random() * 200,
-    hue: Math.random() > 0.4 ? [180,235,255] : [220,240,255],
-  }));
-
-  // ── Cristaux de givre hexagonaux (animation originale) ──
-  function dessineBranche(x, y, angle, longueur, profondeur, alpha){
-    if(profondeur === 0 || longueur < 2) return;
-    const ex = x + Math.cos(angle) * longueur;
-    const ey = y + Math.sin(angle) * longueur;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(ex, ey);
-    // Contraste accentué : blanc plus lumineux, glow ajouté
-    ctx.strokeStyle = `rgba(200,235,255,${alpha})`;
-    ctx.lineWidth   = profondeur * 0.6;
-    ctx.shadowColor = `rgba(140,210,255,${alpha * 0.8})`;
-    ctx.shadowBlur  = 4 * profondeur;
-    ctx.stroke();
-    ctx.shadowBlur  = 0;
-    const angles = [Math.PI/3, -Math.PI/3, Math.PI/6, -Math.PI/6];
-    angles.forEach(a => {
-      dessineBranche(ex, ey, angle + a, longueur * 0.55, profondeur - 1, alpha * 0.78);
-    });
-  }
-
-  const cristaux = Array.from({length: 12}, (_, i) => ({
-    x:      (0.05 + i * 0.085) * W + (Math.random() - 0.5) * 35,
-    y:      (0.1  + Math.random() * 0.8) * H,
-    taille: 16 + Math.random() * 28,   // plus grands qu'avant
-    life:   Math.random(),
-    speed:  0.0015 + Math.random() * 0.002,
-    offset: Math.random() * Math.PI * 2,
-  }));
-
-  // Flocons
-  const flocons = Array.from({length: 28}, () => ({
-    x: Math.random() * W, y: Math.random() * H,
-    vx: (Math.random() - 0.5) * 0.15,
-    vy: 0.1 + Math.random() * 0.25,
-    r:  0.6 + Math.random() * 1.4,
-    alpha: 0.10 + Math.random() * 0.28,  // plus visibles
-  }));
-
-  function draw(){
-    ctx.clearRect(0, 0, W, H);
-
-    // === Fond glace sombre ===
-    const fond = ctx.createLinearGradient(0, H, 0, 0);
-    fond.addColorStop(0,    'rgba(5,  20, 60, 0.85)');
-    fond.addColorStop(0.4,  'rgba(8,  30, 80, 0.55)');
-    fond.addColorStop(0.75, 'rgba(10, 40, 90, 0.25)');
-    fond.addColorStop(1,    'rgba(0,   0,  0, 0)');
-    ctx.fillStyle = fond;
-    ctx.fillRect(0, 0, W, H);
-
-    // === Facettes Voronoi ===
-    centres.forEach(c => {
-      c.pulse += c.pSpeed;
-      const pa = 0.5 + 0.5 * Math.sin(c.pulse);
-      const [rr,gg,bb] = c.hue;
-      const cg = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, 80 + pa * 40);
-      cg.addColorStop(0,   `rgba(${rr},${gg},${bb},${c.alpha * pa * 1.5})`);
-      cg.addColorStop(0.5, `rgba(${rr},${gg},${bb},${c.alpha * pa * 0.5})`);
-      cg.addColorStop(1,   `rgba(${rr},${gg},${bb},0)`);
-      ctx.fillStyle = cg;
-      ctx.fillRect(0, 0, W, H);
-    });
-
-    // === Fissures de glace ===
-    fissures.forEach(f => {
-      f.pulse += f.pSpeed;
-      const pa = 0.5 + 0.5 * Math.sin(f.pulse);
-      f.segs.forEach(seg => {
-        ctx.beginPath();
-        ctx.moveTo(seg.x1, seg.y1);
-        ctx.lineTo(seg.x2, seg.y2);
-        const baseAlpha = seg.branch ? f.alpha * 0.5 : f.alpha;
-        ctx.strokeStyle = `rgba(100,200,255,${baseAlpha * pa * 0.4})`;
-        ctx.lineWidth   = seg.branch ? 2 : 3.5;
-        ctx.shadowColor = 'rgba(100,200,255,0.6)';
-        ctx.shadowBlur  = 6 * pa;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(seg.x1, seg.y1);
-        ctx.lineTo(seg.x2, seg.y2);
-        ctx.strokeStyle = f.bright
-          ? `rgba(220,245,255,${baseAlpha * pa * 1.2})`
-          : `rgba(140,210,255,${baseAlpha * pa * 0.8})`;
-        ctx.lineWidth   = seg.branch ? 0.5 : 1;
-        ctx.shadowBlur  = 0;
-        ctx.stroke();
-      });
-    });
-
-    // === Reflets lumineux ===
-    reflets.forEach(r => {
-      r.life++;
-      if(r.life < r.maxLife * 0.2)      r.alpha = Math.min(r.alpha + r.fadeSpeed, r.targetAlpha);
-      else if(r.life > r.maxLife * 0.7)  r.alpha = Math.max(r.alpha - r.fadeSpeed * 0.5, 0);
-      if(r.life >= r.maxLife){
-        r.x = Math.random() * W; r.y = Math.random() * H;
-        r.life = 0; r.alpha = 0;
-        r.targetAlpha = 0.08 + Math.random() * 0.18;
-        r.maxLife = 120 + Math.random() * 200;
-        r.angle = Math.random() * Math.PI;
-      }
-      if(r.alpha < 0.005) return;
-      const [rr,gg,bb] = r.hue;
-      ctx.save();
-      ctx.translate(r.x, r.y);
-      ctx.rotate(r.angle);
-      const rg = ctx.createRadialGradient(0, 0, 0, 0, 0, r.rx);
-      rg.addColorStop(0,   `rgba(${rr},${gg},${bb},${r.alpha})`);
-      rg.addColorStop(0.4, `rgba(${rr},${gg},${bb},${r.alpha * 0.4})`);
-      rg.addColorStop(1,   `rgba(${rr},${gg},${bb},0)`);
-      ctx.scale(1, r.ry / r.rx);
-      ctx.beginPath();
-      ctx.arc(0, 0, r.rx, 0, Math.PI * 2);
-      ctx.fillStyle = rg;
-      ctx.fill();
-      ctx.restore();
-    });
-
-    // === Cristaux de givre hexagonaux ===
-    cristaux.forEach(c => {
-      c.life += c.speed;
-      if(c.life > 1){
-        c.life   = 0;
-        c.x      = Math.random() * W;
-        c.y      = Math.random() * H;
-        c.taille = 16 + Math.random() * 28;
-      }
-      const fade  = Math.sin(c.life * Math.PI);
-      const alpha = fade * 0.75;   // plus opaque qu'avant (0.55 → 0.75)
-      if(alpha < 0.02) return;
-      ctx.save();
-      ctx.translate(c.x, c.y);
-      for(let b = 0; b < 6; b++){
-        const angle = (b / 6) * Math.PI * 2 + c.offset;
-        dessineBranche(0, 0, angle, c.taille, 3, alpha);
-      }
-      // Point central plus lumineux
-      const cg = ctx.createRadialGradient(0, 0, 0, 0, 0, 4);
-      cg.addColorStop(0,   `rgba(240,252,255,${alpha})`);
-      cg.addColorStop(1,   `rgba(140,210,255,0)`);
-      ctx.fillStyle = cg;
-      ctx.beginPath();
-      ctx.arc(0, 0, 4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    });
-
-    // === Flocons flottants ===
-    flocons.forEach(f => {
-      f.x += f.vx + Math.sin(t * 0.015 + f.y * 0.02) * 0.2;
-      f.y += f.vy;
-      if(f.y > H + 5){ f.y = -5; f.x = Math.random() * W; }
-      ctx.beginPath();
-      ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(200,235,255,${f.alpha})`;
-      ctx.fill();
-    });
-
-    // === Lueur froide depuis le bas ===
-    const froid = ctx.createLinearGradient(0, H, 0, 0);
-    const pf = 0.5 + 0.5 * Math.sin(t * 0.011);
-    froid.addColorStop(0,    `rgba(8, 35,110,${0.16 + pf * 0.07})`);
-    froid.addColorStop(0.35, `rgba(4, 20, 70,${0.06 + pf * 0.03})`);
-    froid.addColorStop(1,    'rgba(0,  0,  0,0)');
-    ctx.fillStyle = froid;
-    ctx.fillRect(0, 0, W, H);
-
-    t++;
-    requestAnimationFrame(draw);
-  }
-  draw();
-}
 
 </script>
 </body>
