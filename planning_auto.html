@@ -1146,7 +1146,7 @@ function animerLigne1(){
 }
 
 
-// ── LIGNE 2 : Fond de glace vive (réfrigéré) ────────────────────────
+// ── LIGNE 2 : Glace vive + cristaux de givre (réfrigéré) ─────────────
 function animerLigne2(){
   const canvas = document.getElementById('canvas-ligne-2');
   if(!canvas) return;
@@ -1157,7 +1157,7 @@ function animerLigne2(){
   const W = canvas.width, H = canvas.height;
   let t = 0;
 
-  // ── Réseau de fissures de glace ──
+  // ── Réseau de fissures de glace (Option D) ──
   function genererFissures(nb){
     const fissures = [];
     for(let i = 0; i < nb; i++){
@@ -1175,7 +1175,6 @@ function animerLigne2(){
         const ny = cy2 + Math.sin(a) * slen;
         segs.push({x1: cx2, y1: cy2, x2: nx, y2: ny});
         cx2 = nx; cy2 = ny;
-        // Branche secondaire aléatoire
         if(Math.random() > 0.5){
           const ba = a + (Math.random() - 0.5) * 1.2;
           const bl = slen * (0.3 + Math.random() * 0.5);
@@ -1184,7 +1183,7 @@ function animerLigne2(){
       }
       fissures.push({
         segs,
-        alpha:  0.06 + Math.random() * 0.14,
+        alpha:  0.08 + Math.random() * 0.18,
         pulse:  Math.random() * Math.PI * 2,
         pSpeed: 0.005 + Math.random() * 0.012,
         bright: Math.random() > 0.6,
@@ -1194,7 +1193,7 @@ function animerLigne2(){
   }
   const fissures = genererFissures(28);
 
-  // ── Cellules de Voronoi glacées (facettes) ──
+  // Facettes Voronoi
   const centres = Array.from({length: 18}, () => ({
     x: Math.random() * W, y: Math.random() * H,
     pulse: Math.random() * Math.PI * 2,
@@ -1203,45 +1202,60 @@ function animerLigne2(){
     hue: Math.random() > 0.5 ? [80,180,255] : [120,220,255],
   }));
 
-  // ── Reflets lumineux sur la glace ──
+  // Reflets lumineux
   const reflets = Array.from({length: 8}, () => ({
-    x:     Math.random() * W,
-    y:     Math.random() * H,
-    rx:    20 + Math.random() * 60,
-    ry:    5  + Math.random() * 20,
+    x: Math.random() * W, y: Math.random() * H,
+    rx: 20 + Math.random() * 60, ry: 5 + Math.random() * 20,
     angle: Math.random() * Math.PI,
-    alpha: 0.0,
-    targetAlpha: 0.08 + Math.random() * 0.18,
+    alpha: 0.0, targetAlpha: 0.08 + Math.random() * 0.18,
     fadeSpeed: 0.003 + Math.random() * 0.008,
-    life:  0,
-    maxLife: 120 + Math.random() * 200,
+    life: 0, maxLife: 120 + Math.random() * 200,
     hue: Math.random() > 0.4 ? [180,235,255] : [220,240,255],
   }));
 
-  // ── Bulles de glace emprisonnées ──
-  const bulles = Array.from({length: 20}, () => ({
-    x:     Math.random() * W,
-    y:     Math.random() * H,
-    r:     3 + Math.random() * 14,
-    alpha: 0.04 + Math.random() * 0.10,
-    pulse: Math.random() * Math.PI * 2,
-    pSpeed:0.008 + Math.random() * 0.015,
+  // ── Cristaux de givre hexagonaux (animation originale) ──
+  function dessineBranche(x, y, angle, longueur, profondeur, alpha){
+    if(profondeur === 0 || longueur < 2) return;
+    const ex = x + Math.cos(angle) * longueur;
+    const ey = y + Math.sin(angle) * longueur;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(ex, ey);
+    // Contraste accentué : blanc plus lumineux, glow ajouté
+    ctx.strokeStyle = `rgba(200,235,255,${alpha})`;
+    ctx.lineWidth   = profondeur * 0.6;
+    ctx.shadowColor = `rgba(140,210,255,${alpha * 0.8})`;
+    ctx.shadowBlur  = 4 * profondeur;
+    ctx.stroke();
+    ctx.shadowBlur  = 0;
+    const angles = [Math.PI/3, -Math.PI/3, Math.PI/6, -Math.PI/6];
+    angles.forEach(a => {
+      dessineBranche(ex, ey, angle + a, longueur * 0.55, profondeur - 1, alpha * 0.78);
+    });
+  }
+
+  const cristaux = Array.from({length: 12}, (_, i) => ({
+    x:      (0.05 + i * 0.085) * W + (Math.random() - 0.5) * 35,
+    y:      (0.1  + Math.random() * 0.8) * H,
+    taille: 16 + Math.random() * 28,   // plus grands qu'avant
+    life:   Math.random(),
+    speed:  0.0015 + Math.random() * 0.002,
+    offset: Math.random() * Math.PI * 2,
   }));
 
-  // ── Particules de givre en suspension ──
-  const particules = Array.from({length: 35}, () => ({
-    x:     Math.random() * W,
-    y:     Math.random() * H,
-    vx:    (Math.random() - 0.5) * 0.12,
-    vy:    (Math.random() - 0.5) * 0.12,
-    r:     0.6 + Math.random() * 1.8,
-    alpha: 0.08 + Math.random() * 0.22,
+  // Flocons
+  const flocons = Array.from({length: 28}, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    vx: (Math.random() - 0.5) * 0.15,
+    vy: 0.1 + Math.random() * 0.25,
+    r:  0.6 + Math.random() * 1.4,
+    alpha: 0.10 + Math.random() * 0.28,  // plus visibles
   }));
 
   function draw(){
     ctx.clearRect(0, 0, W, H);
 
-    // === COUCHE 0 : Fond glace sombre translucide ===
+    // === Fond glace sombre ===
     const fond = ctx.createLinearGradient(0, H, 0, 0);
     fond.addColorStop(0,    'rgba(5,  20, 60, 0.85)');
     fond.addColorStop(0.4,  'rgba(8,  30, 80, 0.55)');
@@ -1250,7 +1264,7 @@ function animerLigne2(){
     ctx.fillStyle = fond;
     ctx.fillRect(0, 0, W, H);
 
-    // === COUCHE 1 : Facettes Voronoi ===
+    // === Facettes Voronoi ===
     centres.forEach(c => {
       c.pulse += c.pSpeed;
       const pa = 0.5 + 0.5 * Math.sin(c.pulse);
@@ -1263,7 +1277,7 @@ function animerLigne2(){
       ctx.fillRect(0, 0, W, H);
     });
 
-    // === COUCHE 2 : Réseau de fissures ===
+    // === Fissures de glace ===
     fissures.forEach(f => {
       f.pulse += f.pSpeed;
       const pa = 0.5 + 0.5 * Math.sin(f.pulse);
@@ -1272,13 +1286,11 @@ function animerLigne2(){
         ctx.moveTo(seg.x1, seg.y1);
         ctx.lineTo(seg.x2, seg.y2);
         const baseAlpha = seg.branch ? f.alpha * 0.5 : f.alpha;
-        // Halo de la fissure
         ctx.strokeStyle = `rgba(100,200,255,${baseAlpha * pa * 0.4})`;
         ctx.lineWidth   = seg.branch ? 2 : 3.5;
         ctx.shadowColor = 'rgba(100,200,255,0.6)';
         ctx.shadowBlur  = 6 * pa;
         ctx.stroke();
-        // Fissure centrale fine et brillante
         ctx.beginPath();
         ctx.moveTo(seg.x1, seg.y1);
         ctx.lineTo(seg.x2, seg.y2);
@@ -1291,37 +1303,13 @@ function animerLigne2(){
       });
     });
 
-    // === COUCHE 3 : Bulles emprisonnées ===
-    bulles.forEach(b => {
-      b.pulse += b.pSpeed;
-      const pa = 0.6 + 0.4 * Math.sin(b.pulse);
-      // Anneau de la bulle
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(160,225,255,${b.alpha * pa})`;
-      ctx.lineWidth   = 0.8;
-      ctx.shadowColor = 'rgba(100,200,255,0.4)';
-      ctx.shadowBlur  = 4;
-      ctx.stroke();
-      ctx.shadowBlur  = 0;
-      // Reflet interne
-      ctx.beginPath();
-      ctx.arc(b.x - b.r * 0.28, b.y - b.r * 0.28, b.r * 0.25, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(220,245,255,${b.alpha * pa * 0.6})`;
-      ctx.fill();
-    });
-
-    // === COUCHE 4 : Reflets lumineux ===
+    // === Reflets lumineux ===
     reflets.forEach(r => {
       r.life++;
-      if(r.life < r.maxLife * 0.2){
-        r.alpha = Math.min(r.alpha + r.fadeSpeed, r.targetAlpha);
-      } else if(r.life > r.maxLife * 0.7){
-        r.alpha = Math.max(r.alpha - r.fadeSpeed * 0.5, 0);
-      }
+      if(r.life < r.maxLife * 0.2)      r.alpha = Math.min(r.alpha + r.fadeSpeed, r.targetAlpha);
+      else if(r.life > r.maxLife * 0.7)  r.alpha = Math.max(r.alpha - r.fadeSpeed * 0.5, 0);
       if(r.life >= r.maxLife){
-        r.x = Math.random() * W;
-        r.y = Math.random() * H;
+        r.x = Math.random() * W; r.y = Math.random() * H;
         r.life = 0; r.alpha = 0;
         r.targetAlpha = 0.08 + Math.random() * 0.18;
         r.maxLife = 120 + Math.random() * 200;
@@ -1344,19 +1332,47 @@ function animerLigne2(){
       ctx.restore();
     });
 
-    // === COUCHE 5 : Particules de givre ===
-    particules.forEach(p => {
-      p.x += p.vx;
-      p.y += p.vy;
-      if(p.x < 0) p.x = W; if(p.x > W) p.x = 0;
-      if(p.y < 0) p.y = H; if(p.y > H) p.y = 0;
+    // === Cristaux de givre hexagonaux ===
+    cristaux.forEach(c => {
+      c.life += c.speed;
+      if(c.life > 1){
+        c.life   = 0;
+        c.x      = Math.random() * W;
+        c.y      = Math.random() * H;
+        c.taille = 16 + Math.random() * 28;
+      }
+      const fade  = Math.sin(c.life * Math.PI);
+      const alpha = fade * 0.75;   // plus opaque qu'avant (0.55 → 0.75)
+      if(alpha < 0.02) return;
+      ctx.save();
+      ctx.translate(c.x, c.y);
+      for(let b = 0; b < 6; b++){
+        const angle = (b / 6) * Math.PI * 2 + c.offset;
+        dessineBranche(0, 0, angle, c.taille, 3, alpha);
+      }
+      // Point central plus lumineux
+      const cg = ctx.createRadialGradient(0, 0, 0, 0, 0, 4);
+      cg.addColorStop(0,   `rgba(240,252,255,${alpha})`);
+      cg.addColorStop(1,   `rgba(140,210,255,0)`);
+      ctx.fillStyle = cg;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(180,230,255,${p.alpha})`;
+      ctx.arc(0, 0, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // === Flocons flottants ===
+    flocons.forEach(f => {
+      f.x += f.vx + Math.sin(t * 0.015 + f.y * 0.02) * 0.2;
+      f.y += f.vy;
+      if(f.y > H + 5){ f.y = -5; f.x = Math.random() * W; }
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(200,235,255,${f.alpha})`;
       ctx.fill();
     });
 
-    // === COUCHE 6 : Lueur froide bas ===
+    // === Lueur froide depuis le bas ===
     const froid = ctx.createLinearGradient(0, H, 0, 0);
     const pf = 0.5 + 0.5 * Math.sin(t * 0.011);
     froid.addColorStop(0,    `rgba(8, 35,110,${0.16 + pf * 0.07})`);
