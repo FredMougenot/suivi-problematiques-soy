@@ -168,9 +168,9 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 /* CAMIONS TABLE */
 .camions-title{font-size:.67rem;font-weight:700;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px;}
 .camions-list{display:flex;flex-direction:column;gap:6px;}
-.camion-row{display:flex;align-items:center;gap:12px;padding:9px 14px;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);transition:border-color var(--t-fast);}
+.camion-row{display:flex;align-items:center;gap:12px;padding:9px 14px;background:#1A1E2A;border:1px solid var(--text-faint);border-radius:var(--r-md);transition:border-color var(--t-fast);}
 .camion-row:hover{border-color:var(--text-muted);}
-.camion-row.pret{border-color:rgba(45,212,160,.2);background:rgba(45,212,160,.04);}
+.camion-row.pret{border-color:rgba(45,212,160,.35);background:#171E1C;}
 .camion-num{font-size:.72rem;font-weight:700;color:var(--text-muted);width:60px;flex-shrink:0;}
 .camion-heure{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--text-primary);flex:1;}
 .camion-badge{font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px;}
@@ -511,9 +511,17 @@ function renderLigne(numero, data){
   const statutClass = getStatutClass(statut);
   const statutLabel = getStatutLabel(statut);
 
-  // Formater l'heure de fin (HH:MM:SS → HH h MM)
+  // Formater l'heure de fin — supporte HH:MM:SS, HH:MM, et ISO timestamp
   function formatHeure(h){
     if(!h) return '—';
+    // Si c'est un ISO timestamp (ex: 2026-04-26T14:32:00)
+    if(h.includes('T') || h.includes('-')){
+      const d = new Date(h);
+      if(!isNaN(d)){
+        return String(d.getHours()).padStart(2,'0') + ' h ' + String(d.getMinutes()).padStart(2,'0');
+      }
+    }
+    // Sinon format HH:MM:SS ou HH:MM
     const parts = h.split(':');
     if(parts.length >= 2) return `${parts[0]} h ${parts[1]}`;
     return h;
