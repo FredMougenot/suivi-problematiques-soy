@@ -761,7 +761,7 @@ function lancerAnimationsLignes(){
   animerLigne2();
 }
 
-// ── LIGNE 1 : Animation solaire (tempéré) ────────────────────────────
+// ── LIGNE 1 : Animation solaire épique ───────────────────────────────
 function animerLigne1(){
   const canvas = document.getElementById('canvas-ligne-1');
   if(!canvas) return;
@@ -771,160 +771,304 @@ function animerLigne1(){
   const ctx = canvas.getContext('2d');
   let t = 0;
 
-  const cx = canvas.width  * 0.08;  // soleil ancré en bas à gauche
-  const cy = canvas.height * 1.15;
-  const R  = canvas.height * 0.75;  // rayon du disque solaire
+  const W = canvas.width, H = canvas.height;
+  const cx = W * 0.06, cy = H * 1.3;
+  const SR = H * 1.05;
 
-  // Rayons solaires : longs traits qui émanent du soleil
-  const rayons = Array.from({length:22}, (_, i) => ({
-    angle:    (i / 22) * Math.PI * 2,
-    len:      canvas.width * (0.35 + Math.random() * 0.55),
-    width:    1.2 + Math.random() * 2.2,
-    speed:    (Math.random() > 0.5 ? 1 : -1) * (0.0003 + Math.random() * 0.0004),
-    alpha:    0.04 + Math.random() * 0.09,
-    pulse:    Math.random() * Math.PI * 2,
-    pulseSpd: 0.015 + Math.random() * 0.02,
-  }));
-
-  // Protubérances solaires : arcs qui jaillissent du bord du soleil
-  const protub = Array.from({length:5}, (_, i) => ({
-    angle:    (i / 5) * Math.PI - Math.PI * 0.15,
-    arcH:     15 + Math.random() * 35,
-    arcW:     20 + Math.random() * 30,
-    speed:    0.003 + Math.random() * 0.003,
-    phase:    Math.random() * Math.PI * 2,
-    alpha:    0.25 + Math.random() * 0.3,
-  }));
-
-  // Particules solaires qui voyagent le long des rayons
-  const particules = Array.from({length:40}, () => {
-    const ray = rayons[Math.floor(Math.random() * rayons.length)];
+  // Filaments magnétiques de la couronne
+  const filaments = Array.from({length: 38}, (_, i) => {
+    const baseA = (i / 38) * Math.PI * 2;
     return {
-      ray,
-      t:      Math.random(),   // position sur le rayon 0→1
-      speed:  0.002 + Math.random() * 0.004,
-      r:      1 + Math.random() * 2,
-      alpha:  0.15 + Math.random() * 0.35,
+      baseAngle: baseA,
+      driftSpeed: (Math.random() - 0.5) * 0.0006,
+      len:    SR * (0.18 + Math.random() * 0.55),
+      curve:  (Math.random() - 0.5) * 1.2,
+      width:  0.8 + Math.random() * 1.8,
+      alpha:  0.05 + Math.random() * 0.13,
+      pulse:  Math.random() * Math.PI * 2,
+      pSpeed: 0.008 + Math.random() * 0.015,
+      color:  Math.random() > 0.5 ? [255,180,60] : [255,120,30],
     };
   });
 
+  // Protubérances : arcs de plasma dramatiques
+  const protos = Array.from({length: 8}, (_, i) => ({
+    angle:   -Math.PI * 0.55 + i * (Math.PI * 0.18),
+    h:       SR * (0.08 + Math.random() * 0.22),
+    w:       0.12 + Math.random() * 0.18,
+    phase:   Math.random() * Math.PI * 2,
+    speed:   0.004 + Math.random() * 0.006,
+    alpha:   0.35 + Math.random() * 0.45,
+    hue:     Math.random() > 0.4 ? [255,140,20] : [255,80,10],
+    glow:    8 + Math.random() * 16,
+  }));
+
+  // Éruptions solaires éphémères
+  let eruptions = [];
+  function spawnEruption(){
+    const a = -Math.PI * 0.7 + Math.random() * Math.PI * 0.6;
+    eruptions.push({
+      angle: a, life: 0,
+      maxLife: 80 + Math.random() * 120,
+      len: SR * (0.15 + Math.random() * 0.4),
+      width: 3 + Math.random() * 6,
+      curve: (Math.random() - 0.5) * 0.8,
+      alpha: 0.6 + Math.random() * 0.4,
+    });
+  }
+  for(let i = 0; i < 3; i++) spawnEruption();
+
+  // Vent solaire avec traînes
+  const windParts = Array.from({length: 80}, () => {
+    const a = -Math.PI * 0.75 + Math.random() * Math.PI * 0.65;
+    const d = SR * (0.05 + Math.random() * 0.1);
+    return {
+      x: cx + Math.cos(a) * d, y: cy + Math.sin(a) * d,
+      vx: (2 + Math.random() * 4) * Math.cos(a - Math.PI * 0.05),
+      vy: (2 + Math.random() * 4) * Math.sin(a - Math.PI * 0.05),
+      r:  0.8 + Math.random() * 2,
+      alpha: 0.2 + Math.random() * 0.5,
+      life: Math.random(), decay: 0.006 + Math.random() * 0.008,
+      trail: [],
+    };
+  });
+
+  // Granules de surface bouillonnante
+  const granules = Array.from({length: 60}, () => {
+    const a = Math.random() * Math.PI * 2;
+    const r = SR * Math.random() * 0.92;
+    return {
+      x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r,
+      r: 4 + Math.random() * 18,
+      alpha: 0.04 + Math.random() * 0.12,
+      pulse: Math.random() * Math.PI * 2,
+      pSpeed: 0.02 + Math.random() * 0.03,
+      bright: Math.random() > 0.3,
+    };
+  });
+
+  // Anneaux de choc magnétique
+  let shockRings = [];
+  function spawnRing(){ shockRings.push({ r: SR * 0.9, life: 0, maxLife: 140, alpha: 0.25 }); }
+  spawnRing();
+
   function draw(){
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, W, H);
 
-    // ── Couche 1 : halo solaire diffus multi-couches ──
-    [
-      { r: R * 2.8, a: 0.04 },
-      { r: R * 2.0, a: 0.07 },
-      { r: R * 1.4, a: 0.11 },
-      { r: R * 1.0, a: 0.18 },
-    ].forEach(h => {
-      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, h.r);
-      g.addColorStop(0,   `rgba(255,200, 80,${h.a})`);
-      g.addColorStop(0.4, `rgba(240,130, 30,${h.a * 0.6})`);
-      g.addColorStop(0.7, `rgba(200, 80, 10,${h.a * 0.25})`);
-      g.addColorStop(1,   'rgba(0,0,0,0)');
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    });
+    // === COUCHE 0 : Atmosphère coronale profonde ===
+    const atmo = ctx.createRadialGradient(cx, cy, SR*0.3, cx, cy, SR*4.5);
+    atmo.addColorStop(0,    'rgba(255,220,100,0.22)');
+    atmo.addColorStop(0.12, 'rgba(255,160, 40,0.16)');
+    atmo.addColorStop(0.28, 'rgba(220, 90, 15,0.10)');
+    atmo.addColorStop(0.50, 'rgba(160, 40,  5,0.05)');
+    atmo.addColorStop(0.75, 'rgba( 80, 15,  0,0.02)');
+    atmo.addColorStop(1,    'rgba(0,0,0,0)');
+    ctx.fillStyle = atmo;
+    ctx.fillRect(0, 0, W, H);
 
-    // ── Couche 2 : rayons solaires ──
-    rayons.forEach(ray => {
-      ray.angle += ray.speed;
-      ray.pulse += ray.pulseSpd;
-      const pulsedAlpha = ray.alpha * (0.7 + 0.3 * Math.sin(ray.pulse));
-      const pulsedLen   = ray.len   * (0.88 + 0.12 * Math.sin(ray.pulse * 0.7));
-
-      // Seulement les rayons qui pointent vers la carte (demi-espace droit/haut)
-      const ex = cx + Math.cos(ray.angle) * pulsedLen;
-      const ey = cy + Math.sin(ray.angle) * pulsedLen;
-      if(ex < -20 || ey > canvas.height + 20) return;
-
-      const rg = ctx.createLinearGradient(cx, cy, ex, ey);
-      rg.addColorStop(0,    `rgba(255,200, 70,${pulsedAlpha * 1.5})`);
-      rg.addColorStop(0.15, `rgba(240,160, 40,${pulsedAlpha})`);
-      rg.addColorStop(0.6,  `rgba(220,110, 20,${pulsedAlpha * 0.4})`);
-      rg.addColorStop(1,    'rgba(180,80,10,0)');
-
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.lineTo(ex, ey);
-      ctx.strokeStyle = rg;
-      ctx.lineWidth   = ray.width * (0.8 + 0.2 * Math.sin(ray.pulse));
-      ctx.stroke();
-    });
-
-    // ── Couche 3 : protubérances (arcs de plasma) ──
-    protub.forEach(p => {
-      p.phase += p.speed;
-      const breathe = 0.7 + 0.3 * Math.sin(p.phase);
-      const baseAngle = p.angle - Math.PI * 0.5; // depuis le bord du soleil
-      const sx = cx + Math.cos(baseAngle) * R * 0.82;
-      const sy = cy + Math.sin(baseAngle) * R * 0.82;
-      const ex2 = cx + Math.cos(baseAngle + 0.5) * R * 0.82;
-      const ey2 = cy + Math.sin(baseAngle + 0.5) * R * 0.82;
-      // Point de contrôle : jaillit vers l'extérieur
-      const midAngle = baseAngle + 0.25;
-      const cpx = cx + Math.cos(midAngle) * (R + p.arcH * breathe);
-      const cpy = cy + Math.sin(midAngle) * (R + p.arcH * breathe);
-
-      if(sx > canvas.width || sy > canvas.height + 10) return;
-
+    // === COUCHE 1 : Filaments de la couronne ===
+    filaments.forEach(f => {
+      f.baseAngle += f.driftSpeed;
+      f.pulse     += f.pSpeed;
+      const pa = f.pulse;
+      const pAlpha = f.alpha * (0.6 + 0.4 * Math.sin(pa));
+      const pLen   = f.len   * (0.85 + 0.15 * Math.sin(pa * 0.7 + 1));
+      const a = f.baseAngle;
+      const sx = cx + Math.cos(a) * SR * 0.88;
+      const sy = cy + Math.sin(a) * SR * 0.88;
+      const ex = cx + Math.cos(a + f.curve * 0.3) * (SR * 0.88 + pLen);
+      const ey = cy + Math.sin(a + f.curve * 0.3) * (SR * 0.88 + pLen);
+      const cpx = cx + Math.cos(a + f.curve * 0.15) * (SR * 0.88 + pLen * 0.5);
+      const cpy = cy + Math.sin(a + f.curve * 0.15) * (SR * 0.88 + pLen * 0.5);
+      if(ex < -10 && ey > H + 10) return;
+      const [r,g,b] = f.color;
+      const lg = ctx.createLinearGradient(sx, sy, ex, ey);
+      lg.addColorStop(0,   `rgba(${r},${g},${b},${pAlpha * 1.5})`);
+      lg.addColorStop(0.5, `rgba(${r},${g},${b},${pAlpha})`);
+      lg.addColorStop(1,   `rgba(${r},${g},${b},0)`);
       ctx.beginPath();
       ctx.moveTo(sx, sy);
-      ctx.quadraticCurveTo(cpx, cpy, ex2, ey2);
-      ctx.strokeStyle = `rgba(255,160,50,${p.alpha * breathe})`;
-      ctx.lineWidth   = 2.5;
-      ctx.shadowColor = 'rgba(255,140,30,0.6)';
-      ctx.shadowBlur  = 8;
+      ctx.quadraticCurveTo(cpx, cpy, ex, ey);
+      ctx.strokeStyle = lg;
+      ctx.lineWidth   = f.width * (0.7 + 0.3 * Math.sin(pa));
       ctx.stroke();
-      ctx.shadowBlur = 0;
     });
 
-    // ── Couche 4 : disque solaire ──
-    const diskPulse = 0.97 + 0.03 * Math.sin(t * 0.022);
-    const diskR = R * diskPulse;
-    const disk = ctx.createRadialGradient(cx, cy, 0, cx, cy, diskR);
-    disk.addColorStop(0,    'rgba(255,240,180,0.95)');
-    disk.addColorStop(0.25, 'rgba(255,200, 80,0.85)');
-    disk.addColorStop(0.55, 'rgba(240,140, 30,0.70)');
-    disk.addColorStop(0.82, 'rgba(210, 80, 10,0.45)');
-    disk.addColorStop(1,    'rgba(160, 40,  0,0)');
-    ctx.beginPath();
-    ctx.arc(cx, cy, diskR, 0, Math.PI * 2);
-    ctx.fillStyle = disk;
-    ctx.fill();
-
-    // ── Couche 5 : particules qui filent le long des rayons ──
-    particules.forEach(p => {
-      p.t += p.speed;
-      if(p.t > 1){ p.t = 0; }
-      const angle = p.ray.angle;
-      const len   = p.ray.len * p.t;
-      const px    = cx + Math.cos(angle) * len;
-      const py    = cy + Math.sin(angle) * len;
-      if(px < 0 || px > canvas.width || py < 0 || py > canvas.height) return;
-      const fade = Math.sin(p.t * Math.PI);
+    // === COUCHE 2 : Granules de surface ===
+    granules.forEach(g => {
+      g.pulse += g.pSpeed;
+      const dist = Math.hypot(g.x - cx, g.y - cy);
+      if(dist > SR) return;
+      const fade = 1 - dist / SR;
+      const pa   = 0.6 + 0.4 * Math.sin(g.pulse);
+      const col  = g.bright
+        ? `rgba(255,230,150,${g.alpha * pa * fade})`
+        : `rgba(200, 80, 10,${g.alpha * pa * fade * 0.7})`;
+      const gr = ctx.createRadialGradient(g.x, g.y, 0, g.x, g.y, g.r * pa);
+      gr.addColorStop(0,   col);
+      gr.addColorStop(1,   'rgba(0,0,0,0)');
       ctx.beginPath();
-      ctx.arc(px, py, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255,210,100,${p.alpha * fade})`;
+      ctx.arc(g.x, g.y, g.r * pa, 0, Math.PI * 2);
+      ctx.fillStyle = gr;
       ctx.fill();
     });
 
-    // ── Couche 6 : nappe de chaleur qui se répand vers la droite ──
-    const heatPulse = 0.5 + 0.5 * Math.sin(t * 0.014);
-    const heat = ctx.createLinearGradient(0, 0, canvas.width, 0);
-    heat.addColorStop(0,    `rgba(200,100,20,${0.07 + heatPulse * 0.04})`);
-    heat.addColorStop(0.35, `rgba(180, 70,10,${0.03 + heatPulse * 0.02})`);
-    heat.addColorStop(0.7,  'rgba(150,50,5,0.01)');
-    heat.addColorStop(1,    'rgba(0,0,0,0)');
-    ctx.fillStyle = heat;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // === COUCHE 3 : Disque solaire ===
+    const pulse3 = 0.985 + 0.015 * Math.sin(t * 0.018);
+    const disk = ctx.createRadialGradient(cx, cy, 0, cx, cy, SR * pulse3);
+    disk.addColorStop(0,    'rgba(255,255,220,1.0)');
+    disk.addColorStop(0.08, 'rgba(255,240,160,0.98)');
+    disk.addColorStop(0.22, 'rgba(255,210, 80,0.92)');
+    disk.addColorStop(0.45, 'rgba(255,160, 30,0.82)');
+    disk.addColorStop(0.68, 'rgba(230,100, 10,0.65)');
+    disk.addColorStop(0.85, 'rgba(180, 50,  5,0.38)');
+    disk.addColorStop(1,    'rgba(120, 20,  0,0)');
+    ctx.beginPath();
+    ctx.arc(cx, cy, SR * pulse3, 0, Math.PI * 2);
+    ctx.fillStyle = disk;
+    ctx.fill();
 
-    t += 1;
+    // === COUCHE 4 : Protubérances ===
+    protos.forEach(p => {
+      p.phase += p.speed;
+      const breathe = 0.65 + 0.35 * Math.sin(p.phase);
+      const a   = p.angle;
+      const a2  = a + p.w;
+      const sx  = cx + Math.cos(a)  * SR * 0.9;
+      const sy  = cy + Math.sin(a)  * SR * 0.9;
+      const ex2 = cx + Math.cos(a2) * SR * 0.9;
+      const ey2 = cy + Math.sin(a2) * SR * 0.9;
+      const midA = a + p.w * 0.5;
+      const cpx  = cx + Math.cos(midA) * (SR * 0.9 + p.h * breathe * 1.4);
+      const cpy  = cy + Math.sin(midA) * (SR * 0.9 + p.h * breathe * 1.4);
+      if(Math.max(sx,ex2) < 0 || Math.min(sy,ey2) > H + 20) return;
+      const [r,g,b] = p.hue;
+      ctx.save();
+      ctx.shadowColor = `rgba(${r},${g},${b},0.8)`;
+      ctx.shadowBlur  = p.glow * breathe;
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.quadraticCurveTo(cpx, cpy, ex2, ey2);
+      ctx.strokeStyle = `rgba(${r},${g},${b},${p.alpha * breathe})`;
+      ctx.lineWidth   = 3 + breathe * 2;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.quadraticCurveTo(cpx, cpy, ex2, ey2);
+      ctx.strokeStyle = `rgba(255,220,180,${p.alpha * breathe * 0.5})`;
+      ctx.lineWidth   = 1;
+      ctx.stroke();
+      ctx.restore();
+    });
+
+    // === COUCHE 5 : Éruptions solaires ===
+    eruptions = eruptions.filter(e => e.life < e.maxLife);
+    eruptions.forEach(e => {
+      e.life++;
+      const prog  = e.life / e.maxLife;
+      const fade  = prog < 0.3 ? prog / 0.3 : 1 - (prog - 0.3) / 0.7;
+      const curLen = e.len * Math.sin(prog * Math.PI * 0.9);
+      const a  = e.angle;
+      const sx = cx + Math.cos(a) * SR * 0.88;
+      const sy = cy + Math.sin(a) * SR * 0.88;
+      const ex = cx + Math.cos(a + e.curve) * (SR * 0.88 + curLen);
+      const ey = cy + Math.sin(a + e.curve) * (SR * 0.88 + curLen);
+      const cpx = cx + Math.cos(a + e.curve * 0.5) * (SR * 0.88 + curLen * 0.6);
+      const cpy = cy + Math.sin(a + e.curve * 0.5) * (SR * 0.88 + curLen * 0.6);
+      if(ex < -20 && ey > H + 20) return;
+      ctx.save();
+      ctx.shadowColor = 'rgba(255,160,30,0.9)';
+      ctx.shadowBlur  = 20;
+      const eg = ctx.createLinearGradient(sx, sy, ex, ey);
+      eg.addColorStop(0,   `rgba(255,230,120,${e.alpha * fade})`);
+      eg.addColorStop(0.4, `rgba(255,140, 30,${e.alpha * fade * 0.8})`);
+      eg.addColorStop(1,   `rgba(255, 60,  5,0)`);
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.quadraticCurveTo(cpx, cpy, ex, ey);
+      ctx.strokeStyle = eg;
+      ctx.lineWidth   = e.width * (1 - prog * 0.5);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.quadraticCurveTo(cpx, cpy, ex, ey);
+      ctx.strokeStyle = `rgba(255,200,80,${e.alpha * fade * 0.3})`;
+      ctx.lineWidth   = e.width * 3;
+      ctx.stroke();
+      ctx.restore();
+    });
+    if(Math.random() < 0.008) spawnEruption();
+
+    // === COUCHE 6 : Vent solaire avec traînes ===
+    windParts.forEach(p => {
+      p.trail.push({x: p.x, y: p.y});
+      if(p.trail.length > 10) p.trail.shift();
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= p.decay;
+      if(p.life <= 0 || p.x > W + 10 || p.y < -10 || p.y > H + 10){
+        const a = -Math.PI * 0.75 + Math.random() * Math.PI * 0.65;
+        const d = SR * (0.05 + Math.random() * 0.08);
+        p.x = cx + Math.cos(a) * d;
+        p.y = cy + Math.sin(a) * d;
+        p.vx = (1.5 + Math.random() * 3.5) * Math.cos(a - Math.PI * 0.05);
+        p.vy = (1.5 + Math.random() * 3.5) * Math.sin(a - Math.PI * 0.05);
+        p.life = 0.6 + Math.random() * 0.4;
+        p.trail = [];
+        return;
+      }
+      if(p.trail.length > 1){
+        ctx.beginPath();
+        ctx.moveTo(p.trail[0].x, p.trail[0].y);
+        p.trail.forEach(pt => ctx.lineTo(pt.x, pt.y));
+        const tg = ctx.createLinearGradient(p.trail[0].x, p.trail[0].y, p.x, p.y);
+        tg.addColorStop(0,   'rgba(255,180,60,0)');
+        tg.addColorStop(1,   `rgba(255,220,120,${p.alpha * p.life * 0.6})`);
+        ctx.strokeStyle = tg;
+        ctx.lineWidth   = p.r * 0.8;
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,210,100,${p.alpha * p.life})`;
+      ctx.fill();
+    });
+
+    // === COUCHE 7 : Anneaux de choc magnétique ===
+    shockRings = shockRings.filter(r => r.life < r.maxLife);
+    shockRings.forEach(ring => {
+      ring.life++;
+      ring.r += SR * 0.012;
+      const prog  = ring.life / ring.maxLife;
+      const fade  = (1 - prog) * (prog < 0.1 ? prog * 10 : 1);
+      ctx.beginPath();
+      ctx.arc(cx, cy, ring.r, -Math.PI * 0.8, -Math.PI * 0.05);
+      ctx.strokeStyle = `rgba(255,200,80,${ring.alpha * fade})`;
+      ctx.lineWidth   = 2;
+      ctx.shadowColor = 'rgba(255,180,50,0.6)';
+      ctx.shadowBlur  = 12;
+      ctx.stroke();
+      ctx.shadowBlur  = 0;
+    });
+    if(Math.random() < 0.004) spawnRing();
+
+    // === COUCHE 8 : Limbe solaire ===
+    const limbeGrad = ctx.createRadialGradient(cx, cy, SR*0.82, cx, cy, SR*1.02);
+    limbeGrad.addColorStop(0,   'rgba(0,0,0,0)');
+    limbeGrad.addColorStop(0.5, 'rgba(255,180,60,0.08)');
+    limbeGrad.addColorStop(0.8, 'rgba(255,220,100,0.18)');
+    limbeGrad.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.beginPath();
+    ctx.arc(cx, cy, SR * 1.02, 0, Math.PI * 2);
+    ctx.fillStyle = limbeGrad;
+    ctx.fill();
+
+    t++;
     requestAnimationFrame(draw);
   }
   draw();
 }
+
 
 // ── LIGNE 2 : Cristaux de givre (réfrigéré) ──────────────────────────
 function animerLigne2(){
