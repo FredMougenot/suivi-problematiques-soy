@@ -536,12 +536,13 @@ async function chargerIntentions(){
       const maj = data.updated_at ? fmtTime(data.updated_at) : '—';
       document.getElementById('last-update').innerHTML = `Dernière sauvegarde : <strong>${maj}</strong>`;
     } else {
-      // Aucune donnée pour aujourd'hui : ON par défaut
+      // Aucune donnée pour aujourd'hui : ON par défaut + sauvegarde automatique
       document.getElementById('toggle-L1').checked = true;
       onToggle('L1');
       document.getElementById('toggle-L2').checked = true;
       onToggle('L2');
-      document.getElementById('last-update').textContent = 'Aucune intention enregistrée aujourd\'hui';
+      document.getElementById('last-update').textContent = 'Initialisation automatique…';
+      await sauvegarder();
     }
   } catch(e) {
     toast('Erreur de chargement: '+e.message, 'error');
