@@ -503,7 +503,7 @@ function getStatutLabel(statut){
   return 'Inactive';
 }
 
-function renderLigne(numero, data, heuresReelles = {}){
+function renderLigne(numero, data, heuresReelles = {}, heuresDepuisSlots = {}){
   const caisses = numero === 1 ? data.l1_caisses_produites : data.l2_caisses_produites;
   const heureFin = numero === 1 ? data.l1_heure_fin_estimee : data.l2_heure_fin_estimee;
   const statut = numero === 1 ? data.l1_statut : data.l2_statut;
@@ -550,7 +550,11 @@ function renderLigne(numero, data, heuresReelles = {}){
     camionsHTML = `<div class="camions-list">` + camionsAffiches.map((c, idx) => {
       const estPret = c.statut === 'camion_pret';
       const ligneKey = numero === 1 ? 'L1' : 'L2';
-      const heureAffichee = heuresReelles[`${ligneKey}-${c.camion}`] || formatHeure(c.heure);
+      // Camions prêts : heure réelle de historique_camions
+      // Camions en cours : heure depuis les slots (même source que tableau du bas)
+      const heureAffichee = estPret
+        ? (heuresReelles[`${ligneKey}-${c.camion}`] || formatHeure(c.heure))
+        : (heuresDepuisSlots[`${ligneKey}-${c.camion}`] || formatHeure(c.heure));
       const estCamionCourant = !estPret && idx === camionsAffiches.findIndex(x => x.statut !== 'camion_pret');
       const pct = estPret ? 100 : (estCamionCourant ? Math.round(progression * 100) : 0);
       const pctWidth = estPret ? 100 : (estCamionCourant ? progression * 100 : 0);
@@ -751,10 +755,21 @@ async function chargerDonnees(){
       });
     }
 
-    // Rendre les deux lignes en passant l'index des heures réelles
+    // Construire un index des heures de fin depuis les slots : "L1-3" → "21h44"
+    // Les cartes du haut affichent ainsi la même heure que le tableau du bas
+    const heuresDepuisSlots = {};
+    if(data.slots){
+      data.slots.forEach(slot => {
+        if(slot.ligne && slot.camion && slot.heureFinCamion && slot.heureFinCamion !== 'Déjà prêt'){
+          heuresDepuisSlots[`${slot.ligne}-${slot.camion}`] = slot.heureFinCamion;
+        }
+      });
+    }
+
+    // Rendre les deux lignes en passant l'index des heures réelles et des slots
     document.getElementById('lignes-grid').innerHTML =
-      renderLigne(1, data, heuresReelles) +
-      renderLigne(2, data, heuresReelles);
+      renderLigne(1, data, heuresReelles, heuresDepuisSlots) +
+      renderLigne(2, data, heuresReelles, heuresDepuisSlots);
 
     // Appliquer les dégradés de fond aux cartes
     const bg1 = document.getElementById('bg-ligne-1');
