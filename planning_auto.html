@@ -649,6 +649,17 @@ function renderSlots(slots){
 
   function heureLabel(heure){
     if(!heure) return '<span style="color:var(--text-muted)">—</span>';
+    // Normaliser les heures > 24h (ex: "26h47" → "02h47 (lendemain)")
+    const match = heure.match(/^(\d+)h(\d{2})$/);
+    if(match){
+      let h = parseInt(match[1]);
+      const m = match[2];
+      if(h >= 24){
+        h = h - 24;
+        const heureNormalisee = `${String(h).padStart(2,'0')}h${m} <span style="font-size:.7rem;color:var(--text-muted);font-weight:400;">(lendemain)</span>`;
+        return `<span style="font-family:'Playfair Display',serif;font-size:.95rem;color:var(--copper-light);font-weight:600;">${heureNormalisee}</span>`;
+      }
+    }
     return `<span style="font-family:'Playfair Display',serif;font-size:.95rem;color:var(--copper-light);font-weight:600;">${heure}</span>`;
   }
 
