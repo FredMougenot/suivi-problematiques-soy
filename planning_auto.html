@@ -535,24 +535,32 @@ function renderLigne(numero, data, heuresReelles = {}){
   } else if(!camions || camions.length === 0){
     camionsHTML = '<div class="empty-state" style="padding:20px"><div class="empty-txt">Aucun camion prévu</div></div>';
   } else {
-    camionsHTML = `<div class="camions-list">` + camions.map((c, idx) => {
+    // Si progression > 0 et aucun camion en_cours dans la liste, ajouter le camion en cours manuellement
+    const aCamionEnCours = camions.some(c => c.statut === 'en_cours');
+    const camionsAffiches = [...camions];
+    if(progression > 0 && !aCamionEnCours){
+      camionsAffiches.push({
+        camion: camions.filter(c => c.statut === 'camion_pret').length + 1,
+        heure: 'Cadence indisponible',
+        heureFinReelle: null,
+        statut: 'en_cours'
+      });
+    }
+
+    camionsHTML = `<div class="camions-list">` + camionsAffiches.map((c, idx) => {
       const estPret = c.statut === 'camion_pret';
-      const estCadenceInconnue = c.statut === 'cadence_inconnue';
       const ligneKey = numero === 1 ? 'L1' : 'L2';
       const heureAffichee = heuresReelles[`${ligneKey}-${c.camion}`] || formatHeure(c.heure);
-      const estCamionCourant = !estPret && idx === camions.findIndex(x => x.statut !== 'camion_pret');
+      const estCamionCourant = !estPret && idx === camionsAffiches.findIndex(x => x.statut !== 'camion_pret');
       const pct = estPret ? 100 : (estCamionCourant ? Math.round(progression * 100) : 0);
       const pctWidth = estPret ? 100 : (estCamionCourant ? progression * 100 : 0);
-      const badgeClass = estPret ? 'pret' : estCadenceInconnue ? 'cadence-inconnue' : 'en-cours';
-      const badgeLabel = estPret ? 'Prêt' : estCadenceInconnue ? 'Cadence indisponible' : 'En cours';
-      const pctAffiche = estCadenceInconnue ? '' : `<span style="position:relative;font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:#2DD4A0;">${pct}%</span>`;
       return `
         <div class="camion-row ${estPret ? 'pret' : ''}" style="position:relative;overflow:hidden;">
           <div style="position:absolute;top:0;left:0;height:100%;width:${pctWidth}%;background:rgba(45,212,160,0.35);pointer-events:none;"></div>
           <span class="camion-num" style="position:relative;">Camion ${c.camion}</span>
           <span class="camion-heure" style="position:relative;">${heureAffichee}</span>
-          ${pctAffiche}
-          <span class="camion-badge ${badgeClass}" style="position:relative;">${badgeLabel}</span>
+          <span style="position:relative;font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:#2DD4A0;">${pct}%</span>
+          <span class="camion-badge ${estPret ? 'pret' : 'en-cours'}" style="position:relative;">${estPret ? 'Prêt' : 'En cours'}</span>
         </div>
       `;
     }).join('') + `</div>`;
