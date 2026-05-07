@@ -53,6 +53,7 @@ function App(){
   const dragState = React.useRef({ dragging:false, startX:0, startAngle:0 });
   const stageRef = React.useRef(null);
   const steerRef = React.useRef(0); // -1..1 normalized horizontal offset from center
+  const pressedRef = React.useRef(false);
 
   const CARDS = Array.isArray(t.cards) && t.cards.length ? t.cards : [];
   const N = Math.max(1, CARDS.length);
@@ -60,6 +61,7 @@ function App(){
   // Combined auto-rotate + mouse-steered rotation (deg/sec)
   React.useEffect(() => {
     let raf, last = performance.now();
+    const slot = 360 / N;
     const tick = (now) => {
       const dt = (now - last) / 1000; last = now;
       if(!dragState.current.dragging){
@@ -74,41 +76,59 @@ function App(){
           // negative coefficient: cursor to the right -> need to bring next card to center
           steer = -sign * k * 60 * (t.steerStrength || 1);
         }
-        setAngle(a => a + (t.speed + steer) * dt);
+        if(!pressedRef.current && t.speed === 0 && steer === 0){
+          // Snap to nearest slot when idle so the central card faces forward.
+          setAngle(a => {
+            const target = Math.round(a / slot) * slot;
+            const diff = target - a;
+            if(Math.abs(diff) < 0.05) return target;
+            return a + diff * Math.min(1, dt * 8);
+          });
+        } else {
+          setAngle(a => a + (t.speed + steer) * dt);
+        }
       }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [t.speed, t.steerStrength, t.steerDeadzone, t.steerYOffset, t.steerYTolerance, t.radius, t.steerHalfRange, t.steerXOffset]);
+  }, [t.speed, t.steerStrength, t.steerDeadzone, t.steerYOffset, t.steerYTolerance, t.radius, t.steerHalfRange, t.steerXOffset, N]);
   // Track mouse horizontal position relative to center of the stage
   React.useEffect(() => {
     const stage = stageRef.current;
     if(!stage) return;
     const onMove = (e) => {
+      if(!pressedRef.current){ steerRef.current = 0; return; }
       const carousel = stage.querySelector(".carousel");
       const stageRect = stage.getBoundingClientRect();
       const carRect = carousel ? carousel.getBoundingClientRect() : stageRect;
-      // The carousel element IS the rotation axis — its center is the pivot
-      // every card orbits around. Read it directly instead of guessing.
       const cx = carRect.left + carRect.width/2 + (t.steerXOffset || 0);
       const cy = carRect.top + carRect.height/2 + (t.steerYOffset || 0);
-      // The wheel's visual half-width is the orbit radius (cards sit at
-      // translateZ(radius) relative to the pivot). Stop steering when the
-      // cursor goes past the outer edge of the wheel, not the stage edge.
       const halfRange = (t.steerHalfRange && t.steerHalfRange > 0)
         ? t.steerHalfRange
-        : Math.max(60, (t.radius || 320) - carRect.width/2 -200);
+        : Math.max(60, (t.radius || 320) - carRect.width/2);
       const dy = Math.abs(e.clientY - cy);
       const yTolerance = t.steerYTolerance || 200;
       if(dy > yTolerance){ steerRef.current = 0; return; }
       steerRef.current = Math.max(-1, Math.min(1, (e.clientX - cx) / halfRange));
     };
-    const onLeave = () => { steerRef.current = 0; };
+    const onDown = (e) => {
+      if(e.button !== 0) return;
+      // Ignore presses on UI overlays (Tweaks panel, etc) so they receive their clicks.
+      if(e.target && e.target.closest && e.target.closest('.twk-panel,[data-noncommentable]')) return;
+      pressedRef.current = true;
+      onMove(e);
+    };
+    const onUp = () => { pressedRef.current = false; steerRef.current = 0; };
+    const onLeave = () => { pressedRef.current = false; steerRef.current = 0; };
     window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointerup", onUp);
     stage.addEventListener("pointerleave", onLeave);
     return () => {
       window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointerup", onUp);
       stage.removeEventListener("pointerleave", onLeave);
     };
   }, []);
@@ -118,6 +138,7 @@ function App(){
     const stage = stageRef.current;
     if(!stage) return;
     const onDown = (e) => {
+      if(e.target && e.target.closest && e.target.closest('.twk-panel,[data-noncommentable]')) return;
       dragState.current = { dragging:true, startX: e.clientX, startAngle: angle };
       stage.setPointerCapture?.(e.pointerId);
     };
