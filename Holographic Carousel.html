@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Holographic Carousel</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #05030a;
+    --neon-violet:  #b07bff;
+    --neon-magenta: #ff3aa0;
+    --neon-cyan:    #5ef0ff;
+    --neon-blue:    #5b8bff;
+    --ink: #e9eafc;
+    --ink-dim: #b3a8d4;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#000;color:var(--ink);
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;
+    overflow:hidden;-webkit-font-smoothing:antialiased}
+
+  .scene{
+    position:fixed;inset:0;
+    background:
+      radial-gradient(60% 40% at 50% 55%, rgba(120,60,200,.18), transparent 70%),
+      radial-gradient(80% 60% at 50% 100%, rgba(40,20,80,.35), transparent 70%),
+      #05030a;
+    overflow:hidden;
+  }
+
+  /* corner energy lines */
+  .corner-lines{position:absolute;width:380px;height:380px;pointer-events:none;opacity:.55;
+    mix-blend-mode:screen}
+  .corner-lines.tl{top:-40px;left:-40px;transform:rotate(0deg)}
+  .corner-lines.br{bottom:-40px;right:-40px;transform:rotate(180deg)}
+  .corner-lines svg{width:100%;height:100%}
+  .corner-lines path{fill:none;stroke:var(--neon-blue);stroke-width:1;
+    filter:drop-shadow(0 0 6px var(--neon-blue));
+    animation: wave 9s ease-in-out infinite}
+  .corner-lines path:nth-child(2){stroke:var(--neon-violet);animation-delay:-2s;
+    filter:drop-shadow(0 0 6px var(--neon-violet))}
+  .corner-lines path:nth-child(3){stroke:var(--neon-cyan);animation-delay:-4s;
+    filter:drop-shadow(0 0 6px var(--neon-cyan));opacity:.6}
+  @keyframes wave {
+    0%,100% { transform: translate(0,0) }
+    50%     { transform: translate(8px,-4px) }
+  }
+
+  /* particles */
+  .particles{position:absolute;inset:0;pointer-events:none}
+  .particles span{position:absolute;width:2px;height:2px;border-radius:999px;
+    background:var(--neon-violet);
+    box-shadow:0 0 8px var(--neon-violet),0 0 16px var(--neon-violet);
+    animation: float linear infinite}
+  @keyframes float{
+    0%   { transform: translateY(110vh) scale(.6); opacity:0 }
+    10%  { opacity:.9 }
+    90%  { opacity:.9 }
+    100% { transform: translateY(-10vh) scale(1.1); opacity:0 }
+  }
+
+  /* center halo behind carousel */
+  .halo{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:120vmin;height:60vmin;border-radius:50%;
+    background: radial-gradient(50% 50% at 50% 50%, rgba(160,90,255,.30), transparent 70%);
+    filter: blur(40px);
+    pointer-events:none;
+  }
+
+  #app{position:fixed;inset:0;display:grid;place-items:center}
+
+  /* Carousel */
+  .carousel-stage{
+    position:relative;
+    width: 100%;
+    height: 78vh;
+    perspective: var(--persp, 1500px);
+    perspective-origin: 50% 50%;
+  }
+  .carousel{
+    position:absolute;
+    left: var(--wheel-x, 50%); top:50%;
+    width: var(--card-w, 320px);
+    height: var(--card-h, 440px);
+    margin-left: calc(var(--card-w, 320px) / -2);
+    margin-top:  calc(var(--card-h, 440px) / -2);
+    transform-style: preserve-3d;
+    will-change: transform;
+    animation: bob 6s ease-in-out infinite;
+  }
+  @keyframes bob{
+    0%,100%{ transform: translateY(-6px) }
+    50%    { transform: translateY( 6px) }
+  }
+
+  .card-slot{
+    position:absolute;inset:0;
+    transform-style: preserve-3d;
+    will-change: transform, opacity;
+    transition: opacity .5s ease;
+  }
+  .card-fx{
+    position:absolute;inset:0;
+    transform-style: preserve-3d;
+    will-change: filter;
+    transition: filter .5s ease;
+  }
+
+  .card{
+    position:absolute;inset:0;
+    border-radius: 18px;
+    transform-style: preserve-3d;
+    transition: transform 1.4s cubic-bezier(.22,.61,.36,1), filter .5s ease;
+    will-change: transform;
+  }
+  .face-clip{
+    position:absolute;inset:0;border-radius:18px;overflow:hidden;
+    display:flex;flex-direction:column;padding:24px 22px;
+    pointer-events:none;
+  }
+  .face-wrap{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform-style:flat}
+  .face-wrap.back{transform:rotateY(180deg)}
+  .face{
+    position:absolute;inset:0;border-radius:18px;
+    background:
+      linear-gradient(160deg, rgba(120,70,200,.32) 0%, rgba(60,30,140,.28) 60%, rgba(30,15,80,.36) 100%);
+    border: 1px solid rgba(180,140,255,.35);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.18),
+      inset 0 -1px 0 rgba(0,0,0,.4),
+      0 0 0 1px rgba(120,90,200,.2),
+      0 0 24px rgba(140,80,240,.35),
+      0 30px 60px -20px rgba(0,0,0,.8);
+    color: var(--ink);
+  }
+  .face.back{ }
+  .face .face-clip{
+    -webkit-backdrop-filter: blur(8px) saturate(140%);
+            backdrop-filter: blur(8px) saturate(140%);
+  }
+
+  /* neon glow on hover/active */
+  .card-slot[data-center="1"] .face{
+    border-color: rgba(200,160,255,.7);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.25),
+      inset 0 0 30px rgba(180,120,255,.18),
+      0 0 0 1px rgba(180,140,255,.45),
+      0 0 40px rgba(160,90,240,.55),
+      0 0 90px rgba(120,60,220,.35),
+      0 40px 80px -20px rgba(0,0,0,.9);
+  }
+
+  /* sweeping reflection during flip */
+  .face::before{
+    content:"";position:absolute;inset:0;
+    background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.10) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 1.4s cubic-bezier(.22,.61,.36,1);
+    pointer-events:none;
+  }
+  .card.flipping .face::before{ transform: translateX(100%) }
+
+  /* card content */
+  .tag{
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+    font-size:11px;letter-spacing:.04em;
+    color: var(--neon-magenta);
+    text-shadow: 0 0 8px rgba(255,60,160,.6);
+  }
+  .tag b{color:#fff;font-weight:600}
+  .title{
+    margin: 8px 0 14px;
+    font-family: Inter, sans-serif;
+    font-weight: 800;
+    font-size: 30px;
+    line-height: 1.05;
+    letter-spacing:-.01em;
+    color:#fff;
+    text-shadow: 0 0 14px rgba(180,120,255,.55), 0 0 28px rgba(120,60,220,.35);
+  }
+  .body{
+    flex:1;
+    color: rgba(220,210,255,.78);
+    font-size: 13.5px;line-height:1.55;
+    overflow:hidden;
+  }
+  .footer{
+    margin-top: 14px;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .footer .file{
+    font-family:"JetBrains Mono",monospace;font-size:13px;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 8px rgba(94,240,255,.5);
+  }
+  .meter{
+    height:8px;width:60%;
+    background:
+      repeating-linear-gradient(90deg,
+        rgba(94,240,255,.7) 0 4px,
+        transparent 4px 8px);
+    mask-image: linear-gradient(90deg, #000 30%, transparent 100%);
+  }
+
+  /* back face (faux dashboard) */
+  .back .title{font-size:22px}
+  .dash{
+    flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;
+    margin-top:8px;
+  }
+  .stat{
+    border:1px solid rgba(180,140,255,.25);border-radius:10px;
+    padding:10px;background:rgba(20,10,40,.4);
+  }
+  .stat .k{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--neon-cyan);
+    letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+  .stat .v{font-size:22px;font-weight:700;color:#fff;margin-top:2px;
+    text-shadow:0 0 10px rgba(180,120,255,.5)}
+  .spark{height:30px;margin-top:8px;
+    background: linear-gradient(180deg, transparent, rgba(94,240,255,.15));
+    -webkit-mask: linear-gradient(90deg,
+      transparent 0, #000 6%, #000 90%, transparent 100%);
+            mask: linear-gradient(90deg,
+      transparent 0, #000 6%, #000 90%, transparent 100%);
+    border-bottom:1px solid rgba(94,240,255,.4);
+    position:relative;
+  }
+  .spark svg{position:absolute;inset:0;width:100%;height:100%}
+  .spark path{fill:none;stroke:var(--neon-cyan);stroke-width:1.4;
+    filter:drop-shadow(0 0 4px var(--neon-cyan))}
+
+  .caption{
+    position:fixed;left:0;right:0;bottom:18px;text-align:center;
+    font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.22em;
+    text-transform:uppercase;color:rgba(180,160,220,.45);pointer-events:none;z-index:6;
+  }
+  .caption b{color:rgba(220,200,255,.8);font-weight:500}
+</style>
+</head>
+<body>
+  <div class="scene">
+    <div class="corner-lines tl">
+      <svg viewBox="0 0 400 400" preserveAspectRatio="none">
+        <path d="M0 80 C 100 60 180 140 280 100 S 380 200 400 180"/>
+        <path d="M0 140 C 120 100 200 220 320 160 S 400 260 400 240"/>
+        <path d="M0 220 C 140 180 220 280 340 240 S 400 320 400 320"/>
+      </svg>
+    </div>
+    <div class="corner-lines br">
+      <svg viewBox="0 0 400 400" preserveAspectRatio="none">
+        <path d="M0 80 C 100 60 180 140 280 100 S 380 200 400 180"/>
+        <path d="M0 140 C 120 100 200 220 320 160 S 400 260 400 240"/>
+        <path d="M0 220 C 140 180 220 280 340 240 S 400 320 400 320"/>
+      </svg>
+    </div>
+    <div class="halo"></div>
+    <div class="particles" id="particles"></div>
+    <div id="app"></div>
+  </div>
+  <div class="caption">— hover the center card to flip · drag to rotate · press <b>T</b> for tweaks —</div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="carousel.jsx"></script>
+</body>
+</html>
