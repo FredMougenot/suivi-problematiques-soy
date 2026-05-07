@@ -7,7 +7,7 @@ const CAROUSEL_DEFAULTS = /*EDITMODE-BEGIN*/{
   "cardW": 320,
   "cardH": 440,
   "tiltSide": 28,
-  "scaleCenter": 1.15,
+  "scaleCenter": 1.0,
   "scaleSide": 0.78,
   "blurSide": 3.5,
   "dimSide": 0.45,
@@ -327,7 +327,7 @@ function App(){
         </TweakSection>
 
         <TweakSection label="Depth perception">
-          <TweakSlider label="Center scale" value={t.scaleCenter} min={1} max={1.6} step={0.01}
+          <TweakSlider label="Center scale" value={t.scaleCenter} min={0} max={1.6} step={0.01}
             onChange={v => setTweak("scaleCenter", v)} />
           <TweakSlider label="Side scale" value={t.scaleSide} min={0.4} max={1} step={0.01}
             onChange={v => setTweak("scaleSide", v)} />
