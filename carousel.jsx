@@ -98,7 +98,7 @@ function App(){
       // cursor goes past the outer edge of the wheel, not the stage edge.
       const halfRange = (t.steerHalfRange && t.steerHalfRange > 0)
         ? t.steerHalfRange
-        : Math.max(60, (t.radius || 320) - carRect.width/2);
+        : Math.max(60, (t.radius || 320) - carRect.width/2 -200);
       const dy = Math.abs(e.clientY - cy);
       const yTolerance = t.steerYTolerance || 200;
       if(dy > yTolerance){ steerRef.current = 0; return; }
