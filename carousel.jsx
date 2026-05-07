@@ -1,7 +1,7 @@
 // carousel.jsx — 3D holographic card carousel
 
 const CAROUSEL_DEFAULTS = /*EDITMODE-BEGIN*/{
-  "speed": 12,
+  "speed": 0,
   "radius": 420,
   "perspective": 1500,
   "cardW": 320,
