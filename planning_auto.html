@@ -311,7 +311,6 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
 .ligne-card{
   background:linear-gradient(180deg,rgba(255,255,255,.022),rgba(255,255,255,0)),var(--bg-raised);
   box-shadow:0 26px 64px -42px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.04);
-  animation:qz-card-in .6s var(--ease);
 }
 .ligne-card.ligne-1{border-color:rgba(232,164,58,.22);}
 .ligne-card.ligne-2{border-color:rgba(94,200,240,.22);}
@@ -348,7 +347,8 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
 .camion-row{
   position:relative;
   min-height:48px;
-  padding:11px 22px !important;
+  padding:11px 14px !important;
+  gap:7px !important;
   border-radius:999px !important;
   border:1px solid rgba(255,255,255,.10) !important;
   background:
@@ -363,10 +363,14 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
 }
 .camion-row:hover{border-color:rgba(255,255,255,.18) !important;}
 
-/* embouts du tube — petits reflets aux deux extrémités */
+/* embouts du tube : reflet de verre + graduations 1/4 visibles AU-DESSUS du liquide
+   (les traits foncés ressortent sur le teal, comme les ticks des quais ; les traits
+   clairs du fond restent visibles sur la partie sombre vide → toujours visibles) */
 .camion-row::before{
   content:'';position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;
-  background:linear-gradient(180deg, rgba(255,255,255,.18) 0%, rgba(255,255,255,0) 40%);
+  background:
+    repeating-linear-gradient(90deg, rgba(0,40,38,.55) 0 1px, transparent 1px, transparent 25%),
+    linear-gradient(180deg, rgba(255,255,255,.20) 0%, rgba(255,255,255,0) 42%);
 }
 /* sillon de lumière qui balaie TOUT le tube — uniquement « En cours » */
 .camion-row::after{
@@ -428,18 +432,60 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
 .camion-row > .camion-num{ color:rgba(255,255,255,.82) !important; text-shadow:0 1px 3px rgba(0,0,0,.75); }
 .camion-row > .camion-heure{ text-shadow:0 1px 3px rgba(0,0,0,.8); }
 
-/* ── % lisible : pastille sombre + texte clair (ne se confond plus avec le teal) ── */
+/* ── % lisible : pastille sombre + texte clair (ne se confond plus avec le teal)
+   largeur fixe + centré → les pourcentages s'alignent d'un tube à l'autre ── */
 .camion-row > span[style*="color"]{
   color:#eafffb !important;
   background:rgba(3,14,12,.66);
-  padding:3px 12px !important;
+  padding:3px 0 !important;
   border-radius:999px;
   border:1px solid rgba(25,224,200,.4);
   box-shadow:0 1px 6px rgba(0,0,0,.5), inset 0 0 8px rgba(25,224,200,.18);
   text-shadow:0 0 8px rgba(25,224,200,.55);
-  font-size:.92rem !important;
+  font-size:.74rem !important;
   letter-spacing:.01em;
+  display:inline-block;
+  width:38px;
+  text-align:center;
+  box-sizing:border-box;
+  flex:none;
 }
+
+/* ── État « Prêt » / « En cours » : même pastille + même police que le %,
+   couleurs conservées (vert / orange) ── */
+.camion-row .camion-badge{
+  font-family:'Playfair Display',serif !important;
+  font-size:.68rem !important;
+  font-weight:700 !important;
+  padding:3px 0 !important;
+  border-radius:999px !important;
+  display:inline-block;
+  width:54px;
+  text-align:center;
+  box-sizing:border-box;
+  flex:none;
+  box-shadow:0 1px 6px rgba(0,0,0,.5);
+}
+.camion-row .camion-badge.pret{
+  color:var(--emerald) !important;
+  background:rgba(3,14,12,.66) !important;
+  border:1px solid rgba(45,212,160,.5) !important;
+  box-shadow:0 1px 6px rgba(0,0,0,.5), inset 0 0 8px rgba(45,212,160,.16);
+  text-shadow:0 0 8px rgba(45,212,160,.5);
+}
+.camion-row .camion-badge.en-cours{
+  color:var(--amber) !important;
+  background:rgba(14,9,2,.66) !important;
+  border:1px solid rgba(232,164,58,.5) !important;
+  box-shadow:0 1px 6px rgba(0,0,0,.5), inset 0 0 8px rgba(232,164,58,.16);
+  text-shadow:0 0 8px rgba(232,164,58,.5);
+}
+
+/* num camion compact */
+.camion-row .camion-num{ width:42px !important; font-size:.6rem !important; }
+
+/* cellule heure : largeur souple mais bornée → les colonnes % et état restent alignées */
+.camion-row .camion-heure{ min-width:0 !important; font-size:.82rem !important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 /* statut pills — lueur */
 .statut-pill.camion-pret{box-shadow:0 0 18px -6px rgba(45,212,160,.7);}
@@ -915,8 +961,25 @@ function renderLigne(numero, data, heuresReelles = {}, heuresDepuisSlots = {}){
     }
     // Sinon format HH:MM:SS ou HH:MM
     const parts = h.split(':');
-    if(parts.length >= 2) return `${parts[0]} h ${parts[1]}`;
+    if(parts.length >= 2){
+      let hh = parseInt(parts[0], 10);
+      if(!isNaN(hh) && hh >= 24) hh -= 24;   // affichage seulement : jamais plus de 24h
+      const hStr = isNaN(hh) ? parts[0] : String(hh).padStart(2,'0');
+      return `${hStr} h ${parts[1]}`;
+    }
     return h;
+  }
+
+  // Affichage SEULEMENT : ramène une heure >= 24h dans la plage 0-23
+  // (ex: "26h44" → "02h44 (lendemain)"), comme le tableau du bas (heureLabel).
+  // Pur formatage d'affichage — n'altère aucune donnée ni aucun calcul.
+  function normHeureTube(str){
+    if(typeof str !== 'string') return str;
+    const m = str.match(/^(\d{1,2})\s*[h:]\s*(\d{2})\b/);
+    if(!m) return str;
+    let hh = parseInt(m[1], 10);
+    if(hh >= 24) hh -= 24;
+    return String(hh).padStart(2,'0') + 'h' + m[2];
   }
 
   // Rendu des camions
@@ -943,9 +1006,9 @@ function renderLigne(numero, data, heuresReelles = {}, heuresDepuisSlots = {}){
       const ligneKey = numero === 1 ? 'L1' : 'L2';
       // Camions prêts : heure réelle de historique_camions
       // Camions en cours : heure depuis les slots (même source que tableau du bas)
-      const heureAffichee = estPret
+      const heureAffichee = normHeureTube(estPret
         ? (heuresReelles[`${ligneKey}-${c.camion}`] || formatHeure(c.heure))
-        : (heuresDepuisSlots[`${ligneKey}-${c.camion}`] || formatHeure(c.heure));
+        : (heuresDepuisSlots[`${ligneKey}-${c.camion}`] || formatHeure(c.heure)));
       const estCamionCourant = !estPret && idx === camionsAffiches.findIndex(x => x.statut !== 'camion_pret');
       const pct = estPret ? 100 : (estCamionCourant ? Math.round(progression * 100) : 0);
       const pctWidth = estPret ? 100 : (estCamionCourant ? progression * 100 : 0);
