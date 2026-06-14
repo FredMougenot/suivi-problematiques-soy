@@ -139,6 +139,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 /* ANIMATION CANVAS FOND */
 .ligne-bg-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;border-radius:var(--r-lg);overflow:hidden;}
 .ligne-head,.ligne-body{position:relative;z-index:1;}
+.ligne-head{min-height:76px;box-sizing:border-box;}
 
 .ligne-head.ligne-1{padding:16px 22px;border-bottom:1px solid var(--text-faint);background:linear-gradient(to bottom, rgba(200,132,58,1) 0%, rgba(200,132,58,0.3) 50%, rgba(200,132,58,0) 100%);display:flex;align-items:center;justify-content:space-between;}.ligne-head.ligne-2{padding:16px 22px;border-bottom:1px solid var(--text-faint);background:linear-gradient(to bottom, rgba(6,24,69,1) 0%, rgba(6,24,69,0.3) 50%, rgba(6,24,69,0) 100%);display:flex;align-items:center;justify-content:space-between;}
 .ligne-head-left{display:flex;align-items:center;gap:10px;}
@@ -329,7 +330,7 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
 .ligne-2 .ligne-bg-canvas{background:radial-gradient(120% 80% at 85% 0%,rgba(94,200,240,.10),transparent 60%);animation:qz-breathe 11s ease-in-out infinite;}
 
 /* puce température après le numéro de ligne */
-.ligne-head-left{position:relative;}
+.ligne-head-left{position:relative;min-height:40px;}
 .ligne-card.ligne-1 .ligne-head-left::after,
 .ligne-card.ligne-2 .ligne-head-left::after{
   font-family:'Space Grotesk',sans-serif;font-size:.92rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
@@ -520,6 +521,25 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
   font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:var(--text-faint);
 }
 
+/* ── Slot « gap » : rangée d'un quai qui n'est PAS de ce type (autre ligne / off) ── */
+.camion-row.camion-slot-gap{
+  cursor:default;
+  background:repeating-linear-gradient(45deg, rgba(255,255,255,.045) 0 8px, transparent 8px 16px), rgba(255,255,255,.012) !important;
+  border:1px dashed rgba(255,255,255,.13) !important;
+  box-shadow:none !important;
+  animation:none !important;
+  justify-content:center;
+}
+.camion-row.camion-slot-gap::before,
+.camion-row.camion-slot-gap::after{ display:none !important; }
+.camion-row.camion-slot-gap .slot-ghost{
+  font-family:'JetBrains Mono',monospace;font-size:.54rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text-faint);
+  display:inline-flex;align-items:center;gap:7px;
+}
+.camion-row.camion-slot-gap .slot-ghost::before{
+  content:'';width:7px;height:7px;border-radius:50%;border:1px solid var(--text-faint);
+}
+
 /* ── Tube « Parti » : grisé + HACHURÉ (comme les quais inactifs), liquide éteint ── */
 .camion-row.is-parti{
   cursor:pointer;
@@ -672,7 +692,7 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
 }
 .qcc-head{
   position:relative;z-index:1;
-  padding:16px 18px;border-bottom:1px solid var(--text-faint);
+  padding:16px 18px;border-bottom:1px solid var(--text-faint);min-height:76px;box-sizing:border-box;
   background:linear-gradient(to bottom, rgba(25,224,200,.7) 0%, rgba(25,224,200,.22) 50%, rgba(25,224,200,0) 100%);
   display:flex;align-items:center;gap:10px;
 }
@@ -744,6 +764,13 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
 .qs-dot{width:7px;height:7px;border-radius:50%;background:var(--text-faint);flex:none;}
 .quai-side.temp.is-active .qs-dot{background:var(--amber);box-shadow:0 0 8px var(--amber);}
 .quai-side.frais.is-active .qs-dot{background:var(--ice);box-shadow:0 0 8px var(--ice);}
+
+/* Quai off (type pas encore déterminé) : contour qui clignote → « à définir » */
+@keyframes quai-pending{
+  0%,100%{ border-color:var(--text-faint); box-shadow:none; }
+  50%{ border-color:rgba(25,224,200,.6); box-shadow:0 0 12px -2px rgba(25,224,200,.5), inset 0 0 8px rgba(25,224,200,.08); }
+}
+.quai-row[data-state="off"] .quai-side{ animation:quai-pending 1.6s ease-in-out infinite; }
 
 @media(max-width:900px){
   .quais-center-card{align-self:stretch;}
@@ -1439,18 +1466,20 @@ init();
 
   card.addEventListener('click', function(e){
     const side = e.target.closest('.quai-side');
-    if(side){ state[side.dataset.quai] = side.dataset.side; save(); applyState(); return; }
+    if(side){ state[side.dataset.quai] = side.dataset.side; save(); applyState(); if(window.__onQuaisChanged) window.__onQuaisChanged(); return; }
     const off = e.target.closest('.quai-off');
-    if(off){ state[off.dataset.quai] = 'off'; save(); applyState(); return; }
+    if(off){ state[off.dataset.quai] = 'off'; save(); applyState(); if(window.__onQuaisChanged) window.__onQuaisChanged(); return; }
   });
   applyState();
 
   // Interface partag\u00e9e : la logique « camion parti » des lignes pilote les quais.
   // Ligne 1 = c\u00f4t\u00e9 Temp\u00e9r\u00e9, Ligne 2 = c\u00f4t\u00e9 Frais.
   // Reordonne les rang\u00e9es de quais selon `order` (carrousel) puis applique les \u00e9tats.
+  var lastOrder = QUAIS.slice();
   function applyOrder(order){
     const grid = card.querySelector('.qcc-grid');
     if(grid && Array.isArray(order)){
+      lastOrder = order.slice();
       order.forEach(function(id){ const r = card.querySelector('.quai-row[data-quai="'+id+'"]'); if(r) grid.appendChild(r); });
     }
     applyState();
@@ -1463,7 +1492,8 @@ init();
     // Restaure un quai dans son \u00e9tat pr\u00e9c\u00e9dent.
     restore: function(id, prev){ state[id] = (prev === 'temp' || prev === 'frais') ? prev : 'off'; save(); },
     // Rend la carte avec l'ordre du carrousel donn\u00e9 (+ applique les \u00e9tats).
-    render: function(order){ applyOrder(order); }
+    render: function(order){ applyOrder(order); },
+    layout: function(){ return lastOrder.map(function(id){ return { numero:id, cote: state[id] || 'off' }; }); }
   };
 
   // Aligne la grille 2×2 sur les tubes (rang\u00e9e haute = 1er tube, basse = 2e tube)
@@ -1474,16 +1504,15 @@ init();
     const lead = card.querySelector('.qcc-lead');
     const qg   = card.querySelector('.qcc-grid');
     if(!body || !lead || !qg) return;
-    let rows = [];
-    grid.querySelectorAll('.ligne-card').forEach(function(c){
-      if(rows.length) return;
-      const rr = c.querySelectorAll('.camion-row');
-      if(rr.length) rows = [].slice.call(rr);
-    });
+    // Liste de référence : Ligne 1 (sinon Ligne 2)
+    let list = grid.querySelector('.ligne-card.ligne-1 .camions-list');
+    if(!list || !list.querySelector('.camion-row')) list = grid.querySelector('.ligne-card.ligne-2 .camions-list');
+    const rows = list ? [].slice.call(list.querySelectorAll('.camion-row')) : [];
     if(!rows.length){ lead.style.height = ''; qg.style.removeProperty('--qrow'); return; }
+    const alignedStart = list.hasAttribute('data-aligned-start') ? (parseInt(list.getAttribute('data-aligned-start'),10) || 0) : 0;
     const bodyTop = body.getBoundingClientRect().top;
     // 1er carré (Q1) aligné sur le 1er VRAI tube : on exclut le tube grisé « parti » et le slot vide
-    const anchor = rows.find(function(r){ return !r.classList.contains('is-parti') && !r.classList.contains('camion-slot-empty'); }) || rows[0];
+    const anchor = rows[alignedStart] || rows[0];
     const t1 = anchor.getBoundingClientRect();
     const desired = t1.top - bodyTop;            // o\u00f9 la grille doit commencer
     lead.style.height = Math.max(0, Math.round(desired - 20)) + 'px';  // 20 = padding-top du body
@@ -1580,49 +1609,76 @@ init();
       .map(function(r){ return { num: r.getAttribute('data-camion'), html: r.outerHTML }; });
   }
 
+  function buildGapSlot(){
+    return '<div class="camion-row camion-slot-gap"><span class="slot-ghost"></span></div>';
+  }
+
+  function lineType(line){ return line === 1 ? 'temp' : 'frais'; }
+  function quaiLayout(){ return (window.__quaisCtl && window.__quaisCtl.layout) ? window.__quaisCtl.layout() : []; }
+  function anyParti(){ return (parti[1] && parti[1].length) || (parti[2] && parti[2].length); }
+
+  // Rend une carte ligne : zone "parti" (haut) + zone alignee par type de quai.
   function transform(line){
     const card = lineCard(line);
     const list = card ? card.querySelector('.camions-list') : null;
-    if(!list) return;                       // ligne inactive / sans camion
+    if(!list) return;
     const orig = cache[line] || [];
-    const total = orig.length + 1;          // réserve d'1 slot (contenu descendu d'1 tube)
     const snaps = parti[line] || [];
     const partiNums = {};
     snaps.forEach(function(s){ partiNums[String(s.num)] = true; });
-    const activeHTML = orig.filter(function(o){ return !partiNums[String(o.num)]; }).map(function(o){ return o.html; });
-    let rowsHTML;
-    if(snaps.length === 0){
-      rowsHTML = [buildEmptySlot()].concat(activeHTML);
-    } else {
-      // N'afficher que le DERNIER tube parti de cette ligne (seq max) ; les précédents
-      // restent « partis » (quai off + position carrousel) mais ne sont pas rendus.
-      // Le tube gris occupe la position du haut : pas de slot vide ajouté en bas
-      // (le slot d'origine de chaque camion parti disparaît).
-      const last = snaps.reduce(function(a, b){ return (b.seq || 0) >= (a.seq || 0) ? b : a; });
-      rowsHTML = [buildPartiRow(last)].concat(activeHTML);
+    const tubes = orig.filter(function(o){ return !partiNums[String(o.num)]; });
+
+    // 1) Zone "parti" en haut. Toujours reservee (1 rangee) pour laisser la place
+    //    au tube parti ; vide (reserve discrete) quand aucun camion n'est parti.
+    const partiZone = 1;
+    const top = [];
+    if(partiZone){
+      if(snaps.length){
+        const last = snaps.reduce(function(a, b){ return (b.seq || 0) >= (a.seq || 0) ? b : a; });
+        top.push(buildPartiRow(last));
+      } else {
+        top.push(buildEmptySlot());            // reserve discrete cote ligne sans parti
+      }
     }
-    list.innerHTML = rowsHTML.join('');
+
+    // 2) Zone alignee : une rangee par quai (ordre carrousel).
+    //    quai de MON type -> prochain tube ; sinon (autre type / off) -> slot "gap".
+    const layout = quaiLayout();
+    const myType = lineType(line);
+    const aligned = [];
+    let ti = 0;
+    layout.forEach(function(q){
+      if(q.cote === myType && ti < tubes.length){ aligned.push(tubes[ti].html); ti++; }
+      else { aligned.push(buildGapSlot()); }
+    });
+    // 3) Tubes en trop (plus de camions que de quais de mon type) : empiles dessous.
+    for(; ti < tubes.length; ti++){ aligned.push(tubes[ti].html); }
+
+    const rowsHTML = top.concat(aligned);
+    list.innerHTML = rowsHTML.length ? rowsHTML.join('') : buildEmptySlot();
     list.setAttribute('data-parti-applied','1');
+    list.setAttribute('data-aligned-start', String(partiZone));
   }
 
-  // Apr\u00e8s chaque rendu data : capturer les rang\u00e9es fra\u00eeches puis r\u00e9-appliquer l'\u00e9tat parti
+  function relayout(){ transform(1); transform(2); requestAnimationFrame(function(){ window.dispatchEvent(new Event('resize')); }); }
+  window.__onQuaisChanged = relayout;   // appele quand l'etat/cote d'un quai change
+
+  // Apres chaque rendu data : capturer les rangees fraiches puis re-appliquer l'affichage.
   function applyAll(){
     let touched = false;
     [1,2].forEach(function(line){
       const card = lineCard(line);
       const list = card ? card.querySelector('.camions-list') : null;
       if(!list) return;
-      if(list.getAttribute('data-parti-applied') === '1') return;  // d\u00e9j\u00e0 trait\u00e9 (ex: r\u00e9-insertion quai)
+      if(list.getAttribute('data-parti-applied') === '1') return;  // deja traite
       capture(line);
-      transform(line);
       touched = true;
     });
-    syncQuais();
-    if(touched) requestAnimationFrame(function(){ window.dispatchEvent(new Event('resize')); });
+    if(touched){ syncQuais(); relayout(); }
   }
 
-  // ----- Carrousel des quais : ordre recalculé depuis l'historique des départs -----
-  // Chaque départ (chronologique, toutes lignes confondues) envoie son quai en dernier.
+  // ----- Carrousel des quais : ordre recalcule depuis l'historique des departs -----
+  // Chaque depart (chronologique, toutes lignes confondues) envoie son quai en dernier.
   function allEntries(){ return [].concat(parti[1] || [], parti[2] || []); }
   function computeOrder(){
     const o = [1,2,3,4];
@@ -1651,8 +1707,7 @@ init();
     let prevState = null;
     if(quaiId != null && window.__quaisCtl) prevState = window.__quaisCtl.deactivate(quaiId);
     parti[line].push({ num: num, heure: heure, quaiId: quaiId, prevState: prevState, seq: nextSeq() });
-    save(); transform(line); syncQuais();
-    window.dispatchEvent(new Event('resize'));
+    save(); syncQuais(); relayout();
   }
   function undepart(line, num){
     const arr = parti[line] || [];
@@ -1661,8 +1716,7 @@ init();
     const entry = arr[i];
     arr.splice(i, 1);   // retirer d'abord pour que l'ordre se recalcule sans ce d\u00e9part
     if(entry.quaiId != null && window.__quaisCtl) window.__quaisCtl.restore(entry.quaiId, entry.prevState);
-    save(); transform(line); syncQuais();
-    window.dispatchEvent(new Event('resize'));
+    save(); syncQuais(); relayout();
   }
 
   function onClick(e){
