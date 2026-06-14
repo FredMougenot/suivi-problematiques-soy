@@ -580,6 +580,30 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
 .slots-tbl thead tr{background:rgba(255,255,255,.018);}
 .slots-tbl tbody tr.slot-global-confirme{border-left-color:var(--teal);}
 
+/* Remplissage de chargement sur toute la largeur de la rangée (hors colonne Type) */
+.slots-tbl tbody tr{position:relative;}
+.slots-tbl tbody td:not(:first-child){position:relative;z-index:1;}
+.row-track{position:absolute;top:0;bottom:0;left:0;width:0;z-index:0;pointer-events:none;overflow:hidden;}
+.row-fill{
+  position:absolute;left:0;top:0;bottom:0;width:0%;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,0) 42%, rgba(0,0,0,.18)),
+    linear-gradient(90deg, rgba(10,107,98,.5) 0%, rgba(25,224,200,.4) 60%, rgba(63,240,221,.5) 100%);
+  border-right:2px solid rgba(95,240,221,.85);
+  box-shadow:inset 0 0 30px rgba(25,224,200,.22), 0 0 16px -4px rgba(25,224,200,.5);
+  transition:width 1s cubic-bezier(.4,0,.2,1);
+}
+.row-fill.empty{border-right:none;box-shadow:none;}
+.row-fill.charging{animation:row-glow 2.4s ease-in-out infinite;}
+.row-fill.charging::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.16),transparent);
+  background-size:38% 100%;background-repeat:no-repeat;animation:row-shimmer 2.2s linear infinite;
+}
+@keyframes row-shimmer{0%{background-position:-38% 0}100%{background-position:180% 0}}
+@keyframes row-glow{0%,100%{box-shadow:inset 0 0 30px rgba(25,224,200,.2), 0 0 14px -4px rgba(25,224,200,.4)}50%{box-shadow:inset 0 0 42px rgba(25,224,200,.4), 0 0 22px -4px rgba(25,224,200,.6)}}
+.slot-pct-num{font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:600;color:#eafffb;text-shadow:0 1px 3px rgba(0,0,0,.7);}
+
 /* ════════════════════════════════════════════════════════════════════
    QUAIS — cylindres batterie (scopé #quais-zone)
    ════════════════════════════════════════════════════════════════════ */
@@ -1187,8 +1211,36 @@ function renderSlots(slots){
     return (h * 60 + m) < minutesMaintenant;
   }
 
-  function badgeConfirme(){
-    return `<span class="slot-badge confirme"><span class="slot-badge-dot"></span>Confirmé</span>`;
+  // % de chargement d'un camion (même logique que les cartes) : prêt=100, en cours=progression, autres=0
+  function pctSlot(ligne, camionNum){
+    const lp = (window.__lineProg && window.__lineProg[ligne]) || null;
+    if(!lp) return null;
+    const camions = lp.camions || [];
+    const aCamionEnCours = camions.some(function(c){ return c.statut === 'en_cours'; });
+    const camionsAffiches = camions.slice();
+    if(lp.prog > 0 && !aCamionEnCours){
+      camionsAffiches.push({ camion: camions.filter(function(c){ return c.statut === 'camion_pret'; }).length + 1, statut: 'en_cours' });
+    }
+    const idx = camionsAffiches.findIndex(function(c){ return String(c.camion) === String(camionNum); });
+    if(idx < 0) return null;
+    const c = camionsAffiches[idx];
+    const estPret = c.statut === 'camion_pret';
+    const estCourant = !estPret && idx === camionsAffiches.findIndex(function(x){ return x.statut !== 'camion_pret'; });
+    return estPret ? 100 : (estCourant ? Math.round((lp.prog || 0) * 100) : 0);
+  }
+
+  // Tube-jauge horizontal (remplace le badge Confirmé)
+  function tubeConfirme(ligne, camionNum, heureFin){
+    let pct = pctSlot(ligne, camionNum);
+    if(pct == null){ pct = (heureFin === 'D\u00e9j\u00e0 pr\u00eat') ? 100 : 0; }
+    pct = Math.max(0, Math.min(100, pct));
+    const cls = pct >= 100 ? 'slot-tube' : (pct > 0 ? 'slot-tube charging' : 'slot-tube empty');
+    const fillW = (pct > 0 && pct < 100) ? 0 : pct;   // charging : part de 0 puis monte
+    const target = (pct > 0 && pct < 100) ? (' data-target="' + pct + '"') : '';
+    return '<span class="' + cls + '" title="' + pct + '%">' +
+      '<span class="slot-tube-fill" style="width:' + fillW + '%"' + target + '></span>' +
+      '<span class="slot-tube-pct">' + pct + '%</span>' +
+    '</span>';
   }
 
   function badgeStatutGlobal(statut){
@@ -1220,14 +1272,24 @@ function renderSlots(slots){
 
     const L1active = slot.ligne === 'L1';
     const L2active = slot.ligne === 'L2';
-    const L1badge = L1active ? badgeConfirme() : '<span style="color:var(--text-muted)">—</span>';
-    const L1heure = L1active ? heureLabel(slot.heureFinCamion) : '<span style="color:var(--text-muted)">—</span>';
-    const L2badge = L2active ? badgeConfirme() : '<span style="color:var(--text-muted)">—</span>';
-    const L2heure = L2active ? heureLabel(slot.heureFinCamion) : '<span style="color:var(--text-muted)">—</span>';
+    const lineActive = L1active || L2active;
+    let pct = lineActive ? pctSlot(slot.ligne, slot.camion) : null;
+    if(lineActive && pct == null){ pct = (slot.heureFinCamion === 'D\u00e9j\u00e0 pr\u00eat') ? 100 : 0; }
+    if(pct != null){ pct = Math.max(0, Math.min(100, pct)); }
+    const charging = pct != null && pct > 0 && pct < 100;
+    const fillCls = pct === 0 ? 'row-fill empty' : (charging ? 'row-fill charging' : 'row-fill');
+    const pctNum = lineActive ? ('<span class="slot-pct-num">' + pct + '%</span>') : '';
+    const dash = '<span style="color:var(--text-muted)">—</span>';
+    const L1badge = L1active ? pctNum : dash;
+    const L1heure = L1active ? heureLabel(slot.heureFinCamion) : dash;
+    const L2badge = L2active ? pctNum : dash;
+    const L2heure = L2active ? heureLabel(slot.heureFinCamion) : dash;
+    const track = lineActive ? ('<div class="row-track"><div class="' + fillCls + '" data-pct="' + pct + '" style="width:0%"></div></div>') : '';
 
     return `
       <tr id="slot-row-${index}" class="${globalClass} ${passeClass} ${typeClass}">
         <td style="text-align:center;width:60px;">
+          ${track}
           <button id="temp-btn-${index}" class="temp-btn" onclick="toggleType(${index})" title="Cliquer pour changer le type">
             🌡️
           </button>
@@ -1241,6 +1303,31 @@ function renderSlots(slots){
       </tr>
     `;
   }).join('');
+
+  // Mesure : positionne le remplissage de chaque rangée (après la colonne Type) et anime la montée
+  function placerRemplissages(){
+    document.querySelectorAll('#slots-tbody tr').forEach(function(tr){
+      const track = tr.querySelector('.row-track');
+      if(!track || !tr.cells.length) return;
+      const typeW = tr.cells[0].offsetWidth;
+      track.style.left = typeW + 'px';
+      track.style.width = (tr.offsetWidth - typeW) + 'px';
+      const fill = track.querySelector('.row-fill');
+      if(fill) fill.style.width = (fill.getAttribute('data-pct') || 0) + '%';
+    });
+  }
+  requestAnimationFrame(placerRemplissages);
+  if(!window.__slotFillResize){
+    window.__slotFillResize = true;
+    let rtf;
+    window.addEventListener('resize', function(){ clearTimeout(rtf); rtf = setTimeout(function(){
+      document.querySelectorAll('#slots-tbody tr').forEach(function(tr){
+        const track = tr.querySelector('.row-track'); if(!track || !tr.cells.length) return;
+        const typeW = tr.cells[0].offsetWidth;
+        track.style.left = typeW + 'px'; track.style.width = (tr.offsetWidth - typeW) + 'px';
+      });
+    }, 120); });
+  }
 }
 
 // ── Chargement données ─────────────────────────────────────────────────
@@ -1321,6 +1408,12 @@ async function chargerDonnees(){
     const bg2 = document.getElementById('bg-ligne-2');
     // Pas de dégradé sur le fond des cartes
     
+
+    // Progression par ligne (pour les tubes-jauge du tableau) — affichage seulement
+    window.__lineProg = {
+      L1: { prog: data.l1_progression_camion || 0, camions: data.l1_camions || [] },
+      L2: { prog: data.l2_progression_camion || 0, camions: data.l2_camions || [] }
+    };
 
     // Rendre les slots
     renderSlots(data.slots);
@@ -1642,13 +1735,16 @@ init();
     }
 
     // 2) Zone alignee : une rangee par quai (ordre carrousel).
-    //    quai de MON type -> prochain tube ; sinon (autre type / off) -> slot "gap".
+    //    quai de MON type -> prochain tube ; quai OFF (en attente, clignote) -> accepte
+    //    AUSSI un tube (les 2 lignes peuvent le prendre tant qu'aucun type n'est choisi) ;
+    //    quai de l'AUTRE type -> slot "gap".
     const layout = quaiLayout();
     const myType = lineType(line);
     const aligned = [];
     let ti = 0;
     layout.forEach(function(q){
-      if(q.cote === myType && ti < tubes.length){ aligned.push(tubes[ti].html); ti++; }
+      const accepte = (q.cote === myType) || (q.cote === 'off');
+      if(accepte && ti < tubes.length){ aligned.push(tubes[ti].html); ti++; }
       else { aligned.push(buildGapSlot()); }
     });
     // 3) Tubes en trop (plus de camions que de quais de mon type) : empiles dessous.
@@ -1693,8 +1789,7 @@ init();
   function depart(line, num, heure, row){
     parti[line] = parti[line] || [];
     if(parti[line].some(function(s){ return String(s.num) === String(num); })) return;
-    // Position du camion `num` parmi les tubes R\u00c9ELS actuels de sa ligne \u2192 quai align\u00e9 en face.
-    // (on relit la liste courante via lineCard : robuste si le n\u0153ud cliqu\u00e9 a \u00e9t\u00e9 reconstruit)
+    // Position du camion `num` parmi les tubes R\u00c9ELS (actifs) de sa ligne.
     let pos = -1;
     const card = lineCard(line);
     const list = card ? card.querySelector('.camions-list') : null;
@@ -1702,8 +1797,12 @@ init();
       const real = [].slice.call(list.querySelectorAll('.camion-row')).filter(isRealRow);
       pos = real.findIndex(function(r){ return String(r.getAttribute('data-camion')) === String(num); });
     }
-    const order = computeOrder();
-    const quaiId = (pos >= 0 && pos < order.length) ? order[pos] : null;
+    // Le quai \u00e0 d\u00e9sactiver = le pos-i\u00e8me quai du M\u00caME TYPE que la ligne (alignement par type).
+    // Ex : tube 2 tempr\u00e9 \u2192 2e quai tempr\u00e9 dans l'ordre carrousel (et non le 2e quai tout court).
+    const layout = (window.__quaisCtl && window.__quaisCtl.layout) ? window.__quaisCtl.layout() : [];
+    const myType = (line === 1) ? 'temp' : 'frais';
+    const matchNums = layout.filter(function(q){ return q.cote === myType; }).map(function(q){ return q.numero; });
+    const quaiId = (pos >= 0 && pos < matchNums.length) ? matchNums[pos] : null;
     let prevState = null;
     if(quaiId != null && window.__quaisCtl) prevState = window.__quaisCtl.deactivate(quaiId);
     parti[line].push({ num: num, heure: heure, quaiId: quaiId, prevState: prevState, seq: nextSeq() });
