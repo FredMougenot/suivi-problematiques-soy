@@ -515,7 +515,7 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
   font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:var(--text-faint);
 }
 
-/* ── Tube « Parti » : grisé, liquide éteint, badge Parti ──────────── */
+/* ── Tube « Parti » : grisé + HACHURÉ (comme les quais inactifs), liquide éteint ── */
 .camion-row.is-parti{
   cursor:pointer;
   border-color:rgba(255,255,255,.10) !important;
@@ -524,7 +524,16 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
   opacity:.62;
   animation:none !important;
 }
-.camion-row.is-parti::after{ animation:none !important; background:none !important; opacity:0 !important; }
+/* sheen léger, on retire les graduations 1/4 sur un tube parti */
+.camion-row.is-parti::before{
+  background:linear-gradient(180deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 42%) !important;
+}
+/* hachures diagonales (identiques aux quais inactifs) */
+.camion-row.is-parti::after{
+  content:'' !important;position:absolute;inset:0;z-index:1;pointer-events:none;border-radius:inherit;
+  background:repeating-linear-gradient(45deg, rgba(255,255,255,.055) 0 7px, transparent 7px 14px) !important;
+  animation:none !important;opacity:1 !important;
+}
 .camion-row.is-parti > .camion-fill{ display:none !important; }
 .camion-row.is-parti:hover{ opacity:.8; border-color:rgba(255,255,255,.2) !important; }
 .camion-row.is-parti .camion-num,
@@ -1679,10 +1688,10 @@ init();
     } else {
       // N'afficher que le DERNIER tube parti de cette ligne (seq max) ; les précédents
       // restent « partis » (quai off + position carrousel) mais ne sont pas rendus.
+      // Le tube gris occupe la position du haut : pas de slot vide ajouté en bas
+      // (le slot d'origine de chaque camion parti disparaît).
       const last = snaps.reduce(function(a, b){ return (b.seq || 0) >= (a.seq || 0) ? b : a; });
       rowsHTML = [buildPartiRow(last)].concat(activeHTML);
-      const target = Math.max(total, rowsHTML.length);
-      while(rowsHTML.length < target) rowsHTML.push(buildEmptySlot());
     }
     list.innerHTML = rowsHTML.join('');
     list.setAttribute('data-parti-applied','1');
