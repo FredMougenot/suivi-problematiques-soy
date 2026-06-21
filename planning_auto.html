@@ -221,6 +221,9 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .camions-count.zero{color:var(--text-muted);}
 .camions-count.positif{color:var(--emerald);}
 
+/* DESTINATION BADGE dans le tableau des slots */
+.slot-dest{display:inline-block;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;letter-spacing:.04em;background:rgba(200,132,58,.10);color:var(--copper-light);border:1px solid rgba(200,132,58,.28);}
+
 /* TOGGLE TEMPÉRATURE */
 .temp-toggle{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
 .temp-btn{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:700;cursor:pointer;border:1px solid transparent;transition:all .3s var(--ease);user-select:none;}
@@ -370,16 +373,12 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
 }
 .camion-row:hover{border-color:rgba(255,255,255,.18) !important;}
 
-/* embouts du tube : reflet de verre + graduations 1/4 visibles AU-DESSUS du liquide
-   (les traits foncés ressortent sur le teal, comme les ticks des quais ; les traits
-   clairs du fond restent visibles sur la partie sombre vide → toujours visibles) */
 .camion-row::before{
   content:'';position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;
   background:
     repeating-linear-gradient(90deg, rgba(0,40,38,.55) 0 1px, transparent 1px, transparent 25%),
     linear-gradient(180deg, rgba(255,255,255,.20) 0%, rgba(255,255,255,0) 42%);
 }
-/* sillon de lumière qui balaie TOUT le tube — uniquement « En cours » */
 .camion-row::after{
   content:'';position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;opacity:0;
 }
@@ -400,7 +399,6 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
     linear-gradient(90deg, var(--teal-deep) 0%, var(--teal) 55%, var(--teal-soft) 100%) !important;
   box-shadow:0 0 20px rgba(25,224,200,.5), inset 0 1px 0 rgba(255,255,255,.42);
 }
-/* front lumineux du liquide (ménisque vertical) */
 .camion-row > div:first-of-type::after{
   content:'';position:absolute;top:2px;bottom:2px;right:0;width:4px;border-radius:3px;
   background:linear-gradient(180deg, #eafffb, var(--teal-soft));
@@ -427,7 +425,7 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
   border-radius:999px;
   box-shadow:0 0 24px rgba(25,224,200,.6), inset 0 1px 0 rgba(255,255,255,.48);
 }
-.camion-row.pret > div:first-of-type::after{ display:none; } /* tube plein : pas de front */
+.camion-row.pret > div:first-of-type::after{ display:none; }
 
 /* ── Rangée vide (0 %) : tube vide propre, aucun liquide, aucun balayage ── */
 .camion-row > div[style*="width:0%"]{ background:transparent !important; box-shadow:none !important; animation:none !important; }
@@ -439,8 +437,6 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
 .camion-row > .camion-num{ color:rgba(255,255,255,.82) !important; text-shadow:0 1px 3px rgba(0,0,0,.75); }
 .camion-row > .camion-heure{ text-shadow:0 1px 3px rgba(0,0,0,.8); }
 
-/* ── % lisible : pastille sombre + texte clair (ne se confond plus avec le teal)
-   largeur fixe + centré → les pourcentages s'alignent d'un tube à l'autre ── */
 .camion-row > span[style*="color"]{
   color:#eafffb !important;
   background:rgba(3,14,12,.66);
@@ -458,8 +454,6 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
   flex:none;
 }
 
-/* ── État « Prêt » / « En cours » : même pastille + même police que le %,
-   couleurs conservées (vert / orange) ── */
 .camion-row .camion-badge{
   font-family:'Playfair Display',serif !important;
   font-size:.68rem !important;
@@ -488,13 +482,9 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
   text-shadow:0 0 8px rgba(232,164,58,.5);
 }
 
-/* num camion compact */
 .camion-row .camion-num{ width:42px !important; font-size:.6rem !important; }
-
-/* cellule heure : largeur souple mais bornée → les colonnes % et état restent alignées */
 .camion-row .camion-heure{ min-width:0 !important; font-size:.82rem !important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-/* ── Tube cliquable : signaler le « départ camion » au survol ──────── */
 .camion-row:not(.camion-slot-empty){ cursor:pointer; }
 .camion-row:not(.camion-slot-empty):not(.is-parti):hover{ border-color:rgba(25,224,200,.55) !important; }
 .camion-row .depart-hint{
@@ -506,7 +496,6 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
 }
 .camion-row:not(.camion-slot-empty):not(.is-parti):hover .depart-hint{ opacity:1; }
 
-/* ── Slot vide (réserve / file) : capsule fantôme, même rythme que les tubes ── */
 .camion-row.camion-slot-empty{
   cursor:default;
   background:rgba(255,255,255,.012) !important;
@@ -521,7 +510,6 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
   font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:var(--text-faint);
 }
 
-/* ── Slot « gap » : rangée d'un quai qui n'est PAS de ce type (autre ligne / off) ── */
 .camion-row.camion-slot-gap{
   cursor:default;
   background:repeating-linear-gradient(45deg, rgba(255,255,255,.045) 0 8px, transparent 8px 16px), rgba(255,255,255,.012) !important;
@@ -540,7 +528,6 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
   content:'';width:7px;height:7px;border-radius:50%;border:1px solid var(--text-faint);
 }
 
-/* ── Tube « Parti » : grisé + HACHURÉ (comme les quais inactifs), liquide éteint ── */
 .camion-row.is-parti{
   cursor:pointer;
   border-color:rgba(255,255,255,.10) !important;
@@ -549,11 +536,9 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
   opacity:.62;
   animation:none !important;
 }
-/* sheen léger, on retire les graduations 1/4 sur un tube parti */
 .camion-row.is-parti::before{
   background:linear-gradient(180deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 42%) !important;
 }
-/* hachures diagonales (identiques aux quais inactifs) */
 .camion-row.is-parti::after{
   content:'' !important;position:absolute;inset:0;z-index:1;pointer-events:none;border-radius:inherit;
   background:repeating-linear-gradient(45deg, rgba(255,255,255,.055) 0 7px, transparent 7px 14px) !important;
@@ -580,7 +565,6 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
 .slots-tbl thead tr{background:rgba(255,255,255,.018);}
 .slots-tbl tbody tr.slot-global-confirme{border-left-color:var(--teal);}
 
-/* Remplissage de chargement sur toute la largeur de la rangée (hors colonne Type) */
 .slots-tbl tbody tr{position:relative;}
 .slots-tbl tbody td:not(:first-child){position:relative;z-index:1;}
 .row-track{position:absolute;top:0;bottom:0;left:0;width:0;z-index:0;pointer-events:none;overflow:hidden;}
@@ -699,7 +683,7 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
 @keyframes qz-breathe{0%,100%{opacity:.55}50%{opacity:1}}
 
 /* ════════════════════════════════════════════════════════════════════
-   CARTE CENTRALE — 4 QUAIS (2×2) · visuel uniquement, inject\u00e9e en JS
+   CARTE CENTRALE — 4 QUAIS (2×2) · visuel uniquement, injectée en JS
    ════════════════════════════════════════════════════════════════════ */
 .quais-center-card{
   align-self:start;
@@ -724,18 +708,15 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
 .qcc-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--text-primary);}
 .qcc-body{position:relative;z-index:1;flex:1;padding:20px 16px;display:flex;flex-direction:column;}
 
-/* zone haute (align\u00e9e sur la rang\u00e9e KPI des lignes) : compteur + aide */
 .qcc-lead{overflow:hidden;flex:none;}
 .qcc-count{font-family:'JetBrains Mono',monospace;font-size:1.4rem;font-weight:600;color:var(--teal-soft);letter-spacing:-.02em;line-height:1;}
 .qcc-count #qcc-count-n{font-size:1.9rem;}
 .qcc-count-lbl{display:block;font-family:'Outfit',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--text-muted);margin-top:6px;}
 .qcc-hint{font-size:.7rem;color:var(--text-muted);line-height:1.5;margin-top:12px;max-width:90%;}
 
-/* lignes de quais : [\u23fb arr\u00eat] [carr\u00e9 Temp\u00e9r\u00e9] [carr\u00e9 Frais] \u2014 align\u00e9es aux tubes */
 .qcc-grid{display:flex;flex-direction:column;gap:6px;flex:1;min-height:120px;}
 .quai-row{display:grid;grid-template-columns:34px 1fr 1fr;gap:7px;align-items:stretch;min-height:var(--qrow,54px);}
 
-/* bouton d'arr\u00eat (hors des carr\u00e9s, \u00e0 gauche de chaque ligne) */
 .quai-off{
   appearance:none;-webkit-appearance:none;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
@@ -750,7 +731,6 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
   box-shadow:0 0 14px -4px rgba(224,85,85,.55), inset 0 0 8px rgba(224,85,85,.12);
 }
 
-/* carr\u00e9s (c\u00f4t\u00e9s temp\u00e9r\u00e9 / frais) */
 .quai-side{
   appearance:none;-webkit-appearance:none;cursor:pointer;text-align:left;
   position:relative;overflow:hidden;
@@ -789,7 +769,6 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
 .quai-side.temp.is-active .qs-dot{background:var(--amber);box-shadow:0 0 8px var(--amber);}
 .quai-side.frais.is-active .qs-dot{background:var(--ice);box-shadow:0 0 8px var(--ice);}
 
-/* Quai off (type pas encore déterminé) : contour qui clignote → « à définir » */
 @keyframes quai-pending{
   0%,100%{ border-color:var(--text-faint); box-shadow:none; }
   50%{ border-color:rgba(25,224,200,.6); box-shadow:0 0 12px -2px rgba(25,224,200,.5), inset 0 0 8px rgba(25,224,200,.08); }
@@ -969,13 +948,15 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
               <th>Slot</th>
               <th>Ligne 1 — TBA</th>
               <th>Heure fin L1</th>
+              <th>Dest L1</th>
               <th>Ligne 2 — EH1</th>
               <th>Heure fin L2</th>
+              <th>Dest L2</th>
               <th>Statut global</th>
             </tr>
           </thead>
           <tbody id="slots-tbody">
-            <tr><td colspan="7"><div class="empty-state"><div class="empty-ico">⏳</div><div class="empty-txt">Chargement…</div></div></td></tr>
+            <tr><td colspan="9"><div class="empty-state"><div class="empty-ico">⏳</div><div class="empty-txt">Chargement…</div></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -1063,30 +1044,24 @@ function renderLigne(numero, data, heuresReelles = {}, heuresDepuisSlots = {}){
   const statutClass = getStatutClass(statut);
   const statutLabel = getStatutLabel(statut);
 
-  // Formater l'heure de fin — supporte HH:MM:SS, HH:MM, et ISO timestamp
   function formatHeure(h){
     if(!h) return '—';
-    // Si c'est un ISO timestamp (ex: 2026-04-26T14:32:00)
     if(h.includes('T') || h.includes('-')){
       const d = new Date(h);
       if(!isNaN(d)){
         return String(d.getHours()).padStart(2,'0') + ' h ' + String(d.getMinutes()).padStart(2,'0');
       }
     }
-    // Sinon format HH:MM:SS ou HH:MM
     const parts = h.split(':');
     if(parts.length >= 2){
       let hh = parseInt(parts[0], 10);
-      if(!isNaN(hh) && hh >= 24) hh -= 24;   // affichage seulement : jamais plus de 24h
+      if(!isNaN(hh) && hh >= 24) hh -= 24;
       const hStr = isNaN(hh) ? parts[0] : String(hh).padStart(2,'0');
       return `${hStr} h ${parts[1]}`;
     }
     return h;
   }
 
-  // Affichage SEULEMENT : ramène une heure >= 24h dans la plage 0-23
-  // (ex: "26h44" → "02h44 (lendemain)"), comme le tableau du bas (heureLabel).
-  // Pur formatage d'affichage — n'altère aucune donnée ni aucun calcul.
   function normHeureTube(str){
     if(typeof str !== 'string') return str;
     const m = str.match(/^(\d{1,2})\s*[h:]\s*(\d{2})\b/);
@@ -1096,14 +1071,12 @@ function renderLigne(numero, data, heuresReelles = {}, heuresDepuisSlots = {}){
     return String(hh).padStart(2,'0') + 'h' + m[2];
   }
 
-  // Rendu des camions
   let camionsHTML = '';
   if(statut === 'inactive'){
     camionsHTML = '<div class="empty-state" style="padding:20px"><div class="empty-txt">Ligne inactive aujourd\'hui</div></div>';
   } else if(!camions || camions.length === 0){
     camionsHTML = '<div class="empty-state" style="padding:20px"><div class="empty-txt">Aucun camion prévu</div></div>';
   } else {
-    // Si progression > 0 et aucun camion en_cours dans la liste, ajouter le camion en cours manuellement
     const aCamionEnCours = camions.some(c => c.statut === 'en_cours');
     const camionsAffiches = [...camions];
     if(progression > 0 && !aCamionEnCours){
@@ -1118,8 +1091,6 @@ function renderLigne(numero, data, heuresReelles = {}, heuresDepuisSlots = {}){
     camionsHTML = `<div class="camions-list">` + camionsAffiches.map((c, idx) => {
       const estPret = c.statut === 'camion_pret';
       const ligneKey = numero === 1 ? 'L1' : 'L2';
-      // Camions prêts : heure réelle de historique_camions
-      // Camions en cours : heure depuis les slots (même source que tableau du bas)
       const heureAffichee = normHeureTube(estPret
         ? (heuresReelles[`${ligneKey}-${c.camion}`] || formatHeure(c.heure))
         : (heuresDepuisSlots[`${ligneKey}-${c.camion}`] || formatHeure(c.heure)));
@@ -1173,7 +1144,7 @@ function renderLigne(numero, data, heuresReelles = {}, heuresDepuisSlots = {}){
 }
 
 // ── État des types de camion par slot ────────────────────────────────
-const slotTypes = {}; // index → 'neutre' | 'froid' | 'chaud'
+const slotTypes = {};
 
 function toggleType(index){
   const current = slotTypes[index] || 'neutre';
@@ -1199,7 +1170,7 @@ function toggleType(index){
 // ── Rendu slots ──────────────────────────────────────────────────────
 function renderSlots(slots){
   if(!slots || slots.length === 0){
-    document.getElementById('slots-tbody').innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-txt">Aucun slot disponible</div></div></td></tr>';
+    document.getElementById('slots-tbody').innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="empty-txt">Aucun slot disponible</div></div></td></tr>';
     return;
   }
 
@@ -1211,7 +1182,6 @@ function renderSlots(slots){
     return (h * 60 + m) < minutesMaintenant;
   }
 
-  // % de chargement d'un camion (même logique que les cartes) : prêt=100, en cours=progression, autres=0
   function pctSlot(ligne, camionNum){
     const lp = (window.__lineProg && window.__lineProg[ligne]) || null;
     if(!lp) return null;
@@ -1229,13 +1199,12 @@ function renderSlots(slots){
     return estPret ? 100 : (estCourant ? Math.round((lp.prog || 0) * 100) : 0);
   }
 
-  // Tube-jauge horizontal (remplace le badge Confirmé)
   function tubeConfirme(ligne, camionNum, heureFin){
     let pct = pctSlot(ligne, camionNum);
-    if(pct == null){ pct = (heureFin === 'D\u00e9j\u00e0 pr\u00eat') ? 100 : 0; }
+    if(pct == null){ pct = (heureFin === 'Déjà prêt') ? 100 : 0; }
     pct = Math.max(0, Math.min(100, pct));
     const cls = pct >= 100 ? 'slot-tube' : (pct > 0 ? 'slot-tube charging' : 'slot-tube empty');
-    const fillW = (pct > 0 && pct < 100) ? 0 : pct;   // charging : part de 0 puis monte
+    const fillW = (pct > 0 && pct < 100) ? 0 : pct;
     const target = (pct > 0 && pct < 100) ? (' data-target="' + pct + '"') : '';
     return '<span class="' + cls + '" title="' + pct + '%">' +
       '<span class="slot-tube-fill" style="width:' + fillW + '%"' + target + '></span>' +
@@ -1250,7 +1219,6 @@ function renderSlots(slots){
 
   function heureLabel(heure){
     if(!heure) return '<span style="color:var(--text-muted)">—</span>';
-    // Normaliser les heures > 24h (ex: "26h47" → "02h47 (lendemain)")
     const match = heure.match(/^(\d+)h(\d{2})$/);
     if(match){
       let h = parseInt(match[1]);
@@ -1264,6 +1232,11 @@ function renderSlots(slots){
     return `<span style="font-family:'Playfair Display',serif;font-size:.95rem;color:var(--copper-light);font-weight:600;">${heure}</span>`;
   }
 
+  function destLabel(dest){
+    if(!dest) return '<span style="color:var(--text-muted)">—</span>';
+    return `<span class="slot-dest">${dest}</span>`;
+  }
+
   document.getElementById('slots-tbody').innerHTML = slots.map((slot, index) => {
     const passe = slotPasse(slot.heure);
     const globalClass = `slot-global-${slot.statut}`;
@@ -1274,16 +1247,20 @@ function renderSlots(slots){
     const L2active = slot.ligne === 'L2';
     const lineActive = L1active || L2active;
     let pct = lineActive ? pctSlot(slot.ligne, slot.camion) : null;
-    if(lineActive && pct == null){ pct = (slot.heureFinCamion === 'D\u00e9j\u00e0 pr\u00eat') ? 100 : 0; }
+    if(lineActive && pct == null){ pct = (slot.heureFinCamion === 'Déjà prêt') ? 100 : 0; }
     if(pct != null){ pct = Math.max(0, Math.min(100, pct)); }
     const charging = pct != null && pct > 0 && pct < 100;
     const fillCls = pct === 0 ? 'row-fill empty' : (charging ? 'row-fill charging' : 'row-fill');
     const pctNum = lineActive ? ('<span class="slot-pct-num">' + pct + '%</span>') : '';
     const dash = '<span style="color:var(--text-muted)">—</span>';
+
     const L1badge = L1active ? pctNum : dash;
     const L1heure = L1active ? heureLabel(slot.heureFinCamion) : dash;
+    const L1dest  = L1active ? destLabel(slot.destination) : dash;
     const L2badge = L2active ? pctNum : dash;
     const L2heure = L2active ? heureLabel(slot.heureFinCamion) : dash;
+    const L2dest  = L2active ? destLabel(slot.destination) : dash;
+
     const track = lineActive ? ('<div class="row-track"><div class="' + fillCls + '" data-pct="' + pct + '" style="width:0%"></div></div>') : '';
 
     return `
@@ -1297,14 +1274,15 @@ function renderSlots(slots){
         <td><div class="slot-label">${slot.label || slot.heure}</div></td>
         <td>${L1badge}</td>
         <td>${L1heure}</td>
+        <td>${L1dest}</td>
         <td>${L2badge}</td>
         <td>${L2heure}</td>
+        <td>${L2dest}</td>
         <td>${badgeStatutGlobal(slot.statut)}</td>
       </tr>
     `;
   }).join('');
 
-  // Mesure : positionne le remplissage de chaque rangée (après la colonne Type) et anime la montée
   function placerRemplissages(){
     document.querySelectorAll('#slots-tbody tr').forEach(function(tr){
       const track = tr.querySelector('.row-track');
@@ -1354,10 +1332,8 @@ async function chargerDonnees(){
       return;
     }
 
-    // Afficher la dernière mise à jour
     document.getElementById('derniere-maj').textContent = data.updated_at ? fmtTime(data.updated_at) : '—';
 
-    // Vérifier statut système — arrêté si plus de 10 minutes sans mise à jour
     const statutEl = document.getElementById('statut-systeme');
     const statutTxt = document.getElementById('statut-systeme-txt');
     if(data.updated_at){
@@ -1373,13 +1349,11 @@ async function chargerDonnees(){
       }
     }
 
-    // Charger historique_camions pour aujourd'hui (heure réelle de fin)
     const { data: historique } = await sb
       .from('historique_camions')
       .select('ligne, camion, heure_fin')
       .eq('date', today);
 
-    // Construire un index rapide : "L1-1" → "11h59"
     const heuresReelles = {};
     if(historique){
       historique.forEach(h => {
@@ -1387,8 +1361,6 @@ async function chargerDonnees(){
       });
     }
 
-    // Construire un index des heures de fin depuis les slots : "L1-3" → "21h44"
-    // Les cartes du haut affichent ainsi la même heure que le tableau du bas
     const heuresDepuisSlots = {};
     if(data.slots){
       data.slots.forEach(slot => {
@@ -1398,24 +1370,15 @@ async function chargerDonnees(){
       });
     }
 
-    // Rendre les deux lignes en passant l'index des heures réelles et des slots
     document.getElementById('lignes-grid').innerHTML =
       renderLigne(1, data, heuresReelles, heuresDepuisSlots) +
       renderLigne(2, data, heuresReelles, heuresDepuisSlots);
 
-    // Appliquer les dégradés de fond aux cartes
-    const bg1 = document.getElementById('bg-ligne-1');
-    const bg2 = document.getElementById('bg-ligne-2');
-    // Pas de dégradé sur le fond des cartes
-    
-
-    // Progression par ligne (pour les tubes-jauge du tableau) — affichage seulement
     window.__lineProg = {
       L1: { prog: data.l1_progression_camion || 0, camions: data.l1_camions || [] },
       L2: { prog: data.l2_progression_camion || 0, camions: data.l2_camions || [] }
     };
 
-    // Rendre les slots
     renderSlots(data.slots);
 
   } catch(e) {
@@ -1430,7 +1393,6 @@ function showApp(){
   updateUserUI();
   chargerDonnees();
 
-  // Abonnement Supabase Realtime — mise à jour instantanée dès que N8n écrit
   sb.channel('production_temps_reel')
     .on('postgres_changes',
       { event: '*', schema: 'public', table: 'production_temps_reel' },
@@ -1490,19 +1452,16 @@ init();
 <script>
 /* ════════════════════════════════════════════════════════════════════
    CARTE CENTRALE « Quais de chargement » — 4 quais (2×2)
-   100% visuel : aucune donn\u00e9e temps r\u00e9el ni calcul touch\u00e9.
-   La carte est inject\u00e9e entre Ligne 1 et Ligne 2 et r\u00e9-inject\u00e9e
-   automatiquement \u00e0 chaque rafra\u00eechissement des donn\u00e9es.
+   100% visuel : aucune donnée temps réel ni calcul touché.
    ════════════════════════════════════════════════════════════════════ */
 (function(){
-  const TYPE = { temp:'Dry', frais:'R\u00e9frig.' };
-  const LIGNE_LBL = { temp:'\u2600 Temp\u00e9r\u00e9', frais:'\u2744 Frais' };
+  const TYPE = { temp:'Dry', frais:'Réfrigé.' };
+  const LIGNE_LBL = { temp:'☀ Tempéré', frais:'❄ Frais' };
   const STORE_KEY = 'vanQuaisCenterState_v2';
   const POWER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v9"/><path d="M6.4 6.4a8 8 0 1 0 11.2 0"/></svg>';
   const QUAIS = [1,2,3,4];
   const SIDES = ['off','temp','frais'];
 
-  // État par quai : 'off' | 'temp' | 'frais'  (exactement un côté actif, ou éteint)
   let state = { 1:'off', 2:'off', 3:'off', 4:'off' };
   try {
     const s = JSON.parse(localStorage.getItem(STORE_KEY));
@@ -1525,12 +1484,12 @@ init();
     '<div class="qcc-body">' +
       '<div class="qcc-lead">' +
         '<div class="qcc-count"><span id="qcc-count-n">0</span> / 4<span class="qcc-count-lbl">quais actifs</span></div>' +
-        '<p class="qcc-hint">Cliquez <b>Temp\u00e9r\u00e9</b> ou <b>Frais</b> pour affecter un quai · \u23fb pour l\u2019éteindre.</p>' +
+        '<p class="qcc-hint">Cliquez <b>Tempéré</b> ou <b>Frais</b> pour affecter un quai · ⏻ pour l\'éteindre.</p>' +
       '</div>' +
       '<div class="qcc-grid">' +
         QUAIS.map(function(id){
           return '<div class="quai-row" data-quai="'+id+'" data-state="off">' +
-            '<button class="quai-off" type="button" data-quai="'+id+'" aria-label="\u00c9teindre le quai '+id+'" title="\u00c9teindre le quai '+id+'">'+POWER+'</button>' +
+            '<button class="quai-off" type="button" data-quai="'+id+'" aria-label="Éteindre le quai '+id+'" title="Éteindre le quai '+id+'">'+POWER+'</button>' +
             sideHTML(id,'temp') +
             sideHTML(id,'frais') +
           '</div>';
@@ -1565,9 +1524,6 @@ init();
   });
   applyState();
 
-  // Interface partag\u00e9e : la logique « camion parti » des lignes pilote les quais.
-  // Ligne 1 = c\u00f4t\u00e9 Temp\u00e9r\u00e9, Ligne 2 = c\u00f4t\u00e9 Frais.
-  // Reordonne les rang\u00e9es de quais selon `order` (carrousel) puis applique les \u00e9tats.
   var lastOrder = QUAIS.slice();
   function applyOrder(order){
     const grid = card.querySelector('.qcc-grid');
@@ -1578,18 +1534,13 @@ init();
     applyState();
   }
 
-  // Interface pilot\u00e9e par la logique \u00ab camion parti \u00bb (d\u00e9sactivation par POSITION + carrousel).
   window.__quaisCtl = {
-    // \u00c9teint un quai quel que soit son c\u00f4t\u00e9 actif ; renvoie son \u00e9tat pr\u00e9c\u00e9dent (temp/frais/off).
     deactivate: function(id){ const prev = state[id] || 'off'; state[id] = 'off'; save(); return prev; },
-    // Restaure un quai dans son \u00e9tat pr\u00e9c\u00e9dent.
     restore: function(id, prev){ state[id] = (prev === 'temp' || prev === 'frais') ? prev : 'off'; save(); },
-    // Rend la carte avec l'ordre du carrousel donn\u00e9 (+ applique les \u00e9tats).
     render: function(order){ applyOrder(order); },
     layout: function(){ return lastOrder.map(function(id){ return { numero:id, cote: state[id] || 'off' }; }); }
   };
 
-  // Aligne la grille 2×2 sur les tubes (rang\u00e9e haute = 1er tube, basse = 2e tube)
   function alignGrid(){
     const grid = document.getElementById('lignes-grid');
     if(!grid || !card.isConnected) return;
@@ -1597,27 +1548,24 @@ init();
     const lead = card.querySelector('.qcc-lead');
     const qg   = card.querySelector('.qcc-grid');
     if(!body || !lead || !qg) return;
-    // Liste de référence : Ligne 1 (sinon Ligne 2)
     let list = grid.querySelector('.ligne-card.ligne-1 .camions-list');
     if(!list || !list.querySelector('.camion-row')) list = grid.querySelector('.ligne-card.ligne-2 .camions-list');
     const rows = list ? [].slice.call(list.querySelectorAll('.camion-row')) : [];
     if(!rows.length){ lead.style.height = ''; qg.style.removeProperty('--qrow'); return; }
     const alignedStart = list.hasAttribute('data-aligned-start') ? (parseInt(list.getAttribute('data-aligned-start'),10) || 0) : 0;
     const bodyTop = body.getBoundingClientRect().top;
-    // 1er carré (Q1) aligné sur le 1er VRAI tube : on exclut le tube grisé « parti » et le slot vide
     const anchor = rows[alignedStart] || rows[0];
     const t1 = anchor.getBoundingClientRect();
-    const desired = t1.top - bodyTop;            // o\u00f9 la grille doit commencer
-    lead.style.height = Math.max(0, Math.round(desired - 20)) + 'px';  // 20 = padding-top du body
+    const desired = t1.top - bodyTop;
+    lead.style.height = Math.max(0, Math.round(desired - 20)) + 'px';
     if(rows.length >= 2){
       const pitch = rows[1].getBoundingClientRect().top - rows[0].getBoundingClientRect().top;
-      qg.style.setProperty('--qrow', Math.max(46, Math.round(pitch - 6)) + 'px'); // 6 = gap grille
+      qg.style.setProperty('--qrow', Math.max(46, Math.round(pitch - 6)) + 'px');
     } else {
       qg.style.removeProperty('--qrow');
     }
   }
 
-  // Mesure plusieurs fois : la 1ère passe peut tomber avant la mise en page finale (polices, canvas)
   function scheduleAlign(){
     requestAnimationFrame(alignGrid);
     setTimeout(alignGrid, 120);
@@ -1656,19 +1604,11 @@ init();
 <script>
 /* ════════════════════════════════════════════════════════════════════
    FONCTION « CAMION PARTI » + CARROUSEL  (visuel uniquement)
-   - Clic sur un tube (Ligne 1 ou 2) → camion « parti » : il passe gris\u00e9 en
-     haut, les autres tubes de SA ligne montent d'un cran, et le quai actif
-     de cette ligne se d\u00e9sactive automatiquement.
-   - Re-clic sur le tube gris\u00e9 → annulation (le carrousel redescend, le quai
-     est r\u00e9activ\u00e9).
-   - \u00c9tat conserv\u00e9 localement et r\u00e9-appliqu\u00e9 apr\u00e8s chaque rafra\u00eechissement.
-   - N'alt\u00e8re AUCUNE donn\u00e9e ni calcul : transforme seulement l'affichage des
-     rang\u00e9es d\u00e9j\u00e0 produites par renderLigne.
    ════════════════════════════════════════════════════════════════════ */
 (function(){
   const PKEY = 'vanCamionsPartis_v1';
-  const cache = { 1:[], 2:[] };           // rang\u00e9es d'origine (snapshot du dernier rendu data)
-  let parti = { 1:[], 2:[] };             // [{num, heure, quaiId}] par ligne
+  const cache = { 1:[], 2:[] };
+  let parti = { 1:[], 2:[] };
   try {
     const s = JSON.parse(localStorage.getItem(PKEY));
     if(s){ parti[1] = Array.isArray(s[1]) ? s[1] : []; parti[2] = Array.isArray(s[2]) ? s[2] : []; }
@@ -1676,15 +1616,15 @@ init();
   function save(){ try { localStorage.setItem(PKEY, JSON.stringify(parti)); } catch(e){} }
 
   function buildEmptySlot(){
-    return '<div class="camion-row camion-slot-empty"><span class="slot-ghost">\u00b7 \u00b7 \u00b7 \u00b7 \u00b7</span></div>';
+    return '<div class="camion-row camion-slot-empty"><span class="slot-ghost">· · · · ·</span></div>';
   }
   function buildPartiRow(snap){
     return '<div class="camion-row is-parti" data-camion="'+snap.num+'" style="position:relative;overflow:hidden;">' +
       '<span class="camion-num" style="position:relative;">Camion '+snap.num+'</span>' +
       '<span class="camion-heure" style="position:relative;">'+(snap.heure||'')+'</span>' +
-      '<span style="position:relative;font-family:\'Playfair Display\',serif;font-size:1rem;font-weight:700;color:var(--text-muted);">\u2014</span>' +
+      '<span style="position:relative;font-family:\'Playfair Display\',serif;font-size:1rem;font-weight:700;color:var(--text-muted);">—</span>' +
       '<span class="camion-badge parti" style="position:relative;">Parti</span>' +
-      '<span class="depart-hint">Annuler \u2039</span>' +
+      '<span class="depart-hint">Annuler ‹</span>' +
     '</div>';
   }
 
@@ -1708,9 +1648,7 @@ init();
 
   function lineType(line){ return line === 1 ? 'temp' : 'frais'; }
   function quaiLayout(){ return (window.__quaisCtl && window.__quaisCtl.layout) ? window.__quaisCtl.layout() : []; }
-  function anyParti(){ return (parti[1] && parti[1].length) || (parti[2] && parti[2].length); }
 
-  // Rend une carte ligne : zone "parti" (haut) + zone alignee par type de quai.
   function transform(line){
     const card = lineCard(line);
     const list = card ? card.querySelector('.camions-list') : null;
@@ -1721,8 +1659,6 @@ init();
     snaps.forEach(function(s){ partiNums[String(s.num)] = true; });
     const tubes = orig.filter(function(o){ return !partiNums[String(o.num)]; });
 
-    // 1) Zone "parti" en haut. Toujours reservee (1 rangee) pour laisser la place
-    //    au tube parti ; vide (reserve discrete) quand aucun camion n'est parti.
     const partiZone = 1;
     const top = [];
     if(partiZone){
@@ -1730,14 +1666,10 @@ init();
         const last = snaps.reduce(function(a, b){ return (b.seq || 0) >= (a.seq || 0) ? b : a; });
         top.push(buildPartiRow(last));
       } else {
-        top.push(buildEmptySlot());            // reserve discrete cote ligne sans parti
+        top.push(buildEmptySlot());
       }
     }
 
-    // 2) Zone alignee : une rangee par quai (ordre carrousel).
-    //    quai de MON type -> prochain tube ; quai OFF (en attente, clignote) -> accepte
-    //    AUSSI un tube (les 2 lignes peuvent le prendre tant qu'aucun type n'est choisi) ;
-    //    quai de l'AUTRE type -> slot "gap".
     const layout = quaiLayout();
     const myType = lineType(line);
     const aligned = [];
@@ -1747,7 +1679,6 @@ init();
       if(accepte && ti < tubes.length){ aligned.push(tubes[ti].html); ti++; }
       else { aligned.push(buildGapSlot()); }
     });
-    // 3) Tubes en trop (plus de camions que de quais de mon type) : empiles dessous.
     for(; ti < tubes.length; ti++){ aligned.push(tubes[ti].html); }
 
     const rowsHTML = top.concat(aligned);
@@ -1757,24 +1688,21 @@ init();
   }
 
   function relayout(){ transform(1); transform(2); requestAnimationFrame(function(){ window.dispatchEvent(new Event('resize')); }); }
-  window.__onQuaisChanged = relayout;   // appele quand l'etat/cote d'un quai change
+  window.__onQuaisChanged = relayout;
 
-  // Apres chaque rendu data : capturer les rangees fraiches puis re-appliquer l'affichage.
   function applyAll(){
     let touched = false;
     [1,2].forEach(function(line){
       const card = lineCard(line);
       const list = card ? card.querySelector('.camions-list') : null;
       if(!list) return;
-      if(list.getAttribute('data-parti-applied') === '1') return;  // deja traite
+      if(list.getAttribute('data-parti-applied') === '1') return;
       capture(line);
       touched = true;
     });
     if(touched){ syncQuais(); relayout(); }
   }
 
-  // ----- Carrousel des quais : ordre recalcule depuis l'historique des departs -----
-  // Chaque depart (chronologique, toutes lignes confondues) envoie son quai en dernier.
   function allEntries(){ return [].concat(parti[1] || [], parti[2] || []); }
   function computeOrder(){
     const o = [1,2,3,4];
@@ -1789,7 +1717,6 @@ init();
   function depart(line, num, heure, row){
     parti[line] = parti[line] || [];
     if(parti[line].some(function(s){ return String(s.num) === String(num); })) return;
-    // Position du camion `num` parmi les tubes R\u00c9ELS (actifs) de sa ligne.
     let pos = -1;
     const card = lineCard(line);
     const list = card ? card.querySelector('.camions-list') : null;
@@ -1797,8 +1724,6 @@ init();
       const real = [].slice.call(list.querySelectorAll('.camion-row')).filter(isRealRow);
       pos = real.findIndex(function(r){ return String(r.getAttribute('data-camion')) === String(num); });
     }
-    // Le quai \u00e0 d\u00e9sactiver = le pos-i\u00e8me quai du M\u00caME TYPE que la ligne (alignement par type).
-    // Ex : tube 2 tempr\u00e9 \u2192 2e quai tempr\u00e9 dans l'ordre carrousel (et non le 2e quai tout court).
     const layout = (window.__quaisCtl && window.__quaisCtl.layout) ? window.__quaisCtl.layout() : [];
     const myType = (line === 1) ? 'temp' : 'frais';
     const matchNums = layout.filter(function(q){ return q.cote === myType; }).map(function(q){ return q.numero; });
@@ -1813,7 +1738,7 @@ init();
     const i = arr.findIndex(function(s){ return String(s.num) === String(num); });
     if(i < 0) return;
     const entry = arr[i];
-    arr.splice(i, 1);   // retirer d'abord pour que l'ordre se recalcule sans ce d\u00e9part
+    arr.splice(i, 1);
     if(entry.quaiId != null && window.__quaisCtl) window.__quaisCtl.restore(entry.quaiId, entry.prevState);
     save(); syncQuais(); relayout();
   }
