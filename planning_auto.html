@@ -203,7 +203,12 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opa
 .slots-tbl tbody td:not(:first-child){text-align:center;}
 .slots-tbl tbody tr.slot-passe td{opacity:.35;}
 .slots-tbl tbody tr.slot-global-confirme{border-left:3px solid var(--emerald);}
-.slots-tbl tbody tr.slot-global-annule{border-left:3px solid var(--ruby);}
+.slots-tbl tbody tr.slot-global-annule{border-left:3px solid var(--ruby);position:relative;}
+.slots-tbl tbody tr.slot-global-annule td{position:relative;z-index:1;}
+.slots-tbl tbody tr.slot-global-annule::after{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:repeating-linear-gradient(45deg, rgba(255,255,255,.04) 0 8px, transparent 8px 16px);
+}
 .slots-tbl tbody tr.slot-global-inactif{border-left:3px solid var(--text-faint);}
 .slot-label{font-family:'Playfair Display',serif;font-size:.92rem;font-weight:600;color:var(--text-primary);}
 .slot-label-chauffeur{font-size:.68rem;color:var(--copper);font-weight:600;margin-top:2px;}
