@@ -1045,7 +1045,7 @@ function renderLigne(numero, data, heuresReelles = {}, heuresDepuisSlots = {}){
   const heureFin = numero === 1 ? data.l1_heure_fin_estimee : data.l2_heure_fin_estimee;
   const statut = numero === 1 ? data.l1_statut : data.l2_statut;
   const camions = numero === 1 ? data.l1_camions : data.l2_camions;
-  const progression = numero === 1 ? (data.l1_progression_camion || 0) : (data.l2_progression_camion || 0);
+
   const statutClass = getStatutClass(statut);
   const statutLabel = getStatutLabel(statut);
 
@@ -1099,8 +1099,9 @@ function renderLigne(numero, data, heuresReelles = {}, heuresDepuisSlots = {}){
       const heureAffichee = normHeureTube(estPret
         ? (heuresReelles[`${ligneKey}-${c.camion}`] || formatHeure(c.heure))
         : (heuresDepuisSlots[`${ligneKey}-${c.camion}`] || formatHeure(c.heure)));
-      const pct = estPret ? 100 : Math.round((c.progression || 0) * 100);
-      const pctWidth = estPret ? 100 : ((c.progression || 0) * 100);
+      const estCamionCourant = !estPret && idx === camionsAffiches.findIndex(x => x.statut !== 'camion_pret');
+      const pct = estPret ? 100 : (estCamionCourant ? Math.round(progression * 100) : 0);
+      const pctWidth = estPret ? 100 : (estCamionCourant ? progression * 100 : 0);
       return `
         <div class="camion-row ${estPret ? 'pret' : ''}" data-camion="${c.camion}" style="position:relative;overflow:hidden;">
           <div class="camion-fill" style="position:absolute;top:0;left:0;height:100%;width:${pctWidth}%;background:rgba(45,212,160,0.35);pointer-events:none;"></div>
@@ -1190,18 +1191,11 @@ function renderSlots(slots){
     const lp = (window.__lineProg && window.__lineProg[ligne]) || null;
     if(!lp) return null;
     const camions = lp.camions || [];
-    const aCamionEnCours = camions.some(function(c){ return c.statut === 'en_cours'; });
-    const camionsAffiches = camions.slice();
-    if(lp.prog > 0 && !aCamionEnCours){
-      camionsAffiches.push({ camion: camions.filter(function(c){ return c.statut === 'camion_pret'; }).length + 1, statut: 'en_cours' });
-    }
-    const idx = camionsAffiches.findIndex(function(c){ return String(c.camion) === String(camionNum); });
+    const idx = camions.findIndex(function(c){ return String(c.camion) === String(camionNum); });
     if(idx < 0) return null;
-    const c = camionsAffiches[idx];
+    const c = camions[idx];
     const estPret = c.statut === 'camion_pret';
     return estPret ? 100 : Math.round((c.progression || 0) * 100);
-
-
   }
 
   function tubeConfirme(ligne, camionNum, heureFin){
@@ -1380,8 +1374,8 @@ async function chargerDonnees(){
       renderLigne(2, data, heuresReelles, heuresDepuisSlots);
 
     window.__lineProg = {
-      L1: { prog: data.l1_progression_camion || 0, camions: data.l1_camions || [] },
-      L2: { prog: data.l2_progression_camion || 0, camions: data.l2_camions || [] }
+      L1: { camions: data.l1_camions || [] },
+      L2: { camions: data.l2_camions || [] }
     };
 
     renderSlots(data.slots);
