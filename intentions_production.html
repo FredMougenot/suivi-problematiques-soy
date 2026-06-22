@@ -436,6 +436,18 @@ function fmtDate(d){
 function fmtTime(iso){
   return new Date(iso).toLocaleTimeString('fr-CA',{hour:'2-digit',minute:'2-digit'});
 }
+function getCurrentTimestampToronto(){
+  const now = new Date();
+  const torontoTime = new Date(now.toLocaleString('en-US', {timeZone: 'America/Toronto'}));
+  const yyyy = torontoTime.getFullYear();
+  const mm = String(torontoTime.getMonth()+1).padStart(2,'0');
+  const dd = String(torontoTime.getDate()).padStart(2,'0');
+  const hh = String(torontoTime.getHours()).padStart(2,'0');
+  const mn = String(torontoTime.getMinutes()).padStart(2,'0');
+  const ss = String(torontoTime.getSeconds()).padStart(2,'0');
+  const ms = String(torontoTime.getMilliseconds()).padStart(3,'0');
+  return `${yyyy}-${mm}-${dd} ${hh}:${mn}:${ss}.${ms}`;
+}
 function toast(msg, type='info'){
   const el = document.createElement('div');
   el.className = 'toast ' + type;
@@ -539,7 +551,7 @@ async function sauvegarder(){
     date: today,
     l1_actif:   document.getElementById('toggle-L1').checked,
     l2_actif:   document.getElementById('toggle-L2').checked,
-    updated_at: new Date().toISOString(),
+    updated_at: getCurrentTimestampToronto(),
   };
 
   try {
