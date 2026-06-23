@@ -564,6 +564,55 @@ tr.type-chaud:hover td{background:rgba(249,115,22,.04) !important;}
 .statut-pill.camion-pret{box-shadow:0 0 18px -6px rgba(45,212,160,.7);}
 .statut-systeme.actif{box-shadow:0 0 18px -6px rgba(45,212,160,.7);}
 
+/* ── BOUTON FORCER DÉPART ─────────────────────────────────────── */
+.btn-forcer{
+  position:relative;flex-shrink:0;
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(74,158,232,.08);
+  border:1px solid rgba(74,158,232,.25);
+  color:var(--sapphire);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:.85rem;cursor:pointer;
+  transition:all .18s var(--ease);
+  z-index:5;
+}
+.btn-forcer:hover{
+  background:rgba(74,158,232,.18);
+  border-color:rgba(74,158,232,.6);
+  box-shadow:0 0 10px -3px rgba(74,158,232,.5);
+  transform:scale(1.1);
+}
+.btn-forcer.force-actif{
+  background:rgba(232,164,58,.12);
+  border-color:rgba(232,164,58,.5);
+  color:var(--amber);
+  box-shadow:0 0 10px -3px rgba(232,164,58,.4);
+}
+.btn-forcer.force-actif:hover{
+  background:rgba(224,85,85,.12);
+  border-color:rgba(224,85,85,.5);
+  color:var(--ruby);
+  box-shadow:0 0 10px -3px rgba(224,85,85,.4);
+}
+.btn-forcer.loading{
+  pointer-events:none;
+  border-color:rgba(74,158,232,.4);
+  color:transparent;
+}
+/* Spinner */
+.btn-forcer.loading::after{
+  content:'';
+  position:absolute;inset:4px;
+  border:2px solid rgba(74,158,232,.2);
+  border-top-color:var(--sapphire);
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.camion-row .btn-forcer{ margin-left:auto; }
+.camion-row.force-en-attente{ opacity:.6; }
+
 /* ── Slots table ──────────────────────────────────────────────────── */
 .slots-outer{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)),var(--bg-raised);box-shadow:0 26px 64px -46px rgba(0,0,0,.9);}
 .slots-tbl thead th{color:var(--teal-soft);letter-spacing:.16em;}
@@ -979,6 +1028,60 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
+const WEBHOOK_URL = 'https://financial-gumdrop-jelly.ngrok-free.app/webhook/forcer-depart';
+
+// État local des overrides (mis à jour depuis Supabase)
+let overridesManuels = { L1: [], L2: [] };
+
+async function chargerOverrides(){
+  const today = localToday();
+  const { data } = await sb.from('overrides_manuels')
+    .select('ligne, camion')
+    .eq('date', today)
+    .eq('force_pret', true);
+  overridesManuels = { L1: [], L2: [] };
+  (data || []).forEach(r => {
+    if(!overridesManuels[r.ligne]) overridesManuels[r.ligne] = [];
+    overridesManuels[r.ligne].push(r.camion);
+  });
+}
+
+async function toggleForcerDepart(btn, ligne, camion){
+  const estForce = (overridesManuels[ligne] || []).includes(camion);
+  btn.classList.add('loading');
+  btn.classList.remove('force-actif');
+
+  try {
+    const today = localToday();
+    if(estForce){
+      // Annuler
+      await sb.from('overrides_manuels')
+        .delete()
+        .eq('date', today).eq('ligne', ligne).eq('camion', camion);
+      overridesManuels[ligne] = (overridesManuels[ligne] || []).filter(c => c !== camion);
+      toast(`Forçage annulé — ${ligne} Camion ${camion}`, 'info');
+    } else {
+      // Forcer
+      await sb.from('overrides_manuels')
+        .upsert({ date: today, ligne, camion, force_pret: true }, { onConflict: 'date,ligne,camion' });
+      if(!overridesManuels[ligne]) overridesManuels[ligne] = [];
+      overridesManuels[ligne].push(camion);
+      toast(`Forçage activé — ${ligne} Camion ${camion} · Recalcul en cours…`, 'success');
+    }
+
+    // Déclencher le webhook n8n pour recalcul immédiat
+    fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ligne, camion, action: estForce ? 'annuler' : 'forcer' }) })
+      .catch(() => {}); // non bloquant
+
+    // Recharger l'affichage après ~8 sec (temps que n8n recalcule)
+    setTimeout(() => chargerDonnees(), 8000);
+
+  } catch(e) {
+    toast('Erreur lors du forçage', 'error');
+  } finally {
+    btn.classList.remove('loading');
+  }
+}
 
 // ── Helpers ──────────────────────────────────────────────────────────
 function localToday(){
@@ -1092,6 +1195,14 @@ function renderLigne(numero, data, heuresReelles = {}, heuresDepuisSlots = {}){
         : (heuresDepuisSlots[`${ligneKey}-${c.camion}`] || formatHeure(c.heure)));
       const pct = estPret ? 100 : Math.round((c.progression || 0) * 100);
       const pctWidth = estPret ? 100 : ((c.progression || 0) * 100);
+      const estForce = (overridesManuels[ligneKey] || []).includes(c.camion);
+      const btnForcer = (!estPret) ? `
+        <button class="btn-forcer ${estForce ? 'force-actif' : ''}"
+          data-ligne="${ligneKey}" data-camion="${c.camion}"
+          onclick="event.stopPropagation(); toggleForcerDepart(this, '${ligneKey}', ${c.camion})"
+          title="${estForce ? 'Annuler le forçage' : 'Forcer le départ maintenant'}">
+          ${estForce ? '⚡' : '▶'}
+        </button>` : '';
       return `
         <div class="camion-row ${estPret ? 'pret' : ''}" data-camion="${c.camion}" style="position:relative;overflow:hidden;">
           <div class="camion-fill" style="position:absolute;top:0;left:0;height:100%;width:${pctWidth}%;background:rgba(45,212,160,0.35);pointer-events:none;"></div>
@@ -1099,6 +1210,7 @@ function renderLigne(numero, data, heuresReelles = {}, heuresDepuisSlots = {}){
           <span class="camion-heure" style="position:relative;">${heureAffichee}</span>
           <span style="position:relative;font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:#2DD4A0;">${pct}%</span>
           <span class="camion-badge ${estPret ? 'pret' : 'en-cours'}" style="position:relative;">${estPret ? 'Prêt' : 'En cours'}</span>
+          ${btnForcer}
           <span class="depart-hint">Marquer parti ›</span>
         </div>
       `;
@@ -1301,6 +1413,9 @@ function renderSlots(slots){
 async function chargerDonnees(){
   const today = localToday();
   document.getElementById('date-affichee').textContent = fmtDate(today);
+
+  // Charger les overrides manuels en parallèle
+  await chargerOverrides();
 
   try {
     const {data, error} = await sb
