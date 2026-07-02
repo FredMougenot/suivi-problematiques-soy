@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<!-- planning auto 2 · version REACT (CDN, sans build) · aperçu -->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Expédition SOY · Planning Automatique (React)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-void:#06070B;--bg-deep:#0B0D13;--bg-base:#0F1118;
+  --bg-raised:#15181F;--bg-float:#1A1E2A;--bg-hover:#1F2436;--bg-active:#242B40;
+  --copper:#C8843A;--copper-light:#E0A870;--copper-pale:#EDD4A8;
+  --copper-glow:rgba(200,132,58,.22);--copper-dim:rgba(200,132,58,.10);
+  --text-primary:#F0EAE0;--text-secondary:#BEC5D6;
+  --text-muted:#7A82A0;--text-faint:#2C3350;
+  --emerald:#2DD4A0;--emerald-bg:rgba(45,212,160,.08);
+  --ruby:#E05555;--ruby-bg:rgba(224,85,85,.08);
+  --amber:#E8A43A;--amber-bg:rgba(232,164,58,.08);
+  --sapphire:#4A9EE8;--sapphire-bg:rgba(74,158,232,.08);
+  --r-sm:4px;--r-md:10px;--r-lg:16px;--r-xl:24px;
+  --shadow-md:0 4px 16px rgba(0,0,0,.5);
+  --shadow-lg:0 16px 48px rgba(0,0,0,.6);
+  --ease:cubic-bezier(.4,0,.2,1);--t-fast:.15s;--t-base:.25s;
+  --teal:#19e0c8; --teal-soft:#3ff0dd; --teal-deep:#0a6b62;
+  --ice:#5ec8f0; --ice-soft:#bdecff;
+  --warm:#E8A43A; --warm-soft:#F4C77A;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:15px;scroll-behavior:smooth;}
+body{font-family:'Outfit',sans-serif;background:var(--bg-void);color:var(--text-primary);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit;}
+a{color:inherit;text-decoration:none;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--text-faint);border-radius:5px;}
+
+/* AUTH */
+.auth-wrap{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.auth-panel{width:100%;max-width:440px;}
+.auth-logo-zone{text-align:center;margin-bottom:44px;padding-bottom:32px;border-bottom:1px solid var(--text-faint);position:relative;}
+.auth-monogram{display:inline-flex;align-items:center;justify-content:center;width:60px;height:60px;border:1px solid rgba(184,115,51,.25);border-radius:50%;margin-bottom:18px;}
+.auth-letter{font-family:'Playfair Display',serif;font-style:italic;font-size:1.4rem;color:var(--copper-light);}
+.auth-name{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:600;margin-bottom:5px;}
+.auth-tagline{font-size:.68rem;font-weight:500;color:var(--text-muted);letter-spacing:.2em;text-transform:uppercase;}
+.auth-h{font-family:'Playfair Display',serif;font-size:1.65rem;margin-bottom:8px;}
+.auth-p{font-size:.82rem;color:var(--text-secondary);margin-bottom:32px;font-weight:300;line-height:1.6;}
+.fld{margin-bottom:20px;}
+.fld-lbl{display:block;font-size:.67rem;font-weight:700;color:var(--copper);letter-spacing:.18em;text-transform:uppercase;margin-bottom:9px;}
+.fld-inp{width:100%;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:13px 16px;font-size:.88rem;color:var(--text-primary);}
+.fld-inp:focus{border-color:var(--copper);outline:none;box-shadow:0 0 0 3px var(--copper-glow);}
+.btn-auth{width:100%;padding:14px;background:var(--copper);color:var(--bg-void);font-size:.85rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border-radius:var(--r-md);}
+.btn-auth:hover{background:var(--copper-light);}
+.auth-err{margin-top:16px;padding:12px 16px;background:var(--ruby-bg);border:1px solid rgba(224,85,85,.2);border-radius:var(--r-md);font-size:.82rem;color:var(--ruby);}
+
+/* APP */
+.main{min-height:100vh;background:var(--bg-void);}
+.content{position:relative;padding:30px;}
+.content::before{
+  content:'';position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(1100px 620px at 82% -8%, rgba(25,224,200,.08), transparent 60%),
+    radial-gradient(860px 600px at -6% 108%, rgba(200,132,58,.06), transparent 55%),
+    linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+  background-size:auto,auto,56px 56px,56px 56px;
+  -webkit-mask-image:radial-gradient(130% 80% at 50% 0%,#000 35%,transparent 85%);
+          mask-image:radial-gradient(130% 80% at 50% 0%,#000 35%,transparent 85%);
+}
+.content>*{position:relative;z-index:1;}
+.topbar{position:sticky;top:0;z-index:100;height:60px;background:rgba(8,10,14,.88);backdrop-filter:blur(16px) saturate(180%);border-bottom:1px solid var(--text-faint);padding:0 30px;display:flex;align-items:center;justify-content:space-between;}
+.tb-left{display:flex;align-items:center;gap:16px;min-width:0;}
+.btn-back{display:inline-flex;align-items:center;gap:8px;font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:600;color:var(--text-secondary);background:rgba(255,255,255,.03);border:1px solid var(--text-faint);border-radius:10px;padding:9px 15px;white-space:nowrap;}
+.btn-back:hover{color:var(--teal-soft);border-color:rgba(25,224,200,.32);background:rgba(25,224,200,.06);}
+.tb-title{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:600;}
+.tb-sub{font-size:.72rem;color:var(--text-muted);font-weight:300;}
+.btn-refresh{display:flex;align-items:center;gap:7px;padding:8px 16px;background:rgba(25,224,200,.08);border:1px solid rgba(25,224,200,.28);border-radius:var(--r-md);color:var(--teal-soft);font-size:.8rem;font-weight:600;}
+.btn-refresh:hover{background:rgba(25,224,200,.16);}
+.badge-react{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:#61dafb;background:rgba(97,218,251,.08);border:1px solid rgba(97,218,251,.3);border-radius:20px;padding:4px 10px;margin-left:10px;}
+
+/* TOAST */
+.toasts{position:fixed;bottom:22px;right:22px;z-index:9997;display:flex;flex-direction:column;gap:9px;}
+.toast{display:flex;align-items:center;gap:11px;padding:12px 16px;background:var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);box-shadow:var(--shadow-lg);font-size:.82rem;min-width:270px;border-left:2px solid var(--copper);}
+.toast.success{border-left-color:var(--emerald);}
+.toast.error{border-left-color:var(--ruby);}
+.toast.info{border-left-color:var(--sapphire);}
+
+/* MISE À JOUR */
+.maj-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding:12px 18px;background:var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-md);position:relative;}
+.maj-info{font-size:.78rem;color:var(--text-muted);}
+.maj-info strong{color:var(--text-secondary);}
+.maj-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);margin-right:6px;animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.statut-systeme{position:absolute;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:20px;font-size:.72rem;font-weight:700;}
+.statut-systeme.actif{background:var(--emerald-bg);color:var(--emerald);border:1px solid rgba(45,212,160,.2);}
+.statut-systeme.arrete{background:var(--ruby-bg);color:var(--ruby);border:1px solid rgba(224,85,85,.2);}
+.statut-systeme-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.statut-systeme.actif .statut-systeme-dot{background:var(--emerald);animation:pulse 2s ease-in-out infinite;}
+.statut-systeme.arrete .statut-systeme-dot{background:var(--ruby);}
+
+/* GRID */
+.lignes-grid{display:grid;grid-template-columns:1fr minmax(220px,.62fr) 1fr;gap:24px;margin-bottom:30px;align-items:start;}
+@media(max-width:900px){.lignes-grid{grid-template-columns:1fr;}}
+
+/* LIGNE CARD */
+.ligne-card{background:linear-gradient(180deg,rgba(255,255,255,.022),rgba(255,255,255,0)),var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow:hidden;box-shadow:0 26px 64px -42px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.04);}
+.ligne-card.ligne-1{border-color:rgba(232,164,58,.22);}
+.ligne-card.ligne-2{border-color:rgba(94,200,240,.22);}
+.ligne-head{min-height:76px;box-sizing:border-box;padding:16px 22px;border-bottom:1px solid var(--text-faint);display:flex;align-items:center;justify-content:space-between;}
+.ligne-head.ligne-1{background:linear-gradient(to bottom, rgba(200,132,58,1) 0%, rgba(200,132,58,0.3) 50%, rgba(200,132,58,0) 100%);}
+.ligne-head.ligne-2{background:linear-gradient(to bottom, rgba(6,24,69,1) 0%, rgba(6,24,69,0.3) 50%, rgba(6,24,69,0) 100%);}
+.ligne-head-left{display:flex;align-items:center;gap:10px;position:relative;min-height:40px;}
+.ligne-num{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;}
+.ligne-accent{display:block;width:3px;height:18px;border-radius:2px;flex-shrink:0;}
+.ligne-1 .ligne-accent{background:var(--copper);}
+.ligne-2 .ligne-accent{background:var(--sapphire);}
+.temp-pill{font-family:'Space Grotesk',sans-serif;font-size:.92rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:6px 15px;border-radius:24px;border:1.5px solid;line-height:1;white-space:nowrap;margin-left:4px;}
+.temp-pill.warm{color:var(--warm-soft);background:rgba(232,164,58,.16);border-color:rgba(232,164,58,.5);}
+.temp-pill.ice{color:var(--ice-soft);background:rgba(94,200,240,.16);border-color:rgba(94,200,240,.5);}
+.statut-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:700;}
+.statut-pill.en-cours{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(232,164,58,.2);}
+.statut-pill.camion-pret{background:var(--emerald-bg);color:var(--emerald);border:1px solid rgba(45,212,160,.2);}
+.statut-pill.inactive{background:var(--ruby-bg);color:var(--ruby);border:1px solid rgba(224,85,85,.2);}
+.statut-dot{width:6px;height:6px;border-radius:50%;}
+.statut-pill.en-cours .statut-dot{background:var(--amber);}
+.statut-pill.camion-pret .statut-dot{background:var(--emerald);}
+.statut-pill.inactive .statut-dot{background:var(--ruby);}
+.ligne-body{padding:20px 22px;}
+.kpi-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
+.kpi-mini{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)),var(--bg-float);border:1px solid var(--text-faint);border-radius:var(--r-md);padding:12px 14px;}
+.kpi-mini-lbl{font-size:.62rem;font-weight:700;color:var(--text-muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px;}
+.kpi-mini-val{font-family:'JetBrains Mono',monospace;font-size:1.4rem;font-weight:700;}
+.ligne-1 .kpi-mini-val{color:var(--warm-soft);}
+.ligne-2 .kpi-mini-val{color:var(--ice-soft);}
+.kpi-mini-sub{font-size:.7rem;color:var(--text-muted);margin-top:2px;}
+.camions-title{font-size:.67rem;font-weight:700;color:var(--teal-soft);letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px;}
+.camions-list{display:flex;flex-direction:column;gap:6px;}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-muted);}
+.empty-ico{font-size:2rem;margin-bottom:12px;}
+.empty-txt{font-size:.85rem;}
+
+/* CAMION ROW = tube */
+.camion-row{position:relative;min-height:48px;padding:11px 14px;display:flex;align-items:center;gap:7px;border-radius:999px;border:1px solid rgba(255,255,255,.10);
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0) 46%, rgba(0,0,0,.30)), repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px, transparent 25%), #0c1017;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.13), inset 0 2px 9px rgba(0,0,0,.6), inset 0 -9px 18px rgba(0,0,0,.45);overflow:hidden;cursor:pointer;}
+.camion-row:hover{border-color:rgba(25,224,200,.55);}
+.camion-fill{position:absolute;top:0;left:0;height:100%;z-index:1;border-radius:999px 7px 7px 999px;
+  background:linear-gradient(180deg, rgba(255,255,255,.40), rgba(255,255,255,0) 38%, rgba(0,0,0,.32)), linear-gradient(90deg, var(--teal-deep) 0%, var(--teal) 55%, var(--teal-soft) 100%);
+  box-shadow:0 0 20px rgba(25,224,200,.5), inset 0 1px 0 rgba(255,255,255,.42);transition:width 1s var(--ease);}
+.camion-row.pret .camion-fill{box-shadow:0 0 24px rgba(25,224,200,.6);}
+.camion-num,.camion-heure,.camion-pct,.camion-badge,.depart-hint{position:relative;z-index:2;}
+.camion-num{color:rgba(255,255,255,.82);font-size:.6rem;width:42px;flex-shrink:0;text-shadow:0 1px 3px rgba(0,0,0,.75);}
+.camion-heure{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:.82rem;flex:1;text-shadow:0 1px 3px rgba(0,0,0,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.camion-pct{color:#eafffb;background:rgba(3,14,12,.66);padding:3px 0;border-radius:999px;border:1px solid rgba(25,224,200,.4);font-size:.74rem;width:38px;text-align:center;flex:none;}
+.camion-badge{font-family:'Playfair Display',serif;font-size:.68rem;font-weight:700;padding:3px 0;border-radius:999px;width:54px;text-align:center;flex:none;}
+.camion-badge.pret{color:var(--emerald);background:rgba(3,14,12,.66);border:1px solid rgba(45,212,160,.5);}
+.camion-badge.en-cours{color:var(--amber);background:rgba(14,9,2,.66);border:1px solid rgba(232,164,58,.5);}
+.camion-badge.parti{color:var(--text-muted);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);}
+.depart-hint{position:absolute;right:12px;top:50%;transform:translateY(-50%);z-index:4;font-family:'Space Grotesk',sans-serif;font-size:.56rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:999px;white-space:nowrap;background:rgba(3,12,12,.88);border:1px solid rgba(25,224,200,.45);color:var(--teal-soft);opacity:0;transition:opacity .18s;pointer-events:none;}
+.camion-row:hover .depart-hint{opacity:1;}
+.camion-row.is-parti{opacity:.62;background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0) 46%, rgba(0,0,0,.34)), repeating-linear-gradient(45deg, rgba(255,255,255,.055) 0 7px, transparent 7px 14px), #0a0d12;}
+.camion-row.is-parti .camion-num,.camion-row.is-parti .camion-heure{color:var(--text-muted);}
+.camion-row.camion-slot-empty{cursor:default;background:rgba(255,255,255,.012);border:1px dashed rgba(255,255,255,.09);justify-content:center;}
+.slot-ghost{font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:var(--text-faint);}
+
+/* SECTION HEADER */
+.sec-h{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--text-faint);position:relative;}
+.sec-h::after{content:'';position:absolute;bottom:-1px;left:0;width:42px;height:2px;background:var(--teal);box-shadow:0 0 10px var(--teal);}
+.sec-title{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:600;}
+.sec-sub{font-size:.73rem;color:var(--text-muted);margin-top:3px;font-weight:300;}
+
+/* SLOTS TABLE */
+.slots-outer{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)),var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);overflow:hidden;margin-bottom:30px;}
+.slots-tbl{width:100%;border-collapse:collapse;}
+.slots-tbl thead tr{background:rgba(255,255,255,.018);border-bottom:2px solid var(--text-faint);}
+.slots-tbl thead th{padding:12px 16px;text-align:left;font-size:.62rem;font-weight:800;color:var(--teal-soft);letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;}
+.slots-tbl thead th:not(:first-child){text-align:center;}
+.slots-tbl tbody tr{border-bottom:1px solid var(--text-faint);}
+.slots-tbl tbody tr:last-child{border-bottom:none;}
+.slots-tbl tbody tr:hover td{background:rgba(25,224,200,.025);}
+.slots-tbl tbody td{padding:12px 16px;font-size:.84rem;vertical-align:middle;}
+.slots-tbl tbody td:not(:first-child){text-align:center;}
+.slots-tbl tbody tr.slot-passe td{opacity:.35;}
+.slots-tbl tbody tr.slot-global-confirme{border-left:3px solid var(--teal);}
+.slots-tbl tbody tr.slot-global-annule{border-left:3px solid var(--ruby);}
+.slots-tbl tbody tr.slot-global-inactif{border-left:3px solid var(--text-faint);}
+.slot-label{font-family:'Playfair Display',serif;font-size:.92rem;font-weight:600;}
+.slot-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:700;}
+.slot-badge.confirme{background:var(--emerald-bg);color:var(--emerald);border:1px solid rgba(45,212,160,.2);}
+.slot-badge.annule{background:var(--ruby-bg);color:var(--ruby);border:1px solid rgba(224,85,85,.2);}
+.slot-badge.inactive{background:var(--bg-float);color:var(--text-muted);border:1px solid var(--text-faint);}
+.slot-badge.cadence_inconnue{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(232,164,58,.2);}
+.slot-badge-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.slot-badge.confirme .slot-badge-dot{background:var(--emerald);}
+.slot-badge.annule .slot-badge-dot{background:var(--ruby);}
+.slot-badge.inactive .slot-badge-dot{background:var(--text-muted);}
+.slot-badge.cadence_inconnue .slot-badge-dot{background:var(--amber);}
+.slot-dest{display:inline-block;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;letter-spacing:.04em;background:rgba(200,132,58,.10);color:var(--copper-light);border:1px solid rgba(200,132,58,.28);}
+.slot-pct-num{font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:600;color:#eafffb;}
+.temp-btn{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:700;border:1px solid transparent;}
+.temp-btn.froid{background:rgba(30,58,95,.3);border-color:rgba(96,165,250,.2);color:#93C5FD;}
+.temp-btn.froid.active{background:linear-gradient(135deg,rgba(10,22,40,.9),rgba(30,58,95,.9));border-color:#60A5FA;color:#BAE6FD;}
+.temp-btn.chaud{background:rgba(61,18,0,.3);border-color:rgba(251,146,60,.2);color:#FCA5A5;}
+.temp-btn.chaud.active{background:linear-gradient(135deg,rgba(26,8,0,.9),rgba(61,18,0,.9));border-color:#F97316;color:#FED7AA;}
+tr.type-froid{background:linear-gradient(90deg,rgba(10,22,40,.95) 0%,rgba(20,40,80,.6) 40%,rgba(232,244,253,.04) 100%) !important;}
+tr.type-chaud{background:linear-gradient(90deg,rgba(26,8,0,.95) 0%,rgba(80,20,0,.6) 40%,rgba(254,215,170,.04) 100%) !important;}
+.btn-forcer-slot{width:26px;height:26px;border-radius:50%;background:rgba(74,158,232,.08);border:1px solid rgba(74,158,232,.3);color:var(--sapphire);display:inline-flex;align-items:center;justify-content:center;font-size:.72rem;position:relative;vertical-align:middle;margin-left:6px;flex-shrink:0;}
+.btn-forcer-slot:hover{background:rgba(74,158,232,.2);border-color:rgba(74,158,232,.7);}
+.btn-forcer-slot.force-actif{background:rgba(232,164,58,.12);border-color:rgba(232,164,58,.55);color:var(--amber);}
+.btn-forcer-slot.loading{pointer-events:none;opacity:.5;}
+
+/* QUAIS CENTER CARD */
+.quais-center-card{align-self:start;display:flex;flex-direction:column;position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.022),rgba(255,255,255,0)),var(--bg-raised);border:1px solid var(--text-faint);border-radius:var(--r-lg);box-shadow:0 26px 64px -42px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.04);}
+.qcc-head{padding:16px 18px;border-bottom:1px solid var(--text-faint);min-height:76px;box-sizing:border-box;background:linear-gradient(to bottom, rgba(25,224,200,.7) 0%, rgba(25,224,200,.22) 50%, rgba(25,224,200,0) 100%);display:flex;align-items:center;gap:10px;}
+.qcc-accent{display:block;width:3px;height:18px;border-radius:2px;background:var(--teal);flex-shrink:0;box-shadow:0 0 8px var(--teal);}
+.qcc-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;}
+.qcc-body{flex:1;padding:20px 16px;display:flex;flex-direction:column;}
+.qcc-count{font-family:'JetBrains Mono',monospace;font-size:1.4rem;font-weight:600;color:var(--teal-soft);}
+.qcc-count b{font-size:1.9rem;}
+.qcc-count-lbl{display:block;font-family:'Outfit',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--text-muted);margin-top:6px;}
+.qcc-hint{font-size:.7rem;color:var(--text-muted);line-height:1.5;margin-top:12px;max-width:90%;}
+.qcc-grid{display:flex;flex-direction:column;gap:6px;flex:1;min-height:120px;margin-top:16px;}
+.quai-row{display:grid;grid-template-columns:34px 1fr 1fr;gap:7px;align-items:stretch;min-height:54px;}
+.quai-off{display:flex;align-items:center;justify-content:center;border:1px solid var(--text-faint);border-radius:10px;background:rgba(255,255,255,.02);color:var(--text-muted);}
+.quai-off svg{width:16px;height:16px;}
+.quai-off:hover{color:var(--text-primary);border-color:var(--text-muted);}
+.quai-row.state-off .quai-off{color:var(--ruby);border-color:rgba(224,85,85,.45);background:rgba(224,85,85,.08);}
+.quai-side{position:relative;overflow:hidden;text-align:left;border:1px solid var(--text-faint);border-radius:11px;padding:6px 9px;display:flex;flex-direction:column;gap:3px;justify-content:space-between;background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)),#12161f;opacity:.5;}
+.quai-side:hover{opacity:.85;border-color:var(--text-muted);}
+.quai-side.is-active{opacity:1;}
+.quai-side.temp.is-active{border-color:rgba(232,164,58,.55);background:linear-gradient(180deg,rgba(232,164,58,.09),rgba(255,255,255,0)),#1b150e;}
+.quai-side.frais.is-active{border-color:rgba(94,200,240,.55);background:linear-gradient(180deg,rgba(94,200,240,.09),rgba(255,255,255,0)),#0e1920;}
+.qs-top{display:flex;align-items:center;justify-content:space-between;gap:5px;}
+.qs-id{font-family:'JetBrains Mono',monospace;font-size:.64rem;font-weight:700;}
+.qs-ligne{font-size:.46rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:2px 5px;border-radius:20px;border:1px solid;white-space:nowrap;}
+.qs-ligne.temp{color:var(--warm-soft);background:rgba(232,164,58,.12);border-color:rgba(232,164,58,.4);}
+.qs-ligne.frais{color:var(--ice-soft);background:rgba(94,200,240,.12);border-color:rgba(94,200,240,.4);}
+.qs-bottom{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.qs-type{font-size:.62rem;font-weight:600;color:var(--text-muted);}
+.quai-side.temp.is-active .qs-type{color:var(--warm-soft);}
+.quai-side.frais.is-active .qs-type{color:var(--ice-soft);}
+.qs-dot{width:7px;height:7px;border-radius:50%;background:var(--text-faint);flex:none;}
+.quai-side.temp.is-active .qs-dot{background:var(--amber);}
+.quai-side.frais.is-active .qs-dot{background:var(--ice);}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.25.0/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
+const WEBHOOK_URL = 'https://n8ninstance.n8ntools.cfd/webhook/forcer-depart';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── Helpers ──────────────────────────────────────────────────────────
+function localToday(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function fmtDate(d){
+  return new Date(d+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+function fmtTime(iso){
+  return new Date(iso).toLocaleTimeString('fr-CA',{hour:'2-digit',minute:'2-digit'});
+}
+function formatHeure(h){
+  if(!h) return '—';
+  if(h.includes && (h.includes('T') || h.includes('-'))){
+    const d = new Date(h);
+    if(!isNaN(d)) return String(d.getHours()).padStart(2,'0') + ' h ' + String(d.getMinutes()).padStart(2,'0');
+  }
+  const parts = String(h).split(':');
+  if(parts.length >= 2){
+    let hh = parseInt(parts[0], 10);
+    if(!isNaN(hh) && hh >= 24) hh -= 24;
+    const hStr = isNaN(hh) ? parts[0] : String(hh).padStart(2,'0');
+    return `${hStr} h ${parts[1]}`;
+  }
+  return h;
+}
+function normHeureTube(str){
+  if(typeof str !== 'string') return str;
+  const m = str.match(/^(\d{1,2})\s*[h:]\s*(\d{2})\b/);
+  if(!m) return str;
+  let hh = parseInt(m[1], 10);
+  if(hh >= 24) hh -= 24;
+  return String(hh).padStart(2,'0') + 'h' + m[2];
+}
+function heureLabelSlot(heure){
+  if(!heure) return null;
+  const match = heure.match(/^(\d+)h(\d{2})$/);
+  if(match){
+    let h = parseInt(match[1]);
+    const m = match[2];
+    if(h >= 24){ h -= 24; return { txt: `${String(h).padStart(2,'0')}h${m}`, lendemain:true }; }
+  }
+  return { txt: heure, lendemain:false };
+}
+function getStatutClass(statut){
+  if(statut === 'en_cours') return 'en-cours';
+  if(statut === 'camion_pret') return 'camion-pret';
+  return 'inactive';
+}
+function getStatutLabel(statut){
+  if(statut === 'en_cours') return 'En cours';
+  if(statut === 'camion_pret') return 'Camion prêt';
+  return 'Inactive';
+}
+
+// ── Toasts ───────────────────────────────────────────────────────────
+function Toasts({ toasts }){
+  return (
+    <div className="toasts">
+      {toasts.map(t => (
+        <div key={t.id} className={"toast " + t.type}>{t.msg}</div>
+      ))}
+    </div>
+  );
+}
+
+// ── Auth ─────────────────────────────────────────────────────────────
+function AuthPage({ onLogin }){
+  const [email, setEmail] = useState('');
+  const [pwd, setPwd] = useState('');
+  const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function submit(){
+    setErr('');
+    if(!email || !pwd){ setErr('Remplissez tous les champs.'); return; }
+    setBusy(true);
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
+    setBusy(false);
+    if(error){
+      console.error('Erreur de connexion Supabase:', error);
+      setErr(error.message || 'Identifiants incorrects.');
+      return;
+    }
+    onLogin(data.user);
+  }
+
+  return (
+    <div className="auth-wrap">
+      <div className="auth-panel">
+        <div className="auth-logo-zone">
+          <div className="auth-monogram"><span className="auth-letter">S</span></div>
+          <div className="auth-name">Expédition SOY</div>
+          <div className="auth-tagline">Planning automatique · React</div>
+        </div>
+        <div className="auth-h">Connexion</div>
+        <div className="auth-p">Accès réservé aux membres autorisés.</div>
+        <div className="fld">
+          <label className="fld-lbl">Adresse courriel</label>
+          <input className="fld-inp" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="votre@courriel.com" />
+        </div>
+        <div className="fld">
+          <label className="fld-lbl">Mot de passe</label>
+          <input className="fld-inp" type="password" value={pwd} onChange={e=>setPwd(e.target.value)}
+            onKeyDown={e=>{ if(e.key==='Enter') submit(); }} placeholder="••••••••" />
+        </div>
+        <button className="btn-auth" onClick={submit} disabled={busy}>{busy ? 'Connexion…' : 'Accéder'}</button>
+        {err && <div className="auth-err">{err}</div>}
+      </div>
+    </div>
+  );
+}
+
+// ── Camion row (tube) ───────────────────────────────────────────────
+function CamionRow({ ligneKey, c, heureAffichee, onDepart, isParti }){
+  if(isParti){
+    return (
+      <div className="camion-row is-parti" onClick={() => onDepart(c.camion, true)}>
+        <span className="camion-num">Camion {c.camion}</span>
+        <span className="camion-heure">{heureAffichee}</span>
+        <span className="camion-pct" style={{color:'var(--text-muted)',background:'transparent',border:'none'}}>—</span>
+        <span className="camion-badge parti">Parti</span>
+        <span className="depart-hint">Annuler ‹</span>
+      </div>
+    );
+  }
+  const estPret = c.statut === 'camion_pret';
+  const pct = estPret ? 100 : Math.round((c.progression || 0) * 100);
+  return (
+    <div className={"camion-row" + (estPret ? " pret" : "")} onClick={() => onDepart(c.camion, false)}>
+      <div className="camion-fill" style={{ width: pct + '%' }}></div>
+      <span className="camion-num">Camion {c.camion}</span>
+      <span className="camion-heure">{heureAffichee}</span>
+      <span className="camion-pct">{pct}%</span>
+      <span className={"camion-badge " + (estPret ? "pret" : "en-cours")}>{estPret ? 'Prêt' : 'En cours'}</span>
+      <span className="depart-hint">Marquer parti ›</span>
+    </div>
+  );
+}
+
+// ── Ligne card ───────────────────────────────────────────────────────
+function LigneCard({ numero, data, heuresReelles, heuresDepuisSlots, partiList, onDepart }){
+  const caisses = numero === 1 ? data.l1_caisses_produites : data.l2_caisses_produites;
+  const heureFin = numero === 1 ? data.l1_heure_fin_estimee : data.l2_heure_fin_estimee;
+  const statut = numero === 1 ? data.l1_statut : data.l2_statut;
+  const camions = numero === 1 ? (data.l1_camions || []) : (data.l2_camions || []);
+  const ligneKey = numero === 1 ? 'L1' : 'L2';
+  const statutClass = getStatutClass(statut);
+  const statutLabel = getStatutLabel(statut);
+  const partiNums = useMemo(() => new Set((partiList||[]).map(p => String(p.num))), [partiList]);
+
+  let body;
+  if(statut === 'inactive'){
+    body = <div className="empty-state" style={{padding:'20px'}}><div className="empty-txt">Ligne inactive aujourd'hui</div></div>;
+  } else if(!camions.length){
+    body = <div className="empty-state" style={{padding:'20px'}}><div className="empty-txt">Aucun camion prévu</div></div>;
+  } else {
+    const enCours = camions.filter(c => !partiNums.has(String(c.camion)));
+    const partis = (partiList||[]);
+    const lastParti = partis.length ? partis[partis.length-1] : null;
+    body = (
+      <div className="camions-list">
+        {lastParti && (
+          <CamionRow key={"parti-"+lastParti.num} ligneKey={ligneKey} c={{camion:lastParti.num}} heureAffichee={lastParti.heure} isParti={true} onDepart={onDepart} />
+        )}
+        {enCours.map(c => {
+          const estPret = c.statut === 'camion_pret';
+          const heureAffichee = normHeureTube(estPret
+            ? (heuresReelles[`${ligneKey}-${c.camion}`] || formatHeure(c.heure))
+            : (heuresDepuisSlots[`${ligneKey}-${c.camion}`] || formatHeure(c.heure)));
+          return <CamionRow key={c.camion} ligneKey={ligneKey} c={c} heureAffichee={heureAffichee} isParti={false} onDepart={onDepart} />;
+        })}
+      </div>
+    );
+  }
+
+  return (
+    <div className={`ligne-card ligne-${numero} statut-${statutClass}`}>
+      <div className={`ligne-head ligne-${numero}`}>
+        <div className="ligne-head-left">
+          <span className="ligne-accent"></span>
+          <span className="ligne-num">Ligne {numero}</span>
+          <span className={"temp-pill " + (numero===1?'warm':'ice')}>{numero===1 ? '☀ Tempéré' : '❄ Frais'}</span>
+        </div>
+        <span className={"statut-pill " + statutClass}><span className="statut-dot"></span>{statutLabel}</span>
+      </div>
+      <div className="ligne-body">
+        <div className="kpi-row">
+          <div className="kpi-mini">
+            <div className="kpi-mini-lbl">Caisses produites</div>
+            <div className="kpi-mini-val">{(caisses||0).toLocaleString('fr-CA')}</div>
+            <div className="kpi-mini-sub">depuis le début du remplissage</div>
+          </div>
+          <div className="kpi-mini">
+            <div className="kpi-mini-lbl">Heure de fin estimée</div>
+            <div className="kpi-mini-val">{formatHeure(heureFin)}</div>
+            <div className="kpi-mini-sub">dernier camion</div>
+          </div>
+        </div>
+        <div className="camions-title">Planning des camions</div>
+        {body}
+      </div>
+    </div>
+  );
+}
+
+// ── Quais center card ─────────────────────────────────────────────────
+const POWER_SVG = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M12 3v9"/><path d="M6.4 6.4a8 8 0 1 0 11.2 0"/>
+  </svg>
+);
+function QuaisCenterCard({ quais, setQuais }){
+  const nActifs = Object.values(quais).filter(v => v !== 'off').length;
+  function setSide(id, side){ setQuais(q => ({ ...q, [id]: side })); }
+  function setOff(id){ setQuais(q => ({ ...q, [id]: 'off' })); }
+  return (
+    <div className="quais-center-card">
+      <div className="qcc-head"><span className="qcc-accent"></span><span className="qcc-title">Quais de chargement</span></div>
+      <div className="qcc-body">
+        <div className="qcc-count"><b>{nActifs}</b> / 4<span className="qcc-count-lbl">quais actifs</span></div>
+        <p className="qcc-hint">Cliquez <b>Tempéré</b> ou <b>Frais</b> pour affecter un quai · ⏻ pour l'éteindre.</p>
+        <div className="qcc-grid">
+          {[1,2,3,4].map(id => {
+            const v = quais[id] || 'off';
+            return (
+              <div className={"quai-row" + (v==='off' ? ' state-off':'')} key={id}>
+                <button className="quai-off" onClick={() => setOff(id)} title={"Éteindre le quai "+id}>{POWER_SVG}</button>
+                <button className={"quai-side temp" + (v==='temp'?' is-active':'')} onClick={() => setSide(id,'temp')}>
+                  <div className="qs-top"><span className="qs-id">Q{id}</span><span className="qs-ligne temp">☀ Tempéré</span></div>
+                  <div className="qs-bottom"><span className="qs-type">Dry</span><span className="qs-dot"></span></div>
+                </button>
+                <button className={"quai-side frais" + (v==='frais'?' is-active':'')} onClick={() => setSide(id,'frais')}>
+                  <div className="qs-top"><span className="qs-id">Q{id}</span><span className="qs-ligne frais">❄ Frais</span></div>
+                  <div className="qs-bottom"><span className="qs-type">Réfrigé.</span><span className="qs-dot"></span></div>
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Slots table ──────────────────────────────────────────────────────
+function SlotsTable({ slots, lineProg, slotTypes, setSlotTypes, overrides, onForcer, forcingKey }){
+  if(!slots || !slots.length){
+    return <div className="empty-state"><div className="empty-txt">Aucun slot disponible</div></div>;
+  }
+  const maintenant = new Date();
+  const minutesMaintenant = maintenant.getHours()*60 + maintenant.getMinutes();
+  function slotPasse(heure){
+    const [h,m] = heure.split(':').map(Number);
+    return (h*60+m) < minutesMaintenant;
+  }
+  function pctSlot(ligne, camionNum){
+    const lp = lineProg[ligne];
+    if(!lp) return null;
+    const idx = (lp.camions||[]).findIndex(c => String(c.camion) === String(camionNum));
+    if(idx < 0) return null;
+    const c = lp.camions[idx];
+    const estPret = c.statut === 'camion_pret';
+    return estPret ? 100 : Math.round((c.progression||0)*100);
+  }
+  function toggleType(index){
+    setSlotTypes(prev => {
+      const cur = prev[index] || 'neutre';
+      const next = cur === 'neutre' ? 'froid' : cur === 'froid' ? 'chaud' : 'neutre';
+      return { ...prev, [index]: next };
+    });
+  }
+  const labels = { confirme:'Confirmé', annule:'Annulé', inactive:'Inactif', cadence_inconnue:'En attente' };
+
+  return (
+    <table className="slots-tbl">
+      <thead>
+        <tr>
+          <th>Type</th><th>Slot</th><th>Ligne 1 — TBA</th><th>Heure fin L1</th><th>Dest L1</th>
+          <th>Ligne 2 — EH1</th><th>Heure fin L2</th><th>Dest L2</th><th>Statut global</th>
+        </tr>
+      </thead>
+      <tbody>
+        {slots.map((slot, index) => {
+          const passe = slotPasse(slot.heure);
+          const typeClass = slotTypes[index] === 'froid' ? 'type-froid' : slotTypes[index] === 'chaud' ? 'type-chaud' : '';
+          const L1active = slot.ligne === 'L1';
+          const L2active = slot.ligne === 'L2';
+          const lineActive = L1active || L2active;
+          let pct = lineActive ? pctSlot(slot.ligne, slot.camion) : null;
+          if(lineActive && pct == null) pct = (slot.heureFinCamion === 'Déjà prêt') ? 100 : 0;
+          if(pct != null) pct = Math.max(0, Math.min(100, pct));
+
+          const heureL1 = L1active ? heureLabelSlot(slot.heureFinCamion) : null;
+          const heureL2 = L2active ? heureLabelSlot(slot.heureFinCamion) : null;
+          const peutForcer = lineActive && slot.statut === 'confirme'
+            && slot.heureFinCamion !== 'Déjà prêt' && slot.heureFinCamion !== 'Cadence indisponible';
+          const estForce = lineActive && (overrides[slot.ligne] || []).includes(slot.camion);
+          const isForcing = forcingKey === (slot.ligne + '-' + slot.camion);
+
+          return (
+            <tr key={index} className={`slot-global-${slot.statut} ${passe?'slot-passe':''} ${typeClass}`}>
+              <td style={{textAlign:'center', width:60}}>
+                <button className={"temp-btn " + (slotTypes[index]==='froid'?'froid active':slotTypes[index]==='chaud'?'chaud active':'')}
+                  onClick={() => toggleType(index)} title="Cliquer pour changer le type">
+                  {slotTypes[index]==='froid' ? '❄️' : slotTypes[index]==='chaud' ? '🔥' : '🌡️'}
+                </button>
+              </td>
+              <td><div className="slot-label">{slot.label || slot.heure}</div></td>
+              <td>{L1active ? <span className="slot-pct-num">{pct}%</span> : <span style={{color:'var(--text-muted)'}}>—</span>}</td>
+              <td>{heureL1 ? <span style={{fontFamily:"'Playfair Display',serif",fontSize:'.95rem',color:'var(--copper-light)',fontWeight:600}}>{heureL1.txt}{heureL1.lendemain && <span style={{fontSize:'.7rem',color:'var(--text-muted)',fontWeight:400}}> (lendemain)</span>}</span> : <span style={{color:'var(--text-muted)'}}>—</span>}</td>
+              <td>{L1active && slot.destination ? <span className="slot-dest">{slot.destination}</span> : <span style={{color:'var(--text-muted)'}}>—</span>}</td>
+              <td>{L2active ? <span className="slot-pct-num">{pct}%</span> : <span style={{color:'var(--text-muted)'}}>—</span>}</td>
+              <td>{heureL2 ? <span style={{fontFamily:"'Playfair Display',serif",fontSize:'.95rem',color:'var(--copper-light)',fontWeight:600}}>{heureL2.txt}{heureL2.lendemain && <span style={{fontSize:'.7rem',color:'var(--text-muted)',fontWeight:400}}> (lendemain)</span>}</span> : <span style={{color:'var(--text-muted)'}}>—</span>}</td>
+              <td>{L2active && slot.destination ? <span className="slot-dest">{slot.destination}</span> : <span style={{color:'var(--text-muted)'}}>—</span>}</td>
+              <td style={{whiteSpace:'nowrap'}}>
+                <span className={"slot-badge " + slot.statut}><span className="slot-badge-dot"></span>{labels[slot.statut] || slot.statut}</span>
+                {peutForcer && (
+                  <button className={"btn-forcer-slot " + (estForce?'force-actif':'') + (isForcing?' loading':'')}
+                    onClick={() => onForcer(slot.ligne, slot.camion, estForce)}
+                    title={estForce ? 'Annuler le forçage de départ' : 'Forcer le départ maintenant'}>
+                    {estForce ? '⚡' : '▶'}
+                  </button>
+                )}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+// ── App ──────────────────────────────────────────────────────────────
+function App(){
+  const [user, setUser] = useState(null);
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [data, setData] = useState(null);
+  const [heuresReelles, setHeuresReelles] = useState({});
+  const [heuresDepuisSlots, setHeuresDepuisSlots] = useState({});
+  const [overrides, setOverrides] = useState({ L1: [], L2: [] });
+  const [slotTypes, setSlotTypes] = useState({});
+  const [quais, setQuais] = useState({1:'off',2:'off',3:'off',4:'off'});
+  const [parti, setParti] = useState({1:[], 2:[]});
+  const [toasts, setToasts] = useState([]);
+  const [forcingKey, setForcingKey] = useState(null);
+  const seqRef = useRef(1);
+
+  const toast = useCallback((msg, type='info') => {
+    const id = Date.now() + Math.random();
+    setToasts(t => [...t, { id, msg, type }]);
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 4000);
+  }, []);
+
+  const chargerOverrides = useCallback(async () => {
+    const today = localToday();
+    const { data: rows } = await sb.from('overrides_manuels')
+      .select('ligne,camion').eq('date', today).eq('force_pret', true);
+    const next = { L1: [], L2: [] };
+    (rows||[]).forEach(r => { if(!next[r.ligne]) next[r.ligne]=[]; next[r.ligne].push(r.camion); });
+    setOverrides(next);
+  }, []);
+
+  const chargerDonnees = useCallback(async () => {
+    const today = localToday();
+    await chargerOverrides();
+    try {
+      const { data: row, error } = await sb.from('production_temps_reel').select('*').eq('date', today).maybeSingle();
+      if(error) throw error;
+      if(!row){ setData(null); return; }
+      setData(row);
+
+      const { data: historique } = await sb.from('historique_camions').select('ligne, camion, heure_fin').eq('date', today);
+      const hr = {};
+      (historique||[]).forEach(h => { hr[`${h.ligne}-${h.camion}`] = h.heure_fin; });
+      setHeuresReelles(hr);
+
+      const hs = {};
+      (row.slots||[]).forEach(slot => {
+        if(slot.ligne && slot.camion && slot.heureFinCamion && slot.heureFinCamion !== 'Déjà prêt'){
+          hs[`${slot.ligne}-${slot.camion}`] = slot.heureFinCamion;
+        }
+      });
+      setHeuresDepuisSlots(hs);
+    } catch(e){
+      toast('Erreur de chargement: ' + e.message, 'error');
+    }
+  }, [chargerOverrides, toast]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        if(session){ setUser(session.user); }
+      } finally { setCheckingSession(false); }
+    })();
+  }, []);
+
+  useEffect(() => {
+    if(!user) return;
+    chargerDonnees();
+    const channel = sb.channel('production_temps_reel')
+      .on('postgres_changes', { event:'*', schema:'public', table:'production_temps_reel' }, () => {
+        chargerDonnees();
+        toast('Planning mis à jour automatiquement', 'success');
+      })
+      .subscribe();
+    return () => { sb.removeChannel(channel); };
+  }, [user, chargerDonnees, toast]);
+
+  async function onLogout(){
+    await sb.auth.signOut();
+    setUser(null);
+    setData(null);
+  }
+
+  async function onForcer(ligne, camion, estForce){
+    setForcingKey(ligne+'-'+camion);
+    try {
+      const today = localToday();
+      if(estForce){
+        await sb.from('overrides_manuels').delete().eq('date', today).eq('ligne', ligne).eq('camion', camion);
+        setOverrides(o => ({ ...o, [ligne]: (o[ligne]||[]).filter(c => c !== camion) }));
+        toast(`Forçage annulé — ${ligne} Camion ${camion}`, 'info');
+      } else {
+        await sb.from('overrides_manuels').upsert({ date: today, ligne, camion, force_pret: true }, { onConflict: 'date,ligne,camion' });
+        setOverrides(o => ({ ...o, [ligne]: [...(o[ligne]||[]), camion] }));
+        toast(`Départ forcé — ${ligne} Camion ${camion} · Recalcul en cours…`, 'success');
+      }
+      fetch(WEBHOOK_URL, { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ ligne, camion, action: estForce ? 'annuler' : 'forcer' }) }).catch(()=>{});
+      setTimeout(() => chargerDonnees(), 8000);
+    } catch(e){
+      toast('Erreur lors du forçage : ' + e.message, 'error');
+    } finally {
+      setForcingKey(null);
+    }
+  }
+
+  function onDepart(numero, num, isCurrentlyParti){
+    setParti(p => {
+      const arr = p[numero] || [];
+      if(isCurrentlyParti){
+        return { ...p, [numero]: arr.filter(x => String(x.num) !== String(num)) };
+      }
+      if(arr.some(x => String(x.num) === String(num))) return p;
+      const line = data ? (numero===1 ? data.l1_camions : data.l2_camions) : [];
+      const found = (line||[]).find(c => String(c.camion) === String(num));
+      const heure = found ? formatHeure(found.heure) : '';
+      return { ...p, [numero]: [...arr, { num, heure, seq: seqRef.current++ }] };
+    });
+  }
+
+  const lineProg = useMemo(() => ({
+    L1: { camions: (data && data.l1_camions) || [] },
+    L2: { camions: (data && data.l2_camions) || [] },
+  }), [data]);
+
+  if(checkingSession) return null;
+  if(!user) return <AuthPage onLogin={setUser} />;
+
+  return (
+    <div className="main">
+      <div className="topbar">
+        <div className="tb-left">
+          <button className="btn-back" onClick={onLogout}>
+            <span>←</span> Déconnexion
+          </button>
+          <div>
+            <div className="tb-title">Planning automatique <span className="badge-react">⚛ React · aperçu</span></div>
+            <div className="tb-sub">Données en temps réel · Mise à jour toutes les 5 minutes</div>
+          </div>
+        </div>
+        <button className="btn-refresh" onClick={chargerDonnees}>↻ Actualiser</button>
+      </div>
+
+      <div className="content">
+        <div className="maj-bar">
+          <div className="maj-info">
+            <span className="maj-dot"></span>
+            Dernière mise à jour N8n : <strong>{data && data.updated_at ? fmtTime(data.updated_at) : 'Chargement…'}</strong>
+          </div>
+          <div className={"statut-systeme " + ((data && data.updated_at && (new Date() - new Date(data.updated_at))/60000 > 10) ? 'arrete' : 'actif')}>
+            <span className="statut-systeme-dot"></span>
+            <span>{(data && data.updated_at && (new Date() - new Date(data.updated_at))/60000 > 10) ? 'Système arrêté' : 'Système actif'}</span>
+          </div>
+          <div className="maj-info">Date : <strong>{fmtDate(localToday())}</strong></div>
+        </div>
+
+        <div className="sec-h">
+          <div>
+            <div className="sec-title">Lignes de production</div>
+            <div className="sec-sub">Heures de fin estimées par camion</div>
+          </div>
+        </div>
+
+        {!data ? (
+          <div className="empty-state"><div className="empty-ico">📡</div><div className="empty-txt">Aucune donnée disponible pour aujourd'hui.<br/>N8n n'a pas encore envoyé de données.</div></div>
+        ) : (
+          <div className="lignes-grid">
+            <LigneCard numero={1} data={data} heuresReelles={heuresReelles} heuresDepuisSlots={heuresDepuisSlots}
+              partiList={parti[1]} onDepart={(num,isP)=>onDepart(1,num,isP)} />
+            <QuaisCenterCard quais={quais} setQuais={setQuais} />
+            <LigneCard numero={2} data={data} heuresReelles={heuresReelles} heuresDepuisSlots={heuresDepuisSlots}
+              partiList={parti[2]} onDepart={(num,isP)=>onDepart(2,num,isP)} />
+          </div>
+        )}
+
+        <div className="sec-h" style={{marginTop:10}}>
+          <div>
+            <div className="sec-title">Slots de ramassage</div>
+            <div className="sec-sub">Planning du transporteur · 06h00 à 22h00</div>
+          </div>
+        </div>
+
+        <div className="slots-outer">
+          {data ? (
+            <SlotsTable slots={data.slots} lineProg={lineProg} slotTypes={slotTypes} setSlotTypes={setSlotTypes}
+              overrides={overrides} onForcer={onForcer} forcingKey={forcingKey} />
+          ) : (
+            <div className="empty-state"><div className="empty-txt">Chargement…</div></div>
+          )}
+        </div>
+      </div>
+
+      <Toasts toasts={toasts} />
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
