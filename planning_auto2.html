@@ -263,41 +263,82 @@ tr.type-chaud{background:linear-gradient(90deg,rgba(26,8,0,.95) 0%,rgba(80,20,0,
 .qs-dot{width:7px;height:7px;border-radius:50%;background:var(--text-faint);flex:none;}
 .quai-side.temp.is-active .qs-dot{background:var(--amber);}
 .quai-side.frais.is-active .qs-dot{background:var(--ice);}
+
+/* ── Radix Toast (états open/closed) ─────────────────────────────── */
+.toast[data-state="open"]{animation:toastIn .3s var(--ease);}
+.toast[data-state="closed"]{animation:toastOut .18s ease forwards;}
+@keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(14px)}}
+
+/* ── Radix AlertDialog (confirmation forçage départ) ─────────────── */
+.rdx-overlay{position:fixed;inset:0;background:rgba(4,6,10,.72);backdrop-filter:blur(3px);z-index:9998;}
+.rdx-overlay[data-state="open"]{animation:rdx-fade .18s ease;}
+.rdx-content{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:calc(100% - 40px);max-width:420px;
+  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0)),var(--bg-raised);
+  border:1px solid var(--text-faint);border-radius:var(--r-lg);padding:24px;
+  box-shadow:0 30px 80px -30px rgba(0,0,0,.9);z-index:9999;}
+.rdx-content[data-state="open"]{animation:rdx-pop .18s ease;}
+.rdx-title{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:600;margin-bottom:10px;color:var(--text-primary);}
+.rdx-desc{font-size:.85rem;color:var(--text-secondary);line-height:1.6;margin-bottom:22px;}
+.rdx-actions{display:flex;justify-content:flex-end;gap:10px;}
+.rdx-btn{padding:10px 18px;border-radius:var(--r-md);font-size:.82rem;font-weight:600;border:1px solid var(--text-faint);background:var(--bg-float);color:var(--text-secondary);}
+.rdx-btn:hover{border-color:var(--text-muted);color:var(--text-primary);}
+.rdx-btn.primary{background:var(--teal);border-color:var(--teal);color:#04110f;}
+.rdx-btn.primary:hover{background:var(--teal-soft);}
+@keyframes rdx-fade{from{opacity:0}to{opacity:1}}
+@keyframes rdx-pop{from{opacity:0;transform:translate(-50%,-50%) scale(.96)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+
+/* ── Radix Tooltip ────────────────────────────────────────────────── */
+.rdx-tooltip{background:rgba(3,12,12,.94);border:1px solid rgba(25,224,200,.4);color:var(--teal-soft);
+  font-family:'Space Grotesk',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.05em;
+  padding:6px 10px;border-radius:8px;box-shadow:0 8px 24px -8px rgba(0,0,0,.6);z-index:9999;}
+.rdx-tooltip-arrow{fill:rgba(3,12,12,.94);}
 </style>
 </head>
 <body>
 <div id="root"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.2.0",
+    "react-dom": "https://esm.sh/react-dom@18.2.0",
+    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+    "react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime"
+  }
+}
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.25.0/babel.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<script type="text/babel" data-presets="react">
-const { useState, useEffect, useRef, useCallback, useMemo } = React;
+<script type="text/babel" data-presets="react" data-type="module">
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import ReactDOM from 'react-dom/client';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+import { create } from 'https://esm.sh/zustand@4.5.2?external=react';
+import { QueryClient, QueryClientProvider, useQuery, useMutation, useQueryClient } from 'https://esm.sh/@tanstack/react-query@5.51.23?external=react,react-dom';
+import clsx from 'https://esm.sh/clsx@2.1.1';
+import { motion, AnimatePresence } from 'https://esm.sh/framer-motion@11.3.19?external=react,react-dom';
+import * as Toast from 'https://esm.sh/@radix-ui/react-toast@1.2.1?external=react,react-dom';
+import * as AlertDialog from 'https://esm.sh/@radix-ui/react-alert-dialog@1.1.1?external=react,react-dom';
+import * as Tooltip from 'https://esm.sh/@radix-ui/react-tooltip@1.1.2?external=react,react-dom';
+import { formatInTimeZone } from 'https://esm.sh/date-fns-tz@3.1.3';
+import { fr } from 'https://esm.sh/date-fns@3.6.0/locale';
 
 const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 const WEBHOOK_URL = 'https://n8ninstance.n8ntools.cfd/webhook/forcer-depart';
-const { createClient } = supabase;
+const TZ = 'America/Toronto';
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+const queryClient = new QueryClient();
 
-// ── Helpers ──────────────────────────────────────────────────────────
-function localToday(){
-  const d = new Date();
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-}
-function fmtDate(d){
-  return new Date(d+'T00:00:00').toLocaleDateString('fr-CA',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-}
-function fmtTime(iso){
-  return new Date(iso).toLocaleTimeString('fr-CA',{hour:'2-digit',minute:'2-digit'});
-}
+// ── Helpers de date/heure (fuseau explicite America/Toronto, jamais le fuseau du navigateur) ──
+function todayStr(){ return formatInTimeZone(new Date(), TZ, 'yyyy-MM-dd'); }
+function fmtDateFR(dateStr){ return formatInTimeZone(new Date(dateStr+'T00:00:00'), TZ, "EEEE d MMMM yyyy", { locale: fr }); }
+function fmtTimeTz(iso){ return formatInTimeZone(new Date(iso), TZ, 'HH:mm').replace(':', ' h '); }
 function formatHeure(h){
   if(!h) return '—';
   if(h.includes && (h.includes('T') || h.includes('-'))){
     const d = new Date(h);
-    if(!isNaN(d)) return String(d.getHours()).padStart(2,'0') + ' h ' + String(d.getMinutes()).padStart(2,'0');
+    if(!isNaN(d)) return formatInTimeZone(d, TZ, 'HH').padStart(2,'0') + ' h ' + formatInTimeZone(d, TZ, 'mm');
   }
   const parts = String(h).split(':');
   if(parts.length >= 2){
@@ -337,14 +378,111 @@ function getStatutLabel(statut){
   return 'Inactive';
 }
 
-// ── Toasts ───────────────────────────────────────────────────────────
-function Toasts({ toasts }){
+// ── Store Zustand (état UI éphémère : quais, camions "partis", types de slot, toasts) ──
+const useStore = create((set, get) => ({
+  quais: {1:'off',2:'off',3:'off',4:'off'},
+  setQuaiSide: (id, side) => set(s => ({ quais: { ...s.quais, [id]: side } })),
+  setQuaiOff: (id) => set(s => ({ quais: { ...s.quais, [id]: 'off' } })),
+
+  parti: { 1: [], 2: [] },
+  seq: 1,
+  addParti: (ligne, num, heure) => set(s => {
+    if((s.parti[ligne]||[]).some(x => String(x.num) === String(num))) return {};
+    return { parti: { ...s.parti, [ligne]: [...(s.parti[ligne]||[]), { num, heure, seq: s.seq }] }, seq: s.seq + 1 };
+  }),
+  removeParti: (ligne, num) => set(s => ({ parti: { ...s.parti, [ligne]: (s.parti[ligne]||[]).filter(x => String(x.num) !== String(num)) } })),
+
+  slotTypes: {},
+  toggleSlotType: (index) => set(s => {
+    const cur = s.slotTypes[index] || 'neutre';
+    const next = cur === 'neutre' ? 'froid' : cur === 'froid' ? 'chaud' : 'neutre';
+    return { slotTypes: { ...s.slotTypes, [index]: next } };
+  }),
+
+  toasts: [],
+  addToast: (msg, type='info') => set(s => ({ toasts: [...s.toasts, { id: Date.now()+Math.random(), msg, type }] })),
+  removeToast: (id) => set(s => ({ toasts: s.toasts.filter(t => t.id !== id) })),
+}));
+
+// ── TanStack Query : chargement des données Supabase ────────────────
+function useProductionQuery(enabled){
+  const today = todayStr();
+  return useQuery({
+    queryKey: ['production', today],
+    queryFn: async () => {
+      const { data, error } = await sb.from('production_temps_reel').select('*').eq('date', today).maybeSingle();
+      if(error) throw error;
+      return data;
+    },
+    enabled,
+  });
+}
+function useHistoriqueQuery(enabled){
+  const today = todayStr();
+  return useQuery({
+    queryKey: ['historique', today],
+    queryFn: async () => {
+      const { data, error } = await sb.from('historique_camions').select('ligne, camion, heure_fin').eq('date', today);
+      if(error) throw error;
+      return data || [];
+    },
+    enabled,
+  });
+}
+function useOverridesQuery(enabled){
+  const today = todayStr();
+  return useQuery({
+    queryKey: ['overrides', today],
+    queryFn: async () => {
+      const { data, error } = await sb.from('overrides_manuels').select('ligne,camion').eq('date', today).eq('force_pret', true);
+      if(error) throw error;
+      const next = { L1: [], L2: [] };
+      (data||[]).forEach(r => { if(!next[r.ligne]) next[r.ligne]=[]; next[r.ligne].push(r.camion); });
+      return next;
+    },
+    enabled,
+    initialData: { L1: [], L2: [] },
+  });
+}
+function useForcerMutation(){
+  const qc = useQueryClient();
+  const addToast = useStore(s => s.addToast);
+  const today = todayStr();
+  return useMutation({
+    mutationFn: async ({ ligne, camion, estForce }) => {
+      if(estForce){
+        const { error } = await sb.from('overrides_manuels').delete().eq('date', today).eq('ligne', ligne).eq('camion', camion);
+        if(error) throw error;
+      } else {
+        const { error } = await sb.from('overrides_manuels').upsert({ date: today, ligne, camion, force_pret: true }, { onConflict: 'date,ligne,camion' });
+        if(error) throw error;
+      }
+      fetch(WEBHOOK_URL, { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ ligne, camion, action: estForce ? 'annuler' : 'forcer' }) }).catch(()=>{});
+    },
+    onSuccess: (_, { ligne, camion, estForce }) => {
+      qc.invalidateQueries({ queryKey: ['overrides'] });
+      addToast(estForce ? `Forçage annulé — ${ligne} Camion ${camion}` : `Départ forcé — ${ligne} Camion ${camion} · Recalcul en cours…`, estForce ? 'info' : 'success');
+      setTimeout(() => qc.invalidateQueries({ queryKey: ['production'] }), 8000);
+    },
+    onError: (e) => addToast('Erreur lors du forçage : ' + e.message, 'error'),
+  });
+}
+
+// ── Toasts (Radix Toast) ─────────────────────────────────────────────
+function Toasts(){
+  const toasts = useStore(s => s.toasts);
+  const removeToast = useStore(s => s.removeToast);
   return (
-    <div className="toasts">
+    <Toast.Provider swipeDirection="right" duration={4000}>
       {toasts.map(t => (
-        <div key={t.id} className={"toast " + t.type}>{t.msg}</div>
+        <Toast.Root key={t.id} className={clsx('toast', t.type)}
+          onOpenChange={(open) => { if(!open) removeToast(t.id); }}>
+          <Toast.Description>{t.msg}</Toast.Description>
+        </Toast.Root>
       ))}
-    </div>
+      <Toast.Viewport className="toasts" />
+    </Toast.Provider>
   );
 }
 
@@ -395,35 +533,43 @@ function AuthPage({ onLogin }){
   );
 }
 
-// ── Camion row (tube) ───────────────────────────────────────────────
-function CamionRow({ ligneKey, c, heureAffichee, onDepart, isParti }){
+// ── Camion row (tube) — animé avec Framer Motion ────────────────────
+function CamionRow({ c, heureAffichee, onDepart, isParti }){
   if(isParti){
     return (
-      <div className="camion-row is-parti" onClick={() => onDepart(c.camion, true)}>
+      <motion.div layout initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+        transition={{ duration: 0.25 }}
+        className="camion-row is-parti" onClick={() => onDepart(c.camion, true)}>
         <span className="camion-num">Camion {c.camion}</span>
         <span className="camion-heure">{heureAffichee}</span>
         <span className="camion-pct" style={{color:'var(--text-muted)',background:'transparent',border:'none'}}>—</span>
         <span className="camion-badge parti">Parti</span>
         <span className="depart-hint">Annuler ‹</span>
-      </div>
+      </motion.div>
     );
   }
   const estPret = c.statut === 'camion_pret';
   const pct = estPret ? 100 : Math.round((c.progression || 0) * 100);
   return (
-    <div className={"camion-row" + (estPret ? " pret" : "")} onClick={() => onDepart(c.camion, false)}>
+    <motion.div layout initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+      transition={{ duration: 0.25 }}
+      className={clsx('camion-row', { pret: estPret })} onClick={() => onDepart(c.camion, false)}>
       <div className="camion-fill" style={{ width: pct + '%' }}></div>
       <span className="camion-num">Camion {c.camion}</span>
       <span className="camion-heure">{heureAffichee}</span>
       <span className="camion-pct">{pct}%</span>
-      <span className={"camion-badge " + (estPret ? "pret" : "en-cours")}>{estPret ? 'Prêt' : 'En cours'}</span>
+      <span className={clsx('camion-badge', estPret ? 'pret' : 'en-cours')}>{estPret ? 'Prêt' : 'En cours'}</span>
       <span className="depart-hint">Marquer parti ›</span>
-    </div>
+    </motion.div>
   );
 }
 
 // ── Ligne card ───────────────────────────────────────────────────────
-function LigneCard({ numero, data, heuresReelles, heuresDepuisSlots, partiList, onDepart }){
+function LigneCard({ numero, data, heuresReelles, heuresDepuisSlots }){
+  const parti = useStore(s => s.parti[numero]);
+  const addParti = useStore(s => s.addParti);
+  const removeParti = useStore(s => s.removeParti);
+
   const caisses = numero === 1 ? data.l1_caisses_produites : data.l2_caisses_produites;
   const heureFin = numero === 1 ? data.l1_heure_fin_estimee : data.l2_heure_fin_estimee;
   const statut = numero === 1 ? data.l1_statut : data.l2_statut;
@@ -431,7 +577,13 @@ function LigneCard({ numero, data, heuresReelles, heuresDepuisSlots, partiList, 
   const ligneKey = numero === 1 ? 'L1' : 'L2';
   const statutClass = getStatutClass(statut);
   const statutLabel = getStatutLabel(statut);
-  const partiNums = useMemo(() => new Set((partiList||[]).map(p => String(p.num))), [partiList]);
+  const partiNums = useMemo(() => new Set((parti||[]).map(p => String(p.num))), [parti]);
+
+  function onDepart(num, isCurrentlyParti){
+    if(isCurrentlyParti){ removeParti(numero, num); return; }
+    const found = camions.find(c => String(c.camion) === String(num));
+    addParti(numero, num, found ? formatHeure(found.heure) : '');
+  }
 
   let body;
   if(statut === 'inactive'){
@@ -440,33 +592,34 @@ function LigneCard({ numero, data, heuresReelles, heuresDepuisSlots, partiList, 
     body = <div className="empty-state" style={{padding:'20px'}}><div className="empty-txt">Aucun camion prévu</div></div>;
   } else {
     const enCours = camions.filter(c => !partiNums.has(String(c.camion)));
-    const partis = (partiList||[]);
-    const lastParti = partis.length ? partis[partis.length-1] : null;
+    const lastParti = (parti && parti.length) ? parti[parti.length-1] : null;
     body = (
       <div className="camions-list">
-        {lastParti && (
-          <CamionRow key={"parti-"+lastParti.num} ligneKey={ligneKey} c={{camion:lastParti.num}} heureAffichee={lastParti.heure} isParti={true} onDepart={onDepart} />
-        )}
-        {enCours.map(c => {
-          const estPret = c.statut === 'camion_pret';
-          const heureAffichee = normHeureTube(estPret
-            ? (heuresReelles[`${ligneKey}-${c.camion}`] || formatHeure(c.heure))
-            : (heuresDepuisSlots[`${ligneKey}-${c.camion}`] || formatHeure(c.heure)));
-          return <CamionRow key={c.camion} ligneKey={ligneKey} c={c} heureAffichee={heureAffichee} isParti={false} onDepart={onDepart} />;
-        })}
+        <AnimatePresence initial={false}>
+          {lastParti && (
+            <CamionRow key={"parti-"+lastParti.num} c={{camion:lastParti.num}} heureAffichee={lastParti.heure} isParti={true} onDepart={onDepart} />
+          )}
+          {enCours.map(c => {
+            const estPret = c.statut === 'camion_pret';
+            const heureAffichee = normHeureTube(estPret
+              ? (heuresReelles[`${ligneKey}-${c.camion}`] || formatHeure(c.heure))
+              : (heuresDepuisSlots[`${ligneKey}-${c.camion}`] || formatHeure(c.heure)));
+            return <CamionRow key={c.camion} c={c} heureAffichee={heureAffichee} isParti={false} onDepart={onDepart} />;
+          })}
+        </AnimatePresence>
       </div>
     );
   }
 
   return (
-    <div className={`ligne-card ligne-${numero} statut-${statutClass}`}>
-      <div className={`ligne-head ligne-${numero}`}>
+    <div className={clsx('ligne-card', `ligne-${numero}`, `statut-${statutClass}`)}>
+      <div className={clsx('ligne-head', `ligne-${numero}`)}>
         <div className="ligne-head-left">
           <span className="ligne-accent"></span>
           <span className="ligne-num">Ligne {numero}</span>
-          <span className={"temp-pill " + (numero===1?'warm':'ice')}>{numero===1 ? '☀ Tempéré' : '❄ Frais'}</span>
+          <span className={clsx('temp-pill', numero===1 ? 'warm' : 'ice')}>{numero===1 ? '☀ Tempéré' : '❄ Frais'}</span>
         </div>
-        <span className={"statut-pill " + statutClass}><span className="statut-dot"></span>{statutLabel}</span>
+        <span className={clsx('statut-pill', statutClass)}><span className="statut-dot"></span>{statutLabel}</span>
       </div>
       <div className="ligne-body">
         <div className="kpi-row">
@@ -488,16 +641,17 @@ function LigneCard({ numero, data, heuresReelles, heuresDepuisSlots, partiList, 
   );
 }
 
-// ── Quais center card ─────────────────────────────────────────────────
+// ── Quais center card (état Zustand) ──────────────────────────────────
 const POWER_SVG = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
     <path d="M12 3v9"/><path d="M6.4 6.4a8 8 0 1 0 11.2 0"/>
   </svg>
 );
-function QuaisCenterCard({ quais, setQuais }){
+function QuaisCenterCard(){
+  const quais = useStore(s => s.quais);
+  const setQuaiSide = useStore(s => s.setQuaiSide);
+  const setQuaiOff = useStore(s => s.setQuaiOff);
   const nActifs = Object.values(quais).filter(v => v !== 'off').length;
-  function setSide(id, side){ setQuais(q => ({ ...q, [id]: side })); }
-  function setOff(id){ setQuais(q => ({ ...q, [id]: 'off' })); }
   return (
     <div className="quais-center-card">
       <div className="qcc-head"><span className="qcc-accent"></span><span className="qcc-title">Quais de chargement</span></div>
@@ -508,13 +662,20 @@ function QuaisCenterCard({ quais, setQuais }){
           {[1,2,3,4].map(id => {
             const v = quais[id] || 'off';
             return (
-              <div className={"quai-row" + (v==='off' ? ' state-off':'')} key={id}>
-                <button className="quai-off" onClick={() => setOff(id)} title={"Éteindre le quai "+id}>{POWER_SVG}</button>
-                <button className={"quai-side temp" + (v==='temp'?' is-active':'')} onClick={() => setSide(id,'temp')}>
+              <div className={clsx('quai-row', { 'state-off': v === 'off' })} key={id}>
+                <Tooltip.Root>
+                  <Tooltip.Trigger asChild>
+                    <button className="quai-off" onClick={() => setQuaiOff(id)}>{POWER_SVG}</button>
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content className="rdx-tooltip" sideOffset={6}>Éteindre le quai {id}<Tooltip.Arrow className="rdx-tooltip-arrow" /></Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip.Root>
+                <button className={clsx('quai-side', 'temp', { 'is-active': v==='temp' })} onClick={() => setQuaiSide(id,'temp')}>
                   <div className="qs-top"><span className="qs-id">Q{id}</span><span className="qs-ligne temp">☀ Tempéré</span></div>
                   <div className="qs-bottom"><span className="qs-type">Dry</span><span className="qs-dot"></span></div>
                 </button>
-                <button className={"quai-side frais" + (v==='frais'?' is-active':'')} onClick={() => setSide(id,'frais')}>
+                <button className={clsx('quai-side', 'frais', { 'is-active': v==='frais' })} onClick={() => setQuaiSide(id,'frais')}>
                   <div className="qs-top"><span className="qs-id">Q{id}</span><span className="qs-ligne frais">❄ Frais</span></div>
                   <div className="qs-bottom"><span className="qs-type">Réfrigé.</span><span className="qs-dot"></span></div>
                 </button>
@@ -527,8 +688,57 @@ function QuaisCenterCard({ quais, setQuais }){
   );
 }
 
+// ── Bouton "forcer départ" avec confirmation (Radix AlertDialog + Tooltip) ──
+function ForcerButton({ slot, estForce }){
+  const forcer = useForcerMutation();
+  const isPending = forcer.isPending && forcer.variables && forcer.variables.ligne === slot.ligne && forcer.variables.camion === slot.camion;
+  return (
+    <AlertDialog.Root>
+      <Tooltip.Root>
+        <Tooltip.Trigger asChild>
+          <AlertDialog.Trigger asChild>
+            <button className={clsx('btn-forcer-slot', { 'force-actif': estForce, loading: isPending })}>
+              {estForce ? '⚡' : '▶'}
+            </button>
+          </AlertDialog.Trigger>
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content className="rdx-tooltip" sideOffset={6}>
+            {estForce ? 'Annuler le forçage de départ' : 'Forcer le départ maintenant'}
+            <Tooltip.Arrow className="rdx-tooltip-arrow" />
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+      <AlertDialog.Portal>
+        <AlertDialog.Overlay className="rdx-overlay" />
+        <AlertDialog.Content className="rdx-content">
+          <AlertDialog.Title className="rdx-title">
+            {estForce ? 'Annuler le forçage ?' : 'Forcer le départ maintenant ?'}
+          </AlertDialog.Title>
+          <AlertDialog.Description className="rdx-desc">
+            {estForce
+              ? `Le camion ${slot.camion} (${slot.ligne}) redeviendra planifié normalement.`
+              : `Le camion ${slot.camion} (${slot.ligne}) sera marqué prêt immédiatement et n8n recalculera le planning.`}
+          </AlertDialog.Description>
+          <div className="rdx-actions">
+            <AlertDialog.Cancel asChild><button className="rdx-btn">Annuler</button></AlertDialog.Cancel>
+            <AlertDialog.Action asChild>
+              <button className="rdx-btn primary" onClick={() => forcer.mutate({ ligne: slot.ligne, camion: slot.camion, estForce })}>
+                Confirmer
+              </button>
+            </AlertDialog.Action>
+          </div>
+        </AlertDialog.Content>
+      </AlertDialog.Portal>
+    </AlertDialog.Root>
+  );
+}
+
 // ── Slots table ──────────────────────────────────────────────────────
-function SlotsTable({ slots, lineProg, slotTypes, setSlotTypes, overrides, onForcer, forcingKey }){
+function SlotsTable({ slots, lineProg, overrides }){
+  const slotTypes = useStore(s => s.slotTypes);
+  const toggleSlotType = useStore(s => s.toggleSlotType);
+
   if(!slots || !slots.length){
     return <div className="empty-state"><div className="empty-txt">Aucun slot disponible</div></div>;
   }
@@ -546,13 +756,6 @@ function SlotsTable({ slots, lineProg, slotTypes, setSlotTypes, overrides, onFor
     const c = lp.camions[idx];
     const estPret = c.statut === 'camion_pret';
     return estPret ? 100 : Math.round((c.progression||0)*100);
-  }
-  function toggleType(index){
-    setSlotTypes(prev => {
-      const cur = prev[index] || 'neutre';
-      const next = cur === 'neutre' ? 'froid' : cur === 'froid' ? 'chaud' : 'neutre';
-      return { ...prev, [index]: next };
-    });
   }
   const labels = { confirme:'Confirmé', annule:'Annulé', inactive:'Inactif', cadence_inconnue:'En attente' };
 
@@ -578,22 +781,21 @@ function SlotsTable({ slots, lineProg, slotTypes, setSlotTypes, overrides, onFor
           const heureL1 = L1active ? heureLabelSlot(slot.heureFinCamion) : null;
           const heureL2 = L2active ? heureLabelSlot(slot.heureFinCamion) : null;
           const charging = pct != null && pct > 0 && pct < 100;
-          const fillCls = 'row-fill' + (pct === 0 ? ' empty' : (charging ? ' charging' : ''));
+          const fillCls = clsx('row-fill', { empty: pct === 0, charging });
           const peutForcer = lineActive && slot.statut === 'confirme'
             && slot.heureFinCamion !== 'Déjà prêt' && slot.heureFinCamion !== 'Cadence indisponible';
           const estForce = lineActive && (overrides[slot.ligne] || []).includes(slot.camion);
-          const isForcing = forcingKey === (slot.ligne + '-' + slot.camion);
 
           return (
-            <tr key={index} className={`slot-global-${slot.statut} ${passe?'slot-passe':''} ${typeClass}`}>
+            <tr key={index} className={clsx(`slot-global-${slot.statut}`, { 'slot-passe': passe }, typeClass)}>
               <td style={{textAlign:'center', width:60}}>
                 {lineActive && (
                   <div className="row-track">
                     <div className={fillCls} style={{ width: pct + '%' }}></div>
                   </div>
                 )}
-                <button className={"temp-btn " + (slotTypes[index]==='froid'?'froid active':slotTypes[index]==='chaud'?'chaud active':'')}
-                  onClick={() => toggleType(index)} title="Cliquer pour changer le type">
+                <button className={clsx('temp-btn', { froid: slotTypes[index]==='froid', chaud: slotTypes[index]==='chaud', active: slotTypes[index]==='froid' || slotTypes[index]==='chaud' })}
+                  onClick={() => toggleSlotType(index)} title="Cliquer pour changer le type">
                   {slotTypes[index]==='froid' ? '❄️' : slotTypes[index]==='chaud' ? '🔥' : '🌡️'}
                 </button>
               </td>
@@ -605,14 +807,8 @@ function SlotsTable({ slots, lineProg, slotTypes, setSlotTypes, overrides, onFor
               <td>{heureL2 ? <span style={{fontFamily:"'Playfair Display',serif",fontSize:'.95rem',color:'var(--copper-light)',fontWeight:600}}>{heureL2.txt}{heureL2.lendemain && <span style={{fontSize:'.7rem',color:'var(--text-muted)',fontWeight:400}}> (lendemain)</span>}</span> : <span style={{color:'var(--text-muted)'}}>—</span>}</td>
               <td>{L2active && slot.destination ? <span className="slot-dest">{slot.destination}</span> : <span style={{color:'var(--text-muted)'}}>—</span>}</td>
               <td style={{whiteSpace:'nowrap'}}>
-                <span className={"slot-badge " + slot.statut}><span className="slot-badge-dot"></span>{labels[slot.statut] || slot.statut}</span>
-                {peutForcer && (
-                  <button className={"btn-forcer-slot " + (estForce?'force-actif':'') + (isForcing?' loading':'')}
-                    onClick={() => onForcer(slot.ligne, slot.camion, estForce)}
-                    title={estForce ? 'Annuler le forçage de départ' : 'Forcer le départ maintenant'}>
-                    {estForce ? '⚡' : '▶'}
-                  </button>
-                )}
+                <span className={clsx('slot-badge', slot.statut)}><span className="slot-badge-dot"></span>{labels[slot.statut] || slot.statut}</span>
+                {peutForcer && <ForcerButton slot={slot} estForce={estForce} />}
               </td>
             </tr>
           );
@@ -622,160 +818,75 @@ function SlotsTable({ slots, lineProg, slotTypes, setSlotTypes, overrides, onFor
   );
 }
 
-// ── App ──────────────────────────────────────────────────────────────
-function App(){
-  const [user, setUser] = useState(null);
-  const [checkingSession, setCheckingSession] = useState(true);
-  const [data, setData] = useState(null);
-  const [heuresReelles, setHeuresReelles] = useState({});
-  const [heuresDepuisSlots, setHeuresDepuisSlots] = useState({});
-  const [overrides, setOverrides] = useState({ L1: [], L2: [] });
-  const [slotTypes, setSlotTypes] = useState({});
-  const [quais, setQuais] = useState({1:'off',2:'off',3:'off',4:'off'});
-  const [parti, setParti] = useState({1:[], 2:[]});
-  const [toasts, setToasts] = useState([]);
-  const [forcingKey, setForcingKey] = useState(null);
-  const seqRef = useRef(1);
-
-  const toast = useCallback((msg, type='info') => {
-    const id = Date.now() + Math.random();
-    setToasts(t => [...t, { id, msg, type }]);
-    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 4000);
-  }, []);
-
-  const chargerOverrides = useCallback(async () => {
-    const today = localToday();
-    const { data: rows } = await sb.from('overrides_manuels')
-      .select('ligne,camion').eq('date', today).eq('force_pret', true);
-    const next = { L1: [], L2: [] };
-    (rows||[]).forEach(r => { if(!next[r.ligne]) next[r.ligne]=[]; next[r.ligne].push(r.camion); });
-    setOverrides(next);
-  }, []);
-
-  const chargerDonnees = useCallback(async () => {
-    const today = localToday();
-    await chargerOverrides();
-    try {
-      const { data: row, error } = await sb.from('production_temps_reel').select('*').eq('date', today).maybeSingle();
-      if(error) throw error;
-      if(!row){ setData(null); return; }
-      setData(row);
-
-      const { data: historique } = await sb.from('historique_camions').select('ligne, camion, heure_fin').eq('date', today);
-      const hr = {};
-      (historique||[]).forEach(h => { hr[`${h.ligne}-${h.camion}`] = h.heure_fin; });
-      setHeuresReelles(hr);
-
-      const hs = {};
-      (row.slots||[]).forEach(slot => {
-        if(slot.ligne && slot.camion && slot.heureFinCamion && slot.heureFinCamion !== 'Déjà prêt'){
-          hs[`${slot.ligne}-${slot.camion}`] = slot.heureFinCamion;
-        }
-      });
-      setHeuresDepuisSlots(hs);
-    } catch(e){
-      toast('Erreur de chargement: ' + e.message, 'error');
-    }
-  }, [chargerOverrides, toast]);
+// ── App (données) ────────────────────────────────────────────────────
+function AppData({ onLogout }){
+  const addToast = useStore(s => s.addToast);
+  const prodQ = useProductionQuery(true);
+  const histQ = useHistoriqueQuery(true);
+  const overridesQ = useOverridesQuery(true);
+  const data = prodQ.data;
 
   useEffect(() => {
-    (async () => {
-      try {
-        const { data: { session } } = await sb.auth.getSession();
-        if(session){ setUser(session.user); }
-      } finally { setCheckingSession(false); }
-    })();
-  }, []);
-
-  useEffect(() => {
-    if(!user) return;
-    chargerDonnees();
     const channel = sb.channel('production_temps_reel')
       .on('postgres_changes', { event:'*', schema:'public', table:'production_temps_reel' }, () => {
-        chargerDonnees();
-        toast('Planning mis à jour automatiquement', 'success');
+        queryClient.invalidateQueries({ queryKey: ['production'] });
+        addToast('Planning mis à jour automatiquement', 'success');
       })
       .subscribe();
     return () => { sb.removeChannel(channel); };
-  }, [user, chargerDonnees, toast]);
+  }, [addToast]);
 
-  async function onLogout(){
-    await sb.auth.signOut();
-    setUser(null);
-    setData(null);
-  }
+  useEffect(() => {
+    if(prodQ.error) addToast('Erreur de chargement: ' + prodQ.error.message, 'error');
+  }, [prodQ.error]);
 
-  async function onForcer(ligne, camion, estForce){
-    setForcingKey(ligne+'-'+camion);
-    try {
-      const today = localToday();
-      if(estForce){
-        await sb.from('overrides_manuels').delete().eq('date', today).eq('ligne', ligne).eq('camion', camion);
-        setOverrides(o => ({ ...o, [ligne]: (o[ligne]||[]).filter(c => c !== camion) }));
-        toast(`Forçage annulé — ${ligne} Camion ${camion}`, 'info');
-      } else {
-        await sb.from('overrides_manuels').upsert({ date: today, ligne, camion, force_pret: true }, { onConflict: 'date,ligne,camion' });
-        setOverrides(o => ({ ...o, [ligne]: [...(o[ligne]||[]), camion] }));
-        toast(`Départ forcé — ${ligne} Camion ${camion} · Recalcul en cours…`, 'success');
+  const heuresReelles = useMemo(() => {
+    const hr = {};
+    (histQ.data||[]).forEach(h => { hr[`${h.ligne}-${h.camion}`] = h.heure_fin; });
+    return hr;
+  }, [histQ.data]);
+
+  const heuresDepuisSlots = useMemo(() => {
+    const hs = {};
+    (data && data.slots || []).forEach(slot => {
+      if(slot.ligne && slot.camion && slot.heureFinCamion && slot.heureFinCamion !== 'Déjà prêt'){
+        hs[`${slot.ligne}-${slot.camion}`] = slot.heureFinCamion;
       }
-      fetch(WEBHOOK_URL, { method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ ligne, camion, action: estForce ? 'annuler' : 'forcer' }) }).catch(()=>{});
-      setTimeout(() => chargerDonnees(), 8000);
-    } catch(e){
-      toast('Erreur lors du forçage : ' + e.message, 'error');
-    } finally {
-      setForcingKey(null);
-    }
-  }
-
-  function onDepart(numero, num, isCurrentlyParti){
-    setParti(p => {
-      const arr = p[numero] || [];
-      if(isCurrentlyParti){
-        return { ...p, [numero]: arr.filter(x => String(x.num) !== String(num)) };
-      }
-      if(arr.some(x => String(x.num) === String(num))) return p;
-      const line = data ? (numero===1 ? data.l1_camions : data.l2_camions) : [];
-      const found = (line||[]).find(c => String(c.camion) === String(num));
-      const heure = found ? formatHeure(found.heure) : '';
-      return { ...p, [numero]: [...arr, { num, heure, seq: seqRef.current++ }] };
     });
-  }
+    return hs;
+  }, [data]);
 
   const lineProg = useMemo(() => ({
     L1: { camions: (data && data.l1_camions) || [] },
     L2: { camions: (data && data.l2_camions) || [] },
   }), [data]);
 
-  if(checkingSession) return null;
-  if(!user) return <AuthPage onLogin={setUser} />;
+  const systemeActif = !(data && data.updated_at && (new Date() - new Date(data.updated_at))/60000 > 10);
 
   return (
     <div className="main">
       <div className="topbar">
         <div className="tb-left">
-          <button className="btn-back" onClick={onLogout}>
-            <span>←</span> Déconnexion
-          </button>
+          <button className="btn-back" onClick={onLogout}><span>←</span> Déconnexion</button>
           <div>
-            <div className="tb-title">Planning automatique <span className="badge-react">⚛ React · aperçu</span></div>
+            <div className="tb-title">Planning automatique <span className="badge-react">⚛ React · Zustand · Query · Radix</span></div>
             <div className="tb-sub">Données en temps réel · Mise à jour toutes les 5 minutes</div>
           </div>
         </div>
-        <button className="btn-refresh" onClick={chargerDonnees}>↻ Actualiser</button>
+        <button className="btn-refresh" onClick={() => queryClient.invalidateQueries()}>↻ Actualiser</button>
       </div>
 
       <div className="content">
         <div className="maj-bar">
           <div className="maj-info">
             <span className="maj-dot"></span>
-            Dernière mise à jour N8n : <strong>{data && data.updated_at ? fmtTime(data.updated_at) : 'Chargement…'}</strong>
+            Dernière mise à jour N8n : <strong>{data && data.updated_at ? fmtTimeTz(data.updated_at) : 'Chargement…'}</strong>
           </div>
-          <div className={"statut-systeme " + ((data && data.updated_at && (new Date() - new Date(data.updated_at))/60000 > 10) ? 'arrete' : 'actif')}>
+          <div className={clsx('statut-systeme', systemeActif ? 'actif' : 'arrete')}>
             <span className="statut-systeme-dot"></span>
-            <span>{(data && data.updated_at && (new Date() - new Date(data.updated_at))/60000 > 10) ? 'Système arrêté' : 'Système actif'}</span>
+            <span>{systemeActif ? 'Système actif' : 'Système arrêté'}</span>
           </div>
-          <div className="maj-info">Date : <strong>{fmtDate(localToday())}</strong></div>
+          <div className="maj-info">Date : <strong>{fmtDateFR(todayStr())}</strong></div>
         </div>
 
         <div className="sec-h">
@@ -786,14 +897,14 @@ function App(){
         </div>
 
         {!data ? (
-          <div className="empty-state"><div className="empty-ico">📡</div><div className="empty-txt">Aucune donnée disponible pour aujourd'hui.<br/>N8n n'a pas encore envoyé de données.</div></div>
+          <div className="empty-state"><div className="empty-ico">📡</div><div className="empty-txt">
+            {prodQ.isLoading ? 'Chargement…' : "Aucune donnée disponible pour aujourd'hui.\nN8n n'a pas encore envoyé de données."}
+          </div></div>
         ) : (
           <div className="lignes-grid">
-            <LigneCard numero={1} data={data} heuresReelles={heuresReelles} heuresDepuisSlots={heuresDepuisSlots}
-              partiList={parti[1]} onDepart={(num,isP)=>onDepart(1,num,isP)} />
-            <QuaisCenterCard quais={quais} setQuais={setQuais} />
-            <LigneCard numero={2} data={data} heuresReelles={heuresReelles} heuresDepuisSlots={heuresDepuisSlots}
-              partiList={parti[2]} onDepart={(num,isP)=>onDepart(2,num,isP)} />
+            <LigneCard numero={1} data={data} heuresReelles={heuresReelles} heuresDepuisSlots={heuresDepuisSlots} />
+            <QuaisCenterCard />
+            <LigneCard numero={2} data={data} heuresReelles={heuresReelles} heuresDepuisSlots={heuresDepuisSlots} />
           </div>
         )}
 
@@ -806,16 +917,44 @@ function App(){
 
         <div className="slots-outer">
           {data ? (
-            <SlotsTable slots={data.slots} lineProg={lineProg} slotTypes={slotTypes} setSlotTypes={setSlotTypes}
-              overrides={overrides} onForcer={onForcer} forcingKey={forcingKey} />
+            <SlotsTable slots={data.slots} lineProg={lineProg} overrides={overridesQ.data || {L1:[],L2:[]}} />
           ) : (
             <div className="empty-state"><div className="empty-txt">Chargement…</div></div>
           )}
         </div>
       </div>
-
-      <Toasts toasts={toasts} />
     </div>
+  );
+}
+
+// ── App (racine : session + providers) ──────────────────────────────
+function App(){
+  const [user, setUser] = useState(null);
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        if(session){ setUser(session.user); }
+      } finally { setCheckingSession(false); }
+    })();
+  }, []);
+
+  async function onLogout(){
+    await sb.auth.signOut();
+    setUser(null);
+  }
+
+  if(checkingSession) return null;
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Tooltip.Provider delayDuration={200}>
+        {!user ? <AuthPage onLogin={setUser} /> : <AppData onLogout={onLogout} />}
+        <Toasts />
+      </Tooltip.Provider>
+    </QueryClientProvider>
   );
 }
 
