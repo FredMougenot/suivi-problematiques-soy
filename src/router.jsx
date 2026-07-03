@@ -6,6 +6,7 @@ import PlanningAutoPage from './features/planning/PlanningAutoPage';
 import IntentionsProductionPage from './features/production/IntentionsProductionPage';
 import PlanningCamionsPage from './features/camions/PlanningCamionsPage';
 import ParametresPlanningPage from './features/camions/ParametresPlanningPage';
+import StatsPonctualitePage from './features/stats/StatsPonctualitePage';
 
 export const router = createHashRouter([
   {
@@ -24,6 +25,7 @@ export const router = createHashRouter([
       { path: 'intentions-production', element: <IntentionsProductionPage /> },
       { path: 'planning-camions', element: <PlanningCamionsPage /> },
       { path: 'parametres-planning', element: <ParametresPlanningPage /> },
+      { path: 'stats-ponctualite', element: <StatsPonctualitePage /> },
     ],
   },
 ]);
