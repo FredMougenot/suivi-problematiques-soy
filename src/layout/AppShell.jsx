@@ -1,13 +1,24 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/useAuthStore';
 
 /**
  * AppShell — squelette partagé : sidebar + topbar + zone de contenu (Outlet).
  * Remplace la nav copiée-collée dans chacune des ~30 pages .html legacy.
- * Phase 0 : structure minimale, la navigation complète (sections/items du
- * sb-nav) sera enrichie au fur et à mesure que chaque page est migrée.
+ * Phase 1 : nav connectée à l'auth réelle (email + logout fonctionnel).
+ * Les items de nav spécifiques (Inventaires, Problématiques, Paramètres)
+ * seront ajoutés au fur et à mesure de la migration — Phase 3+.
  */
 export default function AppShell() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, role, logout } = useAuthStore();
+
+  async function handleLogout() {
+    await logout();
+    navigate('/login', { replace: true });
+  }
+
+  const initial = user?.email ? user.email[0].toUpperCase() : '?';
 
   return (
     <div className="app-layout">
@@ -37,10 +48,13 @@ export default function AppShell() {
 
         <div className="sb-foot">
           <div className="sb-user">
-            <div className="sb-avatar">F</div>
+            <div className="sb-avatar">{initial}</div>
             <div className="sb-uinfo">
-              <div className="sb-uname">Fred</div>
-              <div className="sb-urole">Admin</div>
+              <div className="sb-uname">{user?.email ?? '—'}</div>
+              <div className="sb-urole">{role === 'admin' ? 'Admin' : 'Viewer'}</div>
+            </div>
+            <div className="sb-logout" onClick={handleLogout} title="Se déconnecter">
+              ⏻
             </div>
           </div>
         </div>
