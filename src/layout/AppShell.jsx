@@ -58,8 +58,15 @@ export default function AppShell() {
           >
             <span className="sb-ico">📊</span> Radar de ponctualité
           </Link>
+          <div className="sb-sec">Inventaires</div>
+          <Link
+            className={`sb-item${location.pathname === '/inventaire-cyclique' ? ' active' : ''}`}
+            to="/inventaire-cyclique"
+          >
+            <span className="sb-ico">📋</span> Inventaire cyclique
+          </Link>
 
-          {/* Les autres sections (Inventaires, Problématiques, Paramètres)
+          {/* Les autres sections (Camions, Inventaires, Problématiques, Paramètres)
               seront ajoutées au fur et à mesure de la migration */}
         </nav>
 
