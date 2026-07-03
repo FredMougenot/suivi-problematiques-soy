@@ -46,8 +46,14 @@ export default function AppShell() {
           >
             <span className="sb-ico">🏭</span> Intentions de production
           </Link>
+          <Link
+            className={`sb-item${location.pathname === '/planning-camions' ? ' active' : ''}`}
+            to="/planning-camions"
+          >
+            <span className="sb-ico">🚛</span> Planification camions
+          </Link>
 
-          {/* Les autres sections (Camions, Inventaires, Problématiques, Paramètres)
+          {/* Les autres sections (Inventaires, Problématiques, Paramètres)
               seront ajoutées au fur et à mesure de la migration */}
         </nav>
 
