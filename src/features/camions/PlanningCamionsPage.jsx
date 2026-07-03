@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { usePlanningStore } from '../../store/usePlanningStore';
 import { buildRowContext } from './rules';
 import { useParamsQuery, useCamionsQuery, useSaveRowMutation, useDeleteRowMutation, todayStr } from './queries';
+import { exportPlanningPdf } from './exportPdf';
 import CamionsTable from './components/CamionsTable';
 import AddCamionModal from './components/AddCamionModal';
 import TimelineLine from './components/TimelineLine';
@@ -159,11 +161,17 @@ export default function PlanningCamionsPage() {
         <button className="date-arr" onClick={() => changeDay(1)}>→</button>
       </div>
 
-      {role !== 'viewer' && (
-        <div style={{ padding: '8px 0 4px 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0 4px 0' }}>
+        {role !== 'viewer' ? (
           <button className="btn-add" onClick={() => setModalOpen(true)}>+ Ajouter un camion</button>
+        ) : <span />}
+        <div style={{ display: 'flex', gap: 8 }}>
+          {role !== 'viewer' && (
+            <Link to="/parametres-planning" className="btn-ghost">⚙ Paramètres</Link>
+          )}
+          <button className="btn-ghost" onClick={() => exportPlanningPdf(dateStr, rows, context, params)}>📄 Export PDF</button>
         </div>
-      )}
+      </div>
 
       <div style={{ position: 'relative' }} ref={outerRef}>
         <CamionsTable

@@ -76,3 +76,79 @@ export function useDeleteRowMutation(dateStr) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['planning_camions', dateStr] }),
   });
 }
+
+// ── Gestion des paramètres (planning_params) ────────────────
+
+export function useAllParamsQuery() {
+  return useQuery({
+    queryKey: ['planning_params_full'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('planning_params')
+        .select('id,categorie,valeur,text_color,border_color,border_opacity,font_weight,has_background,ordre,delai_nl')
+        .order('ordre')
+        .order('created_at');
+      if (error) throw error;
+      const grouped = {};
+      (data || []).forEach((r) => {
+        if (!grouped[r.categorie]) grouped[r.categorie] = [];
+        grouped[r.categorie].push(r);
+      });
+      return grouped;
+    },
+  });
+}
+
+export function useAddParamMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ categorie, ordre }) => {
+      const { data, error } = await supabase.from('planning_params').insert({ categorie, valeur: '', ordre }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['planning_params_full'] }),
+  });
+}
+
+export function useDeleteParamMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      const { error } = await supabase.from('planning_params').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['planning_params_full'] }),
+  });
+}
+
+export function useSaveParamSectionMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (rows) => {
+      const results = await Promise.all(
+        rows.map((r, i) =>
+          supabase
+            .from('planning_params')
+            .update({
+              valeur: r.valeur || '',
+              text_color: r.text_color || null,
+              border_color: r.border_color || null,
+              border_opacity: r.border_opacity || null,
+              font_weight: r.font_weight || null,
+              has_background: !!r.has_background,
+              delai_nl: r.delai_nl !== '' && r.delai_nl != null ? parseFloat(r.delai_nl) : null,
+              ordre: i + 1,
+            })
+            .eq('id', r.id)
+        )
+      );
+      const err = results.find((res) => res.error);
+      if (err) throw err.error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['planning_params_full'] });
+      qc.invalidateQueries({ queryKey: ['planning_params'] }); // rafraîchit aussi le tableau camions
+    },
+  });
+}

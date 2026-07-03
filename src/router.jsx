@@ -5,6 +5,7 @@ import LoginPage from './features/auth/LoginPage';
 import PlanningAutoPage from './features/planning/PlanningAutoPage';
 import IntentionsProductionPage from './features/production/IntentionsProductionPage';
 import PlanningCamionsPage from './features/camions/PlanningCamionsPage';
+import ParametresPlanningPage from './features/camions/ParametresPlanningPage';
 
 export const router = createHashRouter([
   {
@@ -22,6 +23,7 @@ export const router = createHashRouter([
       { index: true, element: <PlanningAutoPage /> },
       { path: 'intentions-production', element: <IntentionsProductionPage /> },
       { path: 'planning-camions', element: <PlanningCamionsPage /> },
+      { path: 'parametres-planning', element: <ParametresPlanningPage /> },
     ],
   },
 ]);
