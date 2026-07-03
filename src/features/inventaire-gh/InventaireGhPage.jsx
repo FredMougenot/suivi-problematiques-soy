@@ -5,9 +5,16 @@ import {
   useGhCategoriesQuery, useGhPoidsQuery, useTraxCodesQuery, useAddTraxMutation,
 } from './queries';
 import { parseInventoryHtml, sortByExpiration, matchesCategory, getPoidsUnitaire } from './logic';
+import {
+  loadCamions, persistCamions, addSelectionToCamion, removeItemFromCamion,
+  adjustItemQty as adjustItemQtyFn, markCamionSent,
+} from './camionsLogic';
+import { exportGhCamionPdf } from './exportGhPdf';
 import CategorySidebar from './components/CategorySidebar';
+import CamionsSection from './components/CamionsSection';
 import InventoryTable from './components/InventoryTable';
 import TraxModal from './components/TraxModal';
+import CommandePanel from './components/CommandePanel';
 import './inventaireGh.css';
 
 function loadStoredInventory() {
@@ -28,6 +35,10 @@ export default function InventaireGhPage() {
   const [filterProduit, setFilterProduit] = useState('');
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [traxModal, setTraxModal] = useState({ open: false, code: '', desc: '' });
+  const [{ camions, camionActifId: initialCamionActifId }] = useState(loadCamions);
+  const [camionsList, setCamionsList] = useState(camions);
+  const [camionActifId, setCamionActifId] = useState(initialCamionActifId);
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   const sessionQ = useGhSessionQuery();
   const connectMutation = useConnectGhMutation();
@@ -45,6 +56,73 @@ export default function InventaireGhPage() {
   useEffect(() => {
     try { localStorage.setItem('gh_inventory', JSON.stringify(allInventory)); } catch { /* ignore */ }
   }, [allInventory]);
+
+  useEffect(() => { persistCamions(camionsList); }, [camionsList]);
+
+  const camionActif = camionsList.find((c) => c.id === camionActifId) || null;
+
+  function handleAddCamion() {
+    const numero = camionsList.length + 1;
+    const nouveau = { id: 'cam_' + Date.now(), nom: 'Camion ' + numero, items: [], dateCreation: new Date().toISOString() };
+    setCamionsList((prev) => [...prev, nouveau]);
+    addToast('Camion ' + numero + ' créé', 'success');
+  }
+
+  function handleDeleteCamion(camionId) {
+    if (camionsList.length <= 1) { addToast('Impossible de supprimer le dernier camion', 'error'); return; }
+    const camion = camionsList.find((c) => c.id === camionId);
+    if (!camion) return;
+    if (camion.items.length > 0 && !confirm(`Voulez-vous vraiment supprimer "${camion.nom}" ? Il contient ${camion.items.length} item(s).`)) return;
+    setCamionsList((prev) => prev.filter((c) => c.id !== camionId));
+    if (camionActifId === camionId) {
+      const remaining = camionsList.filter((c) => c.id !== camionId);
+      setCamionActifId(remaining[0]?.id || null);
+    }
+    addToast('Camion supprimé', 'info');
+  }
+
+  function handleAddSelectionToTruck() {
+    if (!camionActif) { addToast('Aucun camion sélectionné', 'error'); return; }
+    const { camion: updated, addedCount } = addSelectionToCamion(camionActif, filtered, selectedRows, poidsList);
+    setCamionsList((prev) => prev.map((c) => (c.id === camionActif.id ? updated : c)));
+    setSelectedRows(new Set());
+    addToast('Ajouté ' + addedCount + ' item(s) au ' + camionActif.nom + ' ✓', 'success');
+  }
+
+  function handleRemoveFromCamion(key) {
+    if (!camionActif) return;
+    setCamionsList((prev) => prev.map((c) => (c.id === camionActif.id ? removeItemFromCamion(c, key) : c)));
+  }
+
+  function handleAdjustQty(key, delta) {
+    if (!camionActif) return;
+    setCamionsList((prev) => prev.map((c) => (c.id === camionActif.id ? adjustItemQtyFn(c, key, delta) : c)));
+  }
+
+  function handleClearCommande() {
+    if (!camionActif) return;
+    if (camionActif.items.length > 0 && !confirm(`Voulez-vous vraiment effacer tous les items du ${camionActif.nom} ?`)) return;
+    setCamionsList((prev) => prev.map((c) => (c.id === camionActif.id ? { ...c, items: [] } : c)));
+    addToast('Camion vidé', 'info');
+  }
+
+  function handleMarkSent() {
+    if (!camionActif) return;
+    setCamionsList((prev) => prev.map((c) => (c.id === camionActif.id ? markCamionSent(c) : c)));
+    addToast('Items marqués comme envoyés ✓', 'success');
+  }
+
+  function handleExportGhPdf() {
+    if (!camionActif) return;
+    setExportingPdf(true);
+    try {
+      exportGhCamionPdf(camionActif);
+    } catch (e) {
+      addToast('Erreur PDF : ' + e.message, 'error');
+    } finally {
+      setExportingPdf(false);
+    }
+  }
 
   const divisions = useMemo(() => [...new Set(allInventory.map((r) => r.division).filter(Boolean))].sort(), [allInventory]);
   const produits = useMemo(() => [...new Set(allInventory.map((r) => r.no_produit).filter(Boolean))].sort(), [allInventory]);
@@ -182,32 +260,45 @@ export default function InventaireGhPage() {
         <CategorySidebar
           categories={categories} allInventory={allInventory} activeCatId={activeCatId}
           onSelectCategory={handleSelectCategory} onSelectProduct={handleSelectProduct}
+          extraContent={
+            <CamionsSection
+              camions={camionsList} camionActifId={camionActifId}
+              onSelectCamion={setCamionActifId} onAddCamion={handleAddCamion} onDeleteCamion={handleDeleteCamion}
+            />
+          }
         />
 
-        <div className="gh-content">
-          <div className="inv-tbl-wrap">
-            {allInventory.length === 0 ? (
-              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: '.84rem' }}>Connectez-vous à GH pour charger l'inventaire.</div>
-            ) : (
-              <InventoryTable
-                filtered={filtered} poidsList={poidsList} traxCodes={traxCodes}
-                selectedRows={selectedRows} onToggleSelect={handleToggleSelect} onTraxOpen={handleTraxOpen}
-              />
+        <div className="gh-content" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16, alignItems: 'start' }}>
+          <div>
+            <div className="inv-tbl-wrap">
+              {allInventory.length === 0 ? (
+                <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: '.84rem' }}>Connectez-vous à GH pour charger l'inventaire.</div>
+              ) : (
+                <InventoryTable
+                  filtered={filtered} poidsList={poidsList} traxCodes={traxCodes}
+                  selectedRows={selectedRows} onToggleSelect={handleToggleSelect} onTraxOpen={handleTraxOpen}
+                />
+              )}
+            </div>
+
+            {selectedRows.size > 0 && (
+              <div className="selection-bar">
+                <div className="selection-info">
+                  <div className="selection-count"><span>{selectionStats.count}</span> ligne(s) sélectionnée(s)</div>
+                  <div className="selection-stats">
+                    <span className="sel-stat"><strong>{selectionStats.qty}</strong> unités</span>
+                    <span className="sel-stat"><strong>{selectionStats.weight}</strong> kg</span>
+                  </div>
+                </div>
+                <button className="btn-add-to-truck" onClick={handleAddSelectionToTruck}>🚚 Ajouter au camion</button>
+              </div>
             )}
           </div>
 
-          {selectedRows.size > 0 && (
-            <div className="selection-bar">
-              <div className="selection-info">
-                <div className="selection-count"><span>{selectionStats.count}</span> ligne(s) sélectionnée(s)</div>
-                <div className="selection-stats">
-                  <span className="sel-stat"><strong>{selectionStats.qty}</strong> unités</span>
-                  <span className="sel-stat"><strong>{selectionStats.weight}</strong> kg</span>
-                </div>
-              </div>
-              <span style={{ fontSize: '.76rem', color: 'rgba(255,255,255,.75)' }}>Gestion camions bientôt disponible</span>
-            </div>
-          )}
+          <CommandePanel
+            camion={camionActif} onRemoveItem={handleRemoveFromCamion} onAdjustQty={handleAdjustQty}
+            onClear={handleClearCommande} onMarkSent={handleMarkSent} onExportPdf={handleExportGhPdf} exporting={exportingPdf}
+          />
         </div>
       </div>
 
