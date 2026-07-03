@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { matchesCategory, escH } from '../logic';
 
-export default function CategorySidebar({ categories, allInventory, activeCatId, onSelectCategory, onSelectProduct }) {
+export default function CategorySidebar({ categories, allInventory, activeCatId, onSelectCategory, onSelectProduct, extraContent }) {
   const [openParentId, setOpenParentId] = useState(null); // flyout niveau 1 (sous-catégories OU produits)
   const [openChildId, setOpenChildId] = useState(null); // flyout niveau 2 (produits d'une sous-catégorie)
 
@@ -72,6 +72,8 @@ export default function CategorySidebar({ categories, allInventory, activeCatId,
         <div className={`cat-btn${activeCatId === 'NO_CATEGORY' ? ' active' : ''}`} title="Lignes sans catégorie" onClick={() => selectCategory('NO_CATEGORY')}>
           <span className="cat-btn-icon">📋</span><span className="cat-btn-name">SANS CAT.</span>
         </div>
+
+        {extraContent}
       </div>
 
       {/* Flyout niveau 1 */}
