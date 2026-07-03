@@ -52,6 +52,12 @@ export default function AppShell() {
           >
             <span className="sb-ico">🚛</span> Planification camions
           </Link>
+          <Link
+            className={`sb-item${location.pathname === '/stats-ponctualite' ? ' active' : ''}`}
+            to="/stats-ponctualite"
+          >
+            <span className="sb-ico">📊</span> Radar de ponctualité
+          </Link>
 
           {/* Les autres sections (Inventaires, Problématiques, Paramètres)
               seront ajoutées au fur et à mesure de la migration */}
