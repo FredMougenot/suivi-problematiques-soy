@@ -48,11 +48,12 @@ export function useSaveRowMutation(dateStr) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ idx, payload }) => {
-      const full = { date_jour: dateStr, slot_index: idx, updated_at: new Date().toISOString(), ...payload };
-      if (payload.id) {
-        const { error } = await supabase.from('planning_camions').update(full).eq('id', payload.id);
+      const { id, ...rest } = payload;
+      const full = { date_jour: dateStr, slot_index: idx, updated_at: new Date().toISOString(), ...rest };
+      if (id) {
+        const { error } = await supabase.from('planning_camions').update(full).eq('id', id);
         if (error) throw error;
-        return full;
+        return { ...full, id };
       } else {
         const { data, error } = await supabase.from('planning_camions').insert([full]).select().single();
         if (error) throw error;
