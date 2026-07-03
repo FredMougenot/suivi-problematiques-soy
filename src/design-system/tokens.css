@@ -1,0 +1,85 @@
+/* ═════════════════════════════════════════════════════════
+   SOY DESIGN TOKENS — porté depuis soy-shared.css (legacy)
+   Source de vérité unique pour toute l'app React.
+═════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Fonds */
+  --bg-void: #06070B;
+  --bg-deep: #0B0D13;
+  --bg-base: #0F1118;
+  --bg-raised: #15181F;
+  --bg-float: #1A1E2A;
+  --bg-hover: #1F2436;
+  --bg-active: #242B40;
+
+  /* Accent principal */
+  --copper: #C8843A;
+  --copper-light: #E0A870;
+  --copper-pale: #EDD4A8;
+  --copper-glow: rgba(200, 132, 58, .22);
+  --copper-dim: rgba(200, 132, 58, .10);
+
+  /* Texte */
+  --text-primary: #F0EAE0;
+  --text-secondary: #BEC5D6;
+  --text-muted: #7A82A0;
+  --text-faint: #2C3350;
+
+  /* États / statuts */
+  --emerald: #2DD4A0;
+  --emerald-bg: rgba(45, 212, 160, .08);
+  --ruby: #E05555;
+  --ruby-bg: rgba(224, 85, 85, .08);
+  --amber: #E8A43A;
+  --amber-bg: rgba(232, 164, 58, .08);
+  --sapphire: #4A9EE8;
+  --sapphire-bg: rgba(74, 158, 232, .08);
+
+  /* Rayons */
+  --r-sm: 4px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --r-xl: 24px;
+
+  /* Ombres */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, .4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, .5), 0 1px 4px rgba(0, 0, 0, .3);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, .6), 0 4px 16px rgba(0, 0, 0, .4);
+  --shadow-xl: 0 32px 80px rgba(0, 0, 0, .7), 0 8px 32px rgba(0, 0, 0, .5);
+
+  /* Timing */
+  --ease: cubic-bezier(.4, 0, .2, 1);
+  --ease-out: cubic-bezier(0, 0, .2, 1);
+  --t-fast: .15s;
+  --t-base: .25s;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg-void);
+  color: var(--text-primary);
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: var(--copper-dim); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--copper); }
+
+/* Police monospace pour les données numériques (planning, inventaire) */
+.mono-data {
+  font-family: 'JetBrains Mono', monospace;
+}
