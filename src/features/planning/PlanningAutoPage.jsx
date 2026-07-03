@@ -9,7 +9,6 @@ import MagicRingsBackground from '../../layout/MagicRingsBackground';
 import LigneCard from './components/LigneCard';
 import QuaisCenterCard from './components/QuaisCenterCard';
 import SlotsTable from './components/SlotsTable';
-import Toasts from './components/Toasts';
 import './planning.css';
 
 export default function PlanningAutoPage() {
@@ -117,8 +116,6 @@ export default function PlanningAutoPage() {
           )}
         </div>
       </div>
-
-      <Toasts />
     </>
   );
 }

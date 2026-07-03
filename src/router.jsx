@@ -3,11 +3,11 @@ import AppShell from './layout/AppShell';
 import ProtectedRoute from './layout/ProtectedRoute';
 import LoginPage from './features/auth/LoginPage';
 import PlanningAutoPage from './features/planning/PlanningAutoPage';
+import IntentionsProductionPage from './features/production/IntentionsProductionPage';
 
 /**
  * HashRouter choisi pour la Phase 0 : compatible GitHub Pages sans
  * config serveur supplémentaire (voir §6 du plan de migration).
- * Migration possible vers BrowserRouter + 404.html plus tard.
  *
  * /login est hors AppShell (pas de sidebar avant connexion).
  * Toutes les autres routes sont protégées par ProtectedRoute.
@@ -26,6 +26,7 @@ export const router = createHashRouter([
     ),
     children: [
       { index: true, element: <PlanningAutoPage /> },
+      { path: 'intentions-production', element: <IntentionsProductionPage /> },
     ],
   },
 ]);

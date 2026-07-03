@@ -1,12 +1,11 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
+import Toasts from '../features/planning/components/Toasts';
 
 /**
  * AppShell — squelette partagé : sidebar + topbar + zone de contenu (Outlet).
  * Remplace la nav copiée-collée dans chacune des ~30 pages .html legacy.
- * Phase 1 : nav connectée à l'auth réelle (email + logout fonctionnel).
- * Les items de nav spécifiques (Inventaires, Problématiques, Paramètres)
- * seront ajoutés au fur et à mesure de la migration — Phase 3+.
+ * Toasts monté ici (partagé entre toutes les pages protégées).
  */
 export default function AppShell() {
   const location = useLocation();
@@ -41,9 +40,15 @@ export default function AppShell() {
           >
             <span className="sb-ico">▤</span> Planning auto
           </Link>
+          <Link
+            className={`sb-item${location.pathname === '/intentions-production' ? ' active' : ''}`}
+            to="/intentions-production"
+          >
+            <span className="sb-ico">🏭</span> Intentions de production
+          </Link>
 
-          {/* Les autres sections (Inventaires, Problématiques, Paramètres)
-              seront ajoutées au fur et à mesure de la migration — Phase 3+ */}
+          {/* Les autres sections (Camions, Inventaires, Problématiques, Paramètres)
+              seront ajoutées au fur et à mesure de la migration */}
         </nav>
 
         <div className="sb-foot">
@@ -68,6 +73,8 @@ export default function AppShell() {
 
         <Outlet />
       </div>
+
+      <Toasts />
     </div>
   );
 }
