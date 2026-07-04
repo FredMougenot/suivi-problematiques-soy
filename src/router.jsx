@@ -14,6 +14,9 @@ import InventaireGlobalPage from './features/inventaire-global/InventaireGlobalP
 import InventaireDiffPage from './features/inventaire-diff/InventaireDiffPage';
 import DashboardPage from './features/problematiques/DashboardPage';
 import ProblematiquesPage from './features/problematiques/ProblematiquesPage';
+import ProfilPage from './features/profil/ProfilPage';
+import EnvironnementPage from './features/environnement/EnvironnementPage';
+import ErreursPapierPage from './features/erreurs-papier/ErreursPapierPage';
 
 export const router = createHashRouter([
   {
@@ -40,6 +43,9 @@ export const router = createHashRouter([
       { path: 'inventaire-diff', element: <InventaireDiffPage /> },
       { path: 'dashboard', element: <DashboardPage /> },
       { path: 'problematiques', element: <ProblematiquesPage /> },
+      { path: 'profil', element: <ProfilPage /> },
+      { path: 'environnement', element: <EnvironnementPage /> },
+      { path: 'erreurs-papier', element: <ErreursPapierPage /> },
     ],
   },
 ]);
