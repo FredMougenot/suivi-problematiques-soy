@@ -122,8 +122,27 @@ export default function AppShell() {
           >
             <span className="sb-ico">◎</span> Mon profil
           </Link>
+          <div className="sb-sec">Paramètres</div>
+          <Link
+            className={`sb-item${location.pathname === '/parametres-gh' ? ' active' : ''}`}
+            to="/parametres-gh"
+          >
+            <span className="sb-ico">⚙️</span> Paramètres GH
+          </Link>
+          <Link
+            className={`sb-item${location.pathname === '/parametres-inventaire' ? ' active' : ''}`}
+            to="/parametres-inventaire"
+          >
+            <span className="sb-ico">⚙️</span> Paramètres inventaire
+          </Link>
+          <Link
+            className={`sb-item${location.pathname === '/parametres-prob' ? ' active' : ''}`}
+            to="/parametres-prob"
+          >
+            <span className="sb-ico">⚙️</span> Paramètres problématiques
+          </Link>
 
-          {/* Les autres sections (Camions, Paramètres) seront ajoutées
+          {/* Les autres sections (Camions) seront ajoutées
               au fur et à mesure de la migration */}
         </nav>
 
