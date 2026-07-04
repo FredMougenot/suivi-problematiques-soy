@@ -7,6 +7,7 @@ import { queryClient } from './lib/queryClient';
 import { router } from './router';
 import { useAuthStore } from './store/useAuthStore';
 import './design-system/tokens.css';
+import './design-system/components.css';
 
 function Root() {
   const init = useAuthStore((s) => s.init);
