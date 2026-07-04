@@ -9,6 +9,8 @@ import ParametresPlanningPage from './features/camions/ParametresPlanningPage';
 import StatsPonctualitePage from './features/stats/StatsPonctualitePage';
 import InventaireCycliquePage from './features/inventaire-cyclique/InventaireCycliquePage';
 import InventaireGhPage from './features/inventaire-gh/InventaireGhPage';
+import InventaireUsinePage from './features/inventaire-usine/InventaireUsinePage';
+import InventaireGlobalPage from './features/inventaire-global/InventaireGlobalPage';
 
 export const router = createHashRouter([
   {
@@ -30,6 +32,8 @@ export const router = createHashRouter([
       { path: 'stats-ponctualite', element: <StatsPonctualitePage /> },
       { path: 'inventaire-cyclique', element: <InventaireCycliquePage /> },
       { path: 'inventaire-gh', element: <InventaireGhPage /> },
+      { path: 'inventaire-usine', element: <InventaireUsinePage /> },
+      { path: 'inventaire-global', element: <InventaireGlobalPage /> },
     ],
   },
 ]);
