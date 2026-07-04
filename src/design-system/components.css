@@ -1,0 +1,140 @@
+/* ═══════════════════════════════════════════════════════════════
+   SOY DESIGN SYSTEM — COMPOSANTS PARTAGÉS
+   Source de vérité unique pour les boutons, tableaux, modales,
+   formulaires, spinners et empty states de toute l'app React.
+   Les CSS de chaque page ne doivent contenir QUE des styles
+   propres à cette page (layouts particuliers, graphiques, etc.).
+═══════════════════════════════════════════════════════════════ */
+
+/* ── BOUTONS ──────────────────────────────────────────────────
+   Usage : <button className="btn btn-primary">…</button>
+   Variantes : btn-primary | btn-secondary | btn-danger | btn-ghost
+   Modificateur de taille : btn-sm (compact, pour actions en ligne dans un tableau)
+   Bouton icône seul (✕ supprimer, etc.) : btn-icon
+─────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 9px 18px; border-radius: var(--r-md);
+  font-family: 'Outfit', sans-serif; font-size: .82rem; font-weight: 700;
+  border: 1px solid transparent; cursor: pointer; white-space: nowrap; text-decoration: none;
+  transition: opacity var(--t-fast) var(--ease), transform var(--t-fast) var(--ease),
+              background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
+              color var(--t-fast) var(--ease);
+}
+.btn:disabled { opacity: .5; cursor: default; pointer-events: none; }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+
+.btn-primary { background: linear-gradient(135deg, var(--copper), var(--copper-light)); color: var(--bg-void); border-color: transparent; }
+.btn-primary:hover:not(:disabled) { opacity: .88; }
+
+.btn-secondary { background: var(--bg-raised); border-color: var(--text-faint); color: var(--text-secondary); }
+.btn-secondary:hover:not(:disabled) { border-color: var(--copper); color: var(--copper-light); }
+
+.btn-danger { background: rgba(224,85,85,.08); border-color: rgba(224,85,85,.28); color: var(--ruby); }
+.btn-danger:hover:not(:disabled) { background: rgba(224,85,85,.16); }
+
+.btn-ghost { background: transparent; border-color: var(--text-faint); color: var(--text-secondary); }
+.btn-ghost:hover:not(:disabled) { border-color: var(--copper); color: var(--copper-light); }
+
+.btn-sm { padding: 5px 11px; font-size: .74rem; gap: 4px; }
+
+.btn-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: var(--r-sm);
+  background: transparent; border: 1px solid transparent; color: var(--text-muted);
+  font-size: .8rem; cursor: pointer; flex-shrink: 0;
+  transition: all var(--t-fast) var(--ease);
+}
+.btn-icon:hover:not(:disabled) { background: rgba(224,85,85,.1); border-color: rgba(224,85,85,.3); color: var(--ruby); }
+.btn-icon:disabled { opacity: .4; cursor: default; }
+
+/* ── SPINNER ──────────────────────────────────────────────────
+   Usage : <div className="spinner-box"><div className="spinner-ring"></div> Chargement…</div>
+─────────────────────────────────────────────────────────────── */
+.spinner-box { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 50px; color: var(--text-muted); font-size: .88rem; }
+.spinner-ring { width: 24px; height: 24px; border: 2px solid var(--text-faint); border-top-color: var(--copper); border-radius: 50%; animation: soy-spin .8s linear infinite; flex-shrink: 0; }
+@keyframes soy-spin { to { transform: rotate(360deg); } }
+
+/* ── EMPTY STATE ──────────────────────────────────────────────
+   Usage : <div className="empty-state"><div className="empty-state-icon">📋</div>
+             <div className="empty-state-title">Aucun résultat</div>
+             <div className="empty-state-sub">Détail optionnel…</div></div>
+─────────────────────────────────────────────────────────────── */
+.empty-state { text-align: center; padding: 50px 24px; color: var(--text-muted); }
+.empty-state-icon { font-size: 2rem; margin-bottom: 10px; opacity: .3; }
+.empty-state-title { font-size: .88rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+.empty-state-sub { font-size: .78rem; color: var(--text-muted); }
+
+/* ── EN-TÊTE DE PAGE ──────────────────────────────────────────
+   Usage : <div className="page-eyebrow">Configuration</div>
+           <div className="page-title">Titre</div>
+           <div className="page-sub">Sous-titre…</div>
+─────────────────────────────────────────────────────────────── */
+.page-eyebrow { font-size: .62rem; font-weight: 800; color: var(--copper); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 6px; }
+.page-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
+.page-sub { font-size: .82rem; color: var(--text-muted); margin-top: 4px; margin-bottom: 24px; }
+.page-header-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+
+/* ── BARRE D'OUTILS / ACTIONS ─────────────────────────────────
+   Usage : <div className="toolbar"><div className="toolbar-left">…</div><div className="toolbar-right">…</div></div>
+─────────────────────────────────────────────────────────────── */
+.toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.toolbar-left, .toolbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* ── CHAMPS DE FORMULAIRE ─────────────────────────────────────
+   Usage : <div className="field"><label className="field-label">Nom</label>
+             <input className="field-input" /></div>
+─────────────────────────────────────────────────────────────── */
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field-label { font-size: .64rem; font-weight: 800; color: var(--copper); letter-spacing: .12em; text-transform: uppercase; }
+.field-input, .field-select, .field-textarea {
+  padding: 9px 12px; background: var(--bg-float); border: 1px solid var(--text-faint);
+  border-radius: var(--r-md); font-size: .84rem; color: var(--text-primary);
+  width: 100%; box-sizing: border-box; font-family: 'Outfit', sans-serif; outline: none;
+  transition: border-color var(--t-fast) var(--ease);
+}
+.field-input:focus, .field-select:focus, .field-textarea:focus { border-color: var(--copper); }
+.field-select { cursor: pointer; }
+.field-textarea { resize: vertical; min-height: 70px; }
+.field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.field-grid .full { grid-column: 1 / -1; }
+@media (max-width: 600px) { .field-grid { grid-template-columns: 1fr; } }
+
+/* ── MODALE ───────────────────────────────────────────────────
+   Usage : <div className="modal-overlay"><div className="modal-box">
+             <div className="modal-header"><div className="modal-title">…</div></div>
+             <div className="modal-body">…</div>
+             <div className="modal-footer"><button className="btn btn-secondary">Annuler</button>…</div>
+           </div></div>
+─────────────────────────────────────────────────────────────── */
+.modal-overlay { position: fixed; inset: 0; z-index: 900; background: rgba(7,8,12,.82); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 24px; }
+.modal-box { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-xl); box-shadow: var(--shadow-xl); width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; }
+.modal-header { padding: 22px 24px 0; }
+.modal-title { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); }
+.modal-subtitle { font-size: .78rem; color: var(--text-muted); margin-top: 4px; }
+.modal-body { padding: 18px 24px; }
+.modal-footer { padding: 12px 24px 22px; display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ── TABLEAU ──────────────────────────────────────────────────
+   Usage : <div className="table-shell"><table className="data-table">
+             <thead><tr><th>…</th></tr></thead><tbody>…</tbody></table></div>
+─────────────────────────────────────────────────────────────── */
+.table-shell { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table thead th { padding: 11px 12px; text-align: left; font-size: .63rem; font-weight: 800; color: var(--copper); letter-spacing: .12em; text-transform: uppercase; background: var(--bg-float); border-bottom: 1px solid var(--text-faint); white-space: nowrap; }
+.data-table tbody td { padding: 10px 12px; font-size: .86rem; color: var(--text-primary); border-bottom: 1px solid rgba(255,255,255,.03); vertical-align: middle; }
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody tr:hover td { background: var(--bg-hover); }
+
+/* ── EN-TÊTE DE SECTION (dans une page, pour une sous-section) ──
+   Usage : <div className="sec-h"><div><div className="sec-t">Titre</div>
+             <div className="sec-s">Sous-titre</div></div></div>
+─────────────────────────────────────────────────────────────── */
+.sec-h { display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--text-faint); flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.sec-t { font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 700; color: var(--text-primary); }
+.sec-s { font-size: .8rem; color: var(--text-secondary); margin-top: 3px; }
+
+/* ── COMPTEUR / PILL D'INFO ───────────────────────────────────
+   Usage : <div className="count-pill">12 items</div>
+─────────────────────────────────────────────────────────────── */
+.count-pill { font-size: .78rem; color: var(--text-muted); font-weight: 600; padding: 5px 12px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: 20px; }
