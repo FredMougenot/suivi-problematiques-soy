@@ -17,6 +17,9 @@ import ProblematiquesPage from './features/problematiques/ProblematiquesPage';
 import ProfilPage from './features/profil/ProfilPage';
 import EnvironnementPage from './features/environnement/EnvironnementPage';
 import ErreursPapierPage from './features/erreurs-papier/ErreursPapierPage';
+import ParametresProbPage from './features/parametres-prob/ParametresProbPage';
+import ParametresInventairePage from './features/parametres-inventaire/ParametresInventairePage';
+import ParametresGhPage from './features/parametres-gh/ParametresGhPage';
 
 export const router = createHashRouter([
   {
@@ -46,6 +49,9 @@ export const router = createHashRouter([
       { path: 'profil', element: <ProfilPage /> },
       { path: 'environnement', element: <EnvironnementPage /> },
       { path: 'erreurs-papier', element: <ErreursPapierPage /> },
+      { path: 'parametres-prob', element: <ParametresProbPage /> },
+      { path: 'parametres-inventaire', element: <ParametresInventairePage /> },
+      { path: 'parametres-gh', element: <ParametresGhPage /> },
     ],
   },
 ]);
