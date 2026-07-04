@@ -11,6 +11,7 @@ import InventaireCycliquePage from './features/inventaire-cyclique/InventaireCyc
 import InventaireGhPage from './features/inventaire-gh/InventaireGhPage';
 import InventaireUsinePage from './features/inventaire-usine/InventaireUsinePage';
 import InventaireGlobalPage from './features/inventaire-global/InventaireGlobalPage';
+import InventaireDiffPage from './features/inventaire-diff/InventaireDiffPage';
 
 export const router = createHashRouter([
   {
@@ -34,6 +35,7 @@ export const router = createHashRouter([
       { path: 'inventaire-gh', element: <InventaireGhPage /> },
       { path: 'inventaire-usine', element: <InventaireUsinePage /> },
       { path: 'inventaire-global', element: <InventaireGlobalPage /> },
+      { path: 'inventaire-diff', element: <InventaireDiffPage /> },
     ],
   },
 ]);
