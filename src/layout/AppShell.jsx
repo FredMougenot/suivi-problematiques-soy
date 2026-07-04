@@ -33,6 +33,19 @@ export default function AppShell() {
         </div>
 
         <nav className="sb-nav">
+          <div className="sb-sec">Problématiques</div>
+          <Link
+            className={`sb-item${location.pathname === '/dashboard' ? ' active' : ''}`}
+            to="/dashboard"
+          >
+            <span className="sb-ico">◈</span> Tableau de bord
+          </Link>
+          <Link
+            className={`sb-item${location.pathname === '/problematiques' ? ' active' : ''}`}
+            to="/problematiques"
+          >
+            <span className="sb-ico">◉</span> Registre
+          </Link>
           <div className="sb-sec">Planning</div>
           <Link
             className={`sb-item${location.pathname === '/' ? ' active' : ''}`}
@@ -90,7 +103,7 @@ export default function AppShell() {
             <span className="sb-ico">📈</span> Inventaire diff
           </Link>
 
-          {/* Les autres sections (Camions, Inventaires, Problématiques, Paramètres)
+          {/* Les autres sections (Camions, Inventaires, Paramètres)
               seront ajoutées au fur et à mesure de la migration */}
         </nav>
 
