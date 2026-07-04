@@ -1,0 +1,34 @@
+/* ═══════════════════════════════════════════════════════════════
+   PARAMÈTRES PROBLÉMATIQUES — styles
+═══════════════════════════════════════════════════════════════ */
+
+.tb-back { display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px; border-radius: var(--r-md); background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-secondary); font-size: .82rem; font-weight: 500; text-decoration: none; }
+.tb-back:hover { border-color: var(--copper); color: var(--copper-light); }
+
+.page-eyebrow { font-size: .62rem; font-weight: 800; color: var(--copper); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 6px; }
+.page-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
+.page-sub { font-size: .82rem; color: var(--text-muted); margin-top: 4px; margin-bottom: 24px; }
+
+.actions-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+.btn-add { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--r-md); background: linear-gradient(135deg, var(--copper), var(--copper-light)); color: #0F1118; font-size: .82rem; font-weight: 800; border: none; cursor: pointer; }
+.btn-add:hover { opacity: .88; }
+.btn-save-all { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--r-md); background: var(--emerald-bg); border: 1px solid rgba(45,212,160,.3); color: var(--emerald); font-size: .82rem; font-weight: 700; cursor: pointer; }
+.btn-save-all:hover { background: rgba(45,212,160,.15); }
+.btn-save-all:disabled { opacity: .5; cursor: default; }
+
+.tbl-wrap { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow: hidden; }
+.dtbl { width: 100%; border-collapse: collapse; }
+.dtbl thead th { padding: 11px 10px; text-align: left; font-size: .63rem; font-weight: 800; color: var(--copper); letter-spacing: .12em; text-transform: uppercase; background: var(--bg-float); border-bottom: 1px solid var(--text-faint); }
+.dtbl tbody td { padding: 8px 12px; font-size: .86rem; color: var(--text-primary); border-bottom: 1px solid rgba(255,255,255,.03); }
+.dtbl tbody tr:last-child td { border-bottom: none; }
+.inp-resp { width: 100%; background: transparent; border: none; color: var(--text-primary); font-size: .86rem; padding: 4px 0; outline: none; border-bottom: 1px solid transparent; }
+.inp-resp:focus { border-bottom-color: var(--copper); }
+.btn-rm { width: 28px; height: 28px; border-radius: var(--r-sm); background: transparent; border: 1px solid var(--text-faint); color: var(--text-muted); font-size: .8rem; cursor: pointer; }
+.btn-rm:hover { border-color: var(--ruby); color: var(--ruby); background: rgba(224,85,85,.08); }
+
+.danger-zone { border: 1px solid rgba(224,85,85,.25); border-radius: var(--r-lg); padding: 22px 24px; background: rgba(224,85,85,.04); }
+.danger-eyebrow { font-size: .62rem; font-weight: 800; color: var(--ruby); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 6px; }
+.danger-title { font-size: .88rem; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.danger-sub { font-size: .8rem; color: var(--text-muted); margin-bottom: 16px; }
+.btn-danger { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--r-md); background: transparent; border: 1px solid var(--ruby); color: var(--ruby); font-size: .82rem; font-weight: 700; cursor: pointer; }
+.btn-danger:hover { background: rgba(224,85,85,.12); }
