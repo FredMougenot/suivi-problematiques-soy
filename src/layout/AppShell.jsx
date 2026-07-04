@@ -83,6 +83,12 @@ export default function AppShell() {
           >
             <span className="sb-ico">🌐</span> Inventaire global
           </Link>
+          <Link
+            className={`sb-item${location.pathname === '/inventaire-diff' ? ' active' : ''}`}
+            to="/inventaire-diff"
+          >
+            <span className="sb-ico">📈</span> Inventaire diff
+          </Link>
 
           {/* Les autres sections (Camions, Inventaires, Problématiques, Paramètres)
               seront ajoutées au fur et à mesure de la migration */}
