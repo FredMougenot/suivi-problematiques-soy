@@ -102,9 +102,29 @@ export default function AppShell() {
           >
             <span className="sb-ico">📈</span> Inventaire diff
           </Link>
+          <div className="sb-sec">Outils</div>
+          <Link
+            className={`sb-item${location.pathname === '/environnement' ? ' active' : ''}`}
+            to="/environnement"
+          >
+            <span className="sb-ico">🌿</span> Environnement
+          </Link>
+          <Link
+            className={`sb-item${location.pathname === '/erreurs-papier' ? ' active' : ''}`}
+            to="/erreurs-papier"
+          >
+            <span className="sb-ico">📝</span> Erreurs papier
+          </Link>
+          <div className="sb-sec">Mon compte</div>
+          <Link
+            className={`sb-item${location.pathname === '/profil' ? ' active' : ''}`}
+            to="/profil"
+          >
+            <span className="sb-ico">◎</span> Mon profil
+          </Link>
 
-          {/* Les autres sections (Camions, Inventaires, Paramètres)
-              seront ajoutées au fur et à mesure de la migration */}
+          {/* Les autres sections (Camions, Paramètres) seront ajoutées
+              au fur et à mesure de la migration */}
         </nav>
 
         <div className="sb-foot">
