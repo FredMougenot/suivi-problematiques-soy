@@ -70,19 +70,19 @@ export default function ParametresProbPage() {
   return (
     <div className="tool-main">
       <div style={{ marginBottom: 12 }}>
-        <Link to="/problematiques" className="tb-back">← Problématiques</Link>
+        <Link to="/problematiques" className="btn btn-secondary">← Problématiques</Link>
       </div>
       <div className="page-eyebrow">Configuration</div>
       <div className="page-title">Responsables</div>
       <div className="page-sub">Définissez la liste des responsables disponibles dans le formulaire de création de problématiques.</div>
 
-      <div className="actions-bar">
-        <button className="btn-add" onClick={addRow}>⊕ Ajouter</button>
-        <button className="btn-save-all" onClick={saveAll} disabled={saving}>{saving ? 'Enregistrement…' : '💾 Enregistrer'}</button>
+      <div className="toolbar">
+        <button className="btn btn-primary" onClick={addRow}>⊕ Ajouter</button>
+        <button className="btn btn-primary" onClick={saveAll} disabled={saving}>{saving ? 'Enregistrement…' : '💾 Enregistrer'}</button>
       </div>
 
-      <div className="tbl-wrap" style={{ marginBottom: 40 }}>
-        <table className="dtbl" style={{ minWidth: 320 }}>
+      <div className="table-shell" style={{ marginBottom: 40 }}>
+        <table className="data-table" style={{ minWidth: 320 }}>
           <thead><tr><th>Nom du responsable</th><th style={{ width: 48, textAlign: 'center' }}>—</th></tr></thead>
           <tbody>
             {rows.length === 0 ? (
@@ -90,7 +90,7 @@ export default function ParametresProbPage() {
             ) : rows.map((r, i) => (
               <tr key={r.id}>
                 <td><input className="inp-resp" value={r.nom} placeholder="Nom du responsable…" onChange={(e) => updateNom(i, e.target.value)} /></td>
-                <td style={{ textAlign: 'center', width: 48 }}><button className="btn-rm" onClick={() => deleteRow(i)}>✕</button></td>
+                <td style={{ textAlign: 'center', width: 48 }}><button className="btn-icon" onClick={() => deleteRow(i)}>✕</button></td>
               </tr>
             ))}
           </tbody>
@@ -101,7 +101,7 @@ export default function ParametresProbPage() {
         <div className="danger-eyebrow">Zone dangereuse</div>
         <div className="danger-title">Supprimer toutes les problématiques</div>
         <div className="danger-sub">Supprime définitivement tous les enregistrements de la table des problématiques. Cette action est irréversible.</div>
-        <button className="btn-danger" onClick={confirmDeleteAll}>🗑 Tout supprimer</button>
+        <button className="btn btn-danger" onClick={confirmDeleteAll}>🗑 Tout supprimer</button>
       </div>
     </div>
   );
