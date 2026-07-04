@@ -1,21 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════
-   PARAMÈTRES INVENTAIRE CYCLIQUE — styles
+   PARAMÈTRES INVENTAIRE CYCLIQUE — styles propres à cette page
+   (boutons, spinner, page-header : voir design-system/components.css)
 ═══════════════════════════════════════════════════════════════ */
-
-.tb-back { display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px; border-radius: var(--r-md); background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-secondary); font-size: .82rem; font-weight: 500; text-decoration: none; }
-.tb-back:hover { border-color: var(--copper); color: var(--copper-light); }
-
-.page-eyebrow { font-size: .62rem; font-weight: 800; color: var(--copper); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 6px; }
-.page-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
-.page-sub { font-size: .82rem; color: var(--text-muted); margin-top: 4px; margin-bottom: 24px; }
-
-.actions-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
-.actions-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.btn-add { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--r-md); background: linear-gradient(135deg, var(--copper), var(--copper-light)); color: #0F1118; font-size: .82rem; font-weight: 800; border: none; cursor: pointer; }
-.btn-add:hover { opacity: .88; }
-.btn-save-all { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--r-md); background: var(--emerald-bg); border: 1px solid rgba(45,212,160,.3); color: var(--emerald); font-size: .82rem; font-weight: 700; cursor: pointer; }
-.btn-save-all:hover { background: rgba(45,212,160,.15); }
-.btn-save-all:disabled { opacity: .5; cursor: default; }
 
 .rec-section { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); padding: 20px; margin-bottom: 28px; position: relative; }
 .rec-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--sapphire), transparent); border-radius: var(--r-lg) var(--r-lg) 0 0; }
@@ -27,25 +13,12 @@
 .rec-add-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .inp-rec { background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-primary); border-radius: var(--r-sm); padding: 6px 10px; font-size: .84rem; outline: none; width: 90px; }
 .inp-rec:focus { border-color: var(--sapphire); }
-.btn-add-rec { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--r-sm); background: rgba(74,158,232,.1); border: 1px solid rgba(74,158,232,.3); color: var(--sapphire); font-size: .78rem; font-weight: 700; cursor: pointer; }
-.btn-add-rec:hover { background: rgba(74,158,232,.2); }
 
-.item-count { font-size: .78rem; color: var(--text-muted); font-weight: 600; padding: 5px 12px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: 20px; }
 .kpi-retard { padding: 5px 14px; border-radius: 20px; background: rgba(224,85,85,.1); border: 1px solid rgba(224,85,85,.3); color: var(--ruby); font-size: .78rem; font-weight: 700; }
 
-.param-tbl-wrap { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow-x: auto; position: relative; }
-.param-tbl-wrap::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--copper), transparent); pointer-events: none; }
-.param-tbl { width: 100%; border-collapse: collapse; }
-.param-tbl thead tr { background: var(--bg-float); border-bottom: 1px solid var(--text-faint); }
-.param-tbl thead th { padding: 12px 16px; font-size: .6rem; font-weight: 800; text-transform: uppercase; letter-spacing: .12em; color: var(--text-muted); text-align: left; white-space: nowrap; }
-.param-tbl thead th:first-child { width: 48px; text-align: center; }
-.param-tbl thead th:last-child { width: 56px; text-align: center; }
-.param-tbl tbody tr { border-bottom: 1px solid rgba(44,51,80,.5); }
-.param-tbl tbody tr:hover { background: var(--bg-hover); }
-.param-tbl tbody tr:last-child { border-bottom: none; }
-.param-tbl tbody td { padding: 10px 16px; font-size: .86rem; color: var(--text-primary); vertical-align: middle; }
-.param-tbl tbody td:first-child { text-align: center; color: var(--text-muted); font-size: .76rem; font-weight: 700; }
-.param-tbl tbody td:last-child { text-align: center; }
+/* Colonnes du tableau des items (scopé à .param-items-table pour ne pas affecter les autres tableaux de l'app) */
+.param-items-table thead th:first-child, .param-items-table tbody td:first-child { width: 48px; text-align: center; }
+.param-items-table thead th:last-child, .param-items-table tbody td:last-child { width: 56px; text-align: center; }
 .inp-item { background: transparent; border: none; border-bottom: 1px solid transparent; color: var(--text-primary); font-size: .86rem; outline: none; padding: 4px 6px; width: 100%; }
 .inp-item:hover { border-bottom-color: var(--text-faint); }
 .inp-item:focus { border-bottom-color: var(--copper); }
@@ -57,9 +30,3 @@
 .td-prochaine.soon { color: var(--amber); }
 .td-prochaine.overdue { color: var(--ruby); }
 .td-prochaine.never { color: var(--text-faint); font-style: italic; }
-.btn-rm { width: 28px; height: 28px; border-radius: var(--r-sm); background: transparent; border: 1px solid transparent; color: var(--text-muted); font-size: .85rem; cursor: pointer; }
-.btn-rm:hover { background: rgba(224,85,85,.1); border-color: rgba(224,85,85,.3); color: var(--ruby); }
-
-.spinner { display: flex; align-items: center; justify-content: center; padding: 50px; gap: 12px; color: var(--text-muted); font-size: .88rem; }
-.sp-ring { width: 24px; height: 24px; border: 2px solid var(--text-faint); border-top-color: var(--copper); border-radius: 50%; animation: pi-spin .8s linear infinite; }
-@keyframes pi-spin { to { transform: rotate(360deg) } }
