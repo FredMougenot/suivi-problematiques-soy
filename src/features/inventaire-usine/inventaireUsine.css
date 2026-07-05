@@ -1,10 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════
-   INVENTAIRE USINE — styles
+   INVENTAIRE USINE — styles propres à cette page
+   (boutons, page-header, spinner, empty state, modale, toolbar : voir design-system/components.css)
 ═══════════════════════════════════════════════════════════════ */
-
-.page-eyebrow { font-size: .62rem; font-weight: 800; color: var(--copper); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 6px; }
-.page-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
-.page-sub { font-size: .82rem; color: var(--text-muted); margin-top: 4px; margin-bottom: 24px; }
 
 .releve-banner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); padding: 16px 20px; margin-bottom: 22px; position: relative; overflow: hidden; }
 .releve-banner::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg,transparent,var(--copper),transparent); }
@@ -14,16 +11,6 @@
 .releve-date-val { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
 .releve-count { padding: 5px 14px; border-radius: 20px; background: var(--copper-dim); border: 1px solid rgba(200,132,58,.2); color: var(--copper); font-size: .78rem; font-weight: 700; }
 .badge-usine { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; background: rgba(200,132,58,.12); border: 1px solid rgba(200,132,58,.25); color: var(--copper); font-size: .68rem; font-weight: 700; }
-.btn-nouveau-releve { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--r-md); background: rgba(224,85,85,.12); border: 1px solid rgba(224,85,85,.3); color: var(--ruby); font-size: .82rem; font-weight: 700; cursor: pointer; }
-.btn-nouveau-releve:hover { background: rgba(224,85,85,.2); }
-
-.actions-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
-.btn-add-item { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--r-md); background: linear-gradient(135deg,var(--copper),var(--copper-light)); color: #0F1118; font-size: .82rem; font-weight: 800; border: none; cursor: pointer; }
-.btn-add-item:hover { opacity: .88; }
-.btn-save-all { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--r-md); background: var(--emerald-bg); border: 1px solid rgba(45,212,160,.3); color: var(--emerald); font-size: .82rem; font-weight: 700; cursor: pointer; }
-.btn-save-all:hover { background: rgba(45,212,160,.15); }
-.btn-global { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--r-md); background: rgba(74,158,232,.1); border: 1px solid rgba(74,158,232,.3); color: var(--sapphire); font-size: .82rem; font-weight: 700; text-decoration: none; }
-.btn-global:hover { background: rgba(74,158,232,.18); }
 
 .tbl-wrap { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow: hidden; position: relative; overflow-x: auto; }
 .tbl-wrap::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg,transparent,var(--copper),transparent); pointer-events: none; }
@@ -60,19 +47,3 @@
 .total-item { display: flex; flex-direction: column; gap: 2px; }
 .total-lbl { font-size: .6rem; font-weight: 800; color: var(--text-muted); letter-spacing: .1em; text-transform: uppercase; }
 .total-val { font-size: .96rem; font-weight: 700; color: var(--amber); }
-
-.empty-state { padding: 50px; text-align: center; color: var(--text-muted); font-size: .88rem; }
-.empty-icon { font-size: 2.4rem; margin-bottom: 12px; opacity: .5; }
-
-.spinner { display: flex; align-items: center; justify-content: center; padding: 50px; gap: 12px; color: var(--text-muted); font-size: .88rem; }
-.sp-ring { width: 24px; height: 24px; border: 2px solid var(--text-faint); border-top-color: var(--copper); border-radius: 50%; animation: usine-spin .8s linear infinite; }
-@keyframes usine-spin { to { transform: rotate(360deg) } }
-
-.modal-overlay { position: fixed; inset: 0; z-index: 900; background: rgba(7,8,12,.82); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; padding: 24px; }
-.modal-overlay.open { display: flex; }
-.modal-box { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-xl); width: 100%; max-width: 420px; overflow: hidden; }
-.modal-hd { padding: 20px 24px 0; font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
-.modal-bd { padding: 16px 24px; font-size: .86rem; color: var(--text-secondary); line-height: 1.6; }
-.modal-ft { padding: 12px 24px 20px; display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid var(--text-faint); }
-.btn-cancel { padding: 9px 18px; border-radius: var(--r-md); background: transparent; border: 1px solid var(--text-faint); color: var(--text-secondary); font-size: .84rem; cursor: pointer; }
-.btn-confirm-danger { padding: 9px 20px; border-radius: var(--r-md); background: var(--ruby); border: none; color: #fff; font-size: .84rem; font-weight: 700; cursor: pointer; }
