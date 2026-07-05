@@ -15,7 +15,7 @@ export default function CamionsSection({ camions, camionActifId, onSelectCamion,
               {newCount > 0 && <span className="camion-badge">🆕 {newCount}</span>}
             </div>
             {camions.length > 1 && (
-              <button className="camion-delete" title="Supprimer ce camion" onClick={(e) => { e.stopPropagation(); onDeleteCamion(cam.id); }}>🗑️</button>
+              <button className="btn-icon" style={{ position: 'absolute', top: 6, right: 6 }} title="Supprimer ce camion" onClick={(e) => { e.stopPropagation(); onDeleteCamion(cam.id); }}>🗑️</button>
             )}
           </div>
         );
