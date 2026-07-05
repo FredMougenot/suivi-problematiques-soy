@@ -150,7 +150,7 @@ export default function EnvironnementPage() {
 
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, padding: '16px 0 4px', flexWrap: 'wrap' }}>
         <button className="btn btn-primary" onClick={handleSaveAll}>💾 Sauvegarder tout</button>
-        <button className="btn-submit-nc" onClick={handleOpenNcModal}>⚠ Soumettre les non-conformités</button>
+        <button className="btn btn-danger" onClick={handleOpenNcModal}>⚠ Soumettre les non-conformités</button>
       </div>
 
       <AddVerifModal open={addModalOpen} onClose={() => setAddModalOpen(false)} onConfirm={handleAddVerif} />
