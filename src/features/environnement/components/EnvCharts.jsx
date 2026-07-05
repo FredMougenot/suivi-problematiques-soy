@@ -42,7 +42,7 @@ function MiniChart({ canvasId, labels, data, limit }) {
     const el = canvasRef.current;
     if (!el) return;
     if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null; }
-    const box = el.closest('.env-chart-box') || el.parentElement;
+    const box = el.closest('.chart-box') || el.parentElement;
     const w = box ? Math.max(Math.floor(box.getBoundingClientRect().width - 40), 200) : 280;
     el.width = w; el.height = 160;
     chartRef.current = new Chart(el, { type: 'line', data: { labels, datasets: buildDatasets(data, limit) }, options: OPTS });
@@ -54,22 +54,22 @@ function MiniChart({ canvasId, labels, data, limit }) {
 
 export default function EnvCharts({ series, weekLimit, monthLimit, onChangeWeekLimit, onChangeMonthLimit }) {
   return (
-    <div className="env-chart-panel" id="env-chart-panel">
-      <div className="env-chart-grid">
-        <div className="env-chart-box">
-          <div className="env-chart-title">Non-conformes — Semaine en cours</div>
+    <div className="chart-panel" id="env-chart-panel">
+      <div className="chart-grid">
+        <div className="chart-box">
+          <div className="chart-box-title">Non-conformes — Semaine en cours</div>
           <MiniChart canvasId="env-chart-week" labels={series.week.labels} data={series.week.data} limit={weekLimit} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
-            <div style={{ width: 3, height: 14, background: 'rgba(232,164,58,.8)', borderRadius: 2, flexShrink: 0 }}></div>
+            <div style={{ width: 3, height: 14, background: 'rgba(139,92,246,.8)', borderRadius: 2, flexShrink: 0 }}></div>
             <label style={{ fontSize: '.68rem', color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>Limite acceptable</label>
             <input type="number" min="0" placeholder="—" value={weekLimit ?? ''} className="env-limit-input" onChange={(e) => onChangeWeekLimit(e.target.value)} />
           </div>
         </div>
-        <div className="env-chart-box">
-          <div className="env-chart-title">Non-conformes — Mois en cours</div>
+        <div className="chart-box">
+          <div className="chart-box-title">Non-conformes — Mois en cours</div>
           <MiniChart canvasId="env-chart-month" labels={series.month.labels} data={series.month.data} limit={monthLimit} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
-            <div style={{ width: 3, height: 14, background: 'rgba(232,164,58,.8)', borderRadius: 2, flexShrink: 0 }}></div>
+            <div style={{ width: 3, height: 14, background: 'rgba(139,92,246,.8)', borderRadius: 2, flexShrink: 0 }}></div>
             <label style={{ fontSize: '.68rem', color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>Limite acceptable</label>
             <input type="number" min="0" placeholder="—" value={monthLimit ?? ''} className="env-limit-input" onChange={(e) => onChangeMonthLimit(e.target.value)} />
           </div>
