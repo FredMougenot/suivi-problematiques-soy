@@ -15,7 +15,7 @@ export default function DestinationBars({ data, seuils }) {
   const dests = Object.entries(dm).filter(([, v]) => v.n > 0).sort((a, b) => a[1].on / a[1].n - b[1].on / b[1].n);
 
   if (!dests.length) {
-    return <div className="empty"><div className="empty-ico">📭</div>Aucune donnée</div>;
+    return <div className="empty-state"><div className="empty-state-icon">📭</div><div className="empty-state-title">Aucune donnée</div></div>;
   }
 
   return (
