@@ -48,6 +48,7 @@
   inset: 0;
   z-index: 1;
   pointer-events: none;
+  transform: translateZ(0);
   background: radial-gradient(ellipse at center, transparent 0%, rgba(6, 5, 15, .35) 72%, rgba(6, 5, 15, .75) 100%);
 }
 
@@ -80,7 +81,7 @@
   font-size: 2.1rem; font-weight: 300; letter-spacing: -.01em; line-height: 1;
   background: linear-gradient(135deg, #ffffff 0%, #d9c9ff 55%, var(--lg-purple) 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
-  margin-bottom: 10px;
+  margin-bottom: 10px; transform: translateZ(0);
 }
 .lg-tagline { font-size: .84rem; color: var(--lg-text-muted); line-height: 1.5; max-width: 260px; margin: 0 auto; }
 
@@ -98,7 +99,7 @@
   transition: border-color .18s ease, background .18s ease;
 }
 .lg-input::placeholder { color: var(--lg-text-faint); }
-.lg-input:focus { border-color: var(--lg-purple); background: rgba(255, 255, 255, .07); }
+.lg-input:focus { border-color: var(--lg-purple); background: rgba(255, 255, 255, .07); transform: translateZ(0); }
 .lg-input:focus-visible { outline: 2px solid rgba(139, 92, 246, .5); outline-offset: 1px; }
 
 .lg-eye-btn {
@@ -139,19 +140,20 @@
   background: linear-gradient(135deg, var(--lg-purple), var(--lg-pink));
   color: #fff; font-family: inherit; font-size: .88rem; font-weight: 600; cursor: pointer;
   box-shadow: 0 10px 30px -8px rgba(139, 92, 246, .5);
+  transform: translateZ(0);
   transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
 }
-.lg-submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 14px 36px -8px rgba(139, 92, 246, .65); }
+.lg-submit:hover:not(:disabled) { transform: translateY(-1px) translateZ(0); box-shadow: 0 14px 36px -8px rgba(139, 92, 246, .65); }
 .lg-submit:focus-visible { outline: 2px solid rgba(255, 255, 255, .6); outline-offset: 2px; }
-.lg-submit:disabled { opacity: .65; cursor: default; transform: none; }
-.lg-submit.success { background: linear-gradient(135deg, #10b981, var(--lg-cyan)); }
+.lg-submit:disabled { opacity: .65; cursor: default; transform: translateZ(0); }
+.lg-submit.success { background: linear-gradient(135deg, #10b981, var(--lg-cyan)); transform: translateZ(0); }
 
 /* ── Pied de carte ── */
 .lg-footer { margin-top: 26px; text-align: center; font-size: .74rem; color: var(--lg-text-faint); line-height: 1.6; }
 
 @media (prefers-reduced-motion: reduce) {
   .lg-card { animation: none; }
-  .lg-submit:hover:not(:disabled) { transform: none; }
+  .lg-submit:hover:not(:disabled) { transform: translateZ(0); }
 }
 
 @media (max-width: 480px) {
