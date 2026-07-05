@@ -75,13 +75,13 @@ export default function CategoryEditor({ cat, allCategories, onChange, onSave, o
                 </select>
               </div>
               <div><input className="rule-input" value={rule.value || ''} placeholder="valeur…" onChange={(e) => updateRule(i, 'value', e.target.value)} /></div>
-              <div><button className="rule-del-btn" onClick={() => deleteRule(i)}>✕</button></div>
+              <div><button className="btn-icon" onClick={() => deleteRule(i)}>✕</button></div>
             </div>
           ))}
         </div>
       </div>
 
-      <button className="add-rule-btn" onClick={addRule}>⊕ Ajouter une règle</button>
+      <button className="btn btn-secondary btn-sm" onClick={addRule}>⊕ Ajouter une règle</button>
 
       <div className="preview-section">
         <div className="preview-title">👁 Aperçu de la règle</div>
@@ -98,9 +98,9 @@ export default function CategoryEditor({ cat, allCategories, onChange, onSave, o
       </div>
 
       <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
-        <button className="btn-secondary" onClick={onBack}>← Retour</button>
-        <button className="btn-primary" onClick={onSave} style={{ marginLeft: 'auto' }} disabled={saving}>{saving ? 'Enregistrement…' : '💾 Sauvegarder'}</button>
-        <button className="btn-danger" onClick={onDelete}>🗑 Supprimer</button>
+        <button className="btn btn-secondary" onClick={onBack}>← Retour</button>
+        <button className="btn btn-primary" onClick={onSave} style={{ marginLeft: 'auto' }} disabled={saving}>{saving ? 'Enregistrement…' : '💾 Sauvegarder'}</button>
+        <button className="btn btn-danger" onClick={onDelete}>🗑 Supprimer</button>
       </div>
     </div>
   );
