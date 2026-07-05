@@ -1,13 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════
    ENVIRONNEMENT — styles propres à cette page
-   (en-tête de section, boutons, spinner, modales, champs : voir design-system/components.css)
+   (en-tête de section, boutons, spinner, modales, champs, date-nav : voir design-system/components.css)
 ═══════════════════════════════════════════════════════════════ */
-
-.date-nav { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 18px 0; }
-.date-arr { width: 34px; height: 34px; border-radius: var(--r-md); background: var(--bg-raised); border: 1px solid var(--text-faint); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
-.date-arr:hover { border-color: var(--copper); color: var(--copper-light); }
-.date-lbl { font-size: 1rem; font-weight: 700; color: var(--text-primary); padding: 7px 22px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); min-width: 260px; text-align: center; }
-.today-chip { font-size: .65rem; font-weight: 700; color: var(--copper-light); background: var(--copper-dim); border: 1px solid rgba(200,132,58,.25); padding: 2px 8px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
 
 /* Chart panel */
 .env-chart-panel { background: linear-gradient(135deg, #0B0D13 0%, #0F1118 50%, #15181F 100%); border-radius: 20px; padding: 24px; margin: 16px 0 8px; }
