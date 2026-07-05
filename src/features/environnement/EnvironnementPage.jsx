@@ -130,10 +130,10 @@ export default function EnvironnementPage() {
         </div>
       </div>
 
-      <div className="date-nav">
-        <button className="date-arr" onClick={() => changeDay(-1)}>←</button>
-        <div className="date-lbl">{dateLabel}{isToday(curDate) && <span className="today-chip">Aujourd'hui</span>}</div>
-        <button className="date-arr" onClick={() => changeDay(1)}>→</button>
+      <div className="date-nav-bar">
+        <button className="date-nav-arr" onClick={() => changeDay(-1)}>←</button>
+        <div className="date-nav-label">{dateLabel}{isToday(curDate) && <span className="date-nav-today-chip">Aujourd'hui</span>}</div>
+        <button className="date-nav-arr" onClick={() => changeDay(1)}>→</button>
       </div>
 
       <EnvCharts series={series} weekLimit={weekLimit} monthLimit={monthLimit} onChangeWeekLimit={updateWeekLimit} onChangeMonthLimit={updateMonthLimit} />
