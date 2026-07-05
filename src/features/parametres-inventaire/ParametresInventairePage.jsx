@@ -78,7 +78,7 @@ export default function ParametresInventairePage() {
   return (
     <div className="tool-main">
       <div style={{ marginBottom: 12 }}>
-        <Link to="/inventaire-cyclique" className="tb-back">← Inventaire cyclique</Link>
+        <Link to="/inventaire-cyclique" className="btn btn-secondary">← Inventaire cyclique</Link>
       </div>
       <div className="page-eyebrow">Configuration</div>
       <div className="page-title">Items à vérifier</div>
@@ -97,27 +97,27 @@ export default function ParametresInventairePage() {
         <div className="rec-add-row">
           <input type="number" className="inp-rec" min="0" placeholder="ex: 120" value={newRecInput} onChange={(e) => setNewRecInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addRecurrence(); }} />
           <span style={{ fontSize: '.78rem', color: 'var(--text-muted)' }}>jours</span>
-          <button className="btn-add-rec" onClick={addRecurrence}>⊕ Ajouter</button>
+          <button className="btn btn-primary btn-sm" onClick={addRecurrence}>⊕ Ajouter</button>
           <span style={{ fontSize: '.72rem', color: 'var(--text-muted)', marginLeft: 4 }}>Les récurrences sont sauvegardées localement</span>
         </div>
       </div>
 
-      <div className="actions-bar">
-        <div className="actions-left">
-          <button className="btn-add" onClick={addRow}>⊕ Ajouter un item</button>
-          <button className="btn-save-all" onClick={saveAll} disabled={saving}>{saving ? 'Enregistrement…' : '💾 Tout sauvegarder'}</button>
+      <div className="toolbar">
+        <div className="toolbar-left">
+          <button className="btn btn-primary" onClick={addRow}>⊕ Ajouter un item</button>
+          <button className="btn btn-primary" onClick={saveAll} disabled={saving}>{saving ? 'Enregistrement…' : '💾 Tout sauvegarder'}</button>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <div className="item-count">{rows.length} item{rows.length !== 1 ? 's' : ''}</div>
+          <div className="count-pill">{rows.length} item{rows.length !== 1 ? 's' : ''}</div>
           {retardCount > 0 && <div className="kpi-retard">{retardCount} en retard</div>}
         </div>
       </div>
 
       {paramsQ.isLoading ? (
-        <div className="spinner"><div className="sp-ring"></div> Chargement…</div>
+        <div className="spinner-box"><div className="spinner-ring"></div> Chargement…</div>
       ) : (
-        <div className="param-tbl-wrap">
-          <table className="param-tbl">
+        <div className="table-shell param-items-table">
+          <table className="data-table">
             <thead><tr><th>#</th><th>Item (nom libre)</th><th>Récurrence</th><th>Dernière vérif.</th><th>Prochaine vérif.</th><th></th></tr></thead>
             <tbody>
               {rows.map((r, i) => {
@@ -133,7 +133,7 @@ export default function ParametresInventairePage() {
                     </td>
                     <td className="td-date">{fmtDate(r.derniere_verification)}</td>
                     <td className={`td-prochaine ${info.cls}`}>{info.lbl}</td>
-                    <td><button className="btn-rm" onClick={() => removeRow(i)} title="Supprimer">✕</button></td>
+                    <td><button className="btn-icon" onClick={() => removeRow(i)} title="Supprimer">✕</button></td>
                   </tr>
                 );
               })}
