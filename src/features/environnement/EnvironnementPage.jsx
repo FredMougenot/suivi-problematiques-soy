@@ -125,8 +125,8 @@ export default function EnvironnementPage() {
       <div className="sec-h" style={{ marginBottom: 8 }}>
         <div><div className="sec-t">🌿 {pageTitle}</div><div className="sec-s">Vérifications quotidiennes de conformité environnementale</div></div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-ghost" onClick={handleExportPdf}>📄 Exporter PDF</button>
-          <button className="btn-ghost" onClick={() => setParamsModalOpen(true)}>⚙️ Paramètres</button>
+          <button className="btn btn-ghost" onClick={handleExportPdf}>📄 Exporter PDF</button>
+          <button className="btn btn-ghost" onClick={() => setParamsModalOpen(true)}>⚙️ Paramètres</button>
         </div>
       </div>
 
@@ -139,17 +139,17 @@ export default function EnvironnementPage() {
       <EnvCharts series={series} weekLimit={weekLimit} monthLimit={monthLimit} onChangeWeekLimit={updateWeekLimit} onChangeMonthLimit={updateMonthLimit} />
 
       <div style={{ marginBottom: 8 }}>
-        <button className="btn-add" onClick={() => setAddModalOpen(true)}>+ Ajouter une vérification</button>
+        <button className="btn btn-primary" onClick={() => setAddModalOpen(true)}>+ Ajouter une vérification</button>
       </div>
 
       {rowsQ.isLoading ? (
-        <div className="spinner-env"><div className="spin-env"></div> Chargement…</div>
+        <div className="spinner-box"><div className="spinner-ring"></div> Chargement…</div>
       ) : (
         <VerifTable rows={rows} onSetConf={setConf} onDelete={handleDelete} />
       )}
 
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, padding: '16px 0 4px', flexWrap: 'wrap' }}>
-        <button className="btn-save-all-env" onClick={handleSaveAll}>💾 Sauvegarder tout</button>
+        <button className="btn btn-primary" onClick={handleSaveAll}>💾 Sauvegarder tout</button>
         <button className="btn-submit-nc" onClick={handleOpenNcModal}>⚠ Soumettre les non-conformités</button>
       </div>
 
