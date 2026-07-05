@@ -3,13 +3,8 @@
    (en-tête de section, boutons, spinner, modales, champs : voir design-system/components.css)
 ═══════════════════════════════════════════════════════════════ */
 
-/* Chart panel */
-.env-chart-panel { background: linear-gradient(135deg, #0B0D13 0%, #0F1118 50%, #15181F 100%); border-radius: 20px; padding: 24px; margin: 16px 0 8px; }
-.env-chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-@media (max-width: 700px) { .env-chart-grid { grid-template-columns: 1fr; } }
-.env-chart-box { background: rgba(26,30,42,.7); border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 20px; }
-.env-chart-title { font-size: .68rem; font-weight: 800; color: var(--copper); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 14px; }
-.env-limit-input { width: 70px; background: rgba(15,17,24,.8); border: 1px solid rgba(200,132,58,.3); color: var(--text-primary); border-radius: 8px; padding: 5px 8px; font-size: .82rem; outline: none; }
+/* Chart panel — voir design-system/components.css pour .chart-panel/.chart-grid/.chart-box/.chart-box-title */
+.env-limit-input { width: 70px; background: rgba(15,17,24,.8); border: 1px solid rgba(139,92,246,.3); color: var(--text-primary); border-radius: 8px; padding: 5px 8px; font-size: .82rem; outline: none; }
 .env-limit-input:focus { border-color: var(--copper); }
 
 /* Table des vérifications */

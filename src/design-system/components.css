@@ -151,6 +151,21 @@
 .date-nav-today-btn { padding: 6px 14px; border-radius: var(--r-md); background: var(--copper-dim); border: 1px solid rgba(139,92,246,.35); color: var(--copper-light); font-size: .78rem; font-weight: 700; cursor: pointer; }
 .date-nav-today-btn:hover { background: rgba(139,92,246,.24); }
 
+/* ── PANNEAU GRAPHIQUE ────────────────────────────────────────
+   Usage : <div className="chart-panel">
+             <div className="chart-panel-header">…</div>
+             <div className="chart-grid">
+               <div className="chart-box"><div className="chart-box-title">…</div>…</div>
+             </div>
+           </div>
+─────────────────────────────────────────────────────────────── */
+.chart-panel { background: var(--bg-raised); backdrop-filter: blur(20px) saturate(140%); transform: translateZ(0); border: 1px solid var(--text-faint); border-radius: 20px; padding: 28px; margin-bottom: 24px; }
+.chart-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; gap: 20px; flex-wrap: wrap; }
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 700px) { .chart-grid { grid-template-columns: 1fr; } }
+.chart-box { background: var(--bg-float); border: 1px solid var(--text-faint); border-radius: 14px; padding: 18px; transform: translateZ(0); }
+.chart-box-title { font-size: .68rem; font-weight: 800; color: var(--copper); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 12px; }
+
 /* ── COMPTEUR / PILL D'INFO ───────────────────────────────────
    Usage : <div className="count-pill">12 items</div>
 ─────────────────────────────────────────────────────────────── */

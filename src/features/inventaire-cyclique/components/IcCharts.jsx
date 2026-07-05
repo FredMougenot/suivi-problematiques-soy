@@ -60,7 +60,7 @@ function MiniChart({ canvasId, labels, data, limit }) {
   useEffect(() => {
     if (!canvasRef.current) return;
     if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null; }
-    const box = canvasRef.current.closest('.ic-chart-box');
+    const box = canvasRef.current.closest('.chart-box');
     const w = box ? Math.floor(box.getBoundingClientRect().width - 40) : 280;
     canvasRef.current.width = w > 80 ? w : 280;
     canvasRef.current.height = 160;
@@ -100,26 +100,26 @@ export default function IcCharts({ paramItems }) {
   }
 
   return (
-    <div className="ic-chart-panel">
-      <div className="ic-chart-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-        <div className="ic-chart-box">
-          <div className="ic-chart-title">Semaine en cours</div>
+    <div className="chart-panel">
+      <div className="chart-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+        <div className="chart-box">
+          <div className="chart-box-title">Semaine en cours</div>
           <MiniChart canvasId="ic-chart-week" labels={weekLabels} data={weekData} limit={limitWeek} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
-            <div style={{ width: 3, height: 14, background: 'rgba(232,164,58,.8)', borderRadius: 2, flexShrink: 0 }}></div>
+            <div style={{ width: 3, height: 14, background: 'rgba(139,92,246,.8)', borderRadius: 2, flexShrink: 0 }}></div>
             <label style={{ fontSize: '.68rem', color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>Limite acceptable</label>
             <input type="number" min={0} placeholder="—" value={limitWeek ?? ''} onChange={(e) => setLimitWeek(e.target.value)}
-              style={{ width: 70, background: 'rgba(15,17,24,.8)', border: '1px solid rgba(200,132,58,.3)', color: 'var(--text-primary)', borderRadius: 8, padding: '5px 8px', fontSize: '.82rem', outline: 'none' }} />
+              style={{ width: 70, background: 'rgba(15,17,24,.8)', border: '1px solid rgba(139,92,246,.3)', color: 'var(--text-primary)', borderRadius: 8, padding: '5px 8px', fontSize: '.82rem', outline: 'none' }} />
           </div>
         </div>
-        <div className="ic-chart-box">
-          <div className="ic-chart-title">Mois en cours</div>
+        <div className="chart-box">
+          <div className="chart-box-title">Mois en cours</div>
           <MiniChart canvasId="ic-chart-month" labels={monthLabels} data={monthData} limit={limitMonth} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
-            <div style={{ width: 3, height: 14, background: 'rgba(232,164,58,.8)', borderRadius: 2, flexShrink: 0 }}></div>
+            <div style={{ width: 3, height: 14, background: 'rgba(139,92,246,.8)', borderRadius: 2, flexShrink: 0 }}></div>
             <label style={{ fontSize: '.68rem', color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>Limite acceptable</label>
             <input type="number" min={0} placeholder="—" value={limitMonth ?? ''} onChange={(e) => setLimitMonth(e.target.value)}
-              style={{ width: 70, background: 'rgba(15,17,24,.8)', border: '1px solid rgba(200,132,58,.3)', color: 'var(--text-primary)', borderRadius: 8, padding: '5px 8px', fontSize: '.82rem', outline: 'none' }} />
+              style={{ width: 70, background: 'rgba(15,17,24,.8)', border: '1px solid rgba(139,92,246,.3)', color: 'var(--text-primary)', borderRadius: 8, padding: '5px 8px', fontSize: '.82rem', outline: 'none' }} />
           </div>
         </div>
       </div>
