@@ -147,29 +147,29 @@ export default function PlanningCamionsPage() {
   }
 
   if (paramsQ.isLoading || camionsQ.isLoading || !context) {
-    return <div className="spinner"><div className="spin"></div> Chargement…</div>;
+    return <div className="spinner-box"><div className="spinner-ring"></div> Chargement…</div>;
   }
 
   return (
     <div className="tool-main">
-      <div className="date-nav">
-        <button className="date-arr" onClick={() => changeDay(-1)}>←</button>
-        <div className="date-lbl">
+      <div className="date-nav-bar">
+        <button className="date-nav-arr" onClick={() => changeDay(-1)}>←</button>
+        <div className="date-nav-label">
           {fmtDateLbl(dateStr)}
-          {isToday && <span className="today-chip">Aujourd'hui</span>}
+          {isToday && <span className="date-nav-today-chip">Aujourd'hui</span>}
         </div>
-        <button className="date-arr" onClick={() => changeDay(1)}>→</button>
+        <button className="date-nav-arr" onClick={() => changeDay(1)}>→</button>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0 4px 0' }}>
         {role !== 'viewer' ? (
-          <button className="btn-add" onClick={() => setModalOpen(true)}>+ Ajouter un camion</button>
+          <button className="btn btn-primary" onClick={() => setModalOpen(true)}>+ Ajouter un camion</button>
         ) : <span />}
         <div style={{ display: 'flex', gap: 8 }}>
           {role !== 'viewer' && (
-            <Link to="/parametres-planning" className="btn-ghost">⚙ Paramètres</Link>
+            <Link to="/parametres-planning" className="btn btn-ghost">⚙ Paramètres</Link>
           )}
-          <button className="btn-ghost" onClick={() => exportPlanningPdf(dateStr, rows, context, params)}>📄 Export PDF</button>
+          <button className="btn btn-ghost" onClick={() => exportPlanningPdf(dateStr, rows, context, params)}>📄 Export PDF</button>
         </div>
       </div>
 
@@ -187,13 +187,13 @@ export default function PlanningCamionsPage() {
           <span style={{ fontSize: '.62rem', fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' }}>⏱ Test</span>
           <input type="range" min={0} max={840} defaultValue={0} style={{ flex: 1, accentColor: 'var(--amber)' }}
             onInput={(e) => setVirtualMin(6 * 60 + parseInt(e.target.value))} />
-          <button className="btn-ghost" onClick={() => setVirtualMin(null)}>Maintenant</button>
+          <button className="btn btn-ghost" onClick={() => setVirtualMin(null)}>Maintenant</button>
         </div>
       )}
 
       {role !== 'viewer' && (
         <div style={{ display: 'flex', justifyContent: 'center', gap: 12, padding: '18px 0 8px' }}>
-          <button className="btn-copper" onClick={handleSaveAll} disabled={saveMutation.isPending}>
+          <button className="btn btn-primary" onClick={handleSaveAll} disabled={saveMutation.isPending}>
             💾 {saveMutation.isPending ? 'Sauvegarde…' : 'Sauvegarder tout'}
           </button>
         </div>
