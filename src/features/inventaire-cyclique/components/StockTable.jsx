@@ -64,7 +64,7 @@ export default function StockTable({ stockRows, paramItems, onFieldChange, onDel
                 <td><input className="ni" type="number" step="0.01" value={r.erp || ''} placeholder="0" onChange={(e) => onFieldChange(entry.idx, 'erp', e.target.value)} /></td>
                 <td className={`td-calc ${ecartCls}`}>{isNaN(ecart) || !hasEcartData ? '—' : ecartPfx + fmtNum(ecart)}</td>
                 <td style={{ textAlign: 'center' }}>
-                  {entry.extra && <button className="btn-rm" title="Supprimer" onClick={() => onDeleteRow(entry.idx)}>✕</button>}
+                  {entry.extra && <button className="btn-icon" title="Supprimer" onClick={() => onDeleteRow(entry.idx)}>✕</button>}
                 </td>
               </tr>
             );
