@@ -31,14 +31,7 @@
 
 .item-num { font-weight: 800; color: var(--text-muted); font-size: .78rem; min-width: 24px; }
 
-/* Graphiques */
-.ic-chart-panel { background: linear-gradient(135deg,#0B0D13 0%,#0F1118 50%,#15181F 100%); border: 1px solid rgba(200,132,58,.2); border-radius: 20px; padding: 28px; margin-bottom: 24px; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,.6), inset 0 1px 0 rgba(200,132,58,.1); }
-.ic-chart-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; position: relative; z-index: 1; }
-@media (max-width: 900px) { .ic-chart-grid { grid-template-columns: 1fr; } }
-.ic-chart-box { background: linear-gradient(135deg,rgba(26,30,42,.8),rgba(21,24,31,.8)); border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 20px; position: relative; overflow: hidden; transition: all .4s; }
-.ic-chart-box:hover { border-color: rgba(200,132,58,.4); transform: translateY(-3px); box-shadow: 0 8px 32px rgba(0,0,0,.5), 0 0 40px rgba(200,132,58,.1); }
-.ic-chart-title { font-size: .68rem; font-weight: 800; color: var(--copper); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-.ic-chart-title::before { content: ''; width: 4px; height: 12px; background: linear-gradient(180deg,var(--copper),var(--copper-light)); border-radius: 2px; }
+/* Graphiques — voir design-system/components.css pour .chart-panel/.chart-grid/.chart-box/.chart-box-title */
 
 .section-divider { display: flex; align-items: center; gap: 14px; margin: 28px 0 18px; }
 .section-divider-line { flex: 1; height: 1px; background: linear-gradient(90deg,var(--copper),transparent); }
