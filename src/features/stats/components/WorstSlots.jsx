@@ -17,7 +17,7 @@ export default function WorstSlots({ data, seuils }) {
     .slice(0, 5);
 
   if (!worst.length) {
-    return <div className="empty"><div className="empty-ico">✅</div>Aucun créneau problématique</div>;
+    return <div className="empty-state"><div className="empty-state-icon">✅</div><div className="empty-state-title">Aucun créneau problématique</div></div>;
   }
 
   return (
