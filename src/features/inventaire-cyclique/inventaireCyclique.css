@@ -1,20 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════
-   INVENTAIRE CYCLIQUE — styles spécifiques
+   INVENTAIRE CYCLIQUE — styles propres à cette page
+   (boutons, page-header, spinner, date-nav, tableau générique : voir design-system/components.css)
 ═══════════════════════════════════════════════════════════════ */
-
-.ic-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
-.page-eyebrow { font-size: .62rem; font-weight: 800; color: var(--copper); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 6px; }
-.page-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
-
-.date-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
-.date-lbl { font-size: .9rem; font-weight: 700; color: var(--text-primary); background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); padding: 8px 16px; min-width: 220px; text-align: center; }
-.nav-btn { width: 34px; height: 34px; border-radius: var(--r-sm); background: var(--bg-raised); border: 1px solid var(--text-faint); color: var(--text-secondary); cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: all .15s; }
-.nav-btn:hover { border-color: var(--copper); color: var(--copper-light); }
-.btn-today { padding: 7px 14px; border-radius: var(--r-sm); background: var(--copper-dim); border: 1px solid rgba(200,132,58,.3); color: var(--copper-light); font-size: .78rem; font-weight: 700; cursor: pointer; }
-.btn-today:hover { background: rgba(200,132,58,.2); }
-
-.btn-add { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--r-md); background: linear-gradient(135deg,var(--copper),var(--copper-light)); color: #0F1118; font-size: .82rem; font-weight: 800; border: none; cursor: pointer; }
-.btn-add:hover { opacity: .88; transform: translateY(-1px); }
 
 .ic-tbl-wrap { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow-x: auto; position: relative; }
 .ic-tbl { width: 100%; border-collapse: collapse; min-width: 1100px; }
@@ -43,16 +30,6 @@
 .td-ecart-zero { color: var(--text-muted); font-weight: 600; }
 
 .item-num { font-weight: 800; color: var(--text-muted); font-size: .78rem; min-width: 24px; }
-
-.btn-rm { width: 26px; height: 26px; border-radius: var(--r-sm); background: rgba(224,85,85,.08); border: 1px solid rgba(224,85,85,.2); color: var(--ruby); font-size: .8rem; cursor: pointer; }
-.btn-rm:hover { background: rgba(224,85,85,.18); }
-
-.spinner { align-items: center; justify-content: center; padding: 40px; }
-.sp-ring { width: 32px; height: 32px; border: 2px solid var(--text-faint); border-top-color: var(--copper); border-radius: 50%; animation: ic-spin .8s linear infinite; }
-@keyframes ic-spin { to { transform: rotate(360deg) } }
-
-.btn-save-all { display: inline-flex; align-items: center; gap: 8px; padding: 11px 36px; border-radius: var(--r-md); background: linear-gradient(135deg,var(--copper),var(--copper-light)); color: #0F1118; font-size: .86rem; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(184,115,51,.3); }
-.btn-save-all:hover { opacity: .88; }
 
 /* Graphiques */
 .ic-chart-panel { background: linear-gradient(135deg,#0B0D13 0%,#0F1118 50%,#15181F 100%); border: 1px solid rgba(200,132,58,.2); border-radius: 20px; padding: 28px; margin-bottom: 24px; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,.6), inset 0 1px 0 rgba(200,132,58,.1); }
@@ -91,5 +68,5 @@
 .verif-kpi-ok { background: rgba(45,212,160,.1); border: 1px solid rgba(45,212,160,.25); color: var(--emerald); }
 
 @media (max-width: 1100px) {
-  .ic-header-row { flex-direction: column; align-items: flex-start; }
+  .page-header-row { flex-direction: column; align-items: flex-start; }
 }
