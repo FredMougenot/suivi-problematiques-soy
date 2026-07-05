@@ -38,9 +38,8 @@ export default function CorrespondanceSection({ rows, onSave, onDelete, saving }
           <p style={{ fontSize: '.82rem', color: 'var(--text-muted)', margin: 0 }}>Table de correspondance entre les codes TRAX, les codes internes SOY et la désignation.</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <input type="text" placeholder="Rechercher…" value={search} onChange={(e) => setSearch(e.target.value)}
-            style={{ background: 'var(--bg-float)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 'var(--r-md)', padding: '7px 12px', color: 'var(--text-primary)', fontSize: '.82rem', outline: 'none', width: 220 }} />
-          <button onClick={() => setAddOpen((o) => !o)} className="add-poids-btn" style={{ marginTop: 0 }}>⊕ Ajouter</button>
+          <input type="text" className="field-input" placeholder="Rechercher…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ width: 220 }} />
+          <button onClick={() => setAddOpen((o) => !o)} className="btn btn-primary">⊕ Ajouter</button>
         </div>
       </div>
 
@@ -50,19 +49,19 @@ export default function CorrespondanceSection({ rows, onSave, onDelete, saving }
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <label style={{ fontSize: '.65rem', color: 'var(--text-faint)', fontWeight: 700, textTransform: 'uppercase' }}>Code TRAX</label>
-              <input value={addForm.trax} onChange={(e) => setAddForm((f) => ({ ...f, trax: e.target.value }))} placeholder="ex: YREOCXX001" style={{ background: 'var(--bg-raised)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 'var(--r-sm)', padding: '6px 10px', color: 'var(--text-primary)', fontSize: '.82rem', outline: 'none', width: 160 }} />
+              <input className="field-input" value={addForm.trax} onChange={(e) => setAddForm((f) => ({ ...f, trax: e.target.value }))} placeholder="ex: YREOCXX001" style={{ width: 160 }} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <label style={{ fontSize: '.65rem', color: 'var(--text-faint)', fontWeight: 700, textTransform: 'uppercase' }}>Code interne</label>
-              <input value={addForm.interne} onChange={(e) => setAddForm((f) => ({ ...f, interne: e.target.value }))} placeholder="ex: YR24-01" style={{ background: 'var(--bg-raised)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 'var(--r-sm)', padding: '6px 10px', color: 'var(--text-primary)', fontSize: '.82rem', outline: 'none', width: 140 }} />
+              <input className="field-input" value={addForm.interne} onChange={(e) => setAddForm((f) => ({ ...f, interne: e.target.value }))} placeholder="ex: YR24-01" style={{ width: 140 }} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 180 }}>
               <label style={{ fontSize: '.65rem', color: 'var(--text-faint)', fontWeight: 700, textTransform: 'uppercase' }}>Désignation</label>
-              <input value={addForm.desig} onChange={(e) => setAddForm((f) => ({ ...f, desig: e.target.value }))} placeholder="Description du produit…" onKeyDown={(e) => { if (e.key === 'Enter') saveAdd(); }} style={{ background: 'var(--bg-raised)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 'var(--r-sm)', padding: '6px 10px', color: 'var(--text-primary)', fontSize: '.82rem', outline: 'none', width: '100%' }} />
+              <input className="field-input" value={addForm.desig} onChange={(e) => setAddForm((f) => ({ ...f, desig: e.target.value }))} placeholder="Description du produit…" onKeyDown={(e) => { if (e.key === 'Enter') saveAdd(); }} />
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
-              <button onClick={saveAdd} disabled={saving} style={{ padding: '7px 14px', borderRadius: 'var(--r-sm)', background: 'var(--emerald)', border: 'none', color: '#0F1118', fontSize: '.82rem', fontWeight: 700, cursor: 'pointer' }}>Ajouter</button>
-              <button onClick={() => setAddOpen(false)} style={{ padding: '7px 12px', borderRadius: 'var(--r-sm)', background: 'transparent', border: '1px solid var(--text-faint)', color: 'var(--text-muted)', fontSize: '.82rem', cursor: 'pointer' }}>Annuler</button>
+              <button onClick={saveAdd} disabled={saving} className="btn btn-primary btn-sm">Ajouter</button>
+              <button onClick={() => setAddOpen(false)} className="btn btn-secondary btn-sm">Annuler</button>
             </div>
           </div>
         </div>
@@ -91,8 +90,8 @@ export default function CorrespondanceSection({ rows, onSave, onDelete, saving }
                     <td style={{ padding: '4px 8px' }}><input value={editForm.interne} onChange={(e) => setEditForm((f) => ({ ...f, interne: e.target.value }))} style={{ background: 'var(--bg-raised)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 4, padding: '3px 7px', color: 'var(--emerald)', fontWeight: 600, fontSize: '.78rem', width: '100%', outline: 'none' }} /></td>
                     <td style={{ padding: '4px 8px' }}><input value={editForm.desig} onChange={(e) => setEditForm((f) => ({ ...f, desig: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(row.id); if (e.key === 'Escape') setEditingId(null); }} style={{ background: 'var(--bg-raised)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 4, padding: '3px 7px', color: 'var(--text-primary)', fontSize: '.78rem', width: '100%', outline: 'none' }} /></td>
                     <td style={{ padding: '7px 8px', textAlign: 'center', display: 'flex', gap: 4, justifyContent: 'center' }}>
-                      <button onClick={() => saveEdit(row.id)} style={{ width: 22, height: 22, borderRadius: 4, background: 'rgba(45,212,160,.15)', border: 'none', color: 'var(--emerald)', cursor: 'pointer' }}>✓</button>
-                      <button onClick={() => setEditingId(null)} style={{ width: 22, height: 22, borderRadius: 4, background: 'transparent', border: 'none', color: 'var(--text-faint)', cursor: 'pointer' }}>✕</button>
+                      <button className="btn-icon" onClick={() => saveEdit(row.id)}>✓</button>
+                      <button className="btn-icon" onClick={() => setEditingId(null)}>✕</button>
                     </td>
                   </>
                 ) : (
@@ -102,8 +101,8 @@ export default function CorrespondanceSection({ rows, onSave, onDelete, saving }
                     <td style={{ padding: '7px 14px', fontSize: '.78rem', color: 'var(--emerald)', fontWeight: 600, whiteSpace: 'nowrap' }}>{row.interne}</td>
                     <td style={{ padding: '7px 14px', fontSize: '.78rem', color: 'var(--text-secondary)' }}>{row.desig}</td>
                     <td style={{ padding: '7px 8px', textAlign: 'center', display: 'flex', gap: 4, justifyContent: 'center' }}>
-                      <button onClick={() => startEdit(row)} title="Modifier" style={{ width: 22, height: 22, borderRadius: 4, background: 'transparent', border: 'none', color: 'var(--text-faint)', cursor: 'pointer' }}>✏️</button>
-                      <button onClick={() => onDelete(row)} title="Supprimer" style={{ width: 22, height: 22, borderRadius: 4, background: 'transparent', border: 'none', color: 'var(--text-faint)', cursor: 'pointer' }}>✕</button>
+                      <button className="btn-icon" onClick={() => startEdit(row)} title="Modifier">✏️</button>
+                      <button className="btn-icon" onClick={() => onDelete(row)} title="Supprimer">✕</button>
                     </td>
                   </>
                 )}
