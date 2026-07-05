@@ -6,8 +6,8 @@
 .profil-layout { display: grid; grid-template-columns: 260px 1fr; gap: 22px; align-items: start; margin-top: 24px; }
 @media (max-width: 800px) { .profil-layout { grid-template-columns: 1fr; } }
 
-.profil-id-card { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow: hidden; }
-.profil-avatar-zone { padding: 28px 20px; text-align: center; border-bottom: 1px solid var(--text-faint); background: var(--bg-float); }
+.profil-id-card { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow: hidden; transform: translateZ(0); }
+.profil-avatar-zone { padding: 28px 20px; text-align: center; border-bottom: 1px solid var(--text-faint); background: var(--bg-float); transform: translateZ(0); }
 .profil-big-av { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--copper), var(--copper-light)); display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 1.9rem; font-weight: 700; color: var(--bg-void); margin: 0 auto 14px; box-shadow: 0 0 0 3px rgba(184,115,51,.15), 0 0 0 7px rgba(184,115,51,.05); }
 .profil-dn { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
 .profil-em { font-size: .72rem; color: var(--text-muted); word-break: break-all; }
@@ -21,9 +21,9 @@
 .profil-meta-val { color: var(--text-primary); font-weight: 500; text-align: right; }
 
 .profil-sections { display: flex; flex-direction: column; gap: 18px; }
-.profil-section { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow: hidden; transition: border-color .2s; }
+.profil-section { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow: hidden; transition: border-color .2s; transform: translateZ(0); }
 .profil-section:hover { border-color: var(--text-muted); }
-.profil-section-head { padding: 16px 22px; border-bottom: 1px solid var(--text-faint); background: var(--bg-float); display: flex; align-items: center; gap: 9px; }
+.profil-section-head { padding: 16px 22px; border-bottom: 1px solid var(--text-faint); background: var(--bg-float); display: flex; align-items: center; gap: 9px; transform: translateZ(0); }
 .profil-section-head::before { content: ''; display: block; width: 3px; height: 16px; background: var(--copper); border-radius: 2px; flex-shrink: 0; }
 .profil-section-title { font-family: 'Playfair Display', serif; font-size: .92rem; font-weight: 600; color: var(--text-primary); }
 .profil-section-body { padding: 22px; }
