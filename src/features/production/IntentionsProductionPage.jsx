@@ -14,7 +14,7 @@ function fmtTime(iso) {
 
 function LigneToggleCard({ numero, actif, onToggle }) {
   return (
-    <div className={clsx('ligne-card', `ligne-${numero}`, { 'active-on': actif })}>
+    <div className={clsx('ip-ligne-card', `ligne-${numero}`, { 'active-on': actif })}>
       <div className="ligne-card-head">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div className="ligne-title">Ligne {numero}</div>
@@ -90,7 +90,7 @@ export default function IntentionsProductionPage() {
           <div className="tool-title">Intentions de production</div>
           <div className="sec-sub">Planification journalière des lignes</div>
         </div>
-        <button className="btn-copper" onClick={handleSave} disabled={saveMutation.isPending}>
+        <button className="btn btn-primary" onClick={handleSave} disabled={saveMutation.isPending}>
           💾 {saveMutation.isPending ? 'Sauvegarde…' : 'Sauvegarder'}
         </button>
       </div>
@@ -130,7 +130,7 @@ export default function IntentionsProductionPage() {
         <div className="histo-head">Dernières modifications</div>
         <div className="histo-body">
           {historique.length === 0 ? (
-            <div className="histo-empty">Aucune modification aujourd'hui</div>
+            <div className="empty-state"><div className="empty-state-title">Aucune modification aujourd'hui</div></div>
           ) : (
             historique.slice(0, 10).map((h, i) => (
               <div key={i}>
