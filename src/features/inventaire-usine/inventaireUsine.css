@@ -4,16 +4,16 @@
 ═══════════════════════════════════════════════════════════════ */
 
 .releve-banner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); padding: 16px 20px; margin-bottom: 22px; position: relative; overflow: hidden; transform: translateZ(0); }
-.releve-banner::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg,transparent,var(--copper),transparent); }
+.releve-banner::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg,transparent,var(--copper),transparent); transform: translateZ(0); }
 .releve-info { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .releve-date-wrap { display: flex; flex-direction: column; gap: 3px; }
 .releve-date-lbl { font-size: .6rem; font-weight: 800; color: var(--copper); letter-spacing: .12em; text-transform: uppercase; }
 .releve-date-val { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
 .releve-count { padding: 5px 14px; border-radius: 20px; background: var(--copper-dim); border: 1px solid rgba(200,132,58,.2); color: var(--copper); font-size: .78rem; font-weight: 700; }
-.badge-usine { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; background: rgba(200,132,58,.12); border: 1px solid rgba(200,132,58,.25); color: var(--copper); font-size: .68rem; font-weight: 700; }
+.badge-usine { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; background: rgba(200,132,58,.12); border: 1px solid rgba(200,132,58,.25); color: var(--copper); font-size: .68rem; font-weight: 700; transform: translateZ(0); }
 
 .tbl-wrap { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow: hidden; position: relative; overflow-x: auto; transform: translateZ(0); }
-.tbl-wrap::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg,transparent,var(--copper),transparent); pointer-events: none; }
+.tbl-wrap::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg,transparent,var(--copper),transparent); pointer-events: none; transform: translateZ(0); }
 .saisie-tbl { width: 100%; border-collapse: collapse; }
 .saisie-tbl thead tr { background: var(--bg-float); border-bottom: 1px solid var(--text-faint); transform: translateZ(0); }
 .saisie-tbl thead th { padding: 10px; font-size: .58rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--text-muted); text-align: left; white-space: nowrap; }
@@ -30,7 +30,7 @@
 .ac-dropdown { position: fixed; z-index: 99999; min-width: 300px; max-width: 94vw; background: var(--bg-float); border: 1px solid rgba(74,158,232,.35); border-radius: var(--r-lg); box-shadow: 0 12px 32px rgba(0,0,0,.8); max-height: 260px; overflow-y: auto; transform: translateZ(0); }
 .ac-item { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid rgba(44,51,80,.35); }
 .ac-item:last-child { border-bottom: none; }
-.ac-item:hover { background: rgba(74,158,232,.12); }
+.ac-item:hover { background: rgba(74,158,232,.12); transform: translateZ(0); }
 .ac-code { font-size: .8rem; font-weight: 700; color: var(--sapphire); }
 .ac-interne { font-size: .72rem; color: var(--emerald); font-weight: 600; margin-left: 8px; }
 .ac-desig { font-size: .74rem; color: var(--text-muted); margin-top: 3px; line-height: 1.3; }
