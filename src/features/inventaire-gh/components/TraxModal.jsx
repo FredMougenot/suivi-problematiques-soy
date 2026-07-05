@@ -17,21 +17,21 @@ export default function TraxModal({ open, initialCode, initialDesc, onClose, onS
   }
 
   return (
-    <div className="trax-overlay open" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="trax-box">
-        <div className="trax-hd">
+    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modal-box" style={{ maxWidth: 400 }}>
+        <div className="modal-header" style={{ display: 'flex', alignItems: 'center', gap: 10, paddingBottom: 16, borderBottom: '1px solid var(--text-faint)' }}>
           <span style={{ fontSize: '1.1rem' }}>⚠️</span>
-          <div className="trax-title">Ajouter à la correspondance</div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '1.2rem', cursor: 'pointer', padding: 4 }}>✕</button>
+          <div className="modal-title" style={{ flex: 1 }}>Ajouter à la correspondance</div>
+          <button className="btn-icon" onClick={onClose}>✕</button>
         </div>
-        <div className="trax-body">
-          <div><div className="trax-lbl">Code TRAX</div><input className="trax-inp" value={codeTrax} onChange={(e) => setCodeTrax(e.target.value)} placeholder="Laisser vide si inconnu…" /></div>
-          <div><div className="trax-lbl">Code interne SOY</div><input className="trax-inp" value={codeInt} onChange={(e) => setCodeInt(e.target.value)} placeholder="Code produit GH" /></div>
-          <div><div className="trax-lbl">Désignation</div><input className="trax-inp" value={desig} onChange={(e) => setDesig(e.target.value)} placeholder="Description du produit" /></div>
+        <div className="modal-body">
+          <div className="field" style={{ marginBottom: 12 }}><label className="field-label">Code TRAX</label><input className="field-input" value={codeTrax} onChange={(e) => setCodeTrax(e.target.value)} placeholder="Laisser vide si inconnu…" /></div>
+          <div className="field" style={{ marginBottom: 12 }}><label className="field-label">Code interne SOY</label><input className="field-input" value={codeInt} onChange={(e) => setCodeInt(e.target.value)} placeholder="Code produit GH" /></div>
+          <div className="field"><label className="field-label">Désignation</label><input className="field-input" value={desig} onChange={(e) => setDesig(e.target.value)} placeholder="Description du produit" /></div>
         </div>
-        <div className="trax-ft">
-          <button className="trax-btn-cancel" onClick={onClose}>Annuler</button>
-          <button className="trax-btn-save" onClick={handleSave} disabled={saving}>{saving ? '…' : 'Ajouter'}</button>
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={onClose}>Annuler</button>
+          <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? '…' : 'Ajouter'}</button>
         </div>
       </div>
     </div>
