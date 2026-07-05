@@ -84,13 +84,8 @@
 .pilier-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--text-faint); background: var(--bg-raised); color: var(--text-muted); font-size: .78rem; font-weight: 600; cursor: pointer; transform: translateZ(0); }
 .pilier-btn:hover, .pilier-btn.active { border-color: var(--copper); color: var(--copper); background: var(--copper-dim); }
 
-/* Panneau graphique (registre) */
-.chart-panel { background: linear-gradient(135deg, #0B0D13 0%, #0F1118 50%, #15181F 100%); border: 1px solid rgba(200,132,58,.2); border-radius: 20px; padding: 28px; margin-bottom: 24px; }
-.chart-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; gap: 20px; flex-wrap: wrap; }
-.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-@media (max-width: 700px) { .chart-grid { grid-template-columns: 1fr; } }
-.chart-box { background: rgba(26,30,42,.6); border: 1px solid rgba(255,255,255,.06); border-radius: 14px; padding: 18px; }
-.chart-box-title { font-size: .68rem; font-weight: 800; color: var(--copper); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 12px; }
+/* Panneau graphique (registre) — voir design-system/components.css
+   pour .chart-panel/.chart-panel-header/.chart-grid/.chart-box/.chart-box-title */
 .chart-param-input { background: rgba(15,17,24,.8); border: 1px solid rgba(200,132,58,.3); color: var(--text-primary); border-radius: 8px; padding: 6px 10px; font-size: .78rem; outline: none; }
 .chart-param-input:focus { border-color: var(--copper); }
 
