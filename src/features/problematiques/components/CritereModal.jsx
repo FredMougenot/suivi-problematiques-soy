@@ -22,7 +22,7 @@ export default function CritereModal({ pilier, allProblems, onClose }) {
             <div className="cm-eyebrow">Critère du pilier</div>
             <div className="cm-title">{pilier}</div>
           </div>
-          <button className="cm-close" onClick={onClose}>✕</button>
+          <button className="btn-icon" onClick={onClose}>✕</button>
         </div>
 
         <div className={`cm-body${critereQ.isLoading ? ' loading' : ''}`}>
