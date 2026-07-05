@@ -24,7 +24,7 @@
 .btn:disabled { opacity: .5; cursor: default; pointer-events: none; }
 .btn:active:not(:disabled) { transform: translateY(1px); }
 
-.btn-primary { background: linear-gradient(135deg, var(--copper), var(--copper-light)); color: var(--bg-void); border-color: transparent; }
+.btn-primary { background: linear-gradient(135deg, var(--copper), var(--sapphire)); color: #fff; border-color: transparent; }
 .btn-primary:hover:not(:disabled) { opacity: .88; }
 
 .btn-secondary { background: var(--bg-raised); border-color: var(--text-faint); color: var(--text-secondary); }
@@ -107,8 +107,8 @@
              <div className="modal-footer"><button className="btn btn-secondary">Annuler</button>…</div>
            </div></div>
 ─────────────────────────────────────────────────────────────── */
-.modal-overlay { position: fixed; inset: 0; z-index: 900; background: rgba(7,8,12,.82); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 24px; }
-.modal-box { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-xl); box-shadow: var(--shadow-xl); width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; }
+.modal-overlay { position: fixed; inset: 0; z-index: 900; background: rgba(6,4,15,.75); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 24px; }
+.modal-box { background: var(--bg-raised); backdrop-filter: blur(24px) saturate(140%); border: 1px solid var(--text-faint); border-radius: var(--r-xl); box-shadow: var(--shadow-xl); width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; }
 .modal-header { padding: 22px 24px 0; }
 .modal-title { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); }
 .modal-subtitle { font-size: .78rem; color: var(--text-muted); margin-top: 4px; }
@@ -119,7 +119,7 @@
    Usage : <div className="table-shell"><table className="data-table">
              <thead><tr><th>…</th></tr></thead><tbody>…</tbody></table></div>
 ─────────────────────────────────────────────────────────────── */
-.table-shell { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow-x: auto; }
+.table-shell { background: var(--bg-raised); backdrop-filter: blur(20px) saturate(140%); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow-x: auto; }
 .data-table { width: 100%; border-collapse: collapse; }
 .data-table thead th { padding: 11px 12px; text-align: left; font-size: .63rem; font-weight: 800; color: var(--copper); letter-spacing: .12em; text-transform: uppercase; background: var(--bg-float); border-bottom: 1px solid var(--text-faint); white-space: nowrap; }
 .data-table tbody td { padding: 10px 12px; font-size: .86rem; color: var(--text-primary); border-bottom: 1px solid rgba(255,255,255,.03); vertical-align: middle; }
@@ -146,9 +146,9 @@
 .date-nav-arr { width: 34px; height: 34px; border-radius: var(--r-md); background: var(--bg-raised); border: 1px solid var(--text-faint); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
 .date-nav-arr:hover { border-color: var(--copper); color: var(--copper-light); }
 .date-nav-label { font-size: .9rem; font-weight: 700; color: var(--text-primary); padding: 7px 20px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); min-width: 240px; text-align: center; }
-.date-nav-today-chip { font-size: .62rem; font-weight: 700; color: var(--copper-light); background: var(--copper-dim); border: 1px solid rgba(200,132,58,.25); padding: 1px 8px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
-.date-nav-today-btn { padding: 6px 14px; border-radius: var(--r-md); background: var(--copper-dim); border: 1px solid rgba(200,132,58,.3); color: var(--copper-light); font-size: .78rem; font-weight: 700; cursor: pointer; }
-.date-nav-today-btn:hover { background: rgba(200,132,58,.2); }
+.date-nav-today-chip { font-size: .62rem; font-weight: 700; color: var(--copper-light); background: var(--copper-dim); border: 1px solid rgba(139,92,246,.3); padding: 1px 8px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
+.date-nav-today-btn { padding: 6px 14px; border-radius: var(--r-md); background: var(--copper-dim); border: 1px solid rgba(139,92,246,.35); color: var(--copper-light); font-size: .78rem; font-weight: 700; cursor: pointer; }
+.date-nav-today-btn:hover { background: rgba(139,92,246,.24); }
 
 /* ── COMPTEUR / PILL D'INFO ───────────────────────────────────
    Usage : <div className="count-pill">12 items</div>
