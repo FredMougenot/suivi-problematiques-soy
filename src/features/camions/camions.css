@@ -1,17 +1,7 @@
-/* ═════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════
    PLANNING CAMIONS — styles spécifiques (portés depuis planning_camions.html)
-═════════════════════════════════════════════════════════ */
-
-/* DATE NAV */
-.date-nav { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 0 0 16px; }
-.date-arr { width: 36px; height: 36px; border-radius: var(--r-md); background: var(--bg-raised); border: 1px solid var(--text-faint); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: all .15s; }
-.date-arr:hover { border-color: var(--copper); color: var(--copper-light); }
-.date-lbl { font-family: 'Outfit', sans-serif; font-size: 1.05rem; font-weight: 700; color: var(--text-primary); padding: 8px 22px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); min-width: 260px; text-align: center; }
-.today-chip { display: inline-block; font-size: .68rem; font-weight: 700; color: var(--copper-light); background: var(--copper-dim); border: 1px solid rgba(200,132,58,.25); padding: 2px 9px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
-
-/* BOUTON AJOUTER */
-.btn-add { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--r-md); background: linear-gradient(135deg, var(--copper), var(--copper-light)); color: #0F1118; font-size: .82rem; font-weight: 800; border: none; cursor: pointer; transition: all .15s; }
-.btn-add:hover { opacity: .88; transform: translateY(-1px); }
+   (boutons, date-nav, modale, champs, spinner : voir design-system/components.css)
+═══════════════════════════════════════════════════════════════ */
 
 /* TABLE CAMIONS — sections */
 .ptbl { width: 100%; border-collapse: collapse; min-width: 1080px; }
@@ -52,7 +42,7 @@
 .statut-sel { border: none !important; font-weight: 700 !important; background: transparent !important; padding: 6px 8px !important; }
 .desc-sel { min-width: 150px; }
 
-/* ── SLIDER DE VÉRIFICATION ───────────────────────────────── */
+/* ── SLIDER DE VÉRIFICATION ─────────────────────────────────────── */
 .verif-slider-container { padding: 4px 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .verif-indicator { display: flex; gap: 12px; height: 16px; align-items: center; }
 .verif-indicator-label { font-size: .65rem; font-weight: 700; color: #4A5568; text-transform: uppercase; letter-spacing: .08em; transition: all .2s; padding: 2px 6px; border-radius: 4px; }
@@ -69,27 +59,7 @@
 .verif-thumb[data-state="q3_ok"] { left: calc(83.33% - 21px); background: linear-gradient(135deg, #10B981, #34D399); }
 .verif-thumb[data-state="q3_err"] { left: calc(100% - 25px); background: linear-gradient(135deg, #EF4444, #F87171); }
 
-/* MODAL */
-.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 500; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
-.overlay.open { display: flex; }
-.modal { background: var(--bg-float); border: 1px solid var(--text-faint); border-radius: var(--r-lg); padding: 28px; width: 400px; max-width: 95vw; box-shadow: 0 16px 48px rgba(0,0,0,.6); }
-.modal-t { font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-.fg { margin-bottom: 14px; }
-.fg label { display: block; font-size: .78rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
-.fg .fi, .fg .fs { width: 100%; background: var(--bg-raised); border: 1px solid var(--text-faint); color: var(--text-primary); border-radius: var(--r-md); padding: 10px 13px; font-size: .88rem; font-family: 'Outfit', sans-serif; outline: none; }
-.fg .fi:focus, .fg .fs:focus { border-color: var(--copper); }
-.m-acts { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
-.btn-cx { padding: 9px 18px; border-radius: var(--r-md); background: var(--bg-raised); border: 1px solid var(--text-faint); color: var(--text-secondary); font-size: .84rem; font-weight: 600; cursor: pointer; }
-.btn-cx:hover { color: var(--text-primary); border-color: var(--text-muted); }
-.btn-ok { padding: 9px 20px; border-radius: var(--r-md); background: linear-gradient(135deg, var(--copper), var(--copper-light)); color: #0F1118; font-size: .84rem; font-weight: 700; border: none; cursor: pointer; }
-.btn-ok:hover { opacity: .88; }
-
-.spinner { display: flex; align-items: center; justify-content: center; padding: 50px; gap: 12px; color: var(--text-muted); font-size: .9rem; }
-.spin { width: 18px; height: 18px; border: 2px solid var(--text-faint); border-top-color: var(--copper); border-radius: 50%; animation: rot .7s linear infinite; }
-@keyframes rot { to { transform: rotate(360deg) } }
-
 @media (max-width: 1100px) {
   .ptbl thead th { font-size: .58rem; padding: 10px 8px; }
   .ptbl tbody td { font-size: .78rem; padding: 9px 8px; }
-  .date-lbl { font-size: .88rem; min-width: 200px; padding: 7px 14px; }
 }
