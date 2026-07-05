@@ -1,6 +1,6 @@
 export default function CategoriesList({ categories, onEdit }) {
   if (categories.length === 0) {
-    return <div className="empty-pg"><div className="empty-pg-title">Aucune catégorie</div></div>;
+    return <div className="empty-state"><div className="empty-state-title">Aucune catégorie</div></div>;
   }
   const sorted = [...categories].sort((a, b) => a.name.localeCompare(b.name));
   return (
