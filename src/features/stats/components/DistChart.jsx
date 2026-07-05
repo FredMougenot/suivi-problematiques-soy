@@ -47,7 +47,7 @@ export default function DistChart({ retards, seuils }) {
   }, [retards, seuils]);
 
   if (!retards.length) {
-    return <div className="empty" style={{ padding: '50px 0' }}><div className="empty-ico">✅</div>Aucun retard sur la période</div>;
+    return <div className="empty-state" style={{ padding: '50px 0' }}><div className="empty-state-icon">✅</div><div className="empty-state-title">Aucun retard sur la période</div></div>;
   }
   return <div className="chart-box"><canvas ref={canvasRef}></canvas></div>;
 }
