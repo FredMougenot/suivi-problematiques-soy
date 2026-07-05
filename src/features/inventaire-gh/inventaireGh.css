@@ -1,5 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
-   INVENTAIRE GH — styles (connexion, tableau, catégories, camions, commande)
+   INVENTAIRE GH — styles (partie 1 : connexion, tableau, catégories)
+   (boutons, modales, champs : voir design-system/components.css)
 ═══════════════════════════════════════════════════════════════ */
 
 .gh-status { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; padding: 16px 20px 0; }
@@ -7,13 +8,6 @@
 .gh-dot.connected { background: var(--emerald); box-shadow: 0 0 6px rgba(45,212,160,.5); }
 .gh-status-text { font-size: .82rem; color: var(--text-muted); font-weight: 600; }
 .gh-timestamp { font-size: .74rem; color: var(--text-faint); }
-
-.btn-connect { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--r-md); background: linear-gradient(135deg,var(--sapphire),#1a6bff); color: #fff; font-size: .84rem; font-weight: 700; border: none; cursor: pointer; white-space: nowrap; }
-.btn-connect:hover { opacity: .88; }
-.btn-connect:disabled { opacity: .4; cursor: default; }
-.btn-refresh { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--r-md); background: var(--bg-raised); border: 1px solid rgba(45,212,160,.3); color: var(--emerald); font-size: .84rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
-.btn-refresh:hover { background: rgba(45,212,160,.08); }
-.btn-refresh:disabled { opacity: .4; cursor: default; }
 
 .gh-search-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; padding: 0 20px 16px; }
 .gh-search { padding: 8px 12px 8px 34px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); font-size: .84rem; color: var(--text-primary); outline: none; }
@@ -62,19 +56,6 @@
 .trax-badge-missing { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: rgba(245,158,11,.15); color: var(--amber); font-size: .7rem; cursor: pointer; border: 1px solid rgba(245,158,11,.3); }
 .trax-badge-missing:hover { background: rgba(245,158,11,.3); }
 
-.trax-overlay { position: fixed; inset: 0; z-index: 9000; background: rgba(7,8,12,.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; padding: 20px; }
-.trax-overlay.open { display: flex; }
-.trax-box { background: var(--bg-raised); border: 1px solid rgba(245,158,11,.3); border-radius: var(--r-xl); width: 100%; max-width: 400px; }
-.trax-hd { padding: 16px 20px; border-bottom: 1px solid var(--text-faint); display: flex; align-items: center; gap: 10px; }
-.trax-title { font-size: .92rem; font-weight: 700; color: var(--text-primary); flex: 1; }
-.trax-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
-.trax-lbl { font-size: .65rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
-.trax-inp { background: var(--bg-float); border: 1px solid rgba(255,255,255,.1); border-radius: var(--r-md); padding: 8px 12px; color: var(--text-primary); font-size: .84rem; outline: none; width: 100%; box-sizing: border-box; }
-.trax-inp:focus { border-color: var(--amber); }
-.trax-ft { padding: 12px 20px; border-top: 1px solid var(--text-faint); display: flex; gap: 8px; justify-content: flex-end; }
-.trax-btn-cancel { padding: 8px 16px; border-radius: var(--r-md); background: transparent; border: 1px solid var(--text-faint); color: var(--text-muted); font-size: .82rem; cursor: pointer; }
-.trax-btn-save { padding: 8px 18px; border-radius: var(--r-md); background: var(--amber); border: none; color: #0F1118; font-size: .82rem; font-weight: 700; cursor: pointer; }
-
 .count-badge { font-size: .72rem; color: var(--text-muted); font-weight: 600; padding: 4px 10px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: 20px; }
 
 .selection-bar { position: sticky; bottom: 0; z-index: 40; background: linear-gradient(135deg,var(--sapphire),#1a6bff); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,.15); box-shadow: 0 -4px 20px rgba(0,0,0,.3); border-radius: 0 0 var(--r-lg) var(--r-lg); margin-top: 8px; }
@@ -99,8 +80,6 @@
 .camion-card.active .camion-nom { color: var(--emerald); }
 .camion-count { font-size: .65rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
 .camion-badge { background: var(--amber); color: var(--bg-base); font-size: .55rem; font-weight: 700; padding: 2px 5px; border-radius: 4px; margin-left: auto; }
-.camion-delete { position: absolute; top: 6px; right: 6px; background: rgba(239,68,68,.15); border: none; border-radius: 4px; padding: 2px 5px; font-size: .7rem; cursor: pointer; opacity: .6; }
-.camion-delete:hover { opacity: 1; background: rgba(239,68,68,.25); }
 .btn-add-camion { width: 100%; background: rgba(74,158,232,.1); border: 1.5px dashed rgba(74,158,232,.4); border-radius: 6px; padding: 8px; font-size: .7rem; font-weight: 600; color: var(--sapphire); cursor: pointer; text-align: center; margin-top: 6px; }
 .btn-add-camion:hover { background: rgba(74,158,232,.15); border-color: var(--sapphire); }
 
@@ -118,16 +97,12 @@
 .cmd-item-code { font-size: .72rem; color: var(--sapphire); font-weight: 700; }
 .cmd-item-desc { font-size: .78rem; color: var(--text-primary); font-weight: 500; line-height: 1.3; }
 .cmd-item-meta { font-size: .7rem; color: var(--text-muted); margin-top: 2px; }
-.cmd-rm { background: none; border: none; color: var(--text-faint); cursor: pointer; font-size: .9rem; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
-.cmd-rm:hover { color: var(--ruby); background: rgba(224,85,85,.1); }
 .cmd-footer { padding: 14px 16px; border-top: 1px solid var(--text-faint); background: var(--bg-float); }
 .cmd-total { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 .cmd-total-lbl { font-size: .72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
 .cmd-total-val { font-size: 1.1rem; font-weight: 700; color: var(--copper); }
 .cmd-actions { display: flex; gap: 8px; }
-.btn-export { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 14px; border-radius: var(--r-md); background: linear-gradient(135deg,var(--copper),var(--copper-light)); color: #0F1118; font-size: .82rem; font-weight: 800; border: none; cursor: pointer; }
-.btn-export:hover { opacity: .88; }
-.btn-export:disabled { opacity: .4; cursor: default; }
+.cmd-actions .btn { flex: 1; justify-content: center; }
 
 .btn-add-to-truck { display: flex; align-items: center; gap: 8px; padding: 9px 18px; background: #fff; border: none; border-radius: var(--r-md); color: var(--sapphire); font-size: .85rem; font-weight: 700; cursor: pointer; }
 .btn-add-to-truck:hover { transform: scale(1.04); box-shadow: 0 4px 12px rgba(0,0,0,.2); }
