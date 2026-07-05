@@ -3,10 +3,10 @@ import { fmtDate, fmtNum, getRootCategory } from '../logic';
 export default function DiffView({ filteredDiff, categories }) {
   if (!filteredDiff.length) {
     return (
-      <div className="empty-ctr">
-        <div className="empty-icon">✅</div>
-        <div>Aucun changement détecté.</div>
-        <div style={{ marginTop: 8, fontSize: '.78rem' }}>L'inventaire est identique au relevé précédent.</div>
+      <div className="empty-state">
+        <div className="empty-state-icon">✅</div>
+        <div className="empty-state-title">Aucun changement détecté.</div>
+        <div className="empty-state-sub">L'inventaire est identique au relevé précédent.</div>
       </div>
     );
   }
