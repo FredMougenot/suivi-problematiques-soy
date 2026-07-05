@@ -32,7 +32,7 @@ export default function CommandePanel({ camion, onRemoveItem, onAdjustQty, onCle
                   {' · '}{item._resolved_poids_unit > 0 ? item._resolved_poids_unit.toFixed(1) : '—'} kg/unité · <strong>{item._resolved_poids_total > 0 ? item._resolved_poids_total.toFixed(1) : '—'} kg total</strong>
                 </div>
               </div>
-              <button className="cmd-rm" title="Retirer" onClick={() => onRemoveItem(item._key)}>✕</button>
+              <button className="btn-icon" title="Retirer" onClick={() => onRemoveItem(item._key)}>✕</button>
             </div>
           ))
         )}
@@ -44,9 +44,9 @@ export default function CommandePanel({ camion, onRemoveItem, onAdjustQty, onCle
         </div>
         <div className="cmd-actions">
           {hasNew && (
-            <button className="btn-export" style={{ background: 'var(--emerald)' }} onClick={onMarkSent}>✓ Marquer envoyé</button>
+            <button className="btn btn-primary" style={{ background: 'var(--emerald)' }} onClick={onMarkSent}>✓ Marquer envoyé</button>
           )}
-          <button className="btn-export" onClick={onExportPdf} disabled={camion.items.length === 0 || exporting}>
+          <button className="btn btn-primary" onClick={onExportPdf} disabled={camion.items.length === 0 || exporting}>
             📄 {exporting ? 'Export…' : 'Exporter PDF'}
           </button>
         </div>
