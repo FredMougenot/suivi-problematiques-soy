@@ -10,7 +10,7 @@ export default function SlotsTable({ slots, lineProg, overrides }) {
   if (!slots || !slots.length) {
     return (
       <div className="empty-state">
-        <div className="empty-txt">Aucun slot disponible</div>
+        <div className="empty-state-title">Aucun slot disponible</div>
       </div>
     );
   }
