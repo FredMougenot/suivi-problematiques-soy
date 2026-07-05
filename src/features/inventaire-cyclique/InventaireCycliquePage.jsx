@@ -90,21 +90,21 @@ export default function InventaireCycliquePage() {
 
   return (
     <div className="tool-main">
-      <div className="ic-header-row">
+      <div className="page-header-row">
         <div>
           <div className="page-eyebrow">Qualité</div>
           <div className="page-title">📋 Inventaire Cyclique</div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-ghost" onClick={handleExportPdf}>📄 Export PDF</button>
+          <button className="btn btn-ghost" onClick={handleExportPdf}>📄 Export PDF</button>
         </div>
       </div>
 
-      <div className="date-nav">
-        <button className="nav-btn" onClick={() => changeDate(-1)}>←</button>
-        <div className="date-lbl">{dateLbl}</div>
-        <button className="nav-btn" onClick={() => changeDate(1)}>→</button>
-        <button className="btn-today" onClick={() => setDateStr(localToday())}>Aujourd'hui</button>
+      <div className="date-nav-bar">
+        <button className="date-nav-arr" onClick={() => changeDate(-1)}>←</button>
+        <div className="date-nav-label">{dateLbl}</div>
+        <button className="date-nav-arr" onClick={() => changeDate(1)}>→</button>
+        <button className="date-nav-today-btn" onClick={() => setDateStr(localToday())}>Aujourd'hui</button>
       </div>
 
       {/* Section 1 — Vérifications cycliques */}
@@ -113,7 +113,7 @@ export default function InventaireCycliquePage() {
         <div className="section-divider-line"></div>
       </div>
       {paramItemsQ.isLoading ? (
-        <div className="spinner" style={{ display: 'flex' }}><div className="sp-ring"></div></div>
+        <div className="spinner-box"><div className="spinner-ring"></div></div>
       ) : (
         <>
           <IcCharts paramItems={paramItems} />
@@ -127,10 +127,10 @@ export default function InventaireCycliquePage() {
         <div className="section-divider-line"></div>
       </div>
       <div style={{ marginBottom: 8 }}>
-        <button className="btn-add" onClick={handleAddItem}>+ Ajouter un item</button>
+        <button className="btn btn-primary" onClick={handleAddItem}>+ Ajouter un item</button>
       </div>
       {stockQ.isLoading ? (
-        <div className="spinner" style={{ display: 'flex' }}><div className="sp-ring"></div></div>
+        <div className="spinner-box"><div className="spinner-ring"></div></div>
       ) : (
         <StockTable stockRows={stockRows} paramItems={paramItems} onFieldChange={handleFieldChange} onDeleteRow={handleDeleteRow} />
       )}
@@ -143,10 +143,10 @@ export default function InventaireCycliquePage() {
       <HistorySearch historyData={historyQ.data || []} />
 
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, padding: '12px 0 4px', flexWrap: 'wrap' }}>
-        <button className="btn-save-all" onClick={handleSaveAll} disabled={saveAllMutation.isPending}>
+        <button className="btn btn-primary" onClick={handleSaveAll} disabled={saveAllMutation.isPending}>
           💾 {saveAllMutation.isPending ? 'Sauvegarde…' : 'Sauvegarder tout'}
         </button>
-        <button onClick={handleSubmitNc} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 22px', borderRadius: 'var(--r-md)', background: 'var(--bg-raised)', border: '1px solid var(--ruby)', color: 'var(--ruby)', fontSize: '.86rem', fontWeight: 700, cursor: 'pointer' }}>
+        <button className="btn btn-danger" onClick={handleSubmitNc}>
           ⚠ Soumettre les non-conformités
         </button>
       </div>
