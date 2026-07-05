@@ -32,10 +32,6 @@
 .row-nc td { color: var(--ruby); }
 .badge-extra { display: inline-block; font-size: .6rem; font-weight: 700; background: var(--copper-dim); color: var(--copper-light); border: 1px solid rgba(200,132,58,.25); padding: 1px 7px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
 
-/* Actions spécifiques (couleur ruby pour l'action "soumettre les non-conformités") */
-.btn-submit-nc { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border-radius: var(--r-md); background: var(--bg-raised); border: 1px solid var(--ruby); color: var(--ruby); font-size: .86rem; font-weight: 700; cursor: pointer; }
-.btn-submit-nc:hover { background: rgba(224,85,85,.08); }
-
 /* Champs du formulaire modal (label + input groupés, layout vertical) */
 .fg-env { margin-bottom: 13px; }
 .fg-env label { display: block; font-size: .78rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
