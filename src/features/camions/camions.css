@@ -1,11 +1,12 @@
 /* ═══════════════════════════════════════════════════════════════
    PLANNING CAMIONS — styles spécifiques (portés depuis planning_camions.html)
-   (boutons, date-nav, modale, champs, spinner : voir design-system/components.css)
 ═══════════════════════════════════════════════════════════════ */
+
+/* BOUTON AJOUTER (legacy — voir design-system/components.css pour les boutons partagés) */
 
 /* TABLE CAMIONS — sections */
 .ptbl { width: 100%; border-collapse: collapse; min-width: 1080px; }
-.ptbl thead tr { background: var(--bg-float); border-bottom: 2px solid var(--text-faint); }
+.ptbl thead tr { background: var(--bg-float); border-bottom: 2px solid var(--text-faint); transform: translateZ(0); }
 .ptbl thead tr.thead-sections { border-bottom: none; }
 .th-section { padding: 7px 12px; font-size: .65rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; text-align: center; background: var(--bg-deep); }
 .th-section-empty { background: var(--bg-deep); border-right: 1px solid rgba(255,255,255,.22); }
@@ -34,7 +35,7 @@
 .now-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--emerald); flex-shrink: 0; animation: blink 1.4s ease-in-out infinite; }
 @keyframes blink { 0%, 100% { opacity: 1 } 50% { opacity: .3 } }
 
-.ci-t { background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-primary); border-radius: var(--r-sm); padding: 6px 8px; font-size: .8rem; font-family: 'Outfit', sans-serif; width: 96px; outline: none; }
+.ci-t { background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-primary); border-radius: var(--r-sm); padding: 6px 8px; font-size: .8rem; font-family: 'Outfit', sans-serif; width: 96px; outline: none; transform: translateZ(0); }
 .ci-t:focus { border-color: var(--copper); }
 .cs:disabled, .ci:disabled, .ci-t:disabled { opacity: .35; cursor: not-allowed; }
 
@@ -58,6 +59,8 @@
 .verif-thumb[data-state="q2_err"] { left: calc(66.66% - 16px); background: linear-gradient(135deg, #EF4444, #F87171); }
 .verif-thumb[data-state="q3_ok"] { left: calc(83.33% - 21px); background: linear-gradient(135deg, #10B981, #34D399); }
 .verif-thumb[data-state="q3_err"] { left: calc(100% - 25px); background: linear-gradient(135deg, #EF4444, #F87171); }
+
+/* (styles de formulaire migrés vers .field/.field-label/.field-input du design system) */
 
 @media (max-width: 1100px) {
   .ptbl thead th { font-size: .58rem; padding: 10px 8px; }
