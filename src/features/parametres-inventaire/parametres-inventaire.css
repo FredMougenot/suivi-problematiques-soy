@@ -4,7 +4,7 @@
 ═══════════════════════════════════════════════════════════════ */
 
 .rec-section { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); padding: 20px; margin-bottom: 28px; position: relative; transform: translateZ(0); }
-.rec-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--sapphire), transparent); border-radius: var(--r-lg) var(--r-lg) 0 0; }
+.rec-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--sapphire), transparent); border-radius: var(--r-lg) var(--r-lg) 0 0; transform: translateZ(0); }
 .rec-section-title { font-size: .68rem; font-weight: 800; color: var(--sapphire); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 14px; }
 .rec-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 .rec-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; background: var(--bg-float); border: 1px solid rgba(74,158,232,.3); color: var(--sapphire); font-size: .82rem; font-weight: 700; transform: translateZ(0); }
@@ -14,7 +14,7 @@
 .inp-rec { background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-primary); border-radius: var(--r-sm); padding: 6px 10px; font-size: .84rem; outline: none; width: 90px; transform: translateZ(0); }
 .inp-rec:focus { border-color: var(--sapphire); }
 
-.kpi-retard { padding: 5px 14px; border-radius: 20px; background: rgba(224,85,85,.1); border: 1px solid rgba(224,85,85,.3); color: var(--ruby); font-size: .78rem; font-weight: 700; }
+.kpi-retard { padding: 5px 14px; border-radius: 20px; background: rgba(224,85,85,.1); border: 1px solid rgba(224,85,85,.3); color: var(--ruby); font-size: .78rem; font-weight: 700; transform: translateZ(0); }
 
 /* Colonnes du tableau des items (scopé à .param-items-table pour ne pas affecter les autres tableaux de l'app) */
 .param-items-table thead th:first-child, .param-items-table tbody td:first-child { width: 48px; text-align: center; }
