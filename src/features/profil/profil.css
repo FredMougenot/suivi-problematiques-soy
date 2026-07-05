@@ -8,12 +8,12 @@
 
 .profil-id-card { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow: hidden; transform: translateZ(0); }
 .profil-avatar-zone { padding: 28px 20px; text-align: center; border-bottom: 1px solid var(--text-faint); background: var(--bg-float); transform: translateZ(0); }
-.profil-big-av { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--copper), var(--copper-light)); display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 1.9rem; font-weight: 700; color: var(--bg-void); margin: 0 auto 14px; box-shadow: 0 0 0 3px rgba(184,115,51,.15), 0 0 0 7px rgba(184,115,51,.05); }
+.profil-big-av { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--copper), var(--copper-light)); display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 1.9rem; font-weight: 700; color: var(--bg-void); margin: 0 auto 14px; box-shadow: 0 0 0 3px rgba(184,115,51,.15), 0 0 0 7px rgba(184,115,51,.05); transform: translateZ(0); }
 .profil-dn { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
 .profil-em { font-size: .72rem; color: var(--text-muted); word-break: break-all; }
 .profil-role { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: .66rem; font-weight: 700; margin-top: 10px; }
 .profil-role.admin { background: var(--copper-dim); color: var(--copper); border: 1px solid rgba(184,115,51,.2); }
-.profil-role.user { background: rgba(74,158,232,.08); color: var(--sapphire); border: 1px solid rgba(74,158,232,.15); }
+.profil-role.user { background: rgba(74,158,232,.08); color: var(--sapphire); border: 1px solid rgba(74,158,232,.15); transform: translateZ(0); }
 .profil-meta { padding: 14px 20px; }
 .profil-meta-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--text-faint); font-size: .79rem; }
 .profil-meta-row:last-child { border-bottom: none; }
