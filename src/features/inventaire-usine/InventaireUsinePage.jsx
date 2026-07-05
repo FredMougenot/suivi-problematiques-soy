@@ -136,24 +136,24 @@ export default function InventaireUsinePage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <input type="date" value={dateReleve} onChange={(e) => setDateReleve(e.target.value)}
             style={{ background: 'var(--bg-float)', border: '1px solid var(--text-faint)', color: 'var(--text-primary)', borderRadius: 'var(--r-sm)', padding: '6px 10px', fontSize: '.84rem', outline: 'none' }} />
-          <button className="btn-nouveau-releve" onClick={() => setConfirmOpen(true)}>↺ Nouveau relevé (effacer)</button>
+          <button className="btn btn-danger" onClick={() => setConfirmOpen(true)}>↺ Nouveau relevé (effacer)</button>
         </div>
       </div>
 
-      <div className="actions-bar">
+      <div className="toolbar">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <button className="btn-add-item" onClick={handleAddRow}>+ Ajouter un produit</button>
-          <button className="btn-save-all" onClick={handleSaveAll} disabled={saveMutation.isPending}>
+          <button className="btn btn-primary" onClick={handleAddRow}>+ Ajouter un produit</button>
+          <button className="btn btn-primary" onClick={handleSaveAll} disabled={saveMutation.isPending}>
             💾 {saveMutation.isPending ? 'Sauvegarde…' : 'Sauvegarder'}
           </button>
-          <Link to="/inventaire-global" className="btn-global">🌐 Inventaire global</Link>
+          <Link to="/inventaire-global" className="btn btn-secondary">🌐 Inventaire global</Link>
         </div>
         <div style={{ fontSize: '.72rem', color: 'var(--text-muted)' }}>* Champs obligatoires</div>
       </div>
 
       <div className="tbl-wrap">
         {releveQ.isLoading ? (
-          <div className="spinner"><div className="sp-ring"></div> Chargement…</div>
+          <div className="spinner-box"><div className="spinner-ring"></div> Chargement…</div>
         ) : (
           <>
             <SaisieTable
@@ -176,17 +176,17 @@ export default function InventaireUsinePage() {
       </div>
 
       {confirmOpen && (
-        <div className="modal-overlay open">
-          <div className="modal-box">
-            <div className="modal-hd">⚠️ Nouveau relevé</div>
-            <div className="modal-bd">
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setConfirmOpen(false); }}>
+          <div className="modal-box" style={{ maxWidth: 420 }}>
+            <div className="modal-header"><div className="modal-title">⚠️ Nouveau relevé</div></div>
+            <div className="modal-body" style={{ lineHeight: 1.6 }}>
               Cette action va <strong>effacer toutes les lignes actuelles</strong> du relevé en cours et réinitialiser la saisie.<br /><br />
               Les données sauvegardées en base resteront jusqu'à la prochaine sauvegarde complète.<br /><br />
               Voulez-vous continuer ?
             </div>
-            <div className="modal-ft">
-              <button className="btn-cancel" onClick={() => setConfirmOpen(false)}>Annuler</button>
-              <button className="btn-confirm-danger" onClick={handleNouveauReleve}>Effacer et recommencer</button>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setConfirmOpen(false)}>Annuler</button>
+              <button className="btn btn-danger" onClick={handleNouveauReleve}>Effacer et recommencer</button>
             </div>
           </div>
         </div>
