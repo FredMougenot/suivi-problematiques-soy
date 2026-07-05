@@ -3,10 +3,10 @@ import { fmtDate, daysUntil, getRootCategory, groupRows } from '../logic';
 export default function StockView({ filteredRows, categories, traxMap }) {
   if (!filteredRows.length) {
     return (
-      <div className="empty-ctr">
-        <div className="empty-icon">📊</div>
-        <div>Aucune donnée disponible.</div>
-        <div style={{ marginTop: 8, fontSize: '.78rem' }}>Vérifiez que l'inventaire usine a été saisi et que GH est connecté.</div>
+      <div className="empty-state">
+        <div className="empty-state-icon">📊</div>
+        <div className="empty-state-title">Aucune donnée disponible.</div>
+        <div className="empty-state-sub">Vérifiez que l'inventaire usine a été saisi et que GH est connecté.</div>
       </div>
     );
   }
