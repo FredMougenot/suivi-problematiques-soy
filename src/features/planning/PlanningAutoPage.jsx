@@ -79,7 +79,7 @@ export default function PlanningAutoPage() {
           <div className="maj-info">Date : <strong>{fmtDateFR(todayStr())}</strong></div>
         </div>
 
-        <div className="sec-h">
+        <div className="plan-sec-h">
           <div>
             <div className="sec-title">Lignes de production</div>
             <div className="sec-sub">Heures de fin estimées par camion</div>
@@ -88,8 +88,8 @@ export default function PlanningAutoPage() {
 
         {!data ? (
           <div className="empty-state">
-            <div className="empty-ico">📡</div>
-            <div className="empty-txt">
+            <div className="empty-state-icon">📡</div>
+            <div className="empty-state-title">
               {prodQ.isLoading ? 'Chargement…' : "Aucune donnée disponible pour aujourd'hui. N8n n'a pas encore envoyé de données."}
             </div>
           </div>
@@ -101,7 +101,7 @@ export default function PlanningAutoPage() {
           </div>
         )}
 
-        <div className="sec-h" style={{ marginTop: 10 }}>
+        <div className="plan-sec-h" style={{ marginTop: 10 }}>
           <div>
             <div className="sec-title">Slots de ramassage</div>
             <div className="sec-sub">Planning du transporteur · 06h00 à 22h00</div>
@@ -112,7 +112,7 @@ export default function PlanningAutoPage() {
           {data ? (
             <SlotsTable slots={data.slots} lineProg={lineProg} overrides={overridesQ.data || { L1: [], L2: [] }} />
           ) : (
-            <div className="empty-state"><div className="empty-txt">Chargement…</div></div>
+            <div className="empty-state"><div className="empty-state-title">Chargement…</div></div>
           )}
         </div>
       </div>
