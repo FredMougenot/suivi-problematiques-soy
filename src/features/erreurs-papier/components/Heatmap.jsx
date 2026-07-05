@@ -32,7 +32,7 @@ export default function Heatmap({ dataByDay, curView }) {
                   return (
                     <th key={day} style={{ lineHeight: 1.3 }}>
                       <span style={{ display: 'block' }}>{dayNames[d.getDay()]}</span>
-                      <span style={{ display: 'block', fontWeight: 800, color: 'var(--text-secondary)' }}>{d.getDate()}/{d.getMonth() + 1}</span>
+                      <span style={{ display: 'block', fontWeight: 800, color: 'var(--ep-text-secondary)' }}>{d.getDate()}/{d.getMonth() + 1}</span>
                     </th>
                   );
                 })}
@@ -46,7 +46,7 @@ export default function Heatmap({ dataByDay, curView }) {
                     const qData = dataByDay[day][`q${q.id}`] || 0;
                     const intensity = qData / maxErrors;
                     let bgColor, textColor, borderColor;
-                    if (qData === 0) { bgColor = 'var(--elevated)'; textColor = 'var(--text-faint)'; borderColor = 'var(--border)'; }
+                    if (qData === 0) { bgColor = 'var(--ep-elevated)'; textColor = 'var(--ep-text-faint)'; borderColor = 'var(--ep-border)'; }
                     else { const alpha = 0.1 + intensity * 0.6; bgColor = `rgba(${hexToRgbStr(q.color)},${alpha})`; textColor = intensity > 0.5 ? '#FFF' : q.color; borderColor = q.color; }
                     return (
                       <td key={day}>
