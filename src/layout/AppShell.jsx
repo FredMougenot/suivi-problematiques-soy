@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
 import Toasts from '../features/planning/components/Toasts';
+import AppBackground from './AppBackground';
 
 /**
  * AppShell — squelette partagé : sidebar + topbar + zone de contenu (Outlet).
@@ -21,6 +22,7 @@ export default function AppShell() {
 
   return (
     <div className="app-layout">
+      <AppBackground />
       <aside className="sidebar">
         <div className="sb-brand">
           <div className="sb-logo-row">
