@@ -233,10 +233,10 @@ export default function InventaireGhPage() {
         <div className={`gh-dot${isConnected ? ' connected' : ''}`}></div>
         <span className="gh-status-text">{isConnected ? 'Connecté à GH Logistics' : 'Non connecté'}</span>
         {session?.updated_at && <span className="gh-timestamp">Dernière connexion : {new Date(session.updated_at).toLocaleString('fr-CA')}</span>}
-        <button className="btn-connect" onClick={handleConnect} disabled={connectMutation.isPending}>
+        <button className="btn btn-primary" onClick={handleConnect} disabled={connectMutation.isPending}>
           {connectMutation.isPending ? 'Connexion…' : 'Se connecter à GH'}
         </button>
-        <button className="btn-refresh" onClick={handleLoadInventory} disabled={!isConnected || loadInventoryMutation.isPending}>
+        <button className="btn btn-secondary" onClick={handleLoadInventory} disabled={!isConnected || loadInventoryMutation.isPending}>
           {loadInventoryMutation.isPending ? 'Chargement…' : "Rafraîchir l'inventaire"}
         </button>
         {allInventory.length > 0 && <span className="count-badge">{filtered.length} / {allInventory.length} items</span>}
