@@ -32,13 +32,13 @@ export default function LigneCard({ numero, data, heuresReelles, heuresDepuisSlo
   if (statut === 'inactive') {
     body = (
       <div className="empty-state" style={{ padding: '20px' }}>
-        <div className="empty-txt">Ligne inactive aujourd'hui</div>
+        <div className="empty-state-title">Ligne inactive aujourd'hui</div>
       </div>
     );
   } else if (!camions.length) {
     body = (
       <div className="empty-state" style={{ padding: '20px' }}>
-        <div className="empty-txt">Aucun camion prévu</div>
+        <div className="empty-state-title">Aucun camion prévu</div>
       </div>
     );
   } else {
@@ -86,7 +86,7 @@ export default function LigneCard({ numero, data, heuresReelles, heuresDepuisSlo
         </span>
       </div>
       <div className="ligne-body">
-        <div className="kpi-row">
+        <div className="plan-kpi-row">
           <div className="kpi-mini">
             <div className="kpi-mini-lbl">Caisses produites</div>
             <div className="kpi-mini-val">{(caisses || 0).toLocaleString('fr-CA')}</div>
