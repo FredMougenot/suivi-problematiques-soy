@@ -1,13 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════
-   INVENTAIRE DIFF — styles
+   INVENTAIRE DIFF — styles propres à cette page
+   (boutons, page-header, spinner, empty state, modale, toolbar : voir design-system/components.css)
 ═══════════════════════════════════════════════════════════════ */
-
-.tb-back { display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px; border-radius: var(--r-md); background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-secondary); font-size: .82rem; font-weight: 500; text-decoration: none; }
-.tb-back:hover { border-color: var(--copper); color: var(--copper-light); }
-
-.page-eyebrow { font-size: .62rem; font-weight: 800; color: var(--sapphire); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 6px; }
-.page-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
-.page-sub { font-size: .82rem; color: var(--text-muted); margin-top: 4px; margin-bottom: 20px; }
 
 .kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 22px; }
 @media (max-width: 700px) { .kpi-grid { grid-template-columns: repeat(2,1fr); } }
@@ -22,13 +16,6 @@
 .kpi-card.kpi-snap .kpi-lbl { color: var(--sapphire); }
 .kpi-val { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); }
 .kpi-sub { font-size: .72rem; color: var(--text-muted); margin-top: 3px; }
-
-.toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
-.btn-snapshot { display: inline-flex; align-items: center; gap: 7px; padding: 10px 20px; border-radius: var(--r-md); background: linear-gradient(135deg,var(--copper),var(--copper-light)); color: #0F1118; font-size: .84rem; font-weight: 800; border: none; cursor: pointer; }
-.btn-snapshot:hover { opacity: .88; }
-.btn-pdf { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--r-md); background: linear-gradient(135deg,var(--sapphire),#1a6bff); color: #fff; font-size: .82rem; font-weight: 700; border: none; cursor: pointer; }
-.btn-pdf:hover { opacity: .9; }
-.btn-pdf:disabled { opacity: .4; cursor: default; }
 
 .snap-info { display: flex; align-items: center; gap: 16px; padding: 12px 18px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); margin-bottom: 18px; flex-wrap: wrap; }
 .snap-block { display: flex; flex-direction: column; gap: 2px; }
@@ -78,19 +65,3 @@
 .diff-dates { font-size: .72rem; color: var(--text-muted); display: flex; gap: 10px; }
 .diff-date-item { display: flex; flex-direction: column; gap: 1px; }
 .diff-date-lbl { font-size: .58rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
-
-.spinner-ctr { display: flex; align-items: center; justify-content: center; padding: 80px; gap: 12px; color: var(--text-muted); font-size: .88rem; grid-column: 1 / -1; }
-.sp-ring { width: 28px; height: 28px; border: 2px solid var(--text-faint); border-top-color: var(--sapphire); border-radius: 50%; animation: diff-spin .8s linear infinite; }
-@keyframes diff-spin { to { transform: rotate(360deg) } }
-.empty-ctr { padding: 60px; text-align: center; color: var(--text-muted); font-size: .88rem; }
-.empty-icon { font-size: 2.8rem; margin-bottom: 14px; opacity: .4; }
-
-.modal-overlay { position: fixed; inset: 0; z-index: 900; background: rgba(7,8,12,.82); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; padding: 24px; }
-.modal-overlay.open { display: flex; }
-.modal-box { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-xl); width: 100%; max-width: 420px; overflow: hidden; }
-.modal-hd { padding: 20px 24px 0; font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
-.modal-bd { padding: 16px 24px; font-size: .86rem; color: var(--text-secondary); line-height: 1.6; }
-.modal-ft { padding: 12px 24px 20px; display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid var(--text-faint); }
-.btn-cancel { padding: 9px 18px; border-radius: var(--r-md); background: transparent; border: 1px solid var(--text-faint); color: var(--text-secondary); font-size: .84rem; cursor: pointer; }
-.btn-confirm { padding: 9px 20px; border-radius: var(--r-md); background: var(--copper); border: none; color: #0F1118; font-size: .84rem; font-weight: 800; cursor: pointer; }
-.btn-confirm:disabled { opacity: .5; cursor: default; }
