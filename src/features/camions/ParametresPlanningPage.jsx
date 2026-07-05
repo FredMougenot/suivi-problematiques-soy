@@ -50,13 +50,13 @@ export default function ParametresPlanningPage() {
   }
 
   if (paramsQ.isLoading) {
-    return <div className="spinner"><div className="sp-ring"></div> Chargement…</div>;
+    return <div className="spinner-box"><div className="spinner-ring"></div> Chargement…</div>;
   }
 
   return (
     <div className="pp-main">
       <div className="pp-topbar">
-        <Link to="/planning-camions" className="tb-back">← Planification</Link>
+        <Link to="/planning-camions" className="btn btn-secondary">← Planification</Link>
       </div>
 
       <div className="page-hdr">
