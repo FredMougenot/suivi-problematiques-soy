@@ -26,7 +26,7 @@ export default function VerifTable({ rows, onSetConf, onDelete }) {
                 <td className="chk-cell"><input type="checkbox" className="conf-chk chk-ok" checked={!!r.conforme} onChange={(e) => onSetConf(v.key, 'conforme', e.target.checked)} /></td>
                 <td className="chk-cell"><input type="checkbox" className="conf-chk chk-nc" checked={!!r.non_conforme} onChange={(e) => onSetConf(v.key, 'non_conforme', e.target.checked)} /></td>
                 <td style={{ textAlign: 'center', width: 44 }}>
-                  {!v.fixed && <button className="btn-rm-verif" onClick={() => onDelete(v.key, r.id)}>✕</button>}
+                  {!v.fixed && <button className="btn-icon" onClick={() => onDelete(v.key, r.id)}>✕</button>}
                 </td>
               </tr>
             );
