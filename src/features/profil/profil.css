@@ -1,18 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════
-   PROFIL — styles
+   PROFIL — styles propres à cette page
+   (en-tête de section, champs, boutons : voir design-system/components.css)
 ═══════════════════════════════════════════════════════════════ */
-
-.sec-h { display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--text-faint); flex-wrap: wrap; gap: 12px; }
-.sec-t { font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 700; color: var(--text-primary); }
-.sec-s { font-size: .8rem; color: var(--text-secondary); margin-top: 3px; }
-
-.fg { display: flex; flex-direction: column; gap: 6px; }
-.fg-lbl { font-size: .64rem; font-weight: 800; color: var(--copper); letter-spacing: .12em; text-transform: uppercase; }
-.fg-inp { padding: 9px 12px; background: var(--bg-float); border: 1px solid var(--text-faint); border-radius: var(--r-md); font-size: .84rem; color: var(--text-primary); width: 100%; box-sizing: border-box; }
-.fg-inp:focus { border-color: var(--copper); outline: none; }
-.btn-sub { padding: 9px 22px; border-radius: var(--r-md); font-size: .82rem; font-weight: 700; background: var(--copper); color: var(--bg-void); cursor: pointer; border: none; }
-.btn-sub:hover { background: var(--copper-light); }
-.btn-sub:disabled { opacity: .5; cursor: default; }
 
 .profil-layout { display: grid; grid-template-columns: 260px 1fr; gap: 22px; align-items: start; margin-top: 24px; }
 @media (max-width: 800px) { .profil-layout { grid-template-columns: 1fr; } }
@@ -44,7 +33,7 @@
 @media (max-width: 500px) { .profil-form-2 { grid-template-columns: 1fr; } }
 
 .pwd-wrap-input { position: relative; }
-.pwd-wrap-input .fg-inp { padding-right: 40px; }
+.pwd-wrap-input .field-input { padding-right: 40px; }
 .pwd-eye { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); cursor: pointer; font-size: .82rem; user-select: none; }
 .pwd-eye:hover { color: var(--text-primary); }
 .pwd-bar-wrap { height: 3px; background: var(--bg-active); border-radius: 3px; overflow: hidden; margin-top: 6px; }
