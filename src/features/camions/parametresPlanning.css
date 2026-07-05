@@ -1,15 +1,11 @@
-/* ═════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════
    PARAMÈTRES PLANNING — styles spécifiques
-═════════════════════════════════════════════════════════ */
+   (page-header, boutons, bouton icône, spinner : voir design-system/components.css)
+═══════════════════════════════════════════════════════════════ */
 
 .pp-main { max-width: 1100px; margin: 0 auto; padding: 12px 0 64px; }
 .pp-topbar { margin-bottom: 20px; }
-.tb-back { display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px; border-radius: var(--r-md); background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-secondary); font-size: .82rem; font-weight: 500; text-decoration: none; transition: all .15s; }
-.tb-back:hover { border-color: var(--copper); color: var(--copper-light); }
 
-.page-eyebrow { font-size: .62rem; font-weight: 800; color: var(--copper); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 6px; }
-.page-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; color: var(--text-primary); }
-.page-sub { font-size: .82rem; color: var(--text-muted); margin-top: 5px; }
 .page-hdr { margin-bottom: 36px; }
 
 .legend { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 32px; padding: 16px 18px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); }
@@ -58,13 +54,6 @@
 
 .inp-short { background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-primary); font-size: .78rem; font-family: 'Outfit', sans-serif; border-radius: var(--r-sm); outline: none; padding: 4px 8px; width: 68px; text-align: center; }
 .inp-short:focus { border-color: var(--copper); }
-
-.btn-add-row { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--r-md); background: linear-gradient(135deg, var(--copper), var(--copper-light)); color: #0F1118; font-size: .78rem; font-weight: 800; border: none; cursor: pointer; }
-.btn-add-row:hover { opacity: .88; }
-.btn-save-sec { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--r-md); background: rgba(45,212,160,.08); border: 1px solid rgba(45,212,160,.3); color: var(--emerald); font-size: .78rem; font-weight: 700; cursor: pointer; }
-.btn-save-sec:hover { background: rgba(45,212,160,.15); }
-.btn-rm { width: 28px; height: 28px; border-radius: var(--r-sm); background: transparent; border: 1px solid transparent; color: var(--text-muted); cursor: pointer; }
-.btn-rm:hover { background: rgba(224,85,85,.1); border-color: rgba(224,85,85,.3); color: var(--ruby); }
 
 .empty-row td { text-align: center; color: var(--text-muted); font-size: .8rem; padding: 22px; font-style: italic; }
 
