@@ -59,7 +59,7 @@ export default function DayTimeline({ data, seuils }) {
   return (
     <>
       <div className="tl-list">
-        {items.length ? items : <div className="empty"><div className="empty-ico">📭</div>Aucune donnée pour cette journée</div>}
+        {items.length ? items : <div className="empty-state"><div className="empty-state-icon">📭</div><div className="empty-state-title">Aucune donnée pour cette journée</div></div>}
       </div>
       <div className="legende">
         <div className="leg-item"><div className="leg-dot" style={{ background: 'var(--emerald)' }}></div>À l'heure ≤{seuil1}min</div>
