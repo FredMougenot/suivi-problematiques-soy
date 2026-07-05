@@ -26,8 +26,8 @@ export default function PdfFormatModal({ open, onClose, onExport }) {
           </div>
         </div>
         <div className="pdf-modal-footer">
-          <button className="pdf-btn-cancel" onClick={onClose}>Annuler</button>
-          <button className="pdf-btn-export" onClick={() => { onClose(); onExport(format); }}>📄 Exporter PDF</button>
+          <button className="btn btn-secondary" onClick={onClose}>Annuler</button>
+          <button className="btn btn-primary" onClick={() => { onClose(); onExport(format); }}>📄 Exporter PDF</button>
         </div>
       </div>
     </div>
