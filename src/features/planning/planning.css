@@ -17,15 +17,11 @@
 .statut-systeme.actif .statut-systeme-dot { background: var(--emerald); animation: pulse 2s ease-in-out infinite; }
 .statut-systeme.arrete .statut-systeme-dot { background: var(--ruby); }
 
-/* Section header */
-.sec-h { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--text-faint); position: relative; }
-.sec-h::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 42px; height: 2px; background: #19e0c8; box-shadow: 0 0 10px #19e0c8; }
+/* Section header (préfixé plan- pour éviter collision avec .sec-h du design system) */
+.plan-sec-h { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--text-faint); position: relative; }
+.plan-sec-h::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 42px; height: 2px; background: #19e0c8; box-shadow: 0 0 10px #19e0c8; }
 .sec-title { font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 600; }
 .sec-sub { font-size: .73rem; color: var(--text-muted); margin-top: 3px; font-weight: 300; }
-
-.empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
-.empty-ico { font-size: 2rem; margin-bottom: 12px; }
-.empty-txt { font-size: .85rem; white-space: pre-line; }
 
 /* Grid des lignes */
 .lignes-grid { display: grid; grid-template-columns: 1fr minmax(220px,.62fr) 1fr; gap: 24px; margin-bottom: 30px; align-items: start; }
@@ -55,7 +51,7 @@
 .statut-pill.camion-pret .statut-dot { background: var(--emerald); }
 .statut-pill.inactive .statut-dot { background: var(--ruby); }
 .ligne-body { padding: 20px 22px; }
-.kpi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+.plan-kpi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
 .kpi-mini { background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)), var(--bg-float); border: 1px solid var(--text-faint); border-radius: var(--r-md); padding: 12px 14px; }
 .kpi-mini-lbl { font-size: .62rem; font-weight: 700; color: var(--text-muted); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 4px; }
 .kpi-mini-val { font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; font-weight: 700; }
