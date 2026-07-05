@@ -111,7 +111,7 @@ export default function InventaireGlobalPage() {
 
       <div className="toolbar">
         <div className="toolbar-left">
-          <div className="search-wrap">
+          <div className="gib-search-wrap">
             <span className="search-icon">⌕</span>
             <input type="text" placeholder="Rechercher code, lot, description…" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
@@ -120,12 +120,12 @@ export default function InventaireGlobalPage() {
             <option value="usine">🏭 Usine seulement</option>
             <option value="gh">🏪 GH seulement</option>
           </select>
-          <button className="btn-refresh-all" onClick={handleRefresh}>↻ Actualiser</button>
-          <Link to="/inventaire-usine" className="btn-refresh-all">🏭 Saisie usine</Link>
+          <button className="btn btn-secondary" onClick={handleRefresh}>↻ Actualiser</button>
+          <Link to="/inventaire-usine" className="btn btn-secondary">🏭 Saisie usine</Link>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-pdf" onClick={handleExportPdf} disabled={allRows.length === 0}>📄 Exporter PDF</button>
-          <button className="btn-pdf" style={{ background: 'linear-gradient(135deg,#1d7044,#2a9a5e)' }} onClick={handleExportExcel} disabled={allRows.length === 0}>📊 Exporter Excel</button>
+          <button className="btn btn-primary" onClick={handleExportPdf} disabled={allRows.length === 0}>📄 Exporter PDF</button>
+          <button className="btn btn-primary" style={{ background: 'linear-gradient(135deg,#1d7044,#2a9a5e)' }} onClick={handleExportExcel} disabled={allRows.length === 0}>📊 Exporter Excel</button>
         </div>
       </div>
 
@@ -133,7 +133,7 @@ export default function InventaireGlobalPage() {
         <GlobalCategorySidebar categories={categories} allRows={allRows} activeCat={activeCat} onSelectCat={handleSelectCat} onSelectCode={handleSelectCode} />
         <div className="global-content">
           {isLoading ? (
-            <div className="spinner-ctr"><div className="sp-ring"></div> Chargement des inventaires…</div>
+            <div className="spinner-box"><div className="spinner-ring"></div> Chargement des inventaires…</div>
           ) : (
             <StockView filteredRows={filteredRows} categories={categories} traxMap={traxMap} />
           )}
