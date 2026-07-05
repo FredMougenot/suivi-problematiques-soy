@@ -101,18 +101,18 @@ export default function ProfilPage() {
             <div className="profil-section-head"><div className="profil-section-title">Informations personnelles</div></div>
             <div className="profil-section-body">
               <div className="profil-form-2" style={{ marginBottom: 16 }}>
-                <div className="fg"><label className="fg-lbl">Prénom</label><input type="text" className="fg-inp" value={prenom} onChange={(e) => setPrenom(e.target.value)} placeholder="Votre prénom" /></div>
-                <div className="fg"><label className="fg-lbl">Nom</label><input type="text" className="fg-inp" value={nom} onChange={(e) => setNom(e.target.value)} placeholder="Votre nom" /></div>
+                <div className="field"><label className="field-label">Prénom</label><input type="text" className="field-input" value={prenom} onChange={(e) => setPrenom(e.target.value)} placeholder="Votre prénom" /></div>
+                <div className="field"><label className="field-label">Nom</label><input type="text" className="field-input" value={nom} onChange={(e) => setNom(e.target.value)} placeholder="Votre nom" /></div>
               </div>
               <div className="profil-form-1" style={{ marginBottom: 16 }}>
-                <div className="fg"><label className="fg-lbl">Titre / Poste</label><input type="text" className="fg-inp" value={poste} onChange={(e) => setPoste(e.target.value)} placeholder="ex: Responsable qualité" /></div>
+                <div className="field"><label className="field-label">Titre / Poste</label><input type="text" className="field-input" value={poste} onChange={(e) => setPoste(e.target.value)} placeholder="ex: Responsable qualité" /></div>
               </div>
               <div className="profil-form-1">
-                <div className="fg"><label className="fg-lbl">Courriel</label><input type="email" className="fg-inp" value={email} disabled style={{ opacity: .45, cursor: 'not-allowed' }} /></div>
+                <div className="field"><label className="field-label">Courriel</label><input type="email" className="field-input" value={email} disabled style={{ opacity: .45, cursor: 'not-allowed' }} /></div>
               </div>
               <div className="profil-actions">
                 <span className={`profil-ok-msg${infoOk ? ' show' : ''}`}>✓ Informations enregistrées</span>
-                <button className="btn-sub" onClick={saveInfo} disabled={savingInfo}>{savingInfo ? 'Enregistrement…' : 'Enregistrer'}</button>
+                <button className="btn btn-primary" onClick={saveInfo} disabled={savingInfo}>{savingInfo ? 'Enregistrement…' : 'Enregistrer'}</button>
               </div>
             </div>
           </div>
@@ -121,17 +121,17 @@ export default function ProfilPage() {
             <div className="profil-section-head"><div className="profil-section-title">Changer le mot de passe</div></div>
             <div className="profil-section-body">
               <div className="profil-form-1" style={{ marginBottom: 16 }}>
-                <div className="fg"><label className="fg-lbl">Mot de passe actuel</label>
+                <div className="field"><label className="field-label">Mot de passe actuel</label>
                   <div className="pwd-wrap-input">
-                    <input type={showPwd.p0 ? 'text' : 'password'} className="fg-inp" value={pwd0} onChange={(e) => setPwd0(e.target.value)} placeholder="Votre mot de passe actuel" />
+                    <input type={showPwd.p0 ? 'text' : 'password'} className="field-input" value={pwd0} onChange={(e) => setPwd0(e.target.value)} placeholder="Votre mot de passe actuel" />
                     <span className="pwd-eye" onClick={() => toggleEye('p0')}>{showPwd.p0 ? '🙈' : '👁'}</span>
                   </div>
                 </div>
               </div>
               <div className="profil-form-1" style={{ marginBottom: 16 }}>
-                <div className="fg"><label className="fg-lbl">Nouveau mot de passe</label>
+                <div className="field"><label className="field-label">Nouveau mot de passe</label>
                   <div className="pwd-wrap-input">
-                    <input type={showPwd.p1 ? 'text' : 'password'} className="fg-inp" value={pwd1} onChange={(e) => setPwd1(e.target.value)} placeholder="Minimum 8 caractères" />
+                    <input type={showPwd.p1 ? 'text' : 'password'} className="field-input" value={pwd1} onChange={(e) => setPwd1(e.target.value)} placeholder="Minimum 8 caractères" />
                     <span className="pwd-eye" onClick={() => toggleEye('p1')}>{showPwd.p1 ? '🙈' : '👁'}</span>
                   </div>
                   <div className="pwd-bar-wrap"><div className="pwd-bar-fill" style={{ width: (strength.score * 25) + '%', background: strength.color }}></div></div>
@@ -139,16 +139,16 @@ export default function ProfilPage() {
                 </div>
               </div>
               <div className="profil-form-1">
-                <div className="fg"><label className="fg-lbl">Confirmer le nouveau mot de passe</label>
+                <div className="field"><label className="field-label">Confirmer le nouveau mot de passe</label>
                   <div className="pwd-wrap-input">
-                    <input type={showPwd.p2 ? 'text' : 'password'} className="fg-inp" value={pwd2} onChange={(e) => setPwd2(e.target.value)} placeholder="Répétez le nouveau mot de passe" />
+                    <input type={showPwd.p2 ? 'text' : 'password'} className="field-input" value={pwd2} onChange={(e) => setPwd2(e.target.value)} placeholder="Répétez le nouveau mot de passe" />
                     <span className="pwd-eye" onClick={() => toggleEye('p2')}>{showPwd.p2 ? '🙈' : '👁'}</span>
                   </div>
                 </div>
               </div>
               <div className="profil-actions">
                 <span className={`profil-ok-msg${pwdOk ? ' show' : ''}`}>✓ Mot de passe mis à jour</span>
-                <button className="btn-sub" onClick={savePwd} disabled={savingPwd}>{savingPwd ? 'Mise à jour…' : 'Mettre à jour'}</button>
+                <button className="btn btn-primary" onClick={savePwd} disabled={savingPwd}>{savingPwd ? 'Mise à jour…' : 'Mettre à jour'}</button>
               </div>
             </div>
           </div>
