@@ -96,5 +96,5 @@ export default function TrendChart({ data, start, end, seuils }) {
     return () => { if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null; } };
   }, [data, start, end, seuils]);
 
-  return <div className="chart-box"><canvas ref={canvasRef}></canvas></div>;
+  return <div className="sp-chart-box"><canvas ref={canvasRef}></canvas></div>;
 }
