@@ -3,7 +3,7 @@
    (boutons, page-header, spinner, empty state, modale, toolbar : voir design-system/components.css)
 ═══════════════════════════════════════════════════════════════ */
 
-.releve-banner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); padding: 16px 20px; margin-bottom: 22px; position: relative; overflow: hidden; }
+.releve-banner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); padding: 16px 20px; margin-bottom: 22px; position: relative; overflow: hidden; transform: translateZ(0); }
 .releve-banner::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg,transparent,var(--copper),transparent); }
 .releve-info { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .releve-date-wrap { display: flex; flex-direction: column; gap: 3px; }
@@ -12,10 +12,10 @@
 .releve-count { padding: 5px 14px; border-radius: 20px; background: var(--copper-dim); border: 1px solid rgba(200,132,58,.2); color: var(--copper); font-size: .78rem; font-weight: 700; }
 .badge-usine { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; background: rgba(200,132,58,.12); border: 1px solid rgba(200,132,58,.25); color: var(--copper); font-size: .68rem; font-weight: 700; }
 
-.tbl-wrap { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow: hidden; position: relative; overflow-x: auto; }
+.tbl-wrap { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow: hidden; position: relative; overflow-x: auto; transform: translateZ(0); }
 .tbl-wrap::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg,transparent,var(--copper),transparent); pointer-events: none; }
 .saisie-tbl { width: 100%; border-collapse: collapse; }
-.saisie-tbl thead tr { background: var(--bg-float); border-bottom: 1px solid var(--text-faint); }
+.saisie-tbl thead tr { background: var(--bg-float); border-bottom: 1px solid var(--text-faint); transform: translateZ(0); }
 .saisie-tbl thead th { padding: 10px; font-size: .58rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--text-muted); text-align: left; white-space: nowrap; }
 .saisie-tbl thead th.th-req::after { content: '*'; color: var(--ruby); margin-left: 2px; }
 .saisie-tbl tbody tr { border-bottom: 1px solid rgba(44,51,80,.5); transition: background .1s; }
@@ -27,7 +27,7 @@
 
 .ac-wrap { position: relative; }
 .ac-overlay { position: fixed; inset: 0; z-index: 99990; }
-.ac-dropdown { position: fixed; z-index: 99999; min-width: 300px; max-width: 94vw; background: var(--bg-float); border: 1px solid rgba(74,158,232,.35); border-radius: var(--r-lg); box-shadow: 0 12px 32px rgba(0,0,0,.8); max-height: 260px; overflow-y: auto; }
+.ac-dropdown { position: fixed; z-index: 99999; min-width: 300px; max-width: 94vw; background: var(--bg-float); border: 1px solid rgba(74,158,232,.35); border-radius: var(--r-lg); box-shadow: 0 12px 32px rgba(0,0,0,.8); max-height: 260px; overflow-y: auto; transform: translateZ(0); }
 .ac-item { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid rgba(44,51,80,.35); }
 .ac-item:last-child { border-bottom: none; }
 .ac-item:hover { background: rgba(74,158,232,.12); }
@@ -38,11 +38,11 @@
 .inp-cell { background: transparent; border: none; border-bottom: 1px solid transparent; color: var(--text-primary); font-size: .84rem; outline: none; padding: 4px 6px; width: 100%; transition: border-color .15s; min-width: 0; }
 .inp-cell:hover { border-bottom-color: var(--text-faint); }
 .inp-cell:focus { border-bottom-color: var(--copper); }
-.sel-cell { background: var(--bg-float); border: 1px solid rgba(255,255,255,.06); color: var(--text-primary); border-radius: var(--r-sm); padding: 4px 8px; font-size: .82rem; outline: none; cursor: pointer; width: 100%; }
+.sel-cell { background: var(--bg-float); border: 1px solid rgba(255,255,255,.06); color: var(--text-primary); border-radius: var(--r-sm); padding: 4px 8px; font-size: .82rem; outline: none; cursor: pointer; width: 100%; transform: translateZ(0); }
 .sel-cell:focus { border-color: var(--copper); }
 .inp-poids-total { color: var(--amber); font-weight: 700; font-size: .84rem; padding: 4px 6px; text-align: right; }
 
-.tbl-footer { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: var(--bg-float); border-top: 1px solid var(--text-faint); flex-wrap: wrap; gap: 12px; }
+.tbl-footer { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: var(--bg-float); border-top: 1px solid var(--text-faint); flex-wrap: wrap; gap: 12px; transform: translateZ(0); }
 .tbl-totaux { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
 .total-item { display: flex; flex-direction: column; gap: 2px; }
 .total-lbl { font-size: .6rem; font-weight: 800; color: var(--text-muted); letter-spacing: .1em; text-transform: uppercase; }
