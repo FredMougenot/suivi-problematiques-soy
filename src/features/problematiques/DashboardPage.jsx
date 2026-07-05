@@ -71,7 +71,7 @@ export default function DashboardPage() {
     <div className="tool-main">
       <div className="sec-h" style={{ marginBottom: 8 }}>
         <div><div className="sec-t">Tableau de bord</div><div className="sec-s">Vue d'ensemble des problématiques</div></div>
-        <button className="btn-copper" onClick={() => setNewProbOpen(true)}>⊕ Soumettre une problématique</button>
+        <button className="btn btn-primary" onClick={() => setNewProbOpen(true)}>⊕ Soumettre une problématique</button>
       </div>
 
       <DateNav date={dashDate} onChange={setDashDate} />
@@ -96,12 +96,12 @@ export default function DashboardPage() {
       </div>
 
       <div className="sec-h"><div><div className="sec-t">Nouveautés</div><div className="sec-s">Problématiques créées ce jour</div></div></div>
-      <div className="tbl-wrap">
-        <table className="dtbl">
+      <div className="table-shell">
+        <table className="data-table">
           <thead><tr><th>ID</th><th>Intitulé</th><th>Pilier</th><th>Priorité</th><th>Statut</th><th>Date</th></tr></thead>
           <tbody>
             {recent.length === 0 ? (
-              <tr><td colSpan={6}><div className="empty"><div className="empty-ico">📋</div><div className="empty-txt">Aucune problématique créée ce jour.</div></div></td></tr>
+              <tr><td colSpan={6}><div className="empty-state"><div className="empty-state-icon">📋</div><div className="empty-state-title">Aucune problématique créée ce jour.</div></div></td></tr>
             ) : recent.map((p) => (
               <tr key={p.id}>
                 <td><span className="c-id">#{fmtId(p.id)}</span></td>
