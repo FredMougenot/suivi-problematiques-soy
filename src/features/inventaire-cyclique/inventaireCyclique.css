@@ -34,7 +34,7 @@
 /* Graphiques — voir design-system/components.css pour .chart-panel/.chart-grid/.chart-box/.chart-box-title */
 
 .section-divider { display: flex; align-items: center; gap: 14px; margin: 28px 0 18px; }
-.section-divider-line { flex: 1; height: 1px; background: linear-gradient(90deg,var(--copper),transparent); }
+.section-divider-line { flex: 1; height: 1px; background: linear-gradient(90deg,var(--copper),transparent); transform: translateZ(0); }
 .section-divider-title { font-size: .68rem; font-weight: 800; color: var(--copper); letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
 
 .verif-tbl-wrap { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow-x: auto; position: relative; margin-bottom: 10px; transform: translateZ(0); }
@@ -48,17 +48,17 @@
 .verif-tbl tbody td { padding: 10px 14px; font-size: .84rem; color: var(--text-primary); vertical-align: middle; }
 .verif-tbl tbody td:first-child { padding-left: 18px; }
 .vbadge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: .68rem; font-weight: 700; white-space: nowrap; }
-.vbadge-ok { background: rgba(45,212,160,.1); color: var(--emerald); border: 1px solid rgba(45,212,160,.25); }
-.vbadge-soon { background: rgba(232,164,58,.1); color: var(--amber); border: 1px solid rgba(232,164,58,.25); }
-.vbadge-overdue { background: rgba(224,85,85,.1); color: var(--ruby); border: 1px solid rgba(224,85,85,.25); }
-.vbadge-never { background: rgba(44,51,80,.3); color: var(--text-muted); border: 1px solid var(--text-faint); }
-.vbadge-recommended { background: rgba(74,158,232,.12); color: var(--sapphire); border: 1px solid rgba(74,158,232,.35); }
-.tr-recommended { background: rgba(74,158,232,.04) !important; }
-.tr-recommended:hover { background: rgba(74,158,232,.08) !important; }
+.vbadge-ok { background: rgba(45,212,160,.1); color: var(--emerald); border: 1px solid rgba(45,212,160,.25); transform: translateZ(0); }
+.vbadge-soon { background: rgba(232,164,58,.1); color: var(--amber); border: 1px solid rgba(232,164,58,.25); transform: translateZ(0); }
+.vbadge-overdue { background: rgba(224,85,85,.1); color: var(--ruby); border: 1px solid rgba(224,85,85,.25); transform: translateZ(0); }
+.vbadge-never { background: rgba(44,51,80,.3); color: var(--text-muted); border: 1px solid var(--text-faint); transform: translateZ(0); }
+.vbadge-recommended { background: rgba(74,158,232,.12); color: var(--sapphire); border: 1px solid rgba(74,158,232,.35); transform: translateZ(0); }
+.tr-recommended { background: rgba(74,158,232,.04) !important; transform: translateZ(0); }
+.tr-recommended:hover { background: rgba(74,158,232,.08) !important; transform: translateZ(0); }
 .verif-kpi-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
 .verif-kpi { padding: 6px 16px; border-radius: 20px; font-size: .78rem; font-weight: 700; }
 .verif-kpi-total { background: var(--bg-raised); border: 1px solid var(--text-faint); color: var(--text-secondary); transform: translateZ(0); }
-.verif-kpi-ok { background: rgba(45,212,160,.1); border: 1px solid rgba(45,212,160,.25); color: var(--emerald); }
+.verif-kpi-ok { background: rgba(45,212,160,.1); border: 1px solid rgba(45,212,160,.25); color: var(--emerald); transform: translateZ(0); }
 
 @media (max-width: 1100px) {
   .page-header-row { flex-direction: column; align-items: flex-start; }
