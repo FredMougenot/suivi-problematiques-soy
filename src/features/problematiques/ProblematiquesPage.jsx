@@ -134,7 +134,6 @@ export default function ProblematiquesPage() {
               <div style={{ fontSize: '.65rem', fontWeight: 800, color: 'var(--copper)', letterSpacing: '.15em', textTransform: 'uppercase', marginBottom: 6 }}>Analyse par pilier</div>
               <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>{activePilierChart}</div>
             </div>
-            <button className="btn-icon" onClick={() => setActivePilierChart('')} style={{ width: 36, height: 36, background: 'rgba(224,85,85,.12)', borderColor: 'rgba(224,85,85,.3)', color: '#E05555', fontSize: '1rem' }}>✕</button>
           </div>
           <ProblemeCharts pilier={activePilierChart} probs={allProblems.filter((p) => p.pilier === activePilierChart)} mode="active" editable />
         </div>
