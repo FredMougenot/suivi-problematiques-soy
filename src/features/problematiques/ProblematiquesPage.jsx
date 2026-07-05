@@ -107,8 +107,8 @@ export default function ProblematiquesPage() {
       <div className="sec-h" style={{ marginBottom: 8 }}>
         <div><div className="sec-t">Registre des problématiques</div><div className="sec-s">Toutes les problématiques, filtrables par pilier, statut, date</div></div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-ghost" onClick={() => setPdfModalOpen(true)}>📄 Exporter PDF</button>
-          <button className="btn-add-prob" onClick={handleOpenNew}>⊕ Soumettre une problématique</button>
+          <button className="btn btn-ghost" onClick={() => setPdfModalOpen(true)}>📄 Exporter PDF</button>
+          <button className="btn btn-primary" onClick={handleOpenNew}>⊕ Soumettre une problématique</button>
         </div>
       </div>
 
@@ -134,7 +134,7 @@ export default function ProblematiquesPage() {
               <div style={{ fontSize: '.65rem', fontWeight: 800, color: 'var(--copper)', letterSpacing: '.15em', textTransform: 'uppercase', marginBottom: 6 }}>Analyse par pilier</div>
               <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>{activePilierChart}</div>
             </div>
-            <button onClick={() => setActivePilierChart('')} style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(224,85,85,.12)', border: '1px solid rgba(224,85,85,.3)', color: '#E05555', cursor: 'pointer', fontSize: '1rem', fontWeight: 700 }}>✕</button>
+            <button className="btn-icon" onClick={() => setActivePilierChart('')} style={{ width: 36, height: 36, background: 'rgba(224,85,85,.12)', borderColor: 'rgba(224,85,85,.3)', color: '#E05555', fontSize: '1rem' }}>✕</button>
           </div>
           <ProblemeCharts pilier={activePilierChart} probs={allProblems.filter((p) => p.pilier === activePilierChart)} mode="active" editable />
         </div>
@@ -156,8 +156,8 @@ export default function ProblematiquesPage() {
         </label>
       </div>
 
-      <div className="tbl-wrap" style={{ touchAction: 'pan-x' }}>
-        <table className="dtbl" style={{ minWidth: 1300 }}>
+      <div className="table-shell" style={{ touchAction: 'pan-x' }}>
+        <table className="data-table" style={{ minWidth: 1300 }}>
           <thead>
             <tr>
               <th>ID</th><th>Statut</th><th>Soumis le</th><th>Intitulé</th><th>Cause</th><th>Action</th><th>Résultat</th>
@@ -166,7 +166,7 @@ export default function ProblematiquesPage() {
           </thead>
           <tbody>
             {filtered.length === 0 ? (
-              <tr><td colSpan={12}><div className="empty"><div className="empty-ico">📋</div><div className="empty-txt">Aucune problématique trouvée.</div></div></td></tr>
+              <tr><td colSpan={12}><div className="empty-state"><div className="empty-state-icon">📋</div><div className="empty-state-title">Aucune problématique trouvée.</div></div></td></tr>
             ) : filtered.map((p) => {
               const retard = retardJours(p);
               return (
@@ -189,8 +189,8 @@ export default function ProblematiquesPage() {
                   <td>{p.date_resolue ? <span style={{ fontSize: '.78rem', color: 'var(--emerald)' }}>{fmtDate(p.date_resolue)}</span> : <span style={{ color: 'var(--text-faint)', fontSize: '.75rem' }}>—</span>}</td>
                   {isAdmin && (
                     <td>
-                      <button className="ab ab-e" onClick={() => handleOpenEdit(p.id)}>Modifier</button>
-                      {p.statut !== 'Clôturé' && <button className="ab ab-c" onClick={() => handleCloturer(p.id)}>Clôturer</button>}
+                      <button className="btn btn-secondary btn-sm" onClick={() => handleOpenEdit(p.id)}>Modifier</button>
+                      {p.statut !== 'Clôturé' && <button className="btn btn-primary btn-sm" onClick={() => handleCloturer(p.id)}>Clôturer</button>}
                     </td>
                   )}
                 </tr>
