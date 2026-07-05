@@ -22,16 +22,16 @@
               color var(--t-fast) var(--ease);
 }
 .btn:disabled { opacity: .5; cursor: default; pointer-events: none; }
-.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn:active:not(:disabled) { transform: translateY(1px) translateZ(0); }
 
-.btn-primary { background: linear-gradient(135deg, var(--copper), var(--sapphire)); color: #fff; border-color: transparent; }
+.btn-primary { background: linear-gradient(135deg, var(--copper), var(--sapphire)); color: #fff; border-color: transparent; transform: translateZ(0); }
 .btn-primary:hover:not(:disabled) { opacity: .88; }
 
 .btn-secondary { background: var(--bg-raised); border-color: var(--text-faint); color: var(--text-secondary); transform: translateZ(0); }
 .btn-secondary:hover:not(:disabled) { border-color: var(--copper); color: var(--copper-light); }
 
-.btn-danger { background: rgba(224,85,85,.08); border-color: rgba(224,85,85,.28); color: var(--ruby); }
-.btn-danger:hover:not(:disabled) { background: rgba(224,85,85,.16); }
+.btn-danger { background: rgba(224,85,85,.08); border-color: rgba(224,85,85,.28); color: var(--ruby); transform: translateZ(0); }
+.btn-danger:hover:not(:disabled) { background: rgba(224,85,85,.16); transform: translateZ(0); }
 
 .btn-ghost { background: transparent; border-color: var(--text-faint); color: var(--text-secondary); }
 .btn-ghost:hover:not(:disabled) { border-color: var(--copper); color: var(--copper-light); }
@@ -45,7 +45,7 @@
   font-size: .8rem; cursor: pointer; flex-shrink: 0;
   transition: all var(--t-fast) var(--ease);
 }
-.btn-icon:hover:not(:disabled) { background: rgba(224,85,85,.1); border-color: rgba(224,85,85,.3); color: var(--ruby); }
+.btn-icon:hover:not(:disabled) { background: rgba(224,85,85,.1); border-color: rgba(224,85,85,.3); color: var(--ruby); transform: translateZ(0); }
 .btn-icon:disabled { opacity: .4; cursor: default; }
 
 /* ── SPINNER ──────────────────────────────────────────────────
@@ -108,7 +108,7 @@
              <div className="modal-footer"><button className="btn btn-secondary">Annuler</button>…</div>
            </div></div>
 ─────────────────────────────────────────────────────────────── */
-.modal-overlay { position: fixed; inset: 0; z-index: 900; background: rgba(6,4,15,.75); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 24px; }
+.modal-overlay { position: fixed; inset: 0; z-index: 900; background: rgba(6,4,15,.75); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 24px; transform: translateZ(0); }
 .modal-box { background: var(--bg-raised); backdrop-filter: blur(24px) saturate(140%); transform: translateZ(0); border: 1px solid var(--text-faint); border-radius: var(--r-xl); box-shadow: var(--shadow-xl); width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; }
 .modal-header { padding: 22px 24px 0; }
 .modal-title { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); }
@@ -149,7 +149,7 @@
 .date-nav-label { font-size: .9rem; font-weight: 700; color: var(--text-primary); padding: 7px 20px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); min-width: 240px; text-align: center; transform: translateZ(0); }
 .date-nav-today-chip { font-size: .62rem; font-weight: 700; color: var(--copper-light); background: var(--copper-dim); border: 1px solid rgba(139,92,246,.3); padding: 1px 8px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
 .date-nav-today-btn { padding: 6px 14px; border-radius: var(--r-md); background: var(--copper-dim); border: 1px solid rgba(139,92,246,.35); color: var(--copper-light); font-size: .78rem; font-weight: 700; cursor: pointer; }
-.date-nav-today-btn:hover { background: rgba(139,92,246,.24); }
+.date-nav-today-btn:hover { background: rgba(139,92,246,.24); transform: translateZ(0); }
 
 /* ── PANNEAU GRAPHIQUE ────────────────────────────────────────
    Usage : <div className="chart-panel">
@@ -163,7 +163,8 @@
 .chart-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; gap: 20px; flex-wrap: wrap; }
 .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 @media (max-width: 700px) { .chart-grid { grid-template-columns: 1fr; } }
-.chart-box { background: var(--bg-float); border: 1px solid var(--text-faint); border-radius: 14px; padding: 18px; transform: translateZ(0); }
+.chart-box { background: var(--bg-float); border: 1px solid var(--text-faint); border-radius: 14px; padding: 18px; transform: translateZ(0); min-width: 0; height: auto; }
+.chart-box canvas { max-width: 100%; height: auto !important; }
 .chart-box-title { font-size: .68rem; font-weight: 800; color: var(--copper); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 12px; }
 
 /* ── COMPTEUR / PILL D'INFO ───────────────────────────────────

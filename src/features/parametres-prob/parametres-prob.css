@@ -6,7 +6,7 @@
 .inp-resp { width: 100%; background: transparent; border: none; color: var(--text-primary); font-size: .86rem; padding: 4px 0; outline: none; border-bottom: 1px solid transparent; }
 .inp-resp:focus { border-bottom-color: var(--copper); }
 
-.danger-zone { border: 1px solid rgba(224,85,85,.25); border-radius: var(--r-lg); padding: 22px 24px; background: rgba(224,85,85,.04); }
+.danger-zone { border: 1px solid rgba(224,85,85,.25); border-radius: var(--r-lg); padding: 22px 24px; background: rgba(224,85,85,.04); transform: translateZ(0); }
 .danger-eyebrow { font-size: .62rem; font-weight: 800; color: var(--ruby); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 6px; }
 .danger-title { font-size: .88rem; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
 .danger-sub { font-size: .8rem; color: var(--text-muted); margin-bottom: 16px; }

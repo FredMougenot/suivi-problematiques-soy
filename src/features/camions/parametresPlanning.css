@@ -20,7 +20,7 @@
 .item-count { font-size: .72rem; color: var(--text-muted); font-weight: 600; padding: 3px 9px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: 20px; transform: translateZ(0); }
 .section-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
 
-.note-style { display: flex; align-items: center; gap: 8px; padding: 8px 12px; margin-bottom: 12px; background: rgba(232,164,58,.06); border: 1px solid rgba(232,164,58,.2); border-radius: var(--r-md); font-size: .76rem; color: var(--amber); }
+.note-style { display: flex; align-items: center; gap: 8px; padding: 8px 12px; margin-bottom: 12px; background: rgba(232,164,58,.06); border: 1px solid rgba(232,164,58,.2); border-radius: var(--r-md); font-size: .76rem; color: var(--amber); transform: translateZ(0); }
 
 .ptbl-wrap { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow: hidden; transform: translateZ(0); }
 .ptbl-scroll { overflow-x: auto; }
