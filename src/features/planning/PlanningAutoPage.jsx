@@ -5,7 +5,6 @@ import { supabase } from '../../lib/supabaseClient';
 import { todayStr, fmtDateFR, fmtTimeTz } from '../../lib/planningDateHelpers';
 import { usePlanningStore } from '../../store/usePlanningStore';
 import { useProductionQuery, useHistoriqueQuery, useOverridesQuery } from './queries';
-import MagicRingsBackground from '../../layout/MagicRingsBackground';
 import LigneCard from './components/LigneCard';
 import QuaisCenterCard from './components/QuaisCenterCard';
 import SlotsTable from './components/SlotsTable';
@@ -64,58 +63,55 @@ export default function PlanningAutoPage() {
   const systemeActif = !(data && data.updated_at && (new Date() - new Date(data.updated_at)) / 60000 > 10);
 
   return (
-    <>
-      <div className="magic-rings-bg"><MagicRingsBackground /></div>
-      <div className="tool-main">
-        <div className="maj-bar">
-          <div className="maj-info">
-            <span className="maj-dot"></span>
-            Dernière mise à jour N8n : <strong>{data && data.updated_at ? fmtTimeTz(data.updated_at) : 'Chargement…'}</strong>
-          </div>
-          <div className={clsx('statut-systeme', systemeActif ? 'actif' : 'arrete')}>
-            <span className="statut-systeme-dot"></span>
-            <span>{systemeActif ? 'Système actif' : 'Système arrêté'}</span>
-          </div>
-          <div className="maj-info">Date : <strong>{fmtDateFR(todayStr())}</strong></div>
+    <div className="tool-main">
+      <div className="maj-bar">
+        <div className="maj-info">
+          <span className="maj-dot"></span>
+          Dernière mise à jour N8n : <strong>{data && data.updated_at ? fmtTimeTz(data.updated_at) : 'Chargement…'}</strong>
         </div>
-
-        <div className="plan-sec-h">
-          <div>
-            <div className="sec-title">Lignes de production</div>
-            <div className="sec-sub">Heures de fin estimées par camion</div>
-          </div>
+        <div className={clsx('statut-systeme', systemeActif ? 'actif' : 'arrete')}>
+          <span className="statut-systeme-dot"></span>
+          <span>{systemeActif ? 'Système actif' : 'Système arrêté'}</span>
         </div>
+        <div className="maj-info">Date : <strong>{fmtDateFR(todayStr())}</strong></div>
+      </div>
 
-        {!data ? (
-          <div className="empty-state">
-            <div className="empty-state-icon">📡</div>
-            <div className="empty-state-title">
-              {prodQ.isLoading ? 'Chargement…' : "Aucune donnée disponible pour aujourd'hui. N8n n'a pas encore envoyé de données."}
-            </div>
-          </div>
-        ) : (
-          <div className="lignes-grid">
-            <LigneCard numero={1} data={data} heuresReelles={heuresReelles} heuresDepuisSlots={heuresDepuisSlots} />
-            <QuaisCenterCard />
-            <LigneCard numero={2} data={data} heuresReelles={heuresReelles} heuresDepuisSlots={heuresDepuisSlots} />
-          </div>
-        )}
-
-        <div className="plan-sec-h" style={{ marginTop: 10 }}>
-          <div>
-            <div className="sec-title">Slots de ramassage</div>
-            <div className="sec-sub">Planning du transporteur · 06h00 à 22h00</div>
-          </div>
-        </div>
-
-        <div className="slots-outer">
-          {data ? (
-            <SlotsTable slots={data.slots} lineProg={lineProg} overrides={overridesQ.data || { L1: [], L2: [] }} />
-          ) : (
-            <div className="empty-state"><div className="empty-state-title">Chargement…</div></div>
-          )}
+      <div className="plan-sec-h">
+        <div>
+          <div className="sec-title">Lignes de production</div>
+          <div className="sec-sub">Heures de fin estimées par camion</div>
         </div>
       </div>
-    </>
+
+      {!data ? (
+        <div className="empty-state">
+          <div className="empty-state-icon">📡</div>
+          <div className="empty-state-title">
+            {prodQ.isLoading ? 'Chargement…' : "Aucune donnée disponible pour aujourd'hui. N8n n'a pas encore envoyé de données."}
+          </div>
+        </div>
+      ) : (
+        <div className="lignes-grid">
+          <LigneCard numero={1} data={data} heuresReelles={heuresReelles} heuresDepuisSlots={heuresDepuisSlots} />
+          <QuaisCenterCard />
+          <LigneCard numero={2} data={data} heuresReelles={heuresReelles} heuresDepuisSlots={heuresDepuisSlots} />
+        </div>
+      )}
+
+      <div className="plan-sec-h" style={{ marginTop: 10 }}>
+        <div>
+          <div className="sec-title">Slots de ramassage</div>
+          <div className="sec-sub">Planning du transporteur · 06h00 à 22h00</div>
+        </div>
+      </div>
+
+      <div className="slots-outer">
+        {data ? (
+          <SlotsTable slots={data.slots} lineProg={lineProg} overrides={overridesQ.data || { L1: [], L2: [] }} />
+        ) : (
+          <div className="empty-state"><div className="empty-state-title">Chargement…</div></div>
+        )}
+      </div>
+    </div>
   );
 }
