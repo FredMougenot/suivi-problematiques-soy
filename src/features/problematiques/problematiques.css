@@ -5,17 +5,17 @@
 
 /* Date nav (tableau de bord) */
 .dash-date-nav { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 0 18px; }
-.dash-date-arr { width: 30px; height: 30px; border-radius: var(--r-md); background: var(--bg-raised); border: 1px solid var(--text-faint); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: .9rem; }
+.dash-date-arr { width: 30px; height: 30px; border-radius: var(--r-md); background: var(--bg-raised); border: 1px solid var(--text-faint); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: .9rem; transform: translateZ(0); }
 .dash-date-arr:hover { border-color: var(--copper); color: var(--copper-light); }
-.dash-date-lbl { font-size: .88rem; font-weight: 700; color: var(--text-primary); padding: 6px 16px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); min-width: 220px; text-align: center; }
+.dash-date-lbl { font-size: .88rem; font-weight: 700; color: var(--text-primary); padding: 6px 16px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); min-width: 220px; text-align: center; transform: translateZ(0); }
 .dash-today-chip { font-size: .62rem; font-weight: 700; color: var(--copper-light); background: var(--copper-dim); border: 1px solid rgba(200,132,58,.25); padding: 1px 7px; border-radius: 20px; margin-left: 6px; }
-.dash-today-btn { padding: 5px 12px; border-radius: var(--r-md); background: var(--bg-raised); border: 1px solid var(--text-faint); color: var(--text-secondary); font-size: .76rem; font-weight: 600; cursor: pointer; }
+.dash-today-btn { padding: 5px 12px; border-radius: var(--r-md); background: var(--bg-raised); border: 1px solid var(--text-faint); color: var(--text-secondary); font-size: .76rem; font-weight: 600; cursor: pointer; transform: translateZ(0); }
 .dash-today-btn:hover { border-color: var(--copper); color: var(--copper-light); }
 
 /* KPI (tableau de bord) */
 .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 26px; }
 @media (max-width: 900px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } }
-.kpi { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); padding: 20px 18px; position: relative; overflow: hidden; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+.kpi { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); padding: 20px 18px; position: relative; overflow: hidden; cursor: pointer; transition: transform .15s, box-shadow .15s; transform: translateZ(0); }
 .kpi:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.4); }
 .kpi::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
 .kpi.copper::before { background: linear-gradient(90deg, transparent, var(--copper), transparent); }
@@ -35,7 +35,7 @@
 /* Stats par pilier / priorité */
 .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 26px; }
 @media (max-width: 800px) { .stat-row { grid-template-columns: 1fr; } }
-.stat-card { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); padding: 22px; }
+.stat-card { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); padding: 22px; transform: translateZ(0); }
 .stat-lbl { font-size: .68rem; font-weight: 700; color: var(--copper); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 16px; }
 .pilier-row { display: flex; align-items: center; gap: 8px; margin-bottom: 11px; }
 .pilier-row:last-child { margin-bottom: 0; }
@@ -72,16 +72,16 @@
 
 /* Filtres / recherche (registre) */
 .filters { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
-.fsel { padding: 8px 30px 8px 12px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); color: var(--text-secondary); font-size: .8rem; cursor: pointer; min-width: 150px; }
+.fsel { padding: 8px 30px 8px 12px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); color: var(--text-secondary); font-size: .8rem; cursor: pointer; min-width: 150px; transform: translateZ(0); }
 .fsel:focus { border-color: var(--copper); color: var(--text-primary); }
 .srch-wrap { flex: 1; min-width: 200px; position: relative; }
 .srch-ico { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: .9rem; }
-.srch-inp { width: 100%; padding: 8px 12px 8px 34px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); font-size: .8rem; color: var(--text-primary); box-sizing: border-box; }
+.srch-inp { width: 100%; padding: 8px 12px 8px 34px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); font-size: .8rem; color: var(--text-primary); box-sizing: border-box; transform: translateZ(0); }
 .srch-inp:focus { border-color: var(--copper); }
 
 /* Boutons pilier (registre) */
 .pilier-btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.pilier-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--text-faint); background: var(--bg-raised); color: var(--text-muted); font-size: .78rem; font-weight: 600; cursor: pointer; }
+.pilier-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--text-faint); background: var(--bg-raised); color: var(--text-muted); font-size: .78rem; font-weight: 600; cursor: pointer; transform: translateZ(0); }
 .pilier-btn:hover, .pilier-btn.active { border-color: var(--copper); color: var(--copper); background: var(--copper-dim); }
 
 /* Panneau graphique (registre) */
@@ -96,7 +96,7 @@
 
 /* Modal critère */
 .critere-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 800; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
-.critere-modal { background: var(--bg-float); border: 1px solid var(--text-faint); border-radius: var(--r-lg); padding: 28px; max-height: 92vh; overflow-y: auto; box-shadow: 0 16px 48px rgba(0,0,0,.6); position: relative; }
+.critere-modal { background: var(--bg-float); border: 1px solid var(--text-faint); border-radius: var(--r-lg); padding: 28px; max-height: 92vh; overflow-y: auto; box-shadow: 0 16px 48px rgba(0,0,0,.6); position: relative; transform: translateZ(0); }
 .cm-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 18px; }
 .cm-eyebrow { font-size: .62rem; font-weight: 800; color: var(--copper); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 4px; }
 .cm-title { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); }
@@ -111,11 +111,11 @@
 
 /* Modal format PDF (cartes de choix) */
 .pdf-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(6px); }
-.pdf-modal { background: var(--bg-float); border: 1px solid rgba(200,132,58,.25); border-radius: var(--r-xl); padding: 32px 28px 24px; width: 480px; max-width: 96vw; box-shadow: 0 32px 80px rgba(0,0,0,.7); }
+.pdf-modal { background: var(--bg-float); border: 1px solid rgba(200,132,58,.25); border-radius: var(--r-xl); padding: 32px 28px 24px; width: 480px; max-width: 96vw; box-shadow: 0 32px 80px rgba(0,0,0,.7); transform: translateZ(0); }
 .pdf-modal-title { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
 .pdf-modal-sub { font-size: .76rem; color: var(--text-muted); margin-bottom: 22px; }
 .pdf-format-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
-.pdf-format-card { border: 1.5px solid var(--text-faint); border-radius: var(--r-lg); padding: 18px 16px; cursor: pointer; background: var(--bg-raised); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.pdf-format-card { border: 1.5px solid var(--text-faint); border-radius: var(--r-lg); padding: 18px 16px; cursor: pointer; background: var(--bg-raised); display: flex; flex-direction: column; align-items: center; gap: 10px; transform: translateZ(0); }
 .pdf-format-card:hover, .pdf-format-card.selected { border-color: var(--copper); background: var(--copper-dim); }
 .pdf-format-icon { color: var(--text-muted); }
 .pdf-format-card.selected .pdf-format-icon { color: var(--copper); }

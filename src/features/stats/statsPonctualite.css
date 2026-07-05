@@ -1,22 +1,21 @@
 /* ═══════════════════════════════════════════════════════════════
    STATS PONCTUALITÉ — styles spécifiques
-   (boutons, spinner, empty state, modale, champs : voir design-system/components.css)
 ═══════════════════════════════════════════════════════════════ */
 
 .sp-controls { background: var(--bg-deep); border-bottom: 1px solid var(--text-faint); padding: 12px 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: -18px -28px 18px; }
-.period-tabs { display: flex; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); padding: 3px; gap: 3px; }
+.period-tabs { display: flex; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); padding: 3px; gap: 3px; transform: translateZ(0); }
 .ptab-sp { padding: 6px 18px; border-radius: 8px; font-size: .79rem; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--text-muted); transition: all .15s; }
 .ptab-sp.active { background: linear-gradient(135deg, var(--copper), var(--copper-light)); color: #0F1118; }
-.nav-btn-sp { width: 36px; height: 36px; border-radius: var(--r-md); background: var(--bg-raised); border: 1px solid var(--text-faint); color: var(--text-secondary); cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.nav-btn-sp { width: 36px; height: 36px; border-radius: var(--r-md); background: var(--bg-raised); border: 1px solid var(--text-faint); color: var(--text-secondary); cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: all .15s; transform: translateZ(0); }
 .nav-btn-sp:hover { border-color: var(--copper); color: var(--copper-light); }
-.period-lbl-sp { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); padding: 8px 22px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); min-width: 300px; text-align: center; }
+.period-lbl-sp { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); padding: 8px 22px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); min-width: 300px; text-align: center; transform: translateZ(0); }
 .sp-actions { margin-left: auto; display: flex; gap: 8px; }
 
 .dash { max-width: 1400px; margin: 0 auto; }
 
 /* KPI */
 .sp-kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 20px; }
-.sp-kpi { background: var(--bg-raised); border: 1px solid rgba(255,255,255,.055); border-radius: var(--r-xl); padding: 18px 20px; position: relative; overflow: hidden; transition: transform .2s, box-shadow .2s; }
+.sp-kpi { background: var(--bg-raised); border: 1px solid rgba(255,255,255,.055); border-radius: var(--r-xl); padding: 18px 20px; position: relative; overflow: hidden; transition: transform .2s, box-shadow .2s; transform: translateZ(0); }
 .sp-kpi:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,.4); }
 .sp-kpi::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; border-radius: var(--r-xl) var(--r-xl) 0 0; }
 .sp-kpi.green::after { background: var(--emerald); }
@@ -32,13 +31,13 @@
 .sp-kpi-val.copper { color: var(--copper-light); }
 .sp-kpi-val.slate { color: var(--slate, #64748B); }
 .sp-kpi-sub { font-size: .72rem; color: var(--text-muted); line-height: 1.5; }
-.sp-kpi-bar { height: 3px; background: var(--bg-float); border-radius: 2px; margin-top: 10px; overflow: hidden; }
+.sp-kpi-bar { height: 3px; background: var(--bg-float); border-radius: 2px; margin-top: 10px; overflow: hidden; transform: translateZ(0); }
 .sp-kpi-bar-fill { height: 100%; border-radius: 2px; transition: width .8s; }
 
 /* Panels */
 .panels-row { display: grid; gap: 16px; margin-bottom: 20px; }
 .panels-2 { grid-template-columns: 1fr 1fr; }
-.panel { background: var(--bg-raised); border: 1px solid rgba(255,255,255,.055); border-radius: var(--r-xl); padding: 20px 22px; transition: border-color .2s; }
+.panel { background: var(--bg-raised); border: 1px solid rgba(255,255,255,.055); border-radius: var(--r-xl); padding: 20px 22px; transition: border-color .2s; transform: translateZ(0); }
 .panel:hover { border-color: rgba(200,132,58,.1); }
 .panel-full { grid-column: 1/-1; }
 .ph { margin-bottom: 16px; }
@@ -70,7 +69,7 @@
 
 /* Worst slots */
 .worst-list { display: flex; flex-direction: column; gap: 8px; }
-.worst-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; background: var(--bg-float); border-radius: 12px; position: relative; overflow: hidden; transition: background .15s; }
+.worst-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; background: var(--bg-float); border-radius: 12px; position: relative; overflow: hidden; transition: background .15s; transform: translateZ(0); }
 .worst-item:hover { background: var(--bg-hover); }
 .worst-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 3px 0 0 3px; }
 .worst-item.bad::before { background: linear-gradient(180deg,var(--ruby),rgba(224,85,85,.3)); }
@@ -87,7 +86,7 @@
 
 /* Timeline */
 .tl-list { display: flex; flex-direction: column; gap: 4px; }
-.tl-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg-float); border-radius: 10px; transition: all .15s; border: 1px solid transparent; }
+.tl-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg-float); border-radius: 10px; transition: all .15s; border: 1px solid transparent; transform: translateZ(0); }
 .tl-item:not(.inactif):hover { background: var(--bg-hover); border-color: rgba(200,132,58,.12); }
 .tl-item.inactif { opacity: .28; pointer-events: none; }
 .tl-indicator { width: 3px; height: 28px; border-radius: 2px; flex-shrink: 0; }
@@ -115,6 +114,8 @@
 .legende { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--text-faint); }
 .leg-item { display: flex; align-items: center; gap: 5px; font-size: .65rem; color: var(--text-muted); }
 .leg-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+/* Modal paramètres — voir design-system/components.css (modal-overlay/modal-box, field, btn) */
 
 @keyframes fadeUp { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
 .anim { animation: fadeUp .35s var(--ease) both; }
