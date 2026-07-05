@@ -68,7 +68,7 @@ export default function InventaireDiffPage() {
   return (
     <div className="tool-main">
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-        <Link to="/inventaire-gh" className="tb-back">← Inventaire GH</Link>
+        <Link to="/inventaire-gh" className="btn btn-secondary">← Inventaire GH</Link>
       </div>
       <div className="page-eyebrow">Comparaison hebdomadaire</div>
       <div className="page-title">Inventaire Diff — Changements</div>
@@ -93,18 +93,18 @@ export default function InventaireDiffPage() {
       </div>
 
       <div className="toolbar">
-        <button className="btn-snapshot" onClick={() => setConfirmOpen(true)}>📸 Sauvegarder l'état actuel</button>
-        <button className="btn-pdf" onClick={handleExportPdf} disabled={diffRows.length === 0}>📄 Exporter PDF</button>
+        <button className="btn btn-primary" onClick={() => setConfirmOpen(true)}>📸 Sauvegarder l'état actuel</button>
+        <button className="btn btn-primary" onClick={handleExportPdf} disabled={diffRows.length === 0}>📄 Exporter PDF</button>
       </div>
 
       <div className="diff-layout">
         {isLoading ? (
-          <div className="spinner-ctr"><div className="sp-ring"></div> Chargement…</div>
+          <div className="spinner-box" style={{ gridColumn: '1 / -1' }}><div className="spinner-ring"></div> Chargement…</div>
         ) : !hasSnapshots ? (
-          <div className="empty-ctr" style={{ gridColumn: '1 / -1' }}>
-            <div className="empty-icon">📸</div>
-            <div>Aucun état précédent disponible.</div>
-            <div style={{ marginTop: 8, fontSize: '.78rem' }}>Cliquez <strong>Sauvegarder l'état actuel</strong> pour créer le premier relevé.</div>
+          <div className="empty-state" style={{ gridColumn: '1 / -1' }}>
+            <div className="empty-state-icon">📸</div>
+            <div className="empty-state-title">Aucun état précédent disponible.</div>
+            <div className="empty-state-sub">Cliquez <strong>Sauvegarder l'état actuel</strong> pour créer le premier relevé.</div>
           </div>
         ) : (
           <>
