@@ -1,0 +1,160 @@
+/* ═══════════════════════════════════════════════════════════════
+   LOGIN — thème isolé "vortex neuronal" (comme erreurs-papier,
+   ce module a sa propre identité visuelle et ses propres tokens
+   préfixés lg- pour ne jamais entrer en collision avec le reste
+   de l'app).
+═══════════════════════════════════════════════════════════════ */
+
+.lg-page {
+  --lg-void: #06050f;
+  --lg-purple: #8b5cf6;
+  --lg-pink: #ec4899;
+  --lg-cyan: #22d3ee;
+  --lg-text: #f5f3ff;
+  --lg-text-muted: rgba(245, 243, 255, .62);
+  --lg-text-faint: rgba(245, 243, 255, .38);
+  --lg-border: rgba(255, 255, 255, .12);
+  --lg-card-bg: rgba(8, 6, 20, .58);
+  --lg-input-bg: rgba(255, 255, 255, .05);
+  --lg-error: #f87171;
+
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--lg-void);
+  font-family: 'Outfit', -apple-system, sans-serif;
+  color: var(--lg-text);
+}
+
+.lg-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: .9;
+  z-index: 0;
+}
+
+/* Vignette : assombrit les bords pour garantir le contraste du texte,
+   sans quoi le shader peut devenir trop clair au centre selon la souris */
+.lg-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(6, 5, 15, .35) 72%, rgba(6, 5, 15, .75) 100%);
+}
+
+.lg-card {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 400px;
+  padding: 40px 36px 32px;
+  border-radius: 24px;
+  border: 1px solid var(--lg-border);
+  background: var(--lg-card-bg);
+  backdrop-filter: blur(20px) saturate(140%);
+  box-shadow: 0 40px 100px -30px rgba(0, 0, 0, .7), inset 0 1px 0 rgba(255, 255, 255, .06);
+  animation: lg-rise .6s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+@keyframes lg-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Marque ── */
+.lg-brand { text-align: center; margin-bottom: 30px; }
+.lg-eyebrow {
+  font-size: .64rem; font-weight: 600; letter-spacing: .34em; text-transform: uppercase;
+  color: var(--lg-text-faint); margin-bottom: 10px;
+}
+.lg-wordmark {
+  font-size: 2.1rem; font-weight: 300; letter-spacing: -.01em; line-height: 1;
+  background: linear-gradient(135deg, #ffffff 0%, #d9c9ff 55%, var(--lg-purple) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  margin-bottom: 10px;
+}
+.lg-tagline { font-size: .84rem; color: var(--lg-text-muted); line-height: 1.5; max-width: 260px; margin: 0 auto; }
+
+/* ── Champs ── */
+.lg-form { display: flex; flex-direction: column; gap: 16px; margin-top: 28px; }
+.lg-field { position: relative; }
+.lg-field-icon {
+  position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+  color: var(--lg-text-faint); pointer-events: none; display: flex;
+}
+.lg-input {
+  width: 100%; box-sizing: border-box; padding: 11px 14px 11px 40px;
+  background: var(--lg-input-bg); border: 1px solid var(--lg-border); border-radius: 12px;
+  color: var(--lg-text); font-family: inherit; font-size: .88rem; outline: none;
+  transition: border-color .18s ease, background .18s ease;
+}
+.lg-input::placeholder { color: var(--lg-text-faint); }
+.lg-input:focus { border-color: var(--lg-purple); background: rgba(255, 255, 255, .07); }
+.lg-input:focus-visible { outline: 2px solid rgba(139, 92, 246, .5); outline-offset: 1px; }
+
+.lg-eye-btn {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  display: flex; align-items: center; justify-content: center; width: 28px; height: 28px;
+  background: transparent; border: none; border-radius: 6px; color: var(--lg-text-faint); cursor: pointer;
+  transition: color .15s ease;
+}
+.lg-eye-btn:hover { color: var(--lg-text); }
+.lg-eye-btn:focus-visible { outline: 2px solid rgba(139, 92, 246, .5); outline-offset: 1px; }
+
+/* ── Ligne options (se souvenir) ── */
+.lg-options { display: flex; align-items: center; gap: 9px; }
+.lg-switch { position: relative; display: inline-block; width: 38px; height: 20px; flex-shrink: 0; cursor: pointer; }
+.lg-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+.lg-switch-track {
+  position: absolute; inset: 0; border-radius: 20px; background: rgba(255, 255, 255, .14);
+  transition: background .18s ease;
+}
+.lg-switch input:checked + .lg-switch-track { background: var(--lg-purple); }
+.lg-switch-thumb {
+  position: absolute; left: 2px; top: 2px; width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; transition: transform .18s ease;
+}
+.lg-switch input:checked ~ .lg-switch-thumb { transform: translateX(18px); }
+.lg-switch input:focus-visible ~ .lg-switch-track { outline: 2px solid rgba(139, 92, 246, .6); outline-offset: 2px; }
+.lg-options-label { font-size: .8rem; color: var(--lg-text-muted); cursor: pointer; user-select: none; }
+
+/* ── Erreur ── */
+.lg-error {
+  font-size: .78rem; color: var(--lg-error); background: rgba(248, 113, 113, .1);
+  border: 1px solid rgba(248, 113, 113, .25); border-radius: 10px; padding: 9px 12px;
+}
+
+/* ── Bouton principal ── */
+.lg-submit {
+  margin-top: 4px; width: 100%; padding: 13px; border-radius: 12px; border: none;
+  background: linear-gradient(135deg, var(--lg-purple), var(--lg-pink));
+  color: #fff; font-family: inherit; font-size: .88rem; font-weight: 600; cursor: pointer;
+  box-shadow: 0 10px 30px -8px rgba(139, 92, 246, .5);
+  transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+}
+.lg-submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 14px 36px -8px rgba(139, 92, 246, .65); }
+.lg-submit:focus-visible { outline: 2px solid rgba(255, 255, 255, .6); outline-offset: 2px; }
+.lg-submit:disabled { opacity: .65; cursor: default; transform: none; }
+.lg-submit.success { background: linear-gradient(135deg, #10b981, var(--lg-cyan)); }
+
+/* ── Pied de carte ── */
+.lg-footer { margin-top: 26px; text-align: center; font-size: .74rem; color: var(--lg-text-faint); line-height: 1.6; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lg-card { animation: none; }
+  .lg-submit:hover:not(:disabled) { transform: none; }
+}
+
+@media (max-width: 480px) {
+  .lg-card { padding: 32px 24px 26px; }
+  .lg-wordmark { font-size: 1.8rem; }
+}
