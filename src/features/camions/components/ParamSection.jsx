@@ -38,10 +38,10 @@ export default function ParamSection({ category, rows, onAdd, onDelete, onSave, 
           <div className="section-desc">{category.desc}</div>
         </div>
         <div className="section-actions">
-          <button className="btn-save-sec" onClick={() => onSave(category.key, localRows)} disabled={saving}>
+          <button className="btn btn-primary btn-sm" onClick={() => onSave(category.key, localRows)} disabled={saving}>
             💾 {saving ? 'Enregistrement…' : 'Enregistrer'}
           </button>
-          <button className="btn-add-row" onClick={() => onAdd(category.key)}>+ Ajouter</button>
+          <button className="btn btn-secondary btn-sm" onClick={() => onAdd(category.key)}>+ Ajouter</button>
         </div>
       </div>
 
@@ -104,7 +104,7 @@ export default function ParamSection({ category, rows, onAdd, onDelete, onSave, 
                       </td>
                     )}
                     <td className="td-act">
-                      <button className="btn-rm" onClick={() => onDelete(row.id, category.key)} title="Supprimer">✕</button>
+                      <button className="btn-icon" onClick={() => onDelete(row.id, category.key)} title="Supprimer">✕</button>
                     </td>
                   </tr>
                 ))
