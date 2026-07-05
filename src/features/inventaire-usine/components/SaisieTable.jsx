@@ -6,9 +6,9 @@ export default function SaisieTable({ rows, categories, traxData, onFieldChange,
   if (!rows.length) {
     return (
       <div className="empty-state">
-        <div className="empty-icon">📦</div>
-        <div>Aucun produit saisi pour ce relevé.</div>
-        <div style={{ marginTop: 8, fontSize: '.78rem' }}>Cliquez sur <strong>Ajouter un produit</strong> pour commencer.</div>
+        <div className="empty-state-icon">📦</div>
+        <div className="empty-state-title">Aucun produit saisi pour ce relevé.</div>
+        <div className="empty-state-sub">Cliquez sur <strong>Ajouter un produit</strong> pour commencer.</div>
       </div>
     );
   }
@@ -60,7 +60,7 @@ export default function SaisieTable({ rows, categories, traxData, onFieldChange,
               <td><input className="inp-cell" type="date" value={r.date_fab} onChange={(e) => onFieldChange(i, 'date_fab', e.target.value)} /></td>
               <td><input className="inp-cell" type="date" value={r.date_peremption} onChange={(e) => onFieldChange(i, 'date_peremption', e.target.value)} /></td>
               <td className="td-rm">
-                <button onClick={() => onRemoveRow(i)} title="Supprimer" style={{ width: 28, height: 28, borderRadius: 'var(--r-sm)', background: 'transparent', border: '1px solid transparent', color: 'var(--text-muted)', cursor: 'pointer' }}>✕</button>
+                <button className="btn-icon" onClick={() => onRemoveRow(i)} title="Supprimer">✕</button>
               </td>
             </tr>
           );
