@@ -58,7 +58,7 @@ export default function StatsPonctualitePage() {
   return (
     <div className="tool-main">
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-        <Link to="/planning-camions" className="tb-back">← Planning</Link>
+        <Link to="/planning-camions" className="btn btn-secondary">← Planning</Link>
         <div className="tool-title">Radar de Ponctualité</div>
       </div>
 
@@ -74,14 +74,14 @@ export default function StatsPonctualitePage() {
         <div className="period-lbl-sp">{periodLabel(period, curDate)}</div>
         <button className="nav-btn-sp" onClick={() => navigate(1)}>→</button>
         <div className="sp-actions">
-          <button className="btn-ghost" onClick={handleExportPdf}>📄 Export PDF</button>
-          <button className="btn-ghost" onClick={() => setParamsOpen(true)}>⚙ Paramètres</button>
+          <button className="btn btn-ghost" onClick={handleExportPdf}>📄 Export PDF</button>
+          <button className="btn btn-ghost" onClick={() => setParamsOpen(true)}>⚙ Paramètres</button>
         </div>
       </div>
 
       <div className="dash">
         {isLoading ? (
-          <div className="spinner-wrap"><div className="spin"></div> Chargement…</div>
+          <div className="spinner-box"><div className="spinner-ring"></div> Chargement…</div>
         ) : (
           <>
             <KpiRow A={A} seuils={seuils} />
