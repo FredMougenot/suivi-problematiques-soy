@@ -3,15 +3,15 @@
    (boutons, spinner, page-header : voir design-system/components.css)
 ═══════════════════════════════════════════════════════════════ */
 
-.rec-section { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); padding: 20px; margin-bottom: 28px; position: relative; }
+.rec-section { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); padding: 20px; margin-bottom: 28px; position: relative; transform: translateZ(0); }
 .rec-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--sapphire), transparent); border-radius: var(--r-lg) var(--r-lg) 0 0; }
 .rec-section-title { font-size: .68rem; font-weight: 800; color: var(--sapphire); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 14px; }
 .rec-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-.rec-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; background: var(--bg-float); border: 1px solid rgba(74,158,232,.3); color: var(--sapphire); font-size: .82rem; font-weight: 700; }
+.rec-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; background: var(--bg-float); border: 1px solid rgba(74,158,232,.3); color: var(--sapphire); font-size: .82rem; font-weight: 700; transform: translateZ(0); }
 .rec-chip-rm { background: none; border: none; color: rgba(74,158,232,.5); cursor: pointer; font-size: .85rem; padding: 0; line-height: 1; }
 .rec-chip-rm:hover { color: var(--ruby); }
 .rec-add-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.inp-rec { background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-primary); border-radius: var(--r-sm); padding: 6px 10px; font-size: .84rem; outline: none; width: 90px; }
+.inp-rec { background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-primary); border-radius: var(--r-sm); padding: 6px 10px; font-size: .84rem; outline: none; width: 90px; transform: translateZ(0); }
 .inp-rec:focus { border-color: var(--sapphire); }
 
 .kpi-retard { padding: 5px 14px; border-radius: 20px; background: rgba(224,85,85,.1); border: 1px solid rgba(224,85,85,.3); color: var(--ruby); font-size: .78rem; font-weight: 700; }
@@ -22,7 +22,7 @@
 .inp-item { background: transparent; border: none; border-bottom: 1px solid transparent; color: var(--text-primary); font-size: .86rem; outline: none; padding: 4px 6px; width: 100%; }
 .inp-item:hover { border-bottom-color: var(--text-faint); }
 .inp-item:focus { border-bottom-color: var(--copper); }
-.sel-rec { background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-primary); border-radius: var(--r-sm); padding: 5px 10px; font-size: .82rem; outline: none; cursor: pointer; width: 110px; }
+.sel-rec { background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-primary); border-radius: var(--r-sm); padding: 5px 10px; font-size: .82rem; outline: none; cursor: pointer; width: 110px; transform: translateZ(0); }
 .sel-rec:focus { border-color: var(--copper); }
 .td-date { font-size: .78rem; color: var(--text-secondary); white-space: nowrap; }
 .td-prochaine { font-size: .78rem; font-weight: 700; white-space: nowrap; }
