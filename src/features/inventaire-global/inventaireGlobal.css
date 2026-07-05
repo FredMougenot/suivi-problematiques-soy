@@ -1,10 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════
-   INVENTAIRE GLOBAL — styles
+   INVENTAIRE GLOBAL — styles propres à cette page
+   (boutons, page-header, spinner, empty state, toolbar : voir design-system/components.css)
 ═══════════════════════════════════════════════════════════════ */
-
-.page-eyebrow { font-size: .62rem; font-weight: 800; color: var(--sapphire); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 6px; }
-.page-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
-.page-sub { font-size: .82rem; color: var(--text-muted); margin-top: 4px; margin-bottom: 20px; }
 
 .kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 22px; }
 @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2,1fr); } }
@@ -22,18 +19,11 @@
 .kpi-val { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); }
 .kpi-sub { font-size: .72rem; color: var(--text-muted); margin-top: 3px; }
 
-.toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
-.toolbar-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.search-wrap { position: relative; }
-.search-wrap input { background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-primary); border-radius: var(--r-md); padding: 8px 12px 8px 34px; font-size: .84rem; outline: none; width: 240px; }
-.search-wrap input:focus { border-color: var(--sapphire); }
+.gib-search-wrap { position: relative; }
+.gib-search-wrap input { background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-primary); border-radius: var(--r-md); padding: 8px 12px 8px 34px; font-size: .84rem; outline: none; width: 240px; }
+.gib-search-wrap input:focus { border-color: var(--sapphire); }
 .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
 .fsel { background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-primary); border-radius: var(--r-md); padding: 8px 12px; font-size: .82rem; outline: none; cursor: pointer; }
-.btn-pdf { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--r-md); background: linear-gradient(135deg,var(--sapphire),#1a6bff); color: #fff; font-size: .82rem; font-weight: 700; border: none; cursor: pointer; }
-.btn-pdf:hover { opacity: .9; }
-.btn-pdf:disabled { opacity: .4; cursor: default; }
-.btn-refresh-all { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--r-md); background: var(--bg-raised); border: 1px solid var(--text-faint); color: var(--text-muted); font-size: .82rem; font-weight: 600; cursor: pointer; text-decoration: none; }
-.btn-refresh-all:hover { border-color: var(--sapphire); color: var(--sapphire); }
 
 .global-layout { display: grid; grid-template-columns: 180px 1fr; gap: 0; min-height: 60vh; position: relative; }
 @media (max-width: 900px) { .global-layout { grid-template-columns: 1fr; } }
@@ -92,12 +82,5 @@
 .row-date-val { color: var(--text-secondary); white-space: nowrap; }
 .row-date-val.exp-warn { color: var(--amber); }
 .row-date-val.exp-danger { color: var(--ruby); }
-
-.spinner-ctr { display: flex; align-items: center; justify-content: center; padding: 80px; gap: 12px; color: var(--text-muted); font-size: .88rem; }
-.sp-ring { width: 28px; height: 28px; border: 2px solid var(--text-faint); border-top-color: var(--sapphire); border-radius: 50%; animation: global-spin .8s linear infinite; }
-@keyframes global-spin { to { transform: rotate(360deg) } }
-
-.empty-ctr { padding: 60px; text-align: center; color: var(--text-muted); font-size: .88rem; }
-.empty-icon { font-size: 2.8rem; margin-bottom: 14px; opacity: .4; }
 
 .info-banner { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: rgba(74,158,232,.08); border: 1px solid rgba(74,158,232,.2); border-radius: var(--r-md); font-size: .78rem; color: var(--sapphire); margin-bottom: 16px; flex-wrap: wrap; }
