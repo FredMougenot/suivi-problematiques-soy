@@ -93,7 +93,7 @@ export default function ParametresGhPage() {
   return (
     <div className="tool-main-full">
       <div style={{ padding: '12px 24px 0' }}>
-        <Link to="/inventaire-gh" className="tb-back">← Inventaire GH</Link>
+        <Link to="/inventaire-gh" className="btn btn-secondary">← Inventaire GH</Link>
       </div>
       <div className="param-layout">
         <div className="param-sidebar">
@@ -114,9 +114,9 @@ export default function ParametresGhPage() {
             <div>
               {!activeCat ? (
                 <>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                  <div className="page-header-row">
                     <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Catégories d'inventaire</h2>
-                    <button className="add-cat-btn" onClick={createCategory} style={{ margin: 0, width: 'auto' }}>⊕ Nouvelle catégorie</button>
+                    <button className="btn btn-primary" onClick={createCategory}>⊕ Nouvelle catégorie</button>
                   </div>
                   <CategoriesList categories={localCategories} onEdit={setActiveCatId} />
                 </>
@@ -136,16 +136,16 @@ export default function ParametresGhPage() {
 
           {section === 'poids' && (
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <div className="page-header-row">
                 <div>
                   <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px 0' }}>Poids unitaires</h2>
                   <p style={{ fontSize: '.82rem', color: 'var(--text-muted)', margin: 0 }}>Définissez le poids unitaire (kg) pour chaque code produit</p>
                 </div>
-                <button className="add-poids-btn" onClick={addPoidsRow} style={{ marginTop: 0 }}>⊕ Ajouter un produit</button>
+                <button className="btn btn-primary" onClick={addPoidsRow}>⊕ Ajouter un produit</button>
               </div>
               <PoidsTable poidsList={localPoids} onUpdate={updatePoidsRow} onDelete={deletePoidsRow} />
-              <div className="save-bar">
-                <button className="btn-save" onClick={saveAllPoids} disabled={saveAllPoidsMutation.isPending}>{saveAllPoidsMutation.isPending ? 'Enregistrement…' : '💾 Sauvegarder'}</button>
+              <div className="toolbar" style={{ marginTop: 20 }}>
+                <button className="btn btn-primary" onClick={saveAllPoids} disabled={saveAllPoidsMutation.isPending}>{saveAllPoidsMutation.isPending ? 'Enregistrement…' : '💾 Sauvegarder'}</button>
               </div>
             </div>
           )}
