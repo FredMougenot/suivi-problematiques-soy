@@ -1,17 +1,31 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
+import NeuralVortexBackground from './NeuralVortexBackground';
+import './login.css';
+
+const REMEMBER_KEY = 'soy_remember_email';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const login = useAuthStore((s) => s.login);
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo = location.state?.from || '/';
+
+  // Pré-remplit le courriel si "Se souvenir de moi" a été coché précédemment.
+  useEffect(() => {
+    const saved = localStorage.getItem(REMEMBER_KEY);
+    if (saved) { setEmail(saved); setRemember(true); }
+  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -19,84 +33,92 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       await login(email, password);
+      if (remember) localStorage.setItem(REMEMBER_KEY, email);
+      else localStorage.removeItem(REMEMBER_KEY);
+
+      setIsSuccess(true);
+      await new Promise((resolve) => setTimeout(resolve, 450));
       navigate(redirectTo, { replace: true });
     } catch (err) {
-      setError("Email ou mot de passe incorrect.");
-    } finally {
+      setError('Email ou mot de passe incorrect.');
       setIsSubmitting(false);
     }
   }
 
   return (
-    <div
-      style={{
-        height: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--bg-void)',
-      }}
-    >
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          background: 'var(--bg-raised)',
-          border: '1px solid var(--text-faint)',
-          borderRadius: 'var(--r-lg)',
-          padding: 32,
-          width: 340,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 14,
-        }}
-      >
-        <div style={{ textAlign: 'center', marginBottom: 8 }}>
-          <div
-            style={{
-              fontFamily: "'Playfair Display', serif",
-              fontStyle: 'italic',
-              fontSize: '1.4rem',
-              color: 'var(--copper-light)',
-            }}
-          >
-            SOY
-          </div>
-          <div style={{ fontSize: '.7rem', color: 'var(--text-muted)', letterSpacing: '.15em', textTransform: 'uppercase' }}>
-            Expédition
-          </div>
+    <div className="lg-page">
+      <NeuralVortexBackground />
+      <div className="lg-scrim" />
+
+      <div className="lg-card">
+        <div className="lg-brand">
+          <div className="lg-eyebrow">Soylutions</div>
+          <div className="lg-wordmark">SOY</div>
+          <p className="lg-tagline">Suivi de production & planification des expéditions</p>
         </div>
 
-        <input
-          className="ci"
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          autoFocus
-        />
-        <input
-          className="ci"
-          type="password"
-          placeholder="Mot de passe"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <form className="lg-form" onSubmit={handleSubmit}>
+          <div className="lg-field">
+            <span className="lg-field-icon"><Mail size={18} /></span>
+            <input
+              className="lg-input"
+              type="email"
+              placeholder="Adresse courriel"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoFocus
+              autoComplete="email"
+            />
+          </div>
 
-        {error && (
-          <div style={{ color: 'var(--ruby)', fontSize: '.8rem' }}>{error}</div>
-        )}
+          <div className="lg-field">
+            <span className="lg-field-icon"><Lock size={18} /></span>
+            <input
+              className="lg-input"
+              style={{ paddingRight: 40 }}
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Mot de passe"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete="current-password"
+            />
+            <button
+              type="button"
+              className="lg-eye-btn"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
 
-        <button
-          type="submit"
-          className="btn-copper"
-          disabled={isSubmitting}
-          style={{ justifyContent: 'center', marginTop: 6 }}
-        >
-          {isSubmitting ? 'Connexion…' : 'Se connecter'}
-        </button>
-      </form>
+          <label className="lg-options">
+            <span className="lg-switch">
+              <input type="checkbox" checked={remember} onChange={() => setRemember((v) => !v)} />
+              <span className="lg-switch-track"></span>
+              <span className="lg-switch-thumb"></span>
+            </span>
+            <span className="lg-options-label">Se souvenir de moi</span>
+          </label>
+
+          {error && <div className="lg-error">{error}</div>}
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className={`lg-submit${isSuccess ? ' success' : ''}`}
+          >
+            {isSuccess ? 'Connecté ✓' : isSubmitting ? 'Connexion…' : 'Se connecter'}
+          </button>
+        </form>
+
+        <div className="lg-footer">
+          Accès réservé au personnel Soylutions.<br />
+          Besoin d'aide ? Contactez votre administrateur.
+        </div>
+      </div>
     </div>
   );
 }
