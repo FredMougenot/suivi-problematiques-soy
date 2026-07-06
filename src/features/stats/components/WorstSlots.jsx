@@ -35,7 +35,7 @@ export default function WorstSlots({ data, seuils }) {
               <div className="worst-detail">Max {s.max} min · Tolérance &gt;{seuil1}min</div>
             </div>
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
-              <div className="worst-avg" style={{ color: col }}>+{s.avg}<span style={{ fontSize: '.7rem', fontFamily: "'Outfit'", fontWeight: 400, marginLeft: 2 }}>min</span></div>
+              <div className="worst-avg" style={{ color: col }}>+{s.avg}<span style={{ fontSize: '.7rem', fontFamily: 'var(--font-body)', fontWeight: 400, marginLeft: 2 }}>min</span></div>
               <div className="worst-bar-wrap"><div className="worst-bar-bg"><div className="worst-bar-fill" style={{ width: barPct + '%', background: col }}></div></div></div>
             </div>
           </div>
