@@ -39,19 +39,19 @@
 
 .val-preview { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .82rem; font-weight: 600; }
 
-.inp-val { background: transparent; border: none; border-bottom: 1px solid transparent; color: var(--text-primary); font-size: .84rem; font-family: 'Outfit', sans-serif; outline: none; padding: 4px 6px; width: 100%; transition: border-color .15s; }
+.inp-val { background: transparent; border: none; border-bottom: 1px solid transparent; color: var(--text-primary); font-size: .84rem; font-family: var(--font-body); outline: none; padding: 4px 6px; width: 100%; transition: border-color .15s; }
 .inp-val:hover { border-bottom-color: var(--text-faint); }
 .inp-val:focus { border-bottom-color: var(--copper); }
 
 .style-cell { display: flex; align-items: center; gap: 6px; }
 .color-pill { display: flex; align-items: center; gap: 5px; padding: 3px 8px 3px 4px; border-radius: 20px; background: var(--bg-float); border: 1px solid var(--text-faint); transform: translateZ(0); }
 .cpick { width: 20px; height: 20px; padding: 0; border: none; background: none; cursor: pointer; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
-.inp-hex { background: transparent; border: none; color: var(--text-secondary); font-size: .72rem; font-family: 'Outfit', sans-serif; outline: none; width: 62px; }
+.inp-hex { background: transparent; border: none; color: var(--text-secondary); font-size: .72rem; font-family: var(--font-body); outline: none; width: 62px; }
 .inp-hex:focus { color: var(--text-primary); }
 .no-color-btn { width: 20px; height: 20px; border-radius: 50%; background: var(--bg-float); border: 1px solid var(--text-faint); display: inline-flex; align-items: center; justify-content: center; font-size: .6rem; color: var(--text-muted); cursor: pointer; flex-shrink: 0; transform: translateZ(0); }
 .no-color-btn:hover { border-color: var(--ruby); color: var(--ruby); }
 
-.inp-short { background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-primary); font-size: .78rem; font-family: 'Outfit', sans-serif; border-radius: var(--r-sm); outline: none; padding: 4px 8px; width: 68px; text-align: center; transform: translateZ(0); }
+.inp-short { background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-primary); font-size: .78rem; font-family: var(--font-body); border-radius: var(--r-sm); outline: none; padding: 4px 8px; width: 68px; text-align: center; transform: translateZ(0); }
 .inp-short:focus { border-color: var(--copper); }
 
 .empty-row td { text-align: center; color: var(--text-muted); font-size: .8rem; padding: 22px; font-style: italic; }

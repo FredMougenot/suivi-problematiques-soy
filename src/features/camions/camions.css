@@ -28,14 +28,14 @@
 .row-awaited td { animation: row-pulse 3s ease-in-out infinite; }
 .row-awaited:hover td { animation: none; background: rgba(200,132,58,.025); transform: translateZ(0); }
 
-.h-badge { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--copper-light); display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.h-badge { font-family: var(--font-heading); font-size: 1rem; font-weight: 700; color: var(--copper-light); display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
 .h-badge.past { color: var(--text-muted); }
 .h-badge.now { color: var(--emerald); }
-.h-badge.extra { color: var(--text-secondary); font-family: 'Outfit', sans-serif; font-size: .85rem; font-weight: 600; }
+.h-badge.extra { color: var(--text-secondary); font-family: var(--font-body); font-size: .85rem; font-weight: 600; }
 .now-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--emerald); flex-shrink: 0; animation: blink 1.4s ease-in-out infinite; }
 @keyframes blink { 0%, 100% { opacity: 1 } 50% { opacity: .3 } }
 
-.ci-t { background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-primary); border-radius: var(--r-sm); padding: 6px 8px; font-size: .8rem; font-family: 'Outfit', sans-serif; width: 96px; outline: none; transform: translateZ(0); }
+.ci-t { background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-primary); border-radius: var(--r-sm); padding: 6px 8px; font-size: .8rem; font-family: var(--font-body); width: 96px; outline: none; transform: translateZ(0); }
 .ci-t:focus { border-color: var(--copper); }
 .cs:disabled, .ci:disabled, .ci-t:disabled { opacity: .35; cursor: not-allowed; }
 

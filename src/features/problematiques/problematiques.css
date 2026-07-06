@@ -24,7 +24,7 @@
 .kpi.emerald::before { background: linear-gradient(90deg, transparent, var(--emerald), transparent); transform: translateZ(0); }
 .kpi.amber::before { background: linear-gradient(90deg, transparent, var(--amber), transparent); transform: translateZ(0); }
 .kpi-lbl { font-size: .7rem; font-weight: 700; color: var(--text-muted); letter-spacing: .1em; text-transform: uppercase; }
-.kpi-val { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 700; margin-top: 8px; }
+.kpi-val { font-family: var(--font-heading); font-size: 2.2rem; font-weight: 700; margin-top: 8px; }
 .kpi.copper .kpi-val { color: var(--copper-light); }
 .kpi.ruby .kpi-val { color: var(--ruby); }
 .kpi.sapphire .kpi-val { color: var(--sapphire); }
