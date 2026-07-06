@@ -81,7 +81,7 @@ export default function Heatmap({ data, start, end, seuils }) {
 
   HOURS.forEach((h, ri) => {
     const cy = padT + hdrH + ri * rowH;
-    cells.push(<text key={'h' + ri} x={colLW - 6} y={cy + CELL / 2 + 4} textAnchor="end" fontSize="9" fontWeight="600" fontFamily="DM Mono,monospace" fill="rgba(122,130,160,.65)">{h}</text>);
+    cells.push(<text key={'h' + ri} x={colLW - 6} y={cy + CELL / 2 + 4} textAnchor="end" fontSize="9" fontWeight="600" fontFamily="var(--font-mono)" fill="rgba(122,130,160,.65)">{h}</text>);
 
     days.forEach((dt, ci) => {
       const cx = colLW + ci * (CELL + GAP);
@@ -121,14 +121,14 @@ export default function Heatmap({ data, start, end, seuils }) {
           {hasNL && (
             <>
               <rect x={cx + 1} y={cy + 1} width={CELL - 2} height={Math.floor(CELL * 0.38)} rx={5} fill="rgba(255,255,255,.05)" pointerEvents="none" />
-              <text x={cx + CELL / 2} y={cy + CELL / 2 + 1} textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fontFamily="DM Mono,monospace" fill={NL_TEXT} pointerEvents="none">NL</text>
+              <text x={cx + CELL / 2} y={cy + CELL / 2 + 1} textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fontFamily="var(--font-mono)" fill={NL_TEXT} pointerEvents="none">NL</text>
               <rect x={cx + 5} y={cy + CELL - 5} width={CELL - 10} height={2} rx={1} fill={NL_STROKE} pointerEvents="none" />
             </>
           )}
           {!hasNL && hasData && (
             <>
               <rect x={cx + 1} y={cy + 1} width={CELL - 2} height={Math.floor(CELL * 0.38)} rx={5} fill="rgba(255,255,255,.055)" pointerEvents="none" />
-              <text x={cx + CELL / 2} y={cy + CELL / 2 + 1} textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight="800" fontFamily="DM Mono,monospace" fill={col.text} pointerEvents="none">{t}%</text>
+              <text x={cx + CELL / 2} y={cy + CELL / 2 + 1} textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight="800" fontFamily="var(--font-mono)" fill={col.text} pointerEvents="none">{t}%</text>
               <rect x={cx + 5} y={cy + CELL - 5} width={CELL - 10} height={2} rx={1} fill="rgba(255,255,255,.07)" pointerEvents="none" />
               <rect x={cx + 5} y={cy + CELL - 5} width={Math.round((CELL - 10) * (t / 100))} height={2} rx={1} fill={col.stroke} pointerEvents="none" />
               {avgRet > seuil2 && <circle cx={cx + CELL - 5} cy={cy + 5} r={2.5} fill="rgba(224,85,85,.85)" pointerEvents="none" />}
@@ -142,7 +142,7 @@ export default function Heatmap({ data, start, end, seuils }) {
 
   return (
     <div className="hm-wrap" id="hm-wrap" style={{ position: 'relative' }}>
-      <svg xmlns="http://www.w3.org/2000/svg" width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ fontFamily: "'Outfit',sans-serif", display: 'block', minWidth: '100%' }}>
+      <svg xmlns="http://www.w3.org/2000/svg" width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ fontFamily: 'var(--font-body)', display: 'block', minWidth: '100%' }}>
         {cells}
       </svg>
       {tip && (
