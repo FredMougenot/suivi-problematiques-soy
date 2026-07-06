@@ -67,8 +67,8 @@ export function GlowingShadow({ children }) {
         .glow-container {
           --card-color: hsl(260deg 100% 3%);
           --text-color: hsl(260deg 10% 55%);
-          --card-radius: 3.6vw;
-          --card-width: 35vw;
+          --card-radius: 12px;
+          --card-width: 100%;
           --border-width: 3px;
           --bg-size: 1;
           --hue: 0;
@@ -85,7 +85,7 @@ export function GlowingShadow({ children }) {
 
           width: var(--card-width);
           width: min(480px, var(--card-width));
-          aspect-ratio: 1.5/1;
+          aspect-ratio: 2.2/1;
           color: white;
           margin: auto;
           display: flex;
