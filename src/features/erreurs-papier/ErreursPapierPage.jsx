@@ -69,7 +69,7 @@ export default function ErreursPapierPage() {
           </div>
         </div>
         <div className="ep-tb-right">
-          <button className="ep-btn-today ep-btn-gold" onClick={handleExportPdf}>📄 Export PDF</button>
+          <button className="ep-btn-today ep-btn-gold" onClick={handleExportPdf}>Export PDF</button>
           <button className="ep-btn-today" onClick={handleGoToday}>Aujourd'hui</button>
         </div>
       </header>
