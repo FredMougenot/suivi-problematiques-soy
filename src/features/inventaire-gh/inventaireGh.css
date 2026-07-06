@@ -3,7 +3,7 @@
 ═══════════════════════════════════════════════════════════════ */
 
 .gh-status { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; padding: 16px 20px 0; }
-.gh-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-faint); flex-shrink: 0; transition: background .3s; }
+.gh-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-faint); flex-shrink: 0; transition: background .3s; transform: translateZ(0); }
 .gh-dot.connected { background: var(--emerald); box-shadow: 0 0 6px rgba(45,212,160,.5); }
 .gh-status-text { font-size: .82rem; color: var(--text-muted); font-weight: 600; }
 .gh-timestamp { font-size: .74rem; color: var(--text-faint); }
@@ -24,7 +24,7 @@
 .cat-btn:hover { background: rgba(255,255,255,.06); transform: translateZ(0); }
 .cat-btn.active { border-color: var(--sapphire); background: rgba(74,158,232,.12); box-shadow: 0 0 12px rgba(74,158,232,.2); transform: translateZ(0); }
 
-.cat-flyout { position: fixed; top: 0; width: 260px; max-height: 90vh; background: var(--bg-float); border: 1px solid rgba(255,255,255,.08); border-radius: 0 12px 12px 0; box-shadow: 8px 8px 40px rgba(0,0,0,.5); z-index: 49; padding: 16px 0; overflow-y: auto; transform: translateZ(0); }
+.cat-flyout { position: fixed; top: 0; width: 260px; max-height: 90vh; background: var(--bg-float); border: 1px solid rgba(255,255,255,.08); border-radius: 0 12px 12px 0; box-shadow: 8px 8px 40px rgba(0,0,0,.5); z-index: 51; padding: 16px 0; overflow-y: auto; transform: translateZ(0); }
 .cat-flyout.open { display: block; }
 .cat-flyout-header { padding: 0 16px 12px; border-bottom: 1px solid rgba(255,255,255,.06); margin-bottom: 8px; }
 .cat-flyout-icon { font-size: 1.6rem; margin-bottom: 4px; }
@@ -34,7 +34,7 @@
 .cat-flyout-item:hover { background: rgba(255,255,255,.04); color: var(--text-primary); transform: translateZ(0); }
 .cat-flyout-item.cat-flyout-item-tout { background: rgba(74,158,232,.06); color: var(--sapphire); transform: translateZ(0); }
 .cat-flyout-item.cat-flyout-item-tout:hover { background: rgba(74,158,232,.14); transform: translateZ(0); }
-.cat-flyout-item-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-faint); flex-shrink: 0; }
+.cat-flyout-item-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-faint); flex-shrink: 0; transform: translateZ(0); }
 .cat-overlay { position: fixed; inset: 0; z-index: 48; }
 
 .gh-content { flex: 1; padding: 0 20px 16px 20px; overflow-x: auto; min-width: 0; }
@@ -103,5 +103,5 @@
 .cmd-actions { display: flex; gap: 8px; }
 .cmd-actions .btn { flex: 1; justify-content: center; }
 
-.btn-add-to-truck { display: flex; align-items: center; gap: 8px; padding: 9px 18px; background: #fff; border: none; border-radius: var(--r-md); color: var(--sapphire); font-size: .85rem; font-weight: 700; cursor: pointer; }
+.btn-add-to-truck { display: flex; align-items: center; gap: 8px; padding: 9px 18px; background: #fff; border: none; border-radius: var(--r-md); color: var(--sapphire); font-size: .85rem; font-weight: 400; cursor: pointer; }
 .btn-add-to-truck:hover { transform: scale(1.04); box-shadow: 0 4px 12px rgba(0,0,0,.2); }

@@ -21,7 +21,7 @@
 .snap-block { display: flex; flex-direction: column; gap: 2px; }
 .snap-lbl { font-size: .6rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); }
 .snap-val { font-size: .86rem; font-weight: 700; color: var(--text-primary); }
-.snap-divider { width: 1px; height: 32px; background: var(--text-faint); }
+.snap-divider { width: 1px; height: 32px; background: var(--text-faint); transform: translateZ(0); }
 
 .badge-new { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; background: rgba(45,212,160,.12); border: 1px solid rgba(45,212,160,.3); color: var(--emerald); font-size: .68rem; font-weight: 800; white-space: nowrap; flex-shrink: 0; width: 84px; justify-content: center; transform: translateZ(0); }
 .badge-mod { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; background: rgba(232,164,58,.12); border: 1px solid rgba(232,164,58,.3); color: var(--amber); font-size: .68rem; font-weight: 800; white-space: nowrap; flex-shrink: 0; width: 84px; justify-content: center; transform: translateZ(0); }
