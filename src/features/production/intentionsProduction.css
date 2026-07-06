@@ -7,7 +7,7 @@
 .date-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); font-size: .78rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 24px; transform: translateZ(0); }
 .date-badge span { color: var(--copper-light); }
 
-.info-box { background: var(--sapphire-bg); border: 1px solid rgba(74,158,232,.15); border-radius: var(--r-md); padding: 14px 18px; margin-bottom: 24px; font-size: .8rem; color: var(--text-secondary); line-height: 1.6; display: flex; gap: 10px; align-items: flex-start; }
+.info-box { background: var(--sapphire-bg); border: 1px solid rgba(74,158,232,.15); border-radius: var(--r-md); padding: 14px 18px; margin-bottom: 24px; font-size: .8rem; color: var(--text-secondary); line-height: 1.6; display: flex; gap: 10px; align-items: flex-start; transform: translateZ(0); }
 .info-box-ico { color: var(--sapphire); font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
 
 .lignes-grid-ip { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
@@ -29,14 +29,14 @@
 .toggle-lbl.on { color: var(--emerald); }
 .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
 .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
-.toggle-slider { position: absolute; inset: 0; background: var(--bg-active); border: 1px solid var(--text-faint); border-radius: 24px; cursor: pointer; transition: all .25s; }
+.toggle-slider { position: absolute; inset: 0; background: var(--bg-active); border: 1px solid var(--text-faint); border-radius: 24px; cursor: pointer; transition: all .25s; transform: translateZ(0); }
 .toggle-slider::before { content: ''; position: absolute; height: 16px; width: 16px; left: 3px; bottom: 3px; background: var(--text-muted); border-radius: 50%; transition: all .25s; }
 .toggle input:checked + .toggle-slider { background: rgba(45,212,160,.15); border-color: var(--emerald); transform: translateZ(0); }
 .toggle input:checked + .toggle-slider::before { transform: translateX(20px); background: var(--emerald); box-shadow: 0 0 8px rgba(45,212,160,.4); }
 
 .status-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: .68rem; font-weight: 700; letter-spacing: .04em; }
-.status-pill.on { background: var(--emerald-bg); color: var(--emerald); border: 1px solid rgba(45,212,160,.2); }
-.status-pill.off { background: var(--ruby-bg); color: var(--ruby); border: 1px solid rgba(224,85,85,.2); }
+.status-pill.on { background: var(--emerald-bg); color: var(--emerald); border: 1px solid rgba(45,212,160,.2); transform: translateZ(0); }
+.status-pill.off { background: var(--ruby-bg); color: var(--ruby); border: 1px solid rgba(224,85,85,.2); transform: translateZ(0); }
 .status-dot { width: 6px; height: 6px; border-radius: 50%; }
 .status-pill.on .status-dot { background: var(--emerald); box-shadow: 0 0 5px rgba(45,212,160,.5); }
 .status-pill.off .status-dot { background: var(--ruby); }

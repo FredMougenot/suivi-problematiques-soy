@@ -12,7 +12,7 @@
 .profil-dn { font-family: var(--font-heading); font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
 .profil-em { font-size: .72rem; color: var(--text-muted); word-break: break-all; }
 .profil-role { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: .66rem; font-weight: 700; margin-top: 10px; }
-.profil-role.admin { background: var(--copper-dim); color: var(--copper); border: 1px solid rgba(184,115,51,.2); }
+.profil-role.admin { background: var(--copper-dim); color: var(--copper); border: 1px solid rgba(184,115,51,.2); transform: translateZ(0); }
 .profil-role.user { background: rgba(74,158,232,.08); color: var(--sapphire); border: 1px solid rgba(74,158,232,.15); transform: translateZ(0); }
 .profil-meta { padding: 14px 20px; }
 .profil-meta-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--text-faint); font-size: .79rem; }
@@ -36,7 +36,7 @@
 .pwd-wrap-input .field-input { padding-right: 40px; }
 .pwd-eye { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); cursor: pointer; font-size: .82rem; user-select: none; }
 .pwd-eye:hover { color: var(--text-primary); }
-.pwd-bar-wrap { height: 3px; background: var(--bg-active); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+.pwd-bar-wrap { height: 3px; background: var(--bg-active); border-radius: 3px; overflow: hidden; margin-top: 6px; transform: translateZ(0); }
 .pwd-bar-fill { height: 100%; border-radius: 3px; transition: width .3s, background .3s; width: 0%; }
 .pwd-bar-label { font-size: .68rem; margin-top: 5px; font-weight: 500; }
 

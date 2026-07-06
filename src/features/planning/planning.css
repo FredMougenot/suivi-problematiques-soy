@@ -2,7 +2,7 @@
    PLANNING AUTO — styles spécifiques (portés depuis planning_auto2.html)
 ═══════════════════════════════════════════════════════════════ */
 
-.badge-react { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: #61dafb; background: rgba(97,218,251,.08); border: 1px solid rgba(97,218,251,.3); border-radius: 20px; padding: 4px 10px; margin-left: 10px; }
+.badge-react { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: #61dafb; background: rgba(97,218,251,.08); border: 1px solid rgba(97,218,251,.3); border-radius: 20px; padding: 4px 10px; margin-left: 10px; transform: translateZ(0); }
 
 /* Barre de mise à jour */
 .maj-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding: 12px 18px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); position: relative; transform: translateZ(0); }
@@ -11,8 +11,8 @@
 .maj-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--teal, #19e0c8); box-shadow: 0 0 8px var(--teal, #19e0c8); margin-right: 6px; animation: pulse 2s ease-in-out infinite; }
 @keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: .4 } }
 .statut-systeme { position: absolute; left: 50%; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px; border-radius: 20px; font-size: .72rem; font-weight: 700; }
-.statut-systeme.actif { background: var(--emerald-bg); color: var(--emerald); border: 1px solid rgba(45,212,160,.2); }
-.statut-systeme.arrete { background: var(--ruby-bg); color: var(--ruby); border: 1px solid rgba(224,85,85,.2); }
+.statut-systeme.actif { background: var(--emerald-bg); color: var(--emerald); border: 1px solid rgba(45,212,160,.2); transform: translateZ(0); }
+.statut-systeme.arrete { background: var(--ruby-bg); color: var(--ruby); border: 1px solid rgba(224,85,85,.2); transform: translateZ(0); }
 .statut-systeme-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 .statut-systeme.actif .statut-systeme-dot { background: var(--emerald); animation: pulse 2s ease-in-out infinite; }
 .statut-systeme.arrete .statut-systeme-dot { background: var(--ruby); }
@@ -20,7 +20,6 @@
 /* Section header (préfixé plan- pour éviter collision avec .sec-h du design system) */
 .plan-sec-h { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--text-faint); position: relative; }
 .plan-sec-h::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 42px; height: 2px; background: #19e0c8; box-shadow: 0 0 10px #19e0c8; }
-.sec-title { font-family: var(--font-body); font-size: 1.1rem; font-weight: 600; }
 .sec-sub { font-size: .73rem; color: var(--text-muted); margin-top: 3px; font-weight: 300; }
 
 /* Grid des lignes */
@@ -43,9 +42,9 @@
 .temp-pill.warm { color: #F4C77A; background: rgba(232,164,58,.16); border-color: rgba(232,164,58,.5); transform: translateZ(0); }
 .temp-pill.ice { color: #bdecff; background: rgba(94,200,240,.16); border-color: rgba(94,200,240,.5); transform: translateZ(0); }
 .statut-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: .68rem; font-weight: 700; }
-.statut-pill.en-cours { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(232,164,58,.2); }
-.statut-pill.camion-pret { background: var(--emerald-bg); color: var(--emerald); border: 1px solid rgba(45,212,160,.2); }
-.statut-pill.inactive { background: var(--ruby-bg); color: var(--ruby); border: 1px solid rgba(224,85,85,.2); }
+.statut-pill.en-cours { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(232,164,58,.2); transform: translateZ(0); }
+.statut-pill.camion-pret { background: var(--emerald-bg); color: var(--emerald); border: 1px solid rgba(45,212,160,.2); transform: translateZ(0); }
+.statut-pill.inactive { background: var(--ruby-bg); color: var(--ruby); border: 1px solid rgba(224,85,85,.2); transform: translateZ(0); }
 .statut-dot { width: 6px; height: 6px; border-radius: 50%; }
 .statut-pill.en-cours .statut-dot { background: var(--amber); }
 .statut-pill.camion-pret .statut-dot { background: var(--emerald); }
@@ -78,7 +77,7 @@
 .camion-badge.pret { color: var(--emerald); background: rgba(3,14,12,.66); border: 1px solid rgba(45,212,160,.5); transform: translateZ(0); }
 .camion-badge.en-cours { color: var(--amber); background: rgba(14,9,2,.66); border: 1px solid rgba(232,164,58,.5); transform: translateZ(0); }
 .camion-badge.parti { color: var(--text-muted); background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.16); transform: translateZ(0); }
-.depart-hint { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); z-index: 4; font-family: var(--font-body); font-size: .56rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; white-space: nowrap; background: rgba(3,12,12,.88); border: 1px solid rgba(25,224,200,.45); color: #3ff0dd; opacity: 0; transition: opacity .18s; pointer-events: none; }
+.depart-hint { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); z-index: 4; font-family: var(--font-body); font-size: .56rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; white-space: nowrap; background: rgba(3,12,12,.88); border: 1px solid rgba(25,224,200,.45); color: #3ff0dd; opacity: 0; transition: opacity .18s; pointer-events: none; transform: translateZ(0); }
 .camion-row:hover .depart-hint { opacity: 1; }
 .camion-row.is-parti { opacity: .62; background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0) 46%, rgba(0,0,0,.34)), repeating-linear-gradient(45deg, rgba(255,255,255,.055) 0 7px, transparent 7px 14px), #0a0d12; transform: translateZ(0); }
 .camion-row.is-parti .camion-num, .camion-row.is-parti .camion-heure { color: var(--text-muted); }
@@ -100,10 +99,10 @@
 .slots-tbl tbody tr.slot-global-inactif { border-left: 3px solid var(--text-faint); }
 .slot-label { font-family: var(--font-heading); font-size: .92rem; font-weight: 600; }
 .slot-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 20px; font-size: .72rem; font-weight: 700; }
-.slot-badge.confirme { background: var(--emerald-bg); color: var(--emerald); border: 1px solid rgba(45,212,160,.2); }
-.slot-badge.annule { background: var(--ruby-bg); color: var(--ruby); border: 1px solid rgba(224,85,85,.2); }
+.slot-badge.confirme { background: var(--emerald-bg); color: var(--emerald); border: 1px solid rgba(45,212,160,.2); transform: translateZ(0); }
+.slot-badge.annule { background: var(--ruby-bg); color: var(--ruby); border: 1px solid rgba(224,85,85,.2); transform: translateZ(0); }
 .slot-badge.inactive { background: var(--bg-float); color: var(--text-muted); border: 1px solid var(--text-faint); transform: translateZ(0); }
-.slot-badge.cadence_inconnue { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(232,164,58,.2); }
+.slot-badge.cadence_inconnue { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(232,164,58,.2); transform: translateZ(0); }
 .slot-badge-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 .slot-badge.confirme .slot-badge-dot { background: var(--emerald); }
 .slot-badge.annule .slot-badge-dot { background: var(--ruby); }
@@ -162,7 +161,7 @@ tr.type-chaud { background: linear-gradient(90deg, rgba(26,8,0,.95) 0%, rgba(80,
 .qs-type { font-size: .62rem; font-weight: 600; color: var(--text-muted); }
 .quai-side.temp.is-active .qs-type { color: #F4C77A; }
 .quai-side.frais.is-active .qs-type { color: #bdecff; }
-.qs-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint); flex: none; }
+.qs-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint); flex: none; transform: translateZ(0); }
 .quai-side.temp.is-active .qs-dot { background: var(--amber); }
 .quai-side.frais.is-active .qs-dot { background: #5ec8f0; }
 
