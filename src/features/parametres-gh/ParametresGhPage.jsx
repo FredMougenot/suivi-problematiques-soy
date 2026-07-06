@@ -116,7 +116,7 @@ export default function ParametresGhPage() {
                 <>
                   <div className="page-header-row">
                     <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Catégories d'inventaire</h2>
-                    <button className="btn btn-primary" onClick={createCategory}>⊕ Nouvelle catégorie</button>
+                    <button className="btn btn-primary" onClick={createCategory}>Nouvelle catégorie</button>
                   </div>
                   <CategoriesList categories={localCategories} onEdit={setActiveCatId} />
                 </>
@@ -141,11 +141,11 @@ export default function ParametresGhPage() {
                   <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px 0' }}>Poids unitaires</h2>
                   <p style={{ fontSize: '.82rem', color: 'var(--text-muted)', margin: 0 }}>Définissez le poids unitaire (kg) pour chaque code produit</p>
                 </div>
-                <button className="btn btn-primary" onClick={addPoidsRow}>⊕ Ajouter un produit</button>
+                <button className="btn btn-primary" onClick={addPoidsRow}>Ajouter un produit</button>
               </div>
               <PoidsTable poidsList={localPoids} onUpdate={updatePoidsRow} onDelete={deletePoidsRow} />
               <div className="toolbar" style={{ marginTop: 20 }}>
-                <button className="btn btn-primary" onClick={saveAllPoids} disabled={saveAllPoidsMutation.isPending}>{saveAllPoidsMutation.isPending ? 'Enregistrement…' : '💾 Sauvegarder'}</button>
+                <button className="btn btn-primary" onClick={saveAllPoids} disabled={saveAllPoidsMutation.isPending}>{saveAllPoidsMutation.isPending ? 'Enregistrement…' : 'Sauvegarder'}</button>
               </div>
             </div>
           )}

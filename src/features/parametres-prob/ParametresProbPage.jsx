@@ -77,8 +77,8 @@ export default function ParametresProbPage() {
       <div className="page-sub">Définissez la liste des responsables disponibles dans le formulaire de création de problématiques.</div>
 
       <div className="toolbar">
-        <button className="btn btn-primary" onClick={addRow}>⊕ Ajouter</button>
-        <button className="btn btn-primary" onClick={saveAll} disabled={saving}>{saving ? 'Enregistrement…' : '💾 Enregistrer'}</button>
+        <button className="btn btn-primary" onClick={addRow}>Ajouter</button>
+        <button className="btn btn-primary" onClick={saveAll} disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button>
       </div>
 
       <div className="table-shell" style={{ marginBottom: 40 }}>
@@ -101,7 +101,7 @@ export default function ParametresProbPage() {
         <div className="danger-eyebrow">Zone dangereuse</div>
         <div className="danger-title">Supprimer toutes les problématiques</div>
         <div className="danger-sub">Supprime définitivement tous les enregistrements de la table des problématiques. Cette action est irréversible.</div>
-        <button className="btn btn-danger" onClick={confirmDeleteAll}>🗑 Tout supprimer</button>
+        <button className="btn btn-danger" onClick={confirmDeleteAll}>Tout supprimer</button>
       </div>
     </div>
   );

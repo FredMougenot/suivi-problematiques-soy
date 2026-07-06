@@ -81,7 +81,7 @@ export default function CategoryEditor({ cat, allCategories, onChange, onSave, o
         </div>
       </div>
 
-      <button className="btn btn-secondary btn-sm" onClick={addRule}>⊕ Ajouter une règle</button>
+      <button className="btn btn-secondary btn-sm" onClick={addRule}>Ajouter une règle</button>
 
       <div className="preview-section">
         <div className="preview-title">👁 Aperçu de la règle</div>
@@ -99,8 +99,8 @@ export default function CategoryEditor({ cat, allCategories, onChange, onSave, o
 
       <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
         <button className="btn btn-secondary" onClick={onBack}>← Retour</button>
-        <button className="btn btn-primary" onClick={onSave} style={{ marginLeft: 'auto' }} disabled={saving}>{saving ? 'Enregistrement…' : '💾 Sauvegarder'}</button>
-        <button className="btn btn-danger" onClick={onDelete}>🗑 Supprimer</button>
+        <button className="btn btn-primary" onClick={onSave} style={{ marginLeft: 'auto' }} disabled={saving}>{saving ? 'Enregistrement…' : 'Sauvegarder'}</button>
+        <button className="btn btn-danger" onClick={onDelete}>Supprimer</button>
       </div>
     </div>
   );
