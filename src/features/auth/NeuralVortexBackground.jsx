@@ -349,5 +349,6 @@ export const VolumetricStudio = ({
       </div>
     </section>
   );
-  export default VolumetricStudio;
 };
+
+export default VolumetricStudio;
