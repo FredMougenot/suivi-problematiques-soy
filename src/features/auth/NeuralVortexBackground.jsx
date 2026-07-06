@@ -144,7 +144,7 @@ const SpotlightFixture = ({ positionX, lightsOn }) => (
 );
 
 export function Room({
-  backWall = { tl: [22, 10], tr: [78, 10], br: [78, 70], bl: [22, 70] },
+  
   lightsOn = true,
   intensity = 1,
   lightColor = "230,240,255",
@@ -153,7 +153,7 @@ export function Room({
   isFlickering = false,
   style = {},
 }) {
-  const { tl, tr, br, bl } = backWall;
+
 
   const poly = useMemo(
     () => (pts) => "polygon(" + pts.map(([x, y]) => x + "% " + y + "%").join(", ") + ")",
@@ -182,11 +182,7 @@ export function Room({
         ...style
       }}
     >
-      <div style={{ position: "absolute", inset: 0, clipPath: poly([tl, tr, br, bl]), background: "linear-gradient(to bottom, #141416 0%, #08080a 100%)" }} />
-      <div style={{ position: "absolute", inset: 0, clipPath: poly([[0, 0], [100, 0], tr, tl]), background: "linear-gradient(to bottom, #000000 0%, rgba(0,0,0,0.85) 100%)" }} />
-      <div style={{ position: "absolute", inset: 0, clipPath: poly([[0, 0], tl, bl, [0, 100]]), background: "linear-gradient(to right, #08080a 0%, #121214 70%, #1a1a1c 100%)" }} />
-      <div style={{ position: "absolute", inset: 0, clipPath: poly([[100, 0], tr, br, [100, 100]]), background: "linear-gradient(to left, #08080a 0%, #121214 70%, #1a1a1c 100%)" }} />
-      <div style={{ position: "absolute", inset: 0, clipPath: poly([[0, 100], [100, 100], br, bl]), background: "linear-gradient(to top, #0f0f11 0%, #060608 100%)" }} />
+
 
       <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 10 }}>
         <defs>
@@ -220,10 +216,7 @@ export function Room({
           transition: isFlickering ? "none" : "opacity 700ms " + EASE,
         }}
       >
-        <div style={{ position: "absolute", inset: 0, clipPath: poly([tl, tr, br, bl]), background: bgAmbiantBack }} />
-        <div style={{ position: "absolute", inset: 0, clipPath: poly([[0, 0], tl, bl, [0, 100]]), background: "radial-gradient(ellipse 40% 50% at 15% 75%, rgba(" + lightColor + ",0.08) 0%, transparent 60%)" }} />
-        <div style={{ position: "absolute", inset: 0, clipPath: poly([[100, 0], tr, br, [100, 100]]), background: "radial-gradient(ellipse 40% 50% at 85% 75%, rgba(" + lightColor + ",0.08) 0%, transparent 60%)" }} />
-        <div style={{ position: "absolute", inset: 0, clipPath: poly([[0, 100], [100, 100], br, bl]), background: bgAmbiantFloor }} />
+
       </div>
 
       <div style={{ position: "absolute", inset: 0, pointerEvents: "none", mixBlendMode: "screen", zIndex: 20 }}>
