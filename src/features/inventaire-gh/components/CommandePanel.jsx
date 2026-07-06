@@ -44,10 +44,10 @@ export default function CommandePanel({ camion, onRemoveItem, onAdjustQty, onCle
         </div>
         <div className="cmd-actions">
           {hasNew && (
-            <button className="btn btn-primary" style={{ background: 'var(--emerald)' }} onClick={onMarkSent}>✓ Marquer envoyé</button>
+            <button className="btn btn-primary" style={{ background: 'var(--emerald)' }} onClick={onMarkSent}>Marquer envoyé</button>
           )}
           <button className="btn btn-primary" onClick={onExportPdf} disabled={camion.items.length === 0 || exporting}>
-            📄 {exporting ? 'Export…' : 'Exporter PDF'}
+            {exporting ? 'Export…' : 'Exporter PDF'}
           </button>
         </div>
       </div>
