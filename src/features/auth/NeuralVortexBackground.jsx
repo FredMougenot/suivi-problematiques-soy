@@ -143,6 +143,131 @@ const SpotlightFixture = ({ positionX, lightsOn }) => (
   </div>
 );
 
+export function Room({
+  
+  lightsOn = true,
+  intensity = 1,
+  lightColor = "230,240,255",
+  spots = [35, 50, 65],
+  vignette = 0.55,
+  isFlickering = false,
+  style = {},
+}) {
+
+
+  const poly = useMemo(
+    () => (pts) => "polygon(" + pts.map(([x, y]) => x + "% " + y + "%").join(", ") + ")",
+    []
+  );
+
+  const bgAmbiantBack = useMemo(
+    () => spots.map(x => "radial-gradient(ellipse 25% 40% at " + x + "% 68%, rgba(" + lightColor + ",0.15) 0%, transparent 70%)").join(", "),
+    [spots, lightColor]
+  );
+
+  const bgAmbiantFloor = useMemo(
+    () => spots.map(x => "radial-gradient(ellipse 35% 30% at " + x + "% 80%, rgba(" + lightColor + ",0.06) 0%, transparent 60%)").join(", "),
+    [spots, lightColor]
+  );
+
+  return (
+    <div 
+      aria-hidden 
+      style={{
+        position: "absolute",
+        inset: 0,
+        overflow: "hidden",
+        backgroundColor: "black",
+        pointerEvents: "none",
+        ...style
+      }}
+    >
+
+
+      <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 10 }}>
+        <defs>
+          <linearGradient id="baseGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="white" stopOpacity="0" />
+            <stop offset="20%" stopColor="white" stopOpacity="0.5" />
+            <stop offset="80%" stopColor="white" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="white" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="vGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="white" stopOpacity="0" />
+            <stop offset="50%" stopColor="white" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="white" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <line x1={bl[0] + "%"} y1={bl[1] + "%"} x2={br[0] + "%"} y2={br[1] + "%"} stroke="rgba(255,255,255,0.2)" strokeWidth="5" style={{ filter: "blur(3px)" }} />
+        <line x1={bl[0] + "%"} y1={bl[1] + "%"} x2={br[0] + "%"} y2={br[1] + "%"} stroke="url(#baseGrad)" strokeWidth="1" />
+        <line x1={tl[0] + "%"} y1={tl[1] + "%"} x2={bl[0] + "%"} y2={bl[1] + "%"} stroke="url(#vGrad)" strokeWidth="1" />
+        <line x1={tr[0] + "%"} y1={tr[1] + "%"} x2={br[0] + "%"} y2={br[1] + "%"} stroke="url(#vGrad)" strokeWidth="1" />
+      </svg>
+
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          mixBlendMode: "screen",
+          willChange: "opacity",
+          zIndex: 15,
+          opacity: lightsOn ? intensity : 0,
+          transition: isFlickering ? "none" : "opacity 700ms " + EASE,
+        }}
+      >
+
+      </div>
+
+      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", mixBlendMode: "screen", zIndex: 20 }}>
+        {spots.map((pos, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: lightsOn ? intensity : 0 }}
+            transition={isFlickering ? { duration: 0 } : { delay: i * 0.1, duration: 0.8, ease: "easeInOut" }}
+            style={{ position: "absolute", display: "flex", width: "200px", height: "80vh", transform: "translateX(-50%)", justifyContent: "center", pointerEvents: "none", willChange: "opacity", left: pos + "%", top: "calc(3% + 80px)" }}
+          >
+            <Canvas camera={{ position: [0, 0, 10], fov: 45 }} gl={{ alpha: true }}>
+              <ambientLight intensity={0.5} />
+              <SpotLight distance={12} angle={0.25} attenuation={6} anglePower={5} color={"rgb(" + lightColor + ")"} position={[0, 4.1, 0]} volumetric opacity={1} radiusTop={0.1} radiusBottom={4} />
+            </Canvas>
+          </motion.div>
+        ))}
+      </div>
+
+      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 31 }}>
+        {spots.map((pos, i) => (
+          <SpotlightFixture key={i} positionX={pos} lightsOn={lightsOn} />
+        ))}
+      </div>
+
+      <div style={{ position: "absolute", pointerEvents: "none", width: "100%", height: "80px", background: "linear-gradient(to bottom, rgba(0,0,0,0.6), transparent)", filter: "blur(24px)", zIndex: 25, top: "4%", left: 0 }} />
+      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 30, clipPath: poly([[0, 0], [100, 0], tr, tl]) }}>
+        <div
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: "26px",
+            top: "3%",
+            left: 0,
+            boxShadow: "inset 0 1px 1px rgba(255,255,255,0.15), inset 0 -1px 2px rgba(0,0,0,0.9), 0 10px 20px -5px rgba(0,0,0,0.8)",
+            background: "linear-gradient(to bottom, #111 0%, #3a3a3a 30%, #555 50%, #2a2a2a 80%, #000 100%)",
+          }}
+        >
+          <div style={{ position: "absolute", inset: 0, opacity: 0.35, mixBlendMode: "overlay", pointerEvents: "none", backgroundImage: METAL_NOISE }} />
+        </div>
+      </div>
+
+      <div
+        style={{ position: "absolute", inset: 0, zIndex: 20, pointerEvents: "none", background: "radial-gradient(ellipse 90% 80% at 50% 45%, transparent 55%, rgba(0,0,0," + vignette + ") 100%)" }}
+      />
+      <div
+        style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 25, opacity: 0.04, mixBlendMode: "screen", backgroundImage: GRAIN_NOISE, backgroundSize: "256px 256px" }}
+      />
+    </div>
+  );
+}
 
 export const VolumetricStudio = ({
   style,
@@ -205,6 +330,13 @@ export const VolumetricStudio = ({
         ...style
       }}
     >
+      <Room
+        lightsOn={lightsOn}
+        intensity={1}
+        lightColor="230,240,255"
+        spots={[35, 50, 65]}
+        isFlickering={isFlickering}
+      />
       <div style={{ position: "relative", zIndex: 10, width: "100%", height: "100%", pointerEvents: "none" }}>
         {children}
       </div>
