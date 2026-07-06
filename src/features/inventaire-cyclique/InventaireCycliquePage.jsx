@@ -96,7 +96,7 @@ export default function InventaireCycliquePage() {
           <div className="page-title">📋 Inventaire Cyclique</div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-ghost" onClick={handleExportPdf}>📄 Export PDF</button>
+          <button className="btn btn-ghost" onClick={handleExportPdf}>Export PDF</button>
         </div>
       </div>
 
@@ -127,7 +127,7 @@ export default function InventaireCycliquePage() {
         <div className="section-divider-line"></div>
       </div>
       <div style={{ marginBottom: 8 }}>
-        <button className="btn btn-primary" onClick={handleAddItem}>+ Ajouter un item</button>
+        <button className="btn btn-primary" onClick={handleAddItem}>Ajouter un item</button>
       </div>
       {stockQ.isLoading ? (
         <div className="spinner-box"><div className="spinner-ring"></div></div>
@@ -144,10 +144,10 @@ export default function InventaireCycliquePage() {
 
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, padding: '12px 0 4px', flexWrap: 'wrap' }}>
         <button className="btn btn-primary" onClick={handleSaveAll} disabled={saveAllMutation.isPending}>
-          💾 {saveAllMutation.isPending ? 'Sauvegarde…' : 'Sauvegarder tout'}
+          {saveAllMutation.isPending ? 'Sauvegarde…' : 'Sauvegarder tout'}
         </button>
         <button className="btn btn-danger" onClick={handleSubmitNc}>
-          ⚠ Soumettre les non-conformités
+          Soumettre les non-conformités
         </button>
       </div>
     </div>

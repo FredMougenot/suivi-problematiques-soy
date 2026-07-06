@@ -39,9 +39,9 @@ export default function ParamSection({ category, rows, onAdd, onDelete, onSave, 
         </div>
         <div className="section-actions">
           <button className="btn btn-primary btn-sm" onClick={() => onSave(category.key, localRows)} disabled={saving}>
-            💾 {saving ? 'Enregistrement…' : 'Enregistrer'}
+            {saving ? 'Enregistrement…' : 'Enregistrer'}
           </button>
-          <button className="btn btn-secondary btn-sm" onClick={() => onAdd(category.key)}>+ Ajouter</button>
+          <button className="btn btn-secondary btn-sm" onClick={() => onAdd(category.key)}>Ajouter</button>
         </div>
       </div>
 
