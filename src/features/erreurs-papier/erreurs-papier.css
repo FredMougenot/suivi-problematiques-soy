@@ -9,14 +9,14 @@
   --ep-text-primary: #F5F7FA; --ep-text-secondary: #A0A8B8; --ep-text-muted: #6B7280; --ep-text-faint: #3D4451;
   --ep-border: #252934; --ep-border-bright: #3A4050;
   --ep-success: #10B981; --ep-warning: #F59E0B; --ep-error: #EF4444;
-  font-family: 'Outfit', -apple-system, sans-serif;
+  font-family: var(--font-body);
   background: var(--ep-void); color: var(--ep-text-primary); min-height: 100%; border-radius: 12px; overflow: hidden;
 }
 .ep-wrap * { box-sizing: border-box; }
 
 .ep-topbar { position: sticky; top: 0; z-index: 100; height: 64px; background: rgba(10,11,13,.95); backdrop-filter: blur(20px); border-bottom: 2px solid var(--ep-border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; transform: translateZ(0); }
 .ep-tb-brand { display: flex; align-items: center; gap: 14px; }
-.ep-tb-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--ep-gold-dark), var(--ep-gold-light)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: #0A0B0D; transform: translateZ(0); }
+.ep-tb-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--ep-gold-dark), var(--ep-gold-light)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-size: 1.2rem; font-weight: 700; color: #0A0B0D; transform: translateZ(0); }
 .ep-tb-title { font-size: 1.15rem; font-weight: 700; color: var(--ep-text-primary); }
 .ep-tb-subtitle { font-size: .68rem; font-weight: 500; color: var(--ep-text-muted); text-transform: uppercase; letter-spacing: .1em; margin-top: 2px; }
 .ep-tb-right { display: flex; align-items: center; gap: 10px; }
@@ -79,7 +79,7 @@
 /* Error list */
 .ep-wrap .error-list { display: flex; flex-direction: column; gap: 10px; }
 .ep-wrap .error-item { display: flex; align-items: center; gap: 18px; padding: 14px 20px; background: var(--ep-elevated-glass); backdrop-filter: blur(12px); transform: translateZ(0); border-left: 3px solid var(--item-color); border-radius: 8px; }
-.ep-wrap .error-time { font-family: 'Playfair Display', serif; font-size: .95rem; font-weight: 700; color: var(--ep-text-primary); min-width: 55px; }
+.ep-wrap .error-time { font-family: var(--font-heading); font-size: .95rem; font-weight: 700; color: var(--ep-text-primary); min-width: 55px; }
 .ep-wrap .error-quart { padding: 3px 10px; background: var(--item-bg); border: 1px solid var(--item-color); border-radius: 20px; font-size: .68rem; font-weight: 700; color: var(--item-color); text-transform: uppercase; }
 .ep-wrap .error-truck { font-size: .82rem; color: var(--ep-text-secondary); flex: 1; }
 .ep-wrap .error-none { padding: 40px; text-align: center; color: var(--ep-text-muted); }
