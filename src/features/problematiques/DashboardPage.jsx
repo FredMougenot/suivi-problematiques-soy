@@ -8,7 +8,7 @@ import DateNav from './components/DateNav';
 import CritereModal from './components/CritereModal';
 import EditProblemeModal from './components/EditProblemeModal';
 import { usePlanningStore } from '../../store/usePlanningStore';
-import GlowingShadow from '../shared/GlowingShadow';
+import { GlowingShadow } from '../shared/GlowingShadow';
 import './problematiques.css';
 
 const CLOTURES = ['Clôturé', 'Annulé'];
@@ -78,31 +78,31 @@ export default function DashboardPage() {
       <DateNav date={dashDate} onChange={setDashDate} />
 
       <div className="kpi-row">
-        <GlowingShadow accent="var(--copper-light)" onClick={() => goToRegistre('')}>
-          <div className="kpi-top"><div className="kpi-lbl">Total actif</div></div>
-          <div className="kpi-val" style={{ color: 'var(--accent)' }}>{kpis.total}</div>
-          <div className="kpi-sub">Voir le registre →</div>
-        </GlowingShadow>
-        <GlowingShadow accent="var(--ruby)" onClick={() => goToRegistre('À traiter')}>
-          <div className="kpi-top"><div className="kpi-lbl">À traiter</div></div>
-          <div className="kpi-val" style={{ color: 'var(--accent)' }}>{kpis.ouvert}</div>
-          <div className="kpi-sub">Voir le registre →</div>
-        </GlowingShadow>
-        <GlowingShadow accent="var(--sapphire)" onClick={() => goToRegistre('En cours')}>
-          <div className="kpi-top"><div className="kpi-lbl">En cours</div></div>
-          <div className="kpi-val" style={{ color: 'var(--accent)' }}>{kpis.cours}</div>
-          <div className="kpi-sub">Voir le registre →</div>
-        </GlowingShadow>
-        <GlowingShadow accent="var(--emerald)" onClick={() => goToRegistre('Résolu')}>
-          <div className="kpi-top"><div className="kpi-lbl">Résolues</div></div>
-          <div className="kpi-val" style={{ color: 'var(--accent)' }}>{kpis.resolu}</div>
-          <div className="kpi-sub">Voir le registre →</div>
-        </GlowingShadow>
-        <GlowingShadow accent="var(--amber)" onClick={goToIncompletes}>
-          <div className="kpi-top"><div className="kpi-lbl">Incomplètes</div></div>
-          <div className="kpi-val" style={{ color: 'var(--accent)' }}>{kpis.incomplet}</div>
-          <div className="kpi-sub">Voir le registre →</div>
-        </GlowingShadow>
+        <div onClick={() => goToRegistre('')} style={{ cursor: 'pointer' }}>
+          <GlowingShadow>
+            <div><div className="kpi-top"><div className="kpi-lbl">Total actif</div></div><div className="kpi-val">{kpis.total}</div><div className="kpi-sub">Voir le registre →</div></div>
+          </GlowingShadow>
+        </div>
+        <div onClick={() => goToRegistre('À traiter')} style={{ cursor: 'pointer' }}>
+          <GlowingShadow>
+            <div><div className="kpi-top"><div className="kpi-lbl">À traiter</div></div><div className="kpi-val">{kpis.ouvert}</div><div className="kpi-sub">Voir le registre →</div></div>
+          </GlowingShadow>
+        </div>
+        <div onClick={() => goToRegistre('En cours')} style={{ cursor: 'pointer' }}>
+          <GlowingShadow>
+            <div><div className="kpi-top"><div className="kpi-lbl">En cours</div></div><div className="kpi-val">{kpis.cours}</div><div className="kpi-sub">Voir le registre →</div></div>
+          </GlowingShadow>
+        </div>
+        <div onClick={() => goToRegistre('Résolu')} style={{ cursor: 'pointer' }}>
+          <GlowingShadow>
+            <div><div className="kpi-top"><div className="kpi-lbl">Résolues</div></div><div className="kpi-val">{kpis.resolu}</div><div className="kpi-sub">Voir le registre →</div></div>
+          </GlowingShadow>
+        </div>
+        <div onClick={goToIncompletes} style={{ cursor: 'pointer' }}>
+          <GlowingShadow>
+            <div><div className="kpi-top"><div className="kpi-lbl">Incomplètes</div></div><div className="kpi-val">{kpis.incomplet}</div><div className="kpi-sub">Voir le registre →</div></div>
+          </GlowingShadow>
+        </div>
       </div>
 
       <div className="stat-row">
