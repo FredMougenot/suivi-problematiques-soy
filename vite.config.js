@@ -7,6 +7,12 @@ import react from '@vitejs/plugin-react'
 // username.github.io racine), donc le base path est nécessaire.
 // À corriger si l'hébergement réel diffère.
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react({
+      babel: {
+        plugins: ['styled-jsx/babel'],
+      },
+    }),
+  ],
   base: '/suivi-problematiques-soy/',
 })
