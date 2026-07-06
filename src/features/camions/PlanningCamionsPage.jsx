@@ -185,7 +185,7 @@ export default function PlanningCamionsPage() {
       {isToday && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0 0' }}>
           <span style={{ fontSize: '.62rem', fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' }}>⏱ Test</span>
-          <input type="range" min={0} max={840} defaultValue={0} style={{ flex: 1, accentColor: 'var(--amber)' }}
+          <input type="range" min={0} max={840} defaultValue={0} style={{ flex: 1, accentColor: 'var(--amber)', transform: 'translateZ(0)' }}
             onInput={(e) => setVirtualMin(6 * 60 + parseInt(e.target.value))} />
           <button className="btn btn-ghost" onClick={() => setVirtualMin(null)}>Maintenant</button>
         </div>

@@ -57,8 +57,7 @@ export default function TimelineLine({ isToday, rows, all, rowRefs, outerRef, vi
       position: 'absolute', left: 0, right: 0, top: pos.top, height: 2,
       background: 'linear-gradient(90deg, transparent 0%, var(--amber) 8%, var(--amber) 92%, transparent 100%)',
       boxShadow: '0 0 8px rgba(232,164,58,.6), 0 0 20px rgba(232,164,58,.25)',
-      pointerEvents: 'none', zIndex: 20, transition: 'top .6s ease',
-    }}>
+      pointerEvents: 'none', zIndex: 20, transition: 'top .6s ease', transform: 'translateZ(0)',}}>
       <div style={{
         position: 'absolute', left: 16, top: -10, background: 'var(--amber)', color: '#0F1118',
         fontSize: '.62rem', fontWeight: 800, padding: '1px 7px', borderRadius: 3, whiteSpace: 'nowrap',

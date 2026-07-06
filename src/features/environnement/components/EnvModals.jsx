@@ -74,7 +74,7 @@ export function NcConfirmModal({ open, ncList, onClose, onConfirm, submitting })
           <p style={{ fontSize: '.88rem', color: 'var(--text-secondary)', margin: '0 0 12px', lineHeight: 1.6 }}>
             {n} ligne{n > 1 ? 's' : ''} non-conforme{n > 1 ? 's' : ''} détectée{n > 1 ? 's' : ''}. Une problématique sera créée dans le registre pour chacune.
           </p>
-          <div style={{ background: 'var(--bg-float)', border: '1px solid var(--text-faint)', borderRadius: 'var(--r-md)', padding: '10px 14px', maxHeight: 200, overflowY: 'auto', fontSize: '.83rem', lineHeight: 1.9 }}>
+          <div style={{ background: 'var(--bg-float)', border: '1px solid var(--text-faint)', borderRadius: 'var(--r-md)', padding: '10px 14px', maxHeight: 200, overflowY: 'auto', fontSize: '.83rem', lineHeight: 1.9, transform: 'translateZ(0)'}}>
             {ncList.map((item) => <div key={item.key}><span style={{ color: 'var(--ruby)', marginRight: 8 }}>✕</span>{item.label}</div>)}
           </div>
         </div>

@@ -60,7 +60,7 @@ export default function EnvCharts({ series, weekLimit, monthLimit, onChangeWeekL
           <div className="chart-box-title">Non-conformes — Semaine en cours</div>
           <MiniChart canvasId="env-chart-week" labels={series.week.labels} data={series.week.data} limit={weekLimit} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
-            <div style={{ width: 3, height: 14, background: 'rgba(139,92,246,.8)', borderRadius: 2, flexShrink: 0 }}></div>
+            <div style={{ width: 3, height: 14, background: 'rgba(139,92,246,.8)', borderRadius: 2, flexShrink: 0, transform: 'translateZ(0)'}}></div>
             <label style={{ fontSize: '.68rem', color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>Limite acceptable</label>
             <input type="number" min="0" placeholder="—" value={weekLimit ?? ''} className="env-limit-input" onChange={(e) => onChangeWeekLimit(e.target.value)} />
           </div>
@@ -69,7 +69,7 @@ export default function EnvCharts({ series, weekLimit, monthLimit, onChangeWeekL
           <div className="chart-box-title">Non-conformes — Mois en cours</div>
           <MiniChart canvasId="env-chart-month" labels={series.month.labels} data={series.month.data} limit={monthLimit} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
-            <div style={{ width: 3, height: 14, background: 'rgba(139,92,246,.8)', borderRadius: 2, flexShrink: 0 }}></div>
+            <div style={{ width: 3, height: 14, background: 'rgba(139,92,246,.8)', borderRadius: 2, flexShrink: 0, transform: 'translateZ(0)'}}></div>
             <label style={{ fontSize: '.68rem', color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>Limite acceptable</label>
             <input type="number" min="0" placeholder="—" value={monthLimit ?? ''} className="env-limit-input" onChange={(e) => onChangeMonthLimit(e.target.value)} />
           </div>
