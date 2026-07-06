@@ -47,7 +47,7 @@ export default function LoginPage() {
 
   return (
     <div className="lg-page">
-      <NeuralVortexBackground />
+      <VolumetricStudio />
       <div className="lg-scrim" />
 
       <div className="lg-card">
