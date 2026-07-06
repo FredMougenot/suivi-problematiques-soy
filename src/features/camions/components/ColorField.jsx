@@ -20,8 +20,7 @@ export default function ColorField({ value, onChange }) {
         style={{
           width: 16, height: 16, borderRadius: '50%', flexShrink: 0,
           background: isValid ? value : 'var(--bg-float)',
-          border: isValid ? 'none' : '1px solid var(--text-faint)',
-        }}
+          border: isValid ? 'none' : '1px solid var(--text-faint)', transform: 'translateZ(0)',}}
       />
     </div>
   );

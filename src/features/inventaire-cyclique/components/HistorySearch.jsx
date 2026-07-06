@@ -12,7 +12,7 @@ export default function HistorySearch({ historyData }) {
         <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '.9rem', pointerEvents: 'none' }}>⌕</span>
         <input
           type="text" placeholder="Rechercher un item…" value={query} onChange={(e) => setQuery(e.target.value)}
-          style={{ width: '100%', padding: '9px 12px 9px 34px', background: 'var(--bg-raised)', border: '1px solid var(--text-faint)', borderRadius: 'var(--r-md)', fontSize: '.84rem', color: 'var(--text-primary)', outline: 'none' }}
+          style={{ width: '100%', padding: '9px 12px 9px 34px', background: 'var(--bg-raised)', border: '1px solid var(--text-faint)', borderRadius: 'var(--r-md)', fontSize: '.84rem', color: 'var(--text-primary)', outline: 'none', transform: 'translateZ(0)'}}
         />
       </div>
 

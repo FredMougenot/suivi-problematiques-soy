@@ -189,7 +189,7 @@ export default function CamionsTable({ dateStr, rows, params, context, role, onF
                 </td>
 
                 <td style={{ textAlign: 'center', fontSize: '.72rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                  {r.id ? <span title={String(r.id)} style={{ background: 'var(--bg-float)', border: '1px solid var(--text-faint)', borderRadius: 4, padding: '2px 6px' }}>{String(r.id).slice(0, 8)}…</span> : '—'}
+                  {r.id ? <span title={String(r.id)} style={{ background: 'var(--bg-float)', border: '1px solid var(--text-faint)', borderRadius: 4, padding: '2px 6px', transform: 'translateZ(0)'}}>{String(r.id).slice(0, 8)}…</span> : '—'}
                 </td>
               </tr>
             );

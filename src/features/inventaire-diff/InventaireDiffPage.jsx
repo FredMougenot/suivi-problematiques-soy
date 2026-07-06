@@ -86,7 +86,7 @@ export default function InventaireDiffPage() {
         <div className="kpi-card kpi-new"><div className="kpi-lbl">🟢 Nouveaux</div><div className="kpi-val">{hasSnapshots ? kpis.newCount : '—'}</div><div className="kpi-sub">items absents avant</div></div>
         <div className="kpi-card kpi-mod"><div className="kpi-lbl">🟡 Modifiés</div><div className="kpi-val">{hasSnapshots ? kpis.modCount : '—'}</div><div className="kpi-sub">quantité ou poids changé</div></div>
         <div className="kpi-card" style={{ position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg,transparent,var(--ruby),transparent)' }}></div>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg,transparent,var(--ruby),transparent)', transform: 'translateZ(0)'}}></div>
           <div className="kpi-lbl" style={{ color: 'var(--ruby)' }}>🔴 Disparus</div><div className="kpi-val">{hasSnapshots ? kpis.goneCount : '—'}</div><div className="kpi-sub">items absents maintenant</div>
         </div>
         <div className="kpi-card kpi-snap"><div className="kpi-lbl">📊 Total changements</div><div className="kpi-val">{hasSnapshots ? kpis.newCount + kpis.modCount + kpis.goneCount : '—'}</div><div className="kpi-sub">sur l'inventaire global</div></div>

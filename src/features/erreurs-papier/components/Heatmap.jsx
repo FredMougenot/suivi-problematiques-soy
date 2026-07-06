@@ -14,7 +14,7 @@ export default function Heatmap({ dataByDay, curView }) {
 
   return (
     <div className="panel">
-      <div className="panel-header" style={{ '--panel-accent': '#DDA0DD', '--panel-glow': 'rgba(221,160,221,.2)' }}>
+      <div className="panel-header" style={{ '--panel-accent': 'var(--sapphire)' }}>
         <div className="panel-title">
           <div className="panel-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg></div>
           Carte Thermique
@@ -32,7 +32,7 @@ export default function Heatmap({ dataByDay, curView }) {
                   return (
                     <th key={day} style={{ lineHeight: 1.3 }}>
                       <span style={{ display: 'block' }}>{dayNames[d.getDay()]}</span>
-                      <span style={{ display: 'block', fontWeight: 800, color: 'var(--ep-text-secondary)' }}>{d.getDate()}/{d.getMonth() + 1}</span>
+                      <span style={{ display: 'block', fontWeight: 800, color: 'var(--text-secondary)' }}>{d.getDate()}/{d.getMonth() + 1}</span>
                     </th>
                   );
                 })}
@@ -46,7 +46,7 @@ export default function Heatmap({ dataByDay, curView }) {
                     const qData = dataByDay[day][`q${q.id}`] || 0;
                     const intensity = qData / maxErrors;
                     let bgColor, textColor, borderColor;
-                    if (qData === 0) { bgColor = 'var(--ep-elevated)'; textColor = 'var(--ep-text-faint)'; borderColor = 'var(--ep-border)'; }
+                    if (qData === 0) { bgColor = 'var(--bg-float)'; textColor = 'var(--text-faint)'; borderColor = 'var(--text-faint)'; }
                     else { const alpha = 0.1 + intensity * 0.6; bgColor = `rgba(${hexToRgbStr(q.color)},${alpha})`; textColor = intensity > 0.5 ? '#FFF' : q.color; borderColor = q.color; }
                     return (
                       <td key={day}>
