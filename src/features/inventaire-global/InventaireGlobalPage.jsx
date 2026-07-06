@@ -120,12 +120,12 @@ export default function InventaireGlobalPage() {
             <option value="usine">🏭 Usine seulement</option>
             <option value="gh">🏪 GH seulement</option>
           </select>
-          <button className="btn btn-secondary" onClick={handleRefresh}>↻ Actualiser</button>
-          <Link to="/inventaire-usine" className="btn btn-secondary">🏭 Saisie usine</Link>
+          <button className="btn btn-secondary" onClick={handleRefresh}>Actualiser</button>
+          <Link to="/inventaire-usine" className="btn btn-secondary">Saisie usine</Link>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-primary" onClick={handleExportPdf} disabled={allRows.length === 0}>📄 Exporter PDF</button>
-          <button className="btn btn-primary" style={{ background: 'linear-gradient(135deg,#1d7044,#2a9a5e)' }} onClick={handleExportExcel} disabled={allRows.length === 0}>📊 Exporter Excel</button>
+          <button className="btn btn-primary" onClick={handleExportPdf} disabled={allRows.length === 0}>Exporter PDF</button>
+          <button className="btn btn-primary" style={{ background: 'linear-gradient(135deg,#1d7044,#2a9a5e)' }} onClick={handleExportExcel} disabled={allRows.length === 0}>Exporter Excel</button>
         </div>
       </div>
 
