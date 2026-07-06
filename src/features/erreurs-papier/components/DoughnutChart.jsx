@@ -22,7 +22,7 @@ export default function DoughnutChart({ stats }) {
       options: {
         responsive: true, maintainAspectRatio: false, cutout: '70%',
         plugins: {
-          legend: { display: true, position: 'bottom', labels: { color: '#A0A8B8', font: { size: 12, weight: 600 }, padding: 20, usePointStyle: true, pointStyleWidth: 12 } },
+          legend: { display: true, position: 'bottom', labels: { color: '#8A82A8', font: { size: 12, weight: 600 }, padding: 20, usePointStyle: true, pointStyleWidth: 12 } },
           tooltip: { enabled: hasData, callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.raw} erreur${ctx.raw > 1 ? 's' : ''}` } },
         },
       },
@@ -32,7 +32,7 @@ export default function DoughnutChart({ stats }) {
 
   return (
     <div className="panel">
-      <div className="panel-header" style={{ '--panel-accent': '#DDA0DD', '--panel-glow': 'rgba(221,160,221,.2)' }}>
+      <div className="panel-header" style={{ '--panel-accent': 'var(--sapphire)' }}>
         <div className="panel-title">
           <div className="panel-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" /></svg></div>
           Distribution des Erreurs
