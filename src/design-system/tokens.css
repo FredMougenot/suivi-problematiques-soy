@@ -3,7 +3,7 @@
    Source de vérité unique pour toute l'app React.
 ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
   /* Fonds (teinte violette, void assombri comme le login) */
@@ -60,7 +60,7 @@
 
   /* Polices — par fonction, pour changer facilement plus tard */
   --font-body: 'Outfit', -apple-system, sans-serif;
-  --font-heading: 'Playfair Display', serif;
+  --font-heading: 'Outfit', -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
 
