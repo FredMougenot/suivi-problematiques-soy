@@ -100,7 +100,7 @@ export default function SlotsTable({ slots, lineProg, overrides }) {
               </td>
               <td>
                 {heureL1 ? (
-                  <span style={{ fontFamily: "'Playfair Display',serif", fontSize: '.95rem', color: 'var(--copper-light)', fontWeight: 600 }}>
+                  <span style={{ fontFamily: 'var(--font-heading)', fontSize: '.95rem', color: 'var(--copper-light)', fontWeight: 600 }}>
                     {heureL1.txt}
                     {heureL1.lendemain && <span style={{ fontSize: '.7rem', color: 'var(--text-muted)', fontWeight: 400 }}> (lendemain)</span>}
                   </span>
@@ -116,7 +116,7 @@ export default function SlotsTable({ slots, lineProg, overrides }) {
               </td>
               <td>
                 {heureL2 ? (
-                  <span style={{ fontFamily: "'Playfair Display',serif", fontSize: '.95rem', color: 'var(--copper-light)', fontWeight: 600 }}>
+                  <span style={{ fontFamily: 'var(--font-heading)', fontSize: '.95rem', color: 'var(--copper-light)', fontWeight: 600 }}>
                     {heureL2.txt}
                     {heureL2.lendemain && <span style={{ fontSize: '.7rem', color: 'var(--text-muted)', fontWeight: 400 }}> (lendemain)</span>}
                   </span>
