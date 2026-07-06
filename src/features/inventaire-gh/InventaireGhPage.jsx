@@ -290,7 +290,7 @@ export default function InventaireGhPage() {
                     <span className="sel-stat"><strong>{selectionStats.weight}</strong> kg</span>
                   </div>
                 </div>
-                <button className="btn-add-to-truck" onClick={handleAddSelectionToTruck}>🚚 Ajouter au camion</button>
+                <button className="btn-add-to-truck" onClick={handleAddSelectionToTruck}>Ajouter au camion</button>
               </div>
             )}
           </div>

@@ -74,8 +74,8 @@ export default function StatsPonctualitePage() {
         <div className="period-lbl-sp">{periodLabel(period, curDate)}</div>
         <button className="nav-btn-sp" onClick={() => navigate(1)}>→</button>
         <div className="sp-actions">
-          <button className="btn btn-ghost" onClick={handleExportPdf}>📄 Export PDF</button>
-          <button className="btn btn-ghost" onClick={() => setParamsOpen(true)}>⚙ Paramètres</button>
+          <button className="btn btn-ghost" onClick={handleExportPdf}>Export PDF</button>
+          <button className="btn btn-ghost" onClick={() => setParamsOpen(true)}>Paramètres</button>
         </div>
       </div>
 

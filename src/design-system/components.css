@@ -15,7 +15,7 @@
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 7px;
   padding: 9px 18px; border-radius: var(--r-md);
-  font-family: var(--font-body); font-size: .82rem; font-weight: 700;
+  font-family: var(--font-body); font-size: .82rem; font-weight: 400;
   border: 1px solid transparent; cursor: pointer; white-space: nowrap; text-decoration: none;
   transition: opacity var(--t-fast) var(--ease), transform var(--t-fast) var(--ease),
               background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
@@ -125,7 +125,7 @@
 .data-table thead th { padding: 11px 12px; text-align: left; font-size: .63rem; font-weight: 800; color: var(--copper); letter-spacing: .12em; text-transform: uppercase; background: var(--bg-float); border-bottom: 1px solid var(--text-faint); white-space: nowrap; transform: translateZ(0); }
 .data-table tbody td { padding: 10px 12px; font-size: .86rem; color: var(--text-primary); border-bottom: 1px solid rgba(255,255,255,.03); vertical-align: middle; }
 .data-table tbody tr:last-child td { border-bottom: none; }
-.data-table tbody tr:hover td { background: var(--bg-hover); }
+.data-table tbody tr:hover td { background: var(--bg-hover); transform: translateZ(0); }
 
 /* ── EN-TÊTE DE SECTION (dans une page, pour une sous-section) ──
    Usage : <div className="sec-h"><div><div className="sec-t">Titre</div>
@@ -133,6 +133,7 @@
 ─────────────────────────────────────────────────────────────── */
 .sec-h { display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--text-faint); flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
 .sec-t { font-family: var(--font-body); font-size: 1.3rem; font-weight: 700; color: var(--text-primary); }
+.sec-title { font-family: var(--font-body); font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
 .sec-s { font-size: .8rem; color: var(--text-secondary); margin-top: 3px; }
 
 /* ── NAVIGATION PAR DATE ──────────────────────────────────────
@@ -147,8 +148,8 @@
 .date-nav-arr { width: 34px; height: 34px; border-radius: var(--r-md); background: var(--bg-raised); border: 1px solid var(--text-faint); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; transform: translateZ(0); }
 .date-nav-arr:hover { border-color: var(--copper); color: var(--copper-light); }
 .date-nav-label { font-size: .9rem; font-weight: 700; color: var(--text-primary); padding: 7px 20px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); min-width: 240px; text-align: center; transform: translateZ(0); }
-.date-nav-today-chip { font-size: .62rem; font-weight: 700; color: var(--copper-light); background: var(--copper-dim); border: 1px solid rgba(139,92,246,.3); padding: 1px 8px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
-.date-nav-today-btn { padding: 6px 14px; border-radius: var(--r-md); background: var(--copper-dim); border: 1px solid rgba(139,92,246,.35); color: var(--copper-light); font-size: .78rem; font-weight: 700; cursor: pointer; }
+.date-nav-today-chip { font-size: .62rem; font-weight: 700; color: var(--copper-light); background: var(--copper-dim); border: 1px solid rgba(139,92,246,.3); padding: 1px 8px; border-radius: 20px; margin-left: 8px; vertical-align: middle; transform: translateZ(0); }
+.date-nav-today-btn { padding: 6px 14px; border-radius: var(--r-md); background: var(--copper-dim); border: 1px solid rgba(139,92,246,.35); color: var(--copper-light); font-size: .78rem; font-weight: 700; cursor: pointer; transform: translateZ(0); }
 .date-nav-today-btn:hover { background: rgba(139,92,246,.24); transform: translateZ(0); }
 
 /* ── PANNEAU GRAPHIQUE ────────────────────────────────────────

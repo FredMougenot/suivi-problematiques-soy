@@ -35,7 +35,7 @@
 .ep-date-display { background: var(--ep-panel-glass); backdrop-filter: blur(16px); transform: translateZ(0); border: 1.5px solid var(--ep-border-bright); border-radius: 14px; padding: 8px 24px; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 300px; }
 .ep-date-label { font-size: 1.1rem; font-weight: 700; color: var(--ep-text-primary); }
 .ep-date-meta { font-size: .68rem; font-weight: 500; color: var(--ep-text-muted); text-transform: uppercase; letter-spacing: .08em; }
-.ep-today-badge { padding: 2px 9px; background: rgba(212,175,55,.08); border: 1px solid var(--ep-gold); border-radius: 14px; font-size: .58rem; font-weight: 700; color: var(--ep-gold); text-transform: uppercase; }
+.ep-today-badge { padding: 2px 9px; background: rgba(212,175,55,.08); border: 1px solid var(--ep-gold); border-radius: 14px; font-size: .58rem; font-weight: 700; color: var(--ep-gold); text-transform: uppercase; transform: translateZ(0); }
 
 .ep-main-content { padding: 0 24px 48px; display: flex; flex-direction: column; gap: 24px; }
 .ep-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
@@ -48,7 +48,7 @@
 
 /* Panels (réutilisés doughnut/heatmap/journal) */
 .ep-wrap .panel { background: var(--ep-panel-glass); backdrop-filter: blur(20px) saturate(140%); transform: translateZ(0); border: 1.5px solid var(--ep-border-bright); border-radius: 14px; overflow: hidden; }
-.ep-wrap .panel-header { padding: 18px 22px; border-bottom: 1.5px solid var(--ep-border); display: flex; align-items: center; justify-content: space-between; background: var(--ep-elevated-glass); }
+.ep-wrap .panel-header { padding: 18px 22px; border-bottom: 1.5px solid var(--ep-border); display: flex; align-items: center; justify-content: space-between; background: var(--ep-elevated-glass); transform: translateZ(0); }
 .ep-wrap .panel-title { display: flex; align-items: center; gap: 10px; font-size: 1rem; font-weight: 700; color: var(--ep-text-primary); }
 .ep-wrap .panel-icon { width: 28px; height: 28px; background: var(--panel-accent, var(--ep-gold)); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
 .ep-wrap .panel-meta { font-size: .68rem; font-weight: 600; color: var(--ep-text-muted); text-transform: uppercase; letter-spacing: .08em; }

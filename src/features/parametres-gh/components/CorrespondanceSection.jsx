@@ -39,7 +39,7 @@ export default function CorrespondanceSection({ rows, onSave, onDelete, saving }
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <input type="text" className="field-input" placeholder="Rechercher…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ width: 220 }} />
-          <button onClick={() => setAddOpen((o) => !o)} className="btn btn-primary">⊕ Ajouter</button>
+          <button onClick={() => setAddOpen((o) => !o)} className="btn btn-primary">Ajouter</button>
         </div>
       </div>
 

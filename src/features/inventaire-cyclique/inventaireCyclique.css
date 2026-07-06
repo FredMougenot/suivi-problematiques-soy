@@ -9,14 +9,14 @@
 .ic-tbl thead th { padding: 11px 12px; font-size: .6rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--text-muted); text-align: center; white-space: nowrap; }
 .ic-tbl thead th:first-child { text-align: left; padding-left: 16px; }
 .ic-tbl tbody tr { border-bottom: 1px solid rgba(44,51,80,.5); transition: background .1s; }
-.ic-tbl tbody tr:hover { background: var(--bg-hover); }
+.ic-tbl tbody tr:hover { background: var(--bg-hover); transform: translateZ(0); }
 .ic-tbl tbody tr:last-child { border-bottom: none; }
 .ic-tbl tbody td { padding: 8px 10px; font-size: .84rem; color: var(--text-primary); vertical-align: middle; text-align: center; }
 .ic-tbl tbody td:first-child { text-align: left; padding-left: 16px; }
 .ic-tbl tfoot tr { background: var(--bg-float); border-top: 2px solid rgba(200,132,58,.3); transform: translateZ(0); }
 .ic-tbl tfoot td { padding: 10px 12px; font-weight: 800; font-size: .84rem; color: var(--copper-light); }
 
-.th-group { background: var(--bg-active) !important; color: var(--copper) !important; font-size: .58rem !important; letter-spacing: .12em !important; border-bottom: 1px solid rgba(200,132,58,.2) !important; }
+.th-group { background: var(--bg-active) !important; color: var(--copper) !important; font-size: .58rem !important; letter-spacing: .12em !important; border-bottom: 1px solid rgba(200,132,58,.2) !important; transform: translateZ(0); }
 
 .ni { background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-primary); border-radius: var(--r-sm); padding: 5px 8px; font-size: .82rem; outline: none; width: 90px; text-align: center; transform: translateZ(0); }
 .ni:focus { border-color: var(--copper); }
@@ -43,7 +43,7 @@
 .verif-tbl thead th { padding: 11px 14px; font-size: .6rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--text-muted); white-space: nowrap; }
 .verif-tbl thead th:first-child { padding-left: 18px; }
 .verif-tbl tbody tr { border-bottom: 1px solid rgba(44,51,80,.5); transition: background .1s; }
-.verif-tbl tbody tr:hover { background: var(--bg-hover); }
+.verif-tbl tbody tr:hover { background: var(--bg-hover); transform: translateZ(0); }
 .verif-tbl tbody tr:last-child { border-bottom: none; }
 .verif-tbl tbody td { padding: 10px 14px; font-size: .84rem; color: var(--text-primary); vertical-align: middle; }
 .verif-tbl tbody td:first-child { padding-left: 18px; }

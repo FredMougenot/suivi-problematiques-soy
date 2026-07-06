@@ -72,7 +72,7 @@ export default function DashboardPage() {
     <div className="tool-main">
       <div className="sec-h" style={{ marginBottom: 8 }}>
         <div><div className="sec-t">Tableau de bord</div><div className="sec-s">Vue d'ensemble des problématiques</div></div>
-        <button className="btn btn-primary" onClick={() => setNewProbOpen(true)}>⊕ Soumettre une problématique</button>
+        <button className="btn btn-primary" onClick={() => setNewProbOpen(true)}>Soumettre une problématique</button>
       </div>
 
       <DateNav date={dashDate} onChange={setDashDate} />

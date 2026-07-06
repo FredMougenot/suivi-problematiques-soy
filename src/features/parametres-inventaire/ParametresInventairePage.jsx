@@ -97,15 +97,15 @@ export default function ParametresInventairePage() {
         <div className="rec-add-row">
           <input type="number" className="inp-rec" min="0" placeholder="ex: 120" value={newRecInput} onChange={(e) => setNewRecInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addRecurrence(); }} />
           <span style={{ fontSize: '.78rem', color: 'var(--text-muted)' }}>jours</span>
-          <button className="btn btn-primary btn-sm" onClick={addRecurrence}>⊕ Ajouter</button>
+          <button className="btn btn-primary btn-sm" onClick={addRecurrence}>Ajouter</button>
           <span style={{ fontSize: '.72rem', color: 'var(--text-muted)', marginLeft: 4 }}>Les récurrences sont sauvegardées localement</span>
         </div>
       </div>
 
       <div className="toolbar">
         <div className="toolbar-left">
-          <button className="btn btn-primary" onClick={addRow}>⊕ Ajouter un item</button>
-          <button className="btn btn-primary" onClick={saveAll} disabled={saving}>{saving ? 'Enregistrement…' : '💾 Tout sauvegarder'}</button>
+          <button className="btn btn-primary" onClick={addRow}>Ajouter un item</button>
+          <button className="btn btn-primary" onClick={saveAll} disabled={saving}>{saving ? 'Enregistrement…' : 'Tout sauvegarder'}</button>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <div className="count-pill">{rows.length} item{rows.length !== 1 ? 's' : ''}</div>

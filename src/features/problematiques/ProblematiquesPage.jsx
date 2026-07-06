@@ -107,8 +107,8 @@ export default function ProblematiquesPage() {
       <div className="sec-h" style={{ marginBottom: 8 }}>
         <div><div className="sec-t">Registre des problématiques</div><div className="sec-s">Toutes les problématiques, filtrables par pilier, statut, date</div></div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-ghost" onClick={() => setPdfModalOpen(true)}>📄 Exporter PDF</button>
-          <button className="btn btn-primary" onClick={handleOpenNew}>⊕ Soumettre une problématique</button>
+          <button className="btn btn-ghost" onClick={() => setPdfModalOpen(true)}>Exporter PDF</button>
+          <button className="btn btn-primary" onClick={handleOpenNew}>Soumettre une problématique</button>
         </div>
       </div>
 
@@ -122,7 +122,7 @@ export default function ProblematiquesPage() {
             <button key={p} className={`pilier-btn${activePilierChart === p ? ' active' : ''}`} onClick={() => selectPilierBtn(p)}>{p}</button>
           ))}
           <button className={`pilier-btn${incompletOnly ? ' active' : ''}`} onClick={toggleIncomplet}>
-            ⚠ Incomplètes {incompletCount > 0 && <span style={{ background: 'var(--amber)', color: '#0F1118', fontSize: '.6rem', fontWeight: 800, padding: '1px 5px', borderRadius: 10, marginLeft: 4 }}>{incompletCount}</span>}
+            Incomplètes {incompletCount > 0 && <span style={{ background: 'var(--amber)', color: '#0F1118', fontSize: '.6rem', fontWeight: 800, padding: '1px 5px', borderRadius: 10, marginLeft: 4 }}>{incompletCount}</span>}
           </button>
         </div>
       </div>

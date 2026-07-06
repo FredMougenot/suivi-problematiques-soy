@@ -125,8 +125,8 @@ export default function EnvironnementPage() {
       <div className="sec-h" style={{ marginBottom: 8 }}>
         <div><div className="sec-t">🌿 {pageTitle}</div><div className="sec-s">Vérifications quotidiennes de conformité environnementale</div></div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-ghost" onClick={handleExportPdf}>📄 Exporter PDF</button>
-          <button className="btn btn-ghost" onClick={() => setParamsModalOpen(true)}>⚙️ Paramètres</button>
+          <button className="btn btn-ghost" onClick={handleExportPdf}>Exporter PDF</button>
+          <button className="btn btn-ghost" onClick={() => setParamsModalOpen(true)}>Paramètres</button>
         </div>
       </div>
 
@@ -139,7 +139,7 @@ export default function EnvironnementPage() {
       <EnvCharts series={series} weekLimit={weekLimit} monthLimit={monthLimit} onChangeWeekLimit={updateWeekLimit} onChangeMonthLimit={updateMonthLimit} />
 
       <div style={{ marginBottom: 8 }}>
-        <button className="btn btn-primary" onClick={() => setAddModalOpen(true)}>+ Ajouter une vérification</button>
+        <button className="btn btn-primary" onClick={() => setAddModalOpen(true)}>Ajouter une vérification</button>
       </div>
 
       {rowsQ.isLoading ? (
@@ -149,8 +149,8 @@ export default function EnvironnementPage() {
       )}
 
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, padding: '16px 0 4px', flexWrap: 'wrap' }}>
-        <button className="btn btn-primary" onClick={handleSaveAll}>💾 Sauvegarder tout</button>
-        <button className="btn btn-danger" onClick={handleOpenNcModal}>⚠ Soumettre les non-conformités</button>
+        <button className="btn btn-primary" onClick={handleSaveAll}>Sauvegarder tout</button>
+        <button className="btn btn-danger" onClick={handleOpenNcModal}>Soumettre les non-conformités</button>
       </div>
 
       <AddVerifModal open={addModalOpen} onClose={() => setAddModalOpen(false)} onConfirm={handleAddVerif} />

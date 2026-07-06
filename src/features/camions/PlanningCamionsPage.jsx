@@ -163,13 +163,13 @@ export default function PlanningCamionsPage() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0 4px 0' }}>
         {role !== 'viewer' ? (
-          <button className="btn btn-primary" onClick={() => setModalOpen(true)}>+ Ajouter un camion</button>
+          <button className="btn btn-primary" onClick={() => setModalOpen(true)}>Ajouter un camion</button>
         ) : <span />}
         <div style={{ display: 'flex', gap: 8 }}>
           {role !== 'viewer' && (
-            <Link to="/parametres-planning" className="btn btn-ghost">⚙ Paramètres</Link>
+            <Link to="/parametres-planning" className="btn btn-ghost">Paramètres</Link>
           )}
-          <button className="btn btn-ghost" onClick={() => exportPlanningPdf(dateStr, rows, context, params)}>📄 Export PDF</button>
+          <button className="btn btn-ghost" onClick={() => exportPlanningPdf(dateStr, rows, context, params)}>Export PDF</button>
         </div>
       </div>
 
@@ -194,7 +194,7 @@ export default function PlanningCamionsPage() {
       {role !== 'viewer' && (
         <div style={{ display: 'flex', justifyContent: 'center', gap: 12, padding: '18px 0 8px' }}>
           <button className="btn btn-primary" onClick={handleSaveAll} disabled={saveMutation.isPending}>
-            💾 {saveMutation.isPending ? 'Sauvegarde…' : 'Sauvegarder tout'}
+            {saveMutation.isPending ? 'Sauvegarde…' : 'Sauvegarder tout'}
           </button>
         </div>
       )}

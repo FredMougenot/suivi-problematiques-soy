@@ -91,7 +91,7 @@ export default function IntentionsProductionPage() {
           <div className="sec-sub">Planification journalière des lignes</div>
         </div>
         <button className="btn btn-primary" onClick={handleSave} disabled={saveMutation.isPending}>
-          💾 {saveMutation.isPending ? 'Sauvegarde…' : 'Sauvegarder'}
+          {saveMutation.isPending ? 'Sauvegarde…' : 'Sauvegarder'}
         </button>
       </div>
 

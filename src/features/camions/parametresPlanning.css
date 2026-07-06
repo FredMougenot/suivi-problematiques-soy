@@ -31,7 +31,7 @@
 .ptbl thead th.th-style { width: 140px; }
 .ptbl thead th.th-act { width: 48px; text-align: center; }
 .ptbl tbody tr { border-bottom: 1px solid rgba(44,51,80,.5); transition: background .1s; }
-.ptbl tbody tr:hover { background: var(--bg-hover); }
+.ptbl tbody tr:hover { background: var(--bg-hover); transform: translateZ(0); }
 .ptbl tbody tr:last-child { border-bottom: none; }
 .ptbl tbody td { padding: 8px 10px; font-size: .84rem; color: var(--text-primary); vertical-align: middle; }
 .ptbl tbody td.td-num { text-align: center; color: var(--text-muted); font-size: .74rem; font-weight: 700; }
@@ -58,7 +58,7 @@
 
 .tog-wrap { position: relative; display: inline-block; width: 36px; height: 20px; cursor: pointer; }
 .tog-chk { opacity: 0; width: 0; height: 0; position: absolute; }
-.tog-slider { position: absolute; inset: 0; border-radius: 20px; background: var(--text-faint); transition: background .2s; }
+.tog-slider { position: absolute; inset: 0; border-radius: 20px; background: var(--text-faint); transition: background .2s; transform: translateZ(0); }
 .tog-slider::before { content: ''; position: absolute; width: 14px; height: 14px; left: 3px; top: 3px; border-radius: 50%; background: #fff; transition: transform .2s; }
 .tog-chk:checked + .tog-slider { background: var(--copper); }
 .tog-chk:checked + .tog-slider::before { transform: translateX(16px); }

@@ -93,8 +93,8 @@ export default function InventaireDiffPage() {
       </div>
 
       <div className="toolbar">
-        <button className="btn btn-primary" onClick={() => setConfirmOpen(true)}>📸 Sauvegarder l'état actuel</button>
-        <button className="btn btn-primary" onClick={handleExportPdf} disabled={diffRows.length === 0}>📄 Exporter PDF</button>
+        <button className="btn btn-primary" onClick={() => setConfirmOpen(true)}>Sauvegarder l'état actuel</button>
+        <button className="btn btn-primary" onClick={handleExportPdf} disabled={diffRows.length === 0}>Exporter PDF</button>
       </div>
 
       <div className="diff-layout">
