@@ -21,7 +21,7 @@ export default function ErrorList({ errors, curView }) {
           <div className="error-truck">
             <div style={{ display: 'flex', alignItems: 'center', gap: 0, flexWrap: 'wrap' }}>
               <span style={{ fontWeight: 600, color: 'var(--ep-text-primary)', minWidth: 140 }}>Camion {e.truck}</span>
-              {e.id && <span style={{ fontFamily: "'Space Grotesk',monospace", fontSize: '1rem', fontWeight: 700, color: 'var(--ep-text-primary)' }} title="ID Supabase">{e.id}</span>}
+              {e.id && <span style={{ fontFamily: 'var(--font-mono)', fontSize: '1rem', fontWeight: 700, color: 'var(--ep-text-primary)' }} title="ID Supabase">{e.id}</span>}
             </div>
             <div style={{ fontSize: '.75rem', marginTop: 4 }}>{e.dest}</div>
           </div>
