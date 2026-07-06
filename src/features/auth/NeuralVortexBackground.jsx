@@ -351,4 +351,4 @@ export const VolumetricStudio = ({
   );
 };
 
-export default NeuralVortexBackground;
+export default VolumetricStudio;
