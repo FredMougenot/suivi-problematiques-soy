@@ -21,7 +21,7 @@
 .ligne-card-head::before { content: ''; display: block; width: 3px; height: 18px; border-radius: 2px; flex-shrink: 0; margin-right: 10px; }
 .ip-ligne-card.ligne-1 .ligne-card-head::before { background: var(--copper); }
 .ip-ligne-card.ligne-2 .ligne-card-head::before { background: var(--sapphire); }
-.ligne-title { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 600; color: var(--text-primary); }
+.ligne-title { font-family: var(--font-heading); font-size: 1rem; font-weight: 600; color: var(--text-primary); }
 .ligne-card-body { padding: 20px 22px; }
 
 .toggle-wrap { display: flex; align-items: center; gap: 10px; }
