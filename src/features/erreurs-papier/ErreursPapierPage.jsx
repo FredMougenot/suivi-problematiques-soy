@@ -104,7 +104,7 @@ export default function ErreursPapierPage() {
                   <div className="panel-title"><div className="panel-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg></div>Total Erreurs</div>
                 </div>
                 <div className="panel-body">
-                  <div style={{ fontSize: '3rem', fontWeight: 800, color: totalErrors > 0 ? '#EF4444' : '#10B981', fontFamily: "'Space Grotesk',sans-serif" }}>{totalErrors}</div>
+                  <div style={{ fontSize: '3rem', fontWeight: 800, color: totalErrors > 0 ? '#EF4444' : '#10B981', fontFamily: 'var(--font-heading)' }}>{totalErrors}</div>
                   <div style={{ fontSize: '.875rem', color: 'var(--ep-text-muted)', marginTop: 8 }}>{totalErrors === 0 ? 'Aucune erreur détectée' : totalErrors === 1 ? '1 erreur détectée' : totalErrors + ' erreurs détectées'}</div>
                 </div>
               </div>
@@ -113,7 +113,7 @@ export default function ErreursPapierPage() {
                   <div className="panel-title"><div className="panel-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg></div>Camions Analysés</div>
                 </div>
                 <div className="panel-body">
-                  <div style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--ep-text-primary)', fontFamily: "'Space Grotesk',sans-serif" }}>{totalCamions}</div>
+                  <div style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--ep-text-primary)', fontFamily: 'var(--font-heading)' }}>{totalCamions}</div>
                   <div style={{ fontSize: '.875rem', color: 'var(--ep-text-muted)', marginTop: 8 }}>{totalCamions === 0 ? 'Aucun camion' : totalCamions === 1 ? '1 camion comptabilisé' : totalCamions + ' camions comptabilisés'}</div>
                 </div>
               </div>
@@ -122,7 +122,7 @@ export default function ErreursPapierPage() {
                   <div className="panel-title"><div className="panel-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg></div>Efficacité Moyenne</div>
                 </div>
                 <div className="panel-body">
-                  <div style={{ fontSize: '3rem', fontWeight: 800, color: avgEfficiency !== null && avgEfficiency >= 95 ? '#10B981' : '#D4AF37', fontFamily: "'Space Grotesk',sans-serif" }}>{avgEfficiency !== null ? avgEfficiency + '%' : '—'}</div>
+                  <div style={{ fontSize: '3rem', fontWeight: 800, color: avgEfficiency !== null && avgEfficiency >= 95 ? '#10B981' : '#D4AF37', fontFamily: 'var(--font-heading)' }}>{avgEfficiency !== null ? avgEfficiency + '%' : '—'}</div>
                   <div style={{ fontSize: '.875rem', color: 'var(--ep-text-muted)', marginTop: 8 }}>{avgEfficiency !== null ? (avgEfficiency >= 95 ? 'Performance excellence' : avgEfficiency >= 85 ? 'Performance très bonne' : avgEfficiency >= 70 ? 'Performance bonne' : avgEfficiency >= 50 ? 'Performance moyenne' : 'Performance critique') : 'Non calculable'}</div>
                 </div>
               </div>
