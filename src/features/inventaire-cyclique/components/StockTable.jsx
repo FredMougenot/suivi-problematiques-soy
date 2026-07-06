@@ -43,7 +43,7 @@ export default function StockTable({ stockRows, paramItems, onFieldChange, onDel
               <tr key={entry.idx}>
                 <td style={{ textAlign: 'center' }}><span className="item-num">{pos + 1}</span></td>
                 <td>
-                  <select className="ni-item" style={{ background: 'var(--bg-float)', border: '1px solid var(--text-faint)', color: 'var(--text-primary)', borderRadius: 'var(--r-sm)', padding: '5px 8px', fontSize: '.82rem', outline: 'none', cursor: 'pointer', width: 220 }}
+                  <select className="ni-item" style={{ background: 'var(--bg-float)', border: '1px solid var(--text-faint)', color: 'var(--text-primary)', borderRadius: 'var(--r-sm)', padding: '5px 8px', fontSize: '.82rem', outline: 'none', cursor: 'pointer', width: 220, transform: 'translateZ(0)'}}
                     value={r.label || ''} onChange={(e) => onFieldChange(entry.idx, 'label', e.target.value)}>
                     {paramItems.length === 0 ? (
                       <option value="" disabled>⚠ Configurer les paramètres d'abord</option>
