@@ -24,7 +24,7 @@
 .ni-item:focus { border-color: var(--copper); }
 
 .td-calc { font-weight: 700; font-size: .85rem; }
-.td-total { font-family: 'Playfair Display', serif; font-size: .95rem; font-weight: 700; color: var(--text-primary); }
+.td-total { font-family: var(--font-heading); font-size: .95rem; font-weight: 700; color: var(--text-primary); }
 .td-ecart-pos { color: var(--emerald); font-weight: 700; }
 .td-ecart-neg { color: var(--ruby); font-weight: 700; }
 .td-ecart-zero { color: var(--text-muted); font-weight: 600; }
