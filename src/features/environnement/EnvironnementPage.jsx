@@ -10,6 +10,7 @@ import EnvCharts from './components/EnvCharts';
 import { AddVerifModal, NcParamsModal, NcConfirmModal } from './components/EnvModals';
 import { exportEnvironnementPdf } from './exportEnvironnementPdf';
 import './environnement.css';
+import LoadingOverlay from '../../design-system/LoadingOverlay';
 
 export default function EnvironnementPage() {
   const addToast = usePlanningStore((s) => s.addToast);
@@ -143,7 +144,7 @@ export default function EnvironnementPage() {
       </div>
 
       {rowsQ.isLoading ? (
-        <div className="spinner-box"><div className="spinner-ring"></div> Chargement…</div>
+        <LoadingOverlay />
       ) : (
         <VerifTable rows={rows} onSetConf={setConf} onDelete={handleDelete} />
       )}

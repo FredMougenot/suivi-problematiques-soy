@@ -6,6 +6,7 @@ import { useReleveQuery, useSaveReleveMutation } from './queries';
 import { todayStr, getMondayStr, fmtDate, matchCategoryForCode, calcPoidsTotal, nextTmpId } from './logic';
 import SaisieTable from './components/SaisieTable';
 import './inventaireUsine.css';
+import LoadingOverlay from '../../design-system/LoadingOverlay';
 
 export default function InventaireUsinePage() {
   const addToast = usePlanningStore((s) => s.addToast);
@@ -153,7 +154,7 @@ export default function InventaireUsinePage() {
 
       <div className="tbl-wrap">
         {releveQ.isLoading ? (
-          <div className="spinner-box"><div className="spinner-ring"></div> Chargement…</div>
+          <LoadingOverlay />
         ) : (
           <>
             <SaisieTable

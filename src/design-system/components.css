@@ -49,11 +49,10 @@
 .btn-icon:disabled { opacity: .4; cursor: default; }
 
 /* ── SPINNER ──────────────────────────────────────────────────
-   Usage : <div className="spinner-box"><div className="spinner-ring"></div> Chargement…</div>
+   Le spinner est maintenant le composant partagé <LoadingOverlay />
+   (src/design-system/LoadingOverlay.jsx) : fixé en bas de l'écran,
+   par-dessus le contenu, peu importe la page.
 ─────────────────────────────────────────────────────────────── */
-.spinner-box { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 50px; color: var(--text-muted); font-size: .88rem; }
-.spinner-ring { width: 24px; height: 24px; border: 2px solid var(--text-faint); border-top-color: var(--copper); border-radius: 50%; animation: soy-spin .8s linear infinite; flex-shrink: 0; }
-@keyframes soy-spin { to { transform: rotate(360deg); } }
 
 /* ── EMPTY STATE ──────────────────────────────────────────────
    Usage : <div className="empty-state"><div className="empty-state-icon">📋</div>

@@ -13,6 +13,7 @@ import DestinationBars from './components/DestinationBars';
 import WorstSlots from './components/WorstSlots';
 import StatsParamsModal from './components/StatsParamsModal';
 import './statsPonctualite.css';
+import LoadingOverlay from '../../design-system/LoadingOverlay';
 
 export default function StatsPonctualitePage() {
   const addToast = usePlanningStore((s) => s.addToast);
@@ -81,7 +82,7 @@ export default function StatsPonctualitePage() {
 
       <div className="dash">
         {isLoading ? (
-          <div className="spinner-box"><div className="spinner-ring"></div> Chargement…</div>
+          <LoadingOverlay />
         ) : (
           <>
             <KpiRow A={A} seuils={seuils} />

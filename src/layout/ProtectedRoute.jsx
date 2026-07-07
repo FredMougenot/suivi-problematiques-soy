@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
+import LoadingOverlay from '../design-system/LoadingOverlay';
 
 /**
  * Protège les routes enfants : redirige vers /login si pas de session active.
@@ -12,17 +13,8 @@ export default function ProtectedRoute({ children }) {
 
   if (isLoading) {
     return (
-      <div
-        style={{
-          height: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'var(--text-muted)',
-          background: 'var(--bg-void)',
-        }}
-      >
-        Chargement…
+      <div style={{ height: '100vh', background: 'var(--bg-void)' }}>
+        <LoadingOverlay />
       </div>
     );
   }
