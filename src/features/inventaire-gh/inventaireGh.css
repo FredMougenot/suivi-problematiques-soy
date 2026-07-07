@@ -90,7 +90,7 @@
 .cmd-clear:hover { background: rgba(224,85,85,.1); transform: translateZ(0); }
 .cmd-body { max-height: 420px; overflow-y: auto; }
 .cmd-empty { padding: 32px 16px; text-align: center; color: var(--text-muted); font-size: .82rem; }
-.cmd-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 10px 14px; border-bottom: 1px solid rgba(44,51,80,.4); align-items: start; }
+.cmd-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 10px 14px; border-bottom: 1px solid rgba(44,51,80,.4); align-items: start; transform: translateZ(0); }
 .cmd-row-new { background: rgba(245,158,11,.08); border-left: 3px solid var(--amber); transform: translateZ(0); }
 .cmd-row:last-child { border-bottom: none; }
 .cmd-item-code { font-size: .72rem; color: var(--sapphire); font-weight: 700; }
