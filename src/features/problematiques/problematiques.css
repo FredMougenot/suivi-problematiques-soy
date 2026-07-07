@@ -4,7 +4,7 @@
 ═══════════════════════════════════════════════════════════════ */
 
 /* Date nav (tableau de bord) */
-.dash-date-nav { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 0 18px; }
+.dash-date-nav { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 0 18px; transform: translateZ(0); }
 .dash-date-arr { width: 30px; height: 30px; border-radius: var(--r-md); background: var(--bg-raised); border: 1px solid var(--text-faint); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: .9rem; transform: translateZ(0); }
 .dash-date-arr:hover { border-color: var(--copper); color: var(--copper-light); }
 .dash-date-lbl { font-size: .88rem; font-weight: 700; color: var(--text-primary); padding: 6px 16px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); min-width: 220px; text-align: center; transform: translateZ(0); }
@@ -37,7 +37,7 @@
 @media (max-width: 800px) { .stat-row { grid-template-columns: 1fr; } }
 .stat-card { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); padding: 22px; transform: translateZ(0); }
 .stat-lbl { font-size: .68rem; font-weight: 700; color: var(--copper); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 16px; }
-.pilier-row { display: flex; align-items: center; gap: 8px; margin-bottom: 11px; }
+.pilier-row { display: flex; align-items: center; gap: 8px; margin-bottom: 11px; transform: translateZ(0); }
 .pilier-row:last-child { margin-bottom: 0; }
 .pilier-row-link { cursor: pointer; border-radius: var(--r-sm); transition: background .12s; padding: 2px 4px; margin-left: -4px; margin-right: -4px; }
 .pilier-row-link:hover { background: rgba(200,132,58,.08); transform: translateZ(0); }
@@ -45,7 +45,7 @@
 .pilier-track { flex: 1; height: 3px; background: var(--bg-active); border-radius: 3px; overflow: hidden; transform: translateZ(0); }
 .pilier-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--copper), var(--copper-light)); transition: width .5s; transform: translateZ(0); }
 .pilier-num { font-size: .82rem; font-weight: 700; color: var(--text-primary); flex-shrink: 0; min-width: 18px; text-align: center; }
-.pilier-end { width: 54px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 5px; }
+.pilier-end { width: 54px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 5px; transform: translateZ(0); }
 .pilier-face { flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
 .pilier-cnt { font-size: .82rem; font-weight: 700; color: var(--text-primary); width: 24px; text-align: center; }
 .pilier-info { width: 16px; height: 16px; border-radius: 50%; background: var(--bg-active); border: 1px solid var(--text-faint); color: var(--text-muted); font-size: .65rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transform: translateZ(0); }
@@ -71,7 +71,7 @@
 .bd { background: var(--copper-dim); color: var(--copper-pale); border: 1px solid rgba(184,115,51,.2); transform: translateZ(0); }
 
 /* Filtres / recherche (registre) */
-.filters { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.filters { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; transform: translateZ(0); }
 .fsel { padding: 8px 30px 8px 12px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); color: var(--text-secondary); font-size: .8rem; cursor: pointer; min-width: 150px; transform: translateZ(0); }
 .fsel:focus { border-color: var(--copper); color: var(--text-primary); }
 .srch-wrap { flex: 1; min-width: 200px; position: relative; }
@@ -80,7 +80,7 @@
 .srch-inp:focus { border-color: var(--copper); }
 
 /* Boutons pilier (registre) */
-.pilier-btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.pilier-btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; transform: translateZ(0); }
 .pilier-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--text-faint); background: var(--bg-raised); color: var(--text-muted); font-size: .78rem; font-weight: 600; cursor: pointer; transform: translateZ(0); }
 .pilier-btn:hover, .pilier-btn.active { border-color: var(--copper); color: var(--copper); background: var(--copper-dim); transform: translateZ(0); }
 
@@ -92,7 +92,7 @@
 /* Modal critère */
 .critere-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 800; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); transform: translateZ(0); }
 .critere-modal { background: var(--bg-float); border: 1px solid var(--text-faint); border-radius: var(--r-lg); padding: 28px; max-height: 92vh; overflow-y: auto; box-shadow: 0 16px 48px rgba(0,0,0,.6); position: relative; transform: translateZ(0); }
-.cm-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 18px; }
+.cm-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 18px; transform: translateZ(0); }
 .cm-eyebrow { font-size: .62rem; font-weight: 800; color: var(--copper); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 4px; }
 .cm-title { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); }
 .cm-body { font-size: .88rem; color: var(--text-secondary); line-height: 1.7; min-height: 40px; }
@@ -100,7 +100,7 @@
 .cm-prob-row { display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-bottom: 1px solid var(--text-faint); font-size: .82rem; transform: translateZ(0); }
 .cm-prob-row:last-child { border-bottom: none; }
 .cm-prob-row.cloturee { opacity: .45; }
-.cm-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+.cm-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; transform: translateZ(0); }
 .cm-edit-link { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 600; color: var(--text-muted); text-decoration: none; }
 .cm-edit-link:hover { color: var(--copper-light); }
 
