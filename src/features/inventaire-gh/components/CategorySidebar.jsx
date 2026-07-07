@@ -59,7 +59,7 @@ export default function CategorySidebar({ categories, allInventory, activeCatId,
               key={cat.id}
               className={`cat-btn${activeCatId === cat.id ? ' active' : ''}`}
               title={cat.name}
-              style={activeCatId === cat.id ? { borderColor: cat.color, background: cat.color + '22' } : undefined}
+              style={activeCatId === cat.id ? { borderColor: cat.color, background: cat.color + '22', transform: 'translateZ(0)' } : undefined}
               onClick={() => handleCatClick(cat)}
             >
               <span className="cat-btn-icon">{cat.icon || '📦'}</span>
