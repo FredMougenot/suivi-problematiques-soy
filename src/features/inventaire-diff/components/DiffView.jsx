@@ -45,7 +45,7 @@ export default function DiffView({ filteredDiff, categories }) {
                 const sorted = [...codeRows].sort((a, b) => (a.no_lot || '').localeCompare(b.no_lot || ''));
                 return (
                   <div key={code}>
-                    {ci > 0 && <div style={{ height: 1, background: 'rgba(44,51,80,.4)', margin: '0 16px' }}></div>}
+                    {ci > 0 && <div style={{ height: 1, background: 'rgba(44,51,80,.4)', margin: '0 16px', transform: 'translateZ(0)'}}></div>}
                     <div className="prod-group-header">
                       <span className="prod-code">{code}</span>
                       {description && <span className="prod-desc">— {description}</span>}
