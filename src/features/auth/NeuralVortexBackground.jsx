@@ -69,10 +69,10 @@ export default function TubesCursor() {
   };
 
   return (
-    // Correction ici : la div est proprement ouverte et liée au clic
-    <div 
+// Correction ici : la div est proprement ouverte et liée au clic
+    <div onClick={handleClick} className="w-full h-screen relative cursor-pointer">
       {/* Canvas element for the animation, positioned behind everything else */}
-      <canvas ref={canvasRef} className="fixed inset-0 z-0" 
+      <canvas ref={canvasRef} className="fixed inset-0 z-0" />
     </div>
   );
 }
