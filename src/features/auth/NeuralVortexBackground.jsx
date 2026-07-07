@@ -79,8 +79,9 @@ export function TubesBackground({
   };
 
   return (
-    <div 
-      className={cn("relative w-full h-full min-h-[400px] overflow-hidden bg-background", className)}
+    <div
+      className={cn("fixed inset-0 w-screen h-screen overflow-hidden bg-background", className)}
+      style={{ zIndex: 0, transform: 'translateZ(0)' }}
       onClick={handleClick}
     >
       <canvas 
