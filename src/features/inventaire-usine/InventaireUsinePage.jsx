@@ -135,7 +135,7 @@ export default function InventaireUsinePage() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <input type="date" value={dateReleve} onChange={(e) => setDateReleve(e.target.value)}
-            style={{ background: 'var(--bg-float)', border: '1px solid var(--text-faint)', color: 'var(--text-primary)', borderRadius: 'var(--r-sm)', padding: '6px 10px', fontSize: '.84rem', outline: 'none' }} />
+            style={{ background: 'var(--bg-float)', border: '1px solid var(--text-faint)', color: 'var(--text-primary)', borderRadius: 'var(--r-sm)', padding: '6px 10px', fontSize: '.84rem', outline: 'none', transform: 'translateZ(0)'}} />
           <button className="btn btn-danger" onClick={() => setConfirmOpen(true)}>Nouveau relevé (effacer)</button>
         </div>
       </div>
