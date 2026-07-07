@@ -48,7 +48,7 @@ export default function KpiRow({ A, seuils }) {
           {covPct}% des actifs arrivés<br />
           {A.attente} en attente · {A.inactif} inactif{A.inactif > 1 ? 's' : ''}
         </div>
-        <div className="sp-kpi-bar"><div className="sp-kpi-bar-fill" style={{ width: covPct + '%', background: 'linear-gradient(90deg,var(--copper),var(--copper-light))' }}></div></div>
+        <div className="sp-kpi-bar"><div className="sp-kpi-bar-fill" style={{ width: covPct + '%', background: 'linear-gradient(90deg,var(--copper),var(--copper-light))', transform: 'translateZ(0)'}}></div></div>
       </div>
 
       <div className={`sp-kpi ${nlCls}`}>

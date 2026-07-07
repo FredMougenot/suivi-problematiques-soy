@@ -125,7 +125,7 @@ export default function InventaireGlobalPage() {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn btn-primary" onClick={handleExportPdf} disabled={allRows.length === 0}>Exporter PDF</button>
-          <button className="btn btn-primary" style={{ background: 'linear-gradient(135deg,#1d7044,#2a9a5e)' }} onClick={handleExportExcel} disabled={allRows.length === 0}>Exporter Excel</button>
+          <button className="btn btn-primary" style={{ background: 'linear-gradient(135deg,#1d7044,#2a9a5e)', transform: 'translateZ(0)'}} onClick={handleExportExcel} disabled={allRows.length === 0}>Exporter Excel</button>
         </div>
       </div>
 

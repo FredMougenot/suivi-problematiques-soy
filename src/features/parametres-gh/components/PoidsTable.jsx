@@ -11,11 +11,11 @@ export default function PoidsTable({ poidsList, onUpdate, onDelete }) {
           ) : poidsList.map((p, i) => {
             const matchType = p.matchType || 'exact';
             return (
-              <tr key={p.id ?? i}>
+              <tr key={p.id ?? i} style={{ transform: 'translateZ(0)' }}>
                 <td>
                   <div style={{ display: 'flex', gap: 4 }}>
-                    <button onClick={() => onUpdate(i, 'matchType', 'exact')} style={{ flex: 1, padding: '5px 8px', border: `1px solid ${matchType === 'exact' ? 'var(--sapphire)' : 'rgba(255,255,255,.08)'}`, background: matchType === 'exact' ? 'rgba(74,158,232,.15)' : 'var(--bg-float)', color: matchType === 'exact' ? 'var(--sapphire)' : 'var(--text-muted)', borderRadius: 5, fontSize: '.7rem', fontWeight: 700, cursor: 'pointer' }}>EXACT</button>
-                    <button onClick={() => onUpdate(i, 'matchType', 'contains')} style={{ flex: 1, padding: '5px 8px', border: `1px solid ${matchType === 'contains' ? 'var(--amber)' : 'rgba(255,255,255,.08)'}`, background: matchType === 'contains' ? 'rgba(245,158,11,.15)' : 'var(--bg-float)', color: matchType === 'contains' ? 'var(--amber)' : 'var(--text-muted)', borderRadius: 5, fontSize: '.7rem', fontWeight: 700, cursor: 'pointer' }}>CONTIENT</button>
+                    <button onClick={() => onUpdate(i, 'matchType', 'exact')} style={{ flex: 1, padding: '5px 8px', border: `1px solid ${matchType === 'exact' ? 'var(--sapphire)' : 'rgba(255,255,255,.08)'}`, background: matchType === 'exact' ? 'rgba(74,158,232,.15)' : 'var(--bg-float)', color: matchType === 'exact' ? 'var(--sapphire)' : 'var(--text-muted)', borderRadius: 5, fontSize: '.7rem', fontWeight: 700, cursor: 'pointer', transform: 'translateZ(0)' }}>EXACT</button>
+                    <button onClick={() => onUpdate(i, 'matchType', 'contains')} style={{ flex: 1, padding: '5px 8px', border: `1px solid ${matchType === 'contains' ? 'var(--amber)' : 'rgba(255,255,255,.08)'}`, background: matchType === 'contains' ? 'rgba(245,158,11,.15)' : 'var(--bg-float)', color: matchType === 'contains' ? 'var(--amber)' : 'var(--text-muted)', borderRadius: 5, fontSize: '.7rem', fontWeight: 700, cursor: 'pointer', transform: 'translateZ(0)' }}>CONTIENT</button>
                   </div>
                 </td>
                 <td><input type="text" className="poids-input" style={{ width: 200 }} value={p.code} onChange={(e) => onUpdate(i, 'code', e.target.value)} placeholder={matchType === 'exact' ? 'Ex: ABCD123' : 'Ex: BOITE'} /></td>

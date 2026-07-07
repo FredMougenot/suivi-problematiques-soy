@@ -58,7 +58,7 @@ export default function GlobalCategorySidebar({ categories, allRows, activeCat, 
           const count = countForCat(allRows, categories, cat);
           return (
             <div key={cat.id} className={`cat-btn${activeCat === cat.id ? ' active' : ''}`} title={cat.name}
-              style={activeCat === cat.id ? { borderColor: cat.color, background: (cat.color || 'var(--sapphire)') + '22' } : undefined}
+              style={activeCat === cat.id ? { borderColor: cat.color, background: (cat.color || 'var(--sapphire)') + '22', transform: 'translateZ(0)' } : undefined}
               onClick={(e) => { e.stopPropagation(); if (hasChildren) { setOpenParentId(openParentId === cat.id ? null : cat.id); setOpenChildId(null); } else selectCat(cat.id); }}>
               <span className="cat-btn-icon">{cat.icon || '📦'}</span>
               <span className="cat-btn-name">{cat.name}</span>

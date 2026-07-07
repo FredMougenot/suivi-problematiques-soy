@@ -75,13 +75,13 @@ export default function ProblemeCharts({ pilier, probs, mode = 'active', editabl
     const side = params[period];
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(45,212,160,.08)', border: '1px solid rgba(45,212,160,.25)', borderRadius: 8, padding: '6px 10px' }}>
-          <div style={{ width: 3, height: 14, background: 'linear-gradient(180deg,#2DD4A0,#39E5B0)', borderRadius: 2 }}></div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(45,212,160,.08)', border: '1px solid rgba(45,212,160,.25)', borderRadius: 8, padding: '6px 10px', transform: 'translateZ(0)'}}>
+          <div style={{ width: 3, height: 14, background: 'linear-gradient(180deg,#2DD4A0,#39E5B0)', borderRadius: 2, transform: 'translateZ(0)'}}></div>
           <input type="number" className="chart-param-input" placeholder="Min" style={{ width: 60 }} value={side.min ?? ''} onChange={(e) => updateSide(period, 'min', e.target.value === '' ? null : Number(e.target.value))} />
           <input type="text" className="chart-param-input" placeholder="Libellé" style={{ width: 80 }} value={side.labelMin} onChange={(e) => updateSide(period, 'labelMin', e.target.value)} />
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(224,85,85,.08)', border: '1px solid rgba(224,85,85,.25)', borderRadius: 8, padding: '6px 10px' }}>
-          <div style={{ width: 3, height: 14, background: 'linear-gradient(180deg,#E05555,#F07070)', borderRadius: 2 }}></div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(224,85,85,.08)', border: '1px solid rgba(224,85,85,.25)', borderRadius: 8, padding: '6px 10px', transform: 'translateZ(0)'}}>
+          <div style={{ width: 3, height: 14, background: 'linear-gradient(180deg,#E05555,#F07070)', borderRadius: 2, transform: 'translateZ(0)'}}></div>
           <input type="number" className="chart-param-input" placeholder="Max" style={{ width: 60 }} value={side.max ?? ''} onChange={(e) => updateSide(period, 'max', e.target.value === '' ? null : Number(e.target.value))} />
           <input type="text" className="chart-param-input" placeholder="Libellé" style={{ width: 80 }} value={side.labelMax} onChange={(e) => updateSide(period, 'labelMax', e.target.value)} />
         </div>

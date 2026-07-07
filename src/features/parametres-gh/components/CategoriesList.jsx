@@ -7,7 +7,7 @@ export default function CategoriesList({ categories, onEdit }) {
     <div>
       {sorted.map((cat) => (
         <div className="cat-nav-item" key={cat.id} onClick={() => onEdit(cat.id)} style={{ marginBottom: 8, cursor: 'pointer' }}>
-          <div className="cat-nav-icon" style={{ background: cat.color + '20', color: cat.color }}>{cat.icon}</div>
+          <div className="cat-nav-icon" style={{ background: cat.color + '20', color: cat.color, transform: 'translateZ(0)' }}>{cat.icon}</div>
           <div className="cat-nav-name">{cat.name}</div>
           <div className="cat-nav-count">{cat.rules ? cat.rules.length : 0}</div>
         </div>

@@ -40,8 +40,8 @@ export default function StockView({ filteredRows, categories, traxMap }) {
             <div className="cat-section-header">
               <span className="cat-section-icon">{catIcon}</span>
               <span className="cat-section-name">{catName}</span>
-              {usineCount > 0 && <span style={{ padding: '2px 8px', borderRadius: 20, background: 'rgba(200,132,58,.12)', border: '1px solid rgba(200,132,58,.25)', color: 'var(--copper)', fontSize: '.66rem', fontWeight: 700, marginLeft: 6 }}>🏭 {usineCount}</span>}
-              {ghCount > 0 && <span style={{ padding: '2px 8px', borderRadius: 20, background: 'rgba(45,212,160,.1)', border: '1px solid rgba(45,212,160,.25)', color: 'var(--emerald)', fontSize: '.66rem', fontWeight: 700, marginLeft: 4 }}>🏪 {ghCount}</span>}
+              {usineCount > 0 && <span style={{ padding: '2px 8px', borderRadius: 20, background: 'rgba(200,132,58,.12)', border: '1px solid rgba(200,132,58,.25)', color: 'var(--copper)', fontSize: '.66rem', fontWeight: 700, marginLeft: 6, transform: 'translateZ(0)'}}>🏭 {usineCount}</span>}
+              {ghCount > 0 && <span style={{ padding: '2px 8px', borderRadius: 20, background: 'rgba(45,212,160,.1)', border: '1px solid rgba(45,212,160,.25)', color: 'var(--emerald)', fontSize: '.66rem', fontWeight: 700, marginLeft: 4, transform: 'translateZ(0)'}}>🏪 {ghCount}</span>}
               <span className="cat-section-badge badge-multi" style={{ marginLeft: 'auto' }}>{catRows.length} ligne{catRows.length > 1 ? 's' : ''}</span>
             </div>
             <div className="prod-group">
@@ -57,7 +57,7 @@ export default function StockView({ filteredRows, categories, traxMap }) {
                 });
                 return (
                   <div key={code}>
-                    {ci > 0 && <div style={{ height: 1, background: 'rgba(44,51,80,.4)', margin: '0 16px' }}></div>}
+                    {ci > 0 && <div style={{ height: 1, background: 'rgba(44,51,80,.4)', margin: '0 16px', transform: 'translateZ(0)'}}></div>}
                     <div className="prod-group-header">
                       <span className="prod-code">{code}</span>
                       {traxCode && <span style={{ fontSize: '.72rem', fontWeight: 700, color: 'var(--copper)', marginLeft: 8, whiteSpace: 'nowrap' }}>{traxCode}</span>}
@@ -79,7 +79,7 @@ export default function StockView({ filteredRows, categories, traxMap }) {
                           <span className={`loc-badge ${isUsine ? 'loc-usine' : 'loc-gh'}`}>{isUsine ? '🏭 Usine' : '🏪 GH'}</span>
                           <span className="row-lot" title={row.no_lot || ''}>
                             {row.no_lot || '—'}
-                            {row.palettes > 1 && <span title={`${row.palettes} palettes regroupées`} style={{ marginLeft: 6, fontSize: '.64rem', color: 'var(--text-muted)', background: 'var(--bg-float)', border: '1px solid var(--text-faint)', borderRadius: 10, padding: '1px 6px' }}>{row.palettes} pal.</span>}
+                            {row.palettes > 1 && <span title={`${row.palettes} palettes regroupées`} style={{ marginLeft: 6, fontSize: '.64rem', color: 'var(--text-muted)', background: 'var(--bg-float)', border: '1px solid var(--text-faint)', borderRadius: 10, padding: '1px 6px', transform: 'translateZ(0)'}}>{row.palettes} pal.</span>}
                           </span>
                           <span className="row-qte">{row.quantite > 0 ? (row.quantite % 1 === 0 ? row.quantite : row.quantite.toFixed(2)) : <span style={{ color: 'var(--text-faint)' }}>—</span>}</span>
                           <span className="row-poids">{row.poids_total > 0 ? row.poids_total.toFixed(2) + ' kg' : <span style={{ color: 'var(--text-faint)' }}>—</span>}</span>

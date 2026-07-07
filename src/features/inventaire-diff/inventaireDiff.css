@@ -52,7 +52,7 @@
 .prod-code { font-size: .82rem; font-weight: 800; color: var(--sapphire); }
 .prod-desc { font-size: .78rem; color: var(--text-secondary); }
 
-.diff-row { display: flex; align-items: center; gap: 12px; padding: 8px 16px; border-bottom: 1px solid rgba(44,51,80,.3); flex-wrap: wrap; }
+.diff-row { display: flex; align-items: center; gap: 12px; padding: 8px 16px; border-bottom: 1px solid rgba(44,51,80,.3); flex-wrap: wrap; transform: translateZ(0); }
 .diff-row:last-child { border-bottom: none; }
 .diff-row.row-new { background: rgba(45,212,160,.04); transform: translateZ(0); }
 .diff-row.row-gone { background: rgba(224,85,85,.04); transform: translateZ(0); }

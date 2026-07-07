@@ -150,7 +150,7 @@ export default function ProblematiquesPage() {
           <option>À traiter</option><option>En cours</option><option>Résolu</option><option>Annulé</option><option>Clôturé</option>
         </select>
         <label style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', fontSize: '.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', marginLeft: 4 }}>
-          <input type="checkbox" checked={showCloture} onChange={(e) => setShowCloture(e.target.checked)} style={{ width: 15, height: 15, accentColor: 'var(--copper)' }} />
+          <input type="checkbox" checked={showCloture} onChange={(e) => setShowCloture(e.target.checked)} style={{ width: 15, height: 15, accentColor: 'var(--copper)', transform: 'translateZ(0)' }} />
           Afficher les clôturées / résolues
         </label>
       </div>

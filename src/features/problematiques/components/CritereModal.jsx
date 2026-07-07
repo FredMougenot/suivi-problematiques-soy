@@ -34,13 +34,13 @@ export default function CritereModal({ pilier, allProblems, onClose }) {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '14px 0 10px' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '.8rem', color: 'var(--text-muted)' }}>
-            <input type="checkbox" checked={showCloture} onChange={(e) => setShowCloture(e.target.checked)} style={{ width: 15, height: 15, accentColor: 'var(--copper)', cursor: 'pointer' }} />
+            <input type="checkbox" checked={showCloture} onChange={(e) => setShowCloture(e.target.checked)} style={{ width: 15, height: 15, accentColor: 'var(--copper)', cursor: 'pointer', transform: 'translateZ(0)' }} />
             Afficher les clôturées / résolues
           </label>
           <span style={{ marginLeft: 'auto', fontSize: '.75rem', color: 'var(--text-muted)' }}>{shown.length} / {all.length} problématique{all.length !== 1 ? 's' : ''}</span>
         </div>
 
-        <div style={{ maxHeight: 180, overflowY: 'auto', border: '1px solid var(--text-faint)', borderRadius: 'var(--r-md)', background: 'var(--bg-float)', marginBottom: 16 }}>
+        <div style={{ maxHeight: 180, overflowY: 'auto', border: '1px solid var(--text-faint)', borderRadius: 'var(--r-md)', background: 'var(--bg-float)', marginBottom: 16, transform: 'translateZ(0)'}}>
           {shown.length === 0 ? (
             <div style={{ padding: 14, color: 'var(--text-muted)', fontSize: '.82rem', fontStyle: 'italic', textAlign: 'center' }}>
               {all.length === 0 ? 'Aucune problématique pour ce pilier.' : 'Toutes les problématiques sont clôturées.'}

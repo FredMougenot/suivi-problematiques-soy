@@ -25,8 +25,8 @@ export default function CommandePanel({ camion, onRemoveItem, onAdjustQty, onCle
                   Qté: {item._resolved_qte}
                   {item._is_manual && (
                     <>
-                      <button onClick={() => onAdjustQty(item._key, -1)} style={{ marginLeft: 8, padding: '2px 8px', background: 'var(--bg-raised)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 4, color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '.75rem', fontWeight: 700 }}>−</button>
-                      <button onClick={() => onAdjustQty(item._key, 1)} style={{ padding: '2px 8px', background: 'var(--bg-raised)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 4, color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '.75rem', fontWeight: 700 }}>+</button>
+                      <button onClick={() => onAdjustQty(item._key, -1)} style={{ marginLeft: 8, padding: '2px 8px', background: 'var(--bg-raised)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 4, color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '.75rem', fontWeight: 700, transform: 'translateZ(0)'}}>−</button>
+                      <button onClick={() => onAdjustQty(item._key, 1)} style={{ padding: '2px 8px', background: 'var(--bg-raised)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 4, color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '.75rem', fontWeight: 700, transform: 'translateZ(0)'}}>+</button>
                     </>
                   )}
                   {' · '}{item._resolved_poids_unit > 0 ? item._resolved_poids_unit.toFixed(1) : '—'} kg/unité · <strong>{item._resolved_poids_total > 0 ? item._resolved_poids_total.toFixed(1) : '—'} kg total</strong>
