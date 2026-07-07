@@ -4,6 +4,7 @@ import { usePlanningStore } from '../../store/usePlanningStore';
 import { useParamsInventaireQuery, useSaveItemMutation, useDeleteItemMutation } from './queries';
 import { loadRecs, saveRecs, fmtDate, prochaineInfo } from './logic';
 import './parametres-inventaire.css';
+import LoadingOverlay from '../../design-system/LoadingOverlay';
 
 let tmpIdCounter = -1;
 
@@ -114,7 +115,7 @@ export default function ParametresInventairePage() {
       </div>
 
       {paramsQ.isLoading ? (
-        <div className="spinner-box"><div className="spinner-ring"></div> Chargement…</div>
+        <LoadingOverlay />
       ) : (
         <div className="table-shell param-items-table">
           <table className="data-table">

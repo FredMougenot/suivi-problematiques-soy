@@ -9,6 +9,7 @@ import { exportGlobalExcel } from './exportGlobalExcel';
 import GlobalCategorySidebar from './components/GlobalCategorySidebar';
 import StockView from './components/StockView';
 import './inventaireGlobal.css';
+import LoadingOverlay from '../../design-system/LoadingOverlay';
 
 export default function InventaireGlobalPage() {
   const addToast = usePlanningStore((s) => s.addToast);
@@ -133,7 +134,7 @@ export default function InventaireGlobalPage() {
         <GlobalCategorySidebar categories={categories} allRows={allRows} activeCat={activeCat} onSelectCat={handleSelectCat} onSelectCode={handleSelectCode} />
         <div className="global-content">
           {isLoading ? (
-            <div className="spinner-box"><div className="spinner-ring"></div> Chargement des inventaires…</div>
+            <LoadingOverlay />
           ) : (
             <StockView filteredRows={filteredRows} categories={categories} traxMap={traxMap} />
           )}
