@@ -67,7 +67,7 @@ export default function DayTimeline({ data, seuils }) {
         <div className="leg-item"><div className="leg-dot" style={{ background: 'var(--ruby)' }}></div>Critique &gt;{seuil2}min</div>
         <div className="leg-item"><div className="leg-dot" style={{ background: 'var(--sapphire)' }}></div>En attente</div>
         <div className="leg-item"><div className="leg-dot" style={{ background: 'var(--ruby)', opacity: 0.45 }}></div>Non livré</div>
-        <div className="leg-item"><div className="leg-dot" style={{ background: 'var(--text-faint)' }}></div>Inactif (exclu)</div>
+        <div className="leg-item"><div className="leg-dot" style={{ background: 'var(--text-faint)', transform: 'translateZ(0)'}}></div>Inactif (exclu)</div>
       </div>
     </>
   );
