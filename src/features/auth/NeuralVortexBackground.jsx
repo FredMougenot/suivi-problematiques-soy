@@ -76,7 +76,8 @@ export default function TubesCursor() {
   return (
     // Main container with full-screen styles and click handler
     <div
-
+      onClick={handleClick}
+      className="h-screen w-screen bg-black font-['Montserrat',_sans-serif] overflow-hidden cursor-pointer"
     >
       {/* Canvas element for the animation, positioned behind everything else */}
       <canvas ref={canvasRef} className="fixed inset-0 z-0" />
