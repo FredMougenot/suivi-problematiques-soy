@@ -1,18 +1,16 @@
 import React, { useEffect, useRef } from 'react';
 
-// The main App component that encapsulates the animation
-// In React, component names must start with a capital letter to be recognized as components.
-// I've renamed the function from "component" to "TubesCursor".
+// Le composant principal de l'animation d'arrière-plan
 export default function TubesCursor() {
-  // useRef to get a persistent reference to the canvas element
+  // Référence pour cibler le canvas HTML
   const canvasRef = useRef(null);
-  // useRef to hold the animation instance so we can call its methods
+  // Référence pour stocker l'instance de l'animation Three.js
   const appRef = useRef(null);
 
   /**
-   * Generates an array of random hex color strings.
-   * @param {number} count - The number of random colors to generate.
-   * @returns {string[]} An array of color strings.
+   * Génère un tableau de chaînes de caractères de couleurs hexadécimales aléatoires.
+   * @param {number} count - Le nombre de couleurs à générer.
+   * @returns {string[]} Un tableau de couleurs.
    */
   const randomColors = (count) => {
     return new Array(count)
@@ -20,70 +18,71 @@ export default function TubesCursor() {
       .map(() => "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0'));
   };
 
-  // This effect runs once when the component mounts
+  // Cet effet s'exécute au montage du composant
   useEffect(() => {
-    // The error "Computed radius is NaN" suggests a race condition where the animation 
-    // library initializes before the canvas element has its final dimensions, leading 
-    // to invalid geometry calculations. Delaying the initialization with setTimeout 
-    // ensures the DOM is fully painted and ready.
-    const initTimer = setTimeout(() => {
-      import('https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js')
-        .then(module => {
-          const TubesCursor = module.default;
-          
-          // Ensure the canvas element is still available before initializing
-          if (canvasRef.current) {
-            // Initialize the TubesCursor animation
-            const app = TubesCursor(canvasRef.current, {
-              tubes: {
-                colors: ["#5e72e4", "#8965e0", "#f5365c"],
-                lights: {
-                  intensity: 200,
-                  colors: ["#21d4fd", "#b721ff", "#f4d03f", "#11cdef"]
-                }
-              }
-            });
-            // Store the instance in our ref for later use
-            appRef.current = app;
-          }
-        })
-        .catch(err => console.error("Failed to load TubesCursor module:", err));
-    }, 100); // 100ms delay to allow for DOM rendering
+    let appInstance = null;
+    let isInitialized = false;
 
-    // Cleanup function to dispose of the animation and clear the timeout
+    // Utilisation d'un ResizeObserver pour s'assurer que le canvas a bien été rendu
+    // avec des dimensions valides (> 10px) avant de lancer les calculs 3D (évite le bug du NaN)
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        const { width, height } = entry.contentRect;
+
+        if (width > 10 && height > 10 && !isInitialized) {
+          isInitialized = true;
+
+          import('https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js')
+            .then(module => {
+              const TubesCursor = module.default;
+              
+              if (canvasRef.current) {
+                // Initialisation de l'animation avec les couleurs de ta page login
+                appInstance = TubesCursor(canvasRef.current, {
+                  tubes: {
+                    colors: ["#8b5cf6", "#ec4899", "#22d3ee"], // Correspond aux variables CSS de la page de login
+                    lights: {
+                      intensity: 200,
+                      colors: ["#21d4fd", "#b721ff", "#f4d03f", "#11cdef"]
+                    }
+                  }
+                });
+                appRef.current = appInstance;
+              }
+            })
+            .catch(err => console.error("Failed to load TubesCursor module:", err));
+        }
+      }
+    });
+
+    if (canvasRef.current) {
+      observer.observe(canvasRef.current);
+    }
+
+    // Nettoyage de l'observateur et destruction de l'instance de l'animation
     return () => {
-      clearTimeout(initTimer);
-      // Check if app was initialized and has a dispose method before calling
-      if (appRef.current && typeof appRef.current.dispose === 'function') {
-        appRef.current.dispose();
+      observer.disconnect();
+      if (appInstance && typeof appInstance.dispose === 'function') {
+        appInstance.dispose();
       }
     };
-  }, []); // The empty dependency array ensures this effect runs only once
+  }, []);
 
-
-  // Handles click events on the main container
+  // Change les couleurs aléatoirement au clic
   const handleClick = () => {
     if (appRef.current) {
       const newTubeColors = randomColors(3);
       const newLightColors = randomColors(4);
       
-      // Update the colors in the running animation
       appRef.current.tubes.setColors(newTubeColors);
       appRef.current.tubes.setLightsColors(newLightColors);
     }
   };
 
   return (
-    // Main container with full-screen styles and click handler
-    <div
-      onClick={handleClick}
-      className="h-screen w-screen bg-black font-['Montserrat',_sans-serif] overflow-hidden cursor-pointer"
-    >
-      {/* Canvas element for the animation, positioned behind everything else */}
+    <div onClick={handleClick} style={{ display: 'contents' }}>
+      {/* Canvas lié à la classe CSS .lg-canvas de ton login.css */}
       <canvas ref={canvasRef} className="lg-canvas" />
-
-      </div>
-
+    </div>
   );
-
-
+}
