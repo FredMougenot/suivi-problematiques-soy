@@ -82,7 +82,7 @@ export default function TubesCursor() {
       <canvas ref={canvasRef} className="fixed inset-0 z-0" />
 
       </div>
-    </div>
+
   );
 }
 
