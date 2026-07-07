@@ -80,7 +80,7 @@ export default function TubesCursor() {
       className="h-screen w-screen bg-black font-['Montserrat',_sans-serif] overflow-hidden cursor-pointer"
     >
       {/* Canvas element for the animation, positioned behind everything else */}
-      <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, zIndex: 0 }} />
+      <canvas ref={canvasRef} className="fixed inset-0 z-0" />
 
       </div>
 
