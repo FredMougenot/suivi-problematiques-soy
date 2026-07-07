@@ -1,80 +1,78 @@
 import React, { useEffect, useRef } from 'react';
 
+// The main App component that encapsulates the animation
 export default function TubesCursor() {
+  // useRef to get a persistent reference to the canvas element
   const canvasRef = useRef(null);
+  // useRef to hold the animation instance so we can call its methods
   const appRef = useRef(null);
 
+  /**
+   * Generates an array of random hex color strings.
+   * @param {number} count - The number of random colors to generate.
+   * @returns {string[]} An array of color strings.
+   */
   const randomColors = (count) => {
     return new Array(count)
       .fill(0)
       .map(() => "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0'));
   };
 
+  // This effect runs once when the component mounts
   useEffect(() => {
-    let appInstance = null;
-    let isInitialized = false;
-
-    const observer = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        const { width, height } = entry.contentRect;
-
-        // On attend que le canvas possède des dimensions réelles injectées par le CSS
-        if (width > 50 && height > 50 && !isInitialized) {
-          isInitialized = true;
-
-          import('https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js')
-            .then(module => {
-              const TubesCursor = module.default;
-              
-              if (canvasRef.current) {
-                appInstance = TubesCursor(canvasRef.current, {
-                  tubes: {
-                    colors: ["#8b5cf6", "#ec4899", "#22d3ee"],
-                    lights: {
-                      intensity: 200,
-                      colors: ["#21d4fd", "#b721ff", "#f4d03f", "#11cdef"]
-                    }
-                  }
-                });
-                appRef.current = appInstance;
-
-                // FIX CRUCIAL POUR LES ERREURS NaN & TEXTURE 0x0 :
-                // On déclenche manuellement un événement de redimensionnement global.
-                // Cela force en interne le moteur Three.js de la librairie à recalculer ses matrices 
-                // de projection et à recréer sa texture WebGL/WebGPU aux bonnes dimensions.
-                window.dispatchEvent(new Event('resize'));
+    // Delaying the initialization with setTimeout ensures the DOM is fully painted
+    const initTimer = setTimeout(() => {
+      import('https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js')
+        .then(module => {
+          const TubesCursor = module.default;
+          
+          // Ensure the canvas element is still available before initializing
+          if (canvasRef.current) {
+            // Initialize the TubesCursor animation
+            const app = TubesCursor(canvasRef.current, {
+              tubes: {
+                colors: ["#5e72e4", "#8965e0", "#f5365c"],
+                lights: {
+                  intensity: 200,
+                  colors: ["#21d4fd", "#b721ff", "#f4d03f", "#11cdef"]
+                }
               }
-            })
-            .catch(err => console.error("Failed to load TubesCursor module:", err));
-        }
-      }
-    });
+            });
+            // Store the instance in our ref for later use
+            appRef.current = app;
+          }
+        })
+        .catch(err => console.error("Failed to load TubesCursor module:", err));
+    }, 100); // 100ms delay to allow for DOM rendering
 
-    if (canvasRef.current) {
-      observer.observe(canvasRef.current);
-    }
-
+    // Cleanup function to dispose of the animation and clear the timeout
     return () => {
-      observer.disconnect();
-      if (appInstance && typeof appInstance.dispose === 'function') {
-        appInstance.dispose();
+      clearTimeout(initTimer);
+      // Check if app was initialized and has a dispose method before calling
+      if (appRef.current && typeof appRef.current.dispose === 'function') {
+        appRef.current.dispose();
       }
     };
-  }, []);
+  }, []); // The empty dependency array ensures this effect runs only once
 
+
+  // Handles click events on the main container
   const handleClick = () => {
     if (appRef.current) {
       const newTubeColors = randomColors(3);
       const newLightColors = randomColors(4);
       
+      // Update the colors in the running animation
       appRef.current.tubes.setColors(newTubeColors);
       appRef.current.tubes.setLightsColors(newLightColors);
     }
   };
 
   return (
-    <div onClick={handleClick} style={{ display: 'contents' }}>
-      <canvas ref={canvasRef} className="lg-canvas" />
+    // Correction ici : la div est proprement ouverte et liée au clic
+    <div onClick={handleClick} className="w-full h-screen relative cursor-pointer">
+      {/* Canvas element for the animation, positioned behind everything else */}
+      <canvas ref={canvasRef} className="fixed inset-0 z-0" />
     </div>
   );
 }
