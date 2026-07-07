@@ -45,7 +45,7 @@ export default function TubesCursor() {
         .catch(err => console.error("Failed to load TubesCursor module:", err));
     }, 100); // 100ms delay to allow for DOM rendering
 
-    // Cleanup function to dispose of the animation and clear the timeout
+  // Cleanup function to dispose of the animation and clear the timeout
     return () => {
       clearTimeout(initTimer);
       // Check if app was initialized and has a dispose method before calling
@@ -59,17 +59,23 @@ export default function TubesCursor() {
   // Handles click events on the main container
   const handleClick = () => {
     if (appRef.current) {
-      const newTubeColors = randomColors(3);
-      const newLightColors = randomColors(4);
-      
-      // Update the colors in the running animation
-      appRef.current.tubes.setColors(newTubeColors);
-      appRef.current.tubes.setLightsColors(newLightColors);
+      // On décale l'exécution à la micro-tâche suivante grâce au setTimeout(..., 0)
+      // Cela évite de casser les calculs mathématiques internes de la géométrie de Three.js
+      setTimeout(() => {
+        const newTubeColors = randomColors(3);
+        const newLightColors = randomColors(4);
+        
+        // Update the colors in the running animation safely
+        if (appRef.current.tubes) {
+          appRef.current.tubes.setColors(newTubeColors);
+          appRef.current.tubes.setLightsColors(newLightColors);
+        }
+      }, 0);
     }
   };
 
   return (
-// Correction ici : la div est proprement ouverte et liée au clic
+    // La div est proprement ouverte et liée au clic
     <div onClick={handleClick} className="w-full h-screen relative cursor-pointer">
       {/* Canvas element for the animation, positioned behind everything else */}
       <canvas ref={canvasRef} className="fixed inset-0 z-0" />
