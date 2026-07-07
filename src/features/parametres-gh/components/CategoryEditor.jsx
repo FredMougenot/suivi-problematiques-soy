@@ -28,7 +28,7 @@ export default function CategoryEditor({ cat, allCategories, onChange, onSave, o
   return (
     <div>
       <div className="cat-editor-hd">
-        <div className="cat-emoji-btn" style={{ background: cat.color + '20', color: cat.color }} onClick={() => setEmojiOpen((o) => !o)}>
+        <div className="cat-emoji-btn" style={{ background: cat.color + '20', color: cat.color, transform: 'translateZ(0)' }} onClick={() => setEmojiOpen((o) => !o)}>
           <div>{cat.icon}</div>
           {emojiOpen && (
             <div className="emoji-picker-pop">
@@ -43,7 +43,7 @@ export default function CategoryEditor({ cat, allCategories, onChange, onSave, o
 
       <div style={{ margin: '12px 0' }}>
         <label style={{ display: 'block', fontSize: '.7rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4 }}>Catégorie parente (optionnel)</label>
-        <select value={cat.parent_id || ''} onChange={(e) => set('parent_id', e.target.value || null)} style={{ width: '100%', padding: 8, background: 'var(--bg-float)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 8, color: 'var(--text-primary)', fontSize: '.85rem' }}>
+        <select value={cat.parent_id || ''} onChange={(e) => set('parent_id', e.target.value || null)} style={{ width: '100%', padding: 8, background: 'var(--bg-float)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 8, color: 'var(--text-primary)', fontSize: '.85rem', transform: 'translateZ(0)'}}>
           <option value="">Aucune (catégorie racine)</option>
           {parentOptions.map((c) => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
         </select>
