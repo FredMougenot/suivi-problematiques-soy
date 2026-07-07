@@ -97,7 +97,7 @@
 .cm-title { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); }
 .cm-body { font-size: .88rem; color: var(--text-secondary); line-height: 1.7; min-height: 40px; }
 .cm-body.loading { color: var(--text-muted); font-style: italic; }
-.cm-prob-row { display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-bottom: 1px solid var(--text-faint); font-size: .82rem; }
+.cm-prob-row { display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-bottom: 1px solid var(--text-faint); font-size: .82rem; transform: translateZ(0); }
 .cm-prob-row:last-child { border-bottom: none; }
 .cm-prob-row.cloturee { opacity: .45; }
 .cm-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
