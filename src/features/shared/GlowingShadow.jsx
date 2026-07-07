@@ -95,6 +95,7 @@ export function GlowingShadow({ children }) {
           z-index: 2;
           border-radius: var(--card-radius);
           cursor: pointer;
+          transform: translateZ(0);
         }
 
         .glow-container:before,
@@ -115,6 +116,7 @@ export function GlowingShadow({ children }) {
           align-items: center;
           justify-content: center;  
           padding: calc(var(--card-width) / 8);
+          transform: translateZ(0);
         }
 
         .glow-content span {
