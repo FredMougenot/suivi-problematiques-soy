@@ -73,13 +73,13 @@
 .page-eyebrow { font-size: .62rem; font-weight: 800; color: var(--copper); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 6px; }
 .page-title { font-family: var(--font-heading); font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
 .page-sub { font-size: .82rem; color: var(--text-muted); margin-top: 4px; margin-bottom: 24px; }
-.page-header-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.page-header-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; transform: translateZ(0); }
 
 /* ── BARRE D'OUTILS / ACTIONS ─────────────────────────────────
    Usage : <div className="toolbar"><div className="toolbar-left">…</div><div className="toolbar-right">…</div></div>
 ─────────────────────────────────────────────────────────────── */
-.toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
-.toolbar-left, .toolbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; transform: translateZ(0); }
+.toolbar-left, .toolbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; transform: translateZ(0); }
 
 /* ── CHAMPS DE FORMULAIRE ─────────────────────────────────────
    Usage : <div className="field"><label className="field-label">Nom</label>
@@ -114,7 +114,7 @@
 .modal-title { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); }
 .modal-subtitle { font-size: .78rem; color: var(--text-muted); margin-top: 4px; }
 .modal-body { padding: 18px 24px; }
-.modal-footer { padding: 12px 24px 22px; display: flex; gap: 10px; justify-content: flex-end; }
+.modal-footer { padding: 12px 24px 22px; display: flex; gap: 10px; justify-content: flex-end; transform: translateZ(0); }
 
 /* ── TABLEAU ──────────────────────────────────────────────────
    Usage : <div className="table-shell"><table className="data-table">
@@ -124,6 +124,7 @@
 .data-table { width: 100%; border-collapse: collapse; }
 .data-table thead th { padding: 11px 12px; text-align: left; font-size: .63rem; font-weight: 800; color: var(--copper); letter-spacing: .12em; text-transform: uppercase; background: var(--bg-float); border-bottom: 1px solid var(--text-faint); white-space: nowrap; transform: translateZ(0); }
 .data-table tbody td { padding: 10px 12px; font-size: .86rem; color: var(--text-primary); border-bottom: 1px solid rgba(255,255,255,.03); vertical-align: middle; }
+.data-table tbody tr { transform: translateZ(0); }
 .data-table tbody tr:last-child td { border-bottom: none; }
 .data-table tbody tr:hover td { background: var(--bg-hover); transform: translateZ(0); }
 
@@ -131,7 +132,7 @@
    Usage : <div className="sec-h"><div><div className="sec-t">Titre</div>
              <div className="sec-s">Sous-titre</div></div></div>
 ─────────────────────────────────────────────────────────────── */
-.sec-h { display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--text-faint); flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.sec-h { display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--text-faint); flex-wrap: wrap; gap: 12px; margin-bottom: 16px; transform: translateZ(0); }
 .sec-t { font-family: var(--font-body); font-size: 1.3rem; font-weight: 700; color: var(--text-primary); }
 .sec-title { font-family: var(--font-body); font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
 .sec-s { font-size: .8rem; color: var(--text-secondary); margin-top: 3px; }
@@ -144,7 +145,7 @@
              <button className="date-nav-today-btn" onClick={...}>Aujourd'hui</button>
            </div>
 ─────────────────────────────────────────────────────────────── */
-.date-nav-bar { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 0 18px; flex-wrap: wrap; }
+.date-nav-bar { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 0 18px; flex-wrap: wrap; transform: translateZ(0); }
 .date-nav-arr { width: 34px; height: 34px; border-radius: var(--r-md); background: var(--bg-raised); border: 1px solid var(--text-faint); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; transform: translateZ(0); }
 .date-nav-arr:hover { border-color: var(--copper); color: var(--copper-light); }
 .date-nav-label { font-size: .9rem; font-weight: 700; color: var(--text-primary); padding: 7px 20px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); min-width: 240px; text-align: center; transform: translateZ(0); }
@@ -161,7 +162,7 @@
            </div>
 ─────────────────────────────────────────────────────────────── */
 .chart-panel { background: var(--bg-raised); backdrop-filter: blur(20px) saturate(140%); transform: translateZ(0); border: 1px solid var(--text-faint); border-radius: 20px; padding: 28px; margin-bottom: 24px; }
-.chart-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; gap: 20px; flex-wrap: wrap; }
+.chart-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; gap: 20px; flex-wrap: wrap; transform: translateZ(0); }
 .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 @media (max-width: 700px) { .chart-grid { grid-template-columns: 1fr; } }
 .chart-box { background: var(--bg-float); border: 1px solid var(--text-faint); border-radius: 14px; padding: 18px; transform: translateZ(0); min-width: 0; height: auto; }
