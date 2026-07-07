@@ -80,18 +80,32 @@ export function TubesBackground({
 
   return (
     <div
-      className={cn("fixed inset-0 w-screen h-screen overflow-hidden bg-background", className)}
-      style={{ zIndex: 0, transform: 'translateZ(0)' }}
+      className={className}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        width: '100vw',
+        height: '100vh',
+        overflow: 'hidden',
+        zIndex: 0,
+        transform: 'translateZ(0)',
+      }}
       onClick={handleClick}
     >
-      <canvas 
-        ref={canvasRef} 
-        className="absolute inset-0 w-full h-full block"
-        style={{ touchAction: 'none' }}
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          display: 'block',
+          touchAction: 'none',
+        }}
       />
-      
+
       {/* Superposition du contenu */}
-      <div className="relative z-10 w-full h-full pointer-events-none">
+      <div style={{ position: 'relative', zIndex: 10, width: '100%', height: '100%', pointerEvents: 'none' }}>
         {children}
       </div>
     </div>
