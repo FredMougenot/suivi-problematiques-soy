@@ -9,6 +9,7 @@ import CamionsTable from './components/CamionsTable';
 import AddCamionModal from './components/AddCamionModal';
 import TimelineLine from './components/TimelineLine';
 import './camions.css';
+import LoadingOverlay from '../../design-system/LoadingOverlay';
 
 function fmtDateLbl(dateStr) {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('fr-CA', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
@@ -33,7 +34,6 @@ export default function PlanningCamionsPage() {
   const params = paramsQ.data || {};
   const isToday = dateStr === todayStr();
 
-  // Synchroniser l'état local éditable avec les données chargées (changement de date, refetch)
   useEffect(() => {
     if (camionsQ.data) setRows(camionsQ.data);
   }, [camionsQ.data]);
@@ -43,7 +43,6 @@ export default function PlanningCamionsPage() {
     return buildRowContext(dateStr, rows, params);
   }, [dateStr, rows, params]);
 
-  // ── Auto-détection NON LIVRÉ : si délai dépassé sans heure_reelle, basculer + sauver ──
   useEffect(() => {
     if (!context || !context.vNonLivre || context.delaiH == null) return;
     const nowMs = Date.now();
@@ -89,7 +88,6 @@ export default function PlanningCamionsPage() {
   function handleFieldChange(idx, field, value, saveImmediately = false) {
     setRows((prev) => ({ ...prev, [idx]: { ...(prev[idx] || { slot_index: idx }), [field]: value } }));
     if (saveImmediately) {
-      // Laisser le state se mettre à jour avant de construire le payload
       setTimeout(() => {
         setRows((current) => {
           const payload = buildPayload(idx, { [field]: value });
@@ -147,7 +145,7 @@ export default function PlanningCamionsPage() {
   }
 
   if (paramsQ.isLoading || camionsQ.isLoading || !context) {
-    return <div className="spinner-box"><div className="spinner-ring"></div> Chargement…</div>;
+    return <LoadingOverlay />;
   }
 
   return (

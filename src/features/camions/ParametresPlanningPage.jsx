@@ -3,6 +3,7 @@ import { usePlanningStore } from '../../store/usePlanningStore';
 import { useAllParamsQuery, useAddParamMutation, useDeleteParamMutation, useSaveParamSectionMutation } from './queries';
 import ParamSection from './components/ParamSection';
 import './parametresPlanning.css';
+import LoadingOverlay from '../../design-system/LoadingOverlay';
 
 const CATEGORIES = [
   { key: 'statut_ligne', label: 'Statut ligne', desc: 'Valeurs du champ Statut ligne.',
@@ -50,7 +51,7 @@ export default function ParametresPlanningPage() {
   }
 
   if (paramsQ.isLoading) {
-    return <div className="spinner-box"><div className="spinner-ring"></div> Chargement…</div>;
+    return <LoadingOverlay />;
   }
 
   return (
