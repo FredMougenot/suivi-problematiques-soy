@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+
 import { usePlanningStore } from '../../store/usePlanningStore';
 import { useAllParamsQuery, useAddParamMutation, useDeleteParamMutation, useSaveParamSectionMutation } from './queries';
 import ParamSection from './components/ParamSection';
@@ -56,11 +56,7 @@ export default function ParametresPlanningPage() {
 
   return (
     <div className="pp-main">
-      <div className="pp-topbar">
-        <Link to="/planning-camions" className="btn btn-secondary">← Planification</Link>
-      </div>
-
-      <div className="page-hdr">
+      <div className="page-hdr" style={{ paddingLeft: 60 }}>
         <div className="page-eyebrow">Configuration</div>
         <div className="page-title">Paramètres de planification</div>
         <div className="page-sub">Gérez les valeurs et le style graphique appliqué à chaque valeur dans le tableau.</div>

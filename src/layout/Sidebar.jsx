@@ -24,8 +24,7 @@ import { useAuthStore } from '../store/useAuthStore';
 // ─────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
   { label: 'Tableau de bord',        path: '/dashboard',             icon: '◈' },
-  { label: 'Registre',               path: '/problematiques',         icon: '◉' },
-  { label: 'Planning auto',          path: '/',                       icon: '▤' },
+  { label: 'Planning auto',          path: '/planning-auto',          icon: '▤' },
   { label: 'Intentions production',  path: '/intentions-production',  icon: '🏭' },
   { label: 'Planification camions',  path: '/planning-camions',       icon: '🚛' },
   { label: 'Radar de ponctualité',   path: '/stats-ponctualite',      icon: '📊' },

@@ -1,4 +1,4 @@
-import { createHashRouter } from 'react-router-dom';
+import { createHashRouter, Navigate } from 'react-router-dom';
 import AppShell from './layout/AppShell';
 import ProtectedRoute from './layout/ProtectedRoute';
 import LoginPage from './features/auth/LoginPage';
@@ -34,7 +34,8 @@ export const router = createHashRouter([
       </ProtectedRoute>
     ),
     children: [
-      { index: true, element: <PlanningAutoPage /> },
+      { index: true, element: <Navigate to="/dashboard" replace /> },
+      { path: 'planning-auto', element: <PlanningAutoPage /> },
       { path: 'intentions-production', element: <IntentionsProductionPage /> },
       { path: 'planning-camions', element: <PlanningCamionsPage /> },
       { path: 'parametres-planning', element: <ParametresPlanningPage /> },

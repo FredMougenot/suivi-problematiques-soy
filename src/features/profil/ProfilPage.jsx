@@ -14,14 +14,12 @@ function evalPwdStrength(pwd) {
 export default function ProfilPage() {
   const { user, role } = useAuthStore();
   const addToast = usePlanningStore((s) => s.addToast);
-
   const meta = user?.user_metadata || {};
   const [prenom, setPrenom] = useState(meta.prenom || '');
   const [nom, setNom] = useState(meta.nom || '');
   const [poste, setPoste] = useState(meta.poste || '');
   const [savingInfo, setSavingInfo] = useState(false);
   const [infoOk, setInfoOk] = useState(false);
-
   const [pwd0, setPwd0] = useState('');
   const [pwd1, setPwd1] = useState('');
   const [pwd2, setPwd2] = useState('');
@@ -39,48 +37,24 @@ export default function ProfilPage() {
 
   async function saveInfo() {
     setSavingInfo(true);
-    try {
-      const { data, error } = await supabase.auth.updateUser({ data: { prenom, nom, poste } });
-      if (error) throw error;
-      if (data?.user) useAuthStore.setState({ user: data.user });
-      setInfoOk(true);
-      setTimeout(() => setInfoOk(false), 3000);
-      addToast('Profil mis à jour ✓', 'success');
-    } catch (e) {
-      addToast('Erreur : ' + e.message, 'error');
-    } finally {
-      setSavingInfo(false);
-    }
+    try { const { data, error } = await supabase.auth.updateUser({ data: { prenom, nom, poste } }); if (error) throw error; if (data?.user) useAuthStore.setState({ user: data.user }); setInfoOk(true); setTimeout(() => setInfoOk(false), 3000); addToast('Profil mis à jour ✓', 'success'); }
+    catch (e) { addToast('Erreur : ' + e.message, 'error'); } finally { setSavingInfo(false); }
   }
 
   async function savePwd() {
     if (!pwd0) { addToast('Entrez votre mot de passe actuel.', 'error'); return; }
     if (pwd1.length < 8) { addToast('Le nouveau mot de passe doit contenir au moins 8 caractères.', 'error'); return; }
     if (pwd1 !== pwd2) { addToast('Les deux nouveaux mots de passe ne correspondent pas.', 'error'); return; }
-
     setSavingPwd(true);
-    try {
-      const { error: authErr } = await supabase.auth.signInWithPassword({ email, password: pwd0 });
-      if (authErr) { addToast('Mot de passe actuel incorrect.', 'error'); return; }
-      const { error } = await supabase.auth.updateUser({ password: pwd1 });
-      if (error) throw error;
-      setPwd0(''); setPwd1(''); setPwd2('');
-      setPwdOk(true);
-      setTimeout(() => setPwdOk(false), 3000);
-      addToast('Mot de passe mis à jour avec succès ✓', 'success');
-    } catch (e) {
-      addToast('Erreur : ' + e.message, 'error');
-    } finally {
-      setSavingPwd(false);
-    }
+    try { const { error: authErr } = await supabase.auth.signInWithPassword({ email, password: pwd0 }); if (authErr) { addToast('Mot de passe actuel incorrect.', 'error'); return; } const { error } = await supabase.auth.updateUser({ password: pwd1 }); if (error) throw error; setPwd0(''); setPwd1(''); setPwd2(''); setPwdOk(true); setTimeout(() => setPwdOk(false), 3000); addToast('Mot de passe mis à jour avec succès ✓', 'success'); }
+    catch (e) { addToast('Erreur : ' + e.message, 'error'); } finally { setSavingPwd(false); }
   }
 
   return (
     <div className="tool-main">
-      <div className="sec-h" style={{ marginBottom: 24 }}>
+      <div className="sec-h" style={{ marginBottom: 24, paddingLeft: 60 }}>
         <div><div className="sec-t">Mon profil</div><div className="sec-s">Vos informations personnelles et votre sécurité</div></div>
       </div>
-
       <div className="profil-layout">
         <div className="profil-id-card">
           <div className="profil-avatar-zone">
@@ -95,7 +69,6 @@ export default function ProfilPage() {
             <div className="profil-meta-row"><span className="profil-meta-lbl">Statut</span><span className="profil-meta-val" style={{ color: 'var(--emerald)' }}>● Actif</span></div>
           </div>
         </div>
-
         <div className="profil-sections">
           <div className="profil-section">
             <div className="profil-section-head"><div className="profil-section-title">Informations personnelles</div></div>
@@ -104,52 +77,18 @@ export default function ProfilPage() {
                 <div className="field"><label className="field-label">Prénom</label><input type="text" className="field-input" value={prenom} onChange={(e) => setPrenom(e.target.value)} placeholder="Votre prénom" /></div>
                 <div className="field"><label className="field-label">Nom</label><input type="text" className="field-input" value={nom} onChange={(e) => setNom(e.target.value)} placeholder="Votre nom" /></div>
               </div>
-              <div className="profil-form-1" style={{ marginBottom: 16 }}>
-                <div className="field"><label className="field-label">Titre / Poste</label><input type="text" className="field-input" value={poste} onChange={(e) => setPoste(e.target.value)} placeholder="ex: Responsable qualité" /></div>
-              </div>
-              <div className="profil-form-1">
-                <div className="field"><label className="field-label">Courriel</label><input type="email" className="field-input" value={email} disabled style={{ opacity: .45, cursor: 'not-allowed' }} /></div>
-              </div>
-              <div className="profil-actions">
-                <span className={`profil-ok-msg${infoOk ? ' show' : ''}`}>✓ Informations enregistrées</span>
-                <button className="btn btn-primary" onClick={saveInfo} disabled={savingInfo}>{savingInfo ? 'Enregistrement…' : 'Enregistrer'}</button>
-              </div>
+              <div className="profil-form-1" style={{ marginBottom: 16 }}><div className="field"><label className="field-label">Titre / Poste</label><input type="text" className="field-input" value={poste} onChange={(e) => setPoste(e.target.value)} placeholder="ex: Responsable qualité" /></div></div>
+              <div className="profil-form-1"><div className="field"><label className="field-label">Courriel</label><input type="email" className="field-input" value={email} disabled style={{ opacity: .45, cursor: 'not-allowed' }} /></div></div>
+              <div className="profil-actions"><span className={`profil-ok-msg${infoOk ? ' show' : ''}`}>✓ Informations enregistrées</span><button className="btn btn-primary" onClick={saveInfo} disabled={savingInfo}>{savingInfo ? 'Enregistrement…' : 'Enregistrer'}</button></div>
             </div>
           </div>
-
           <div className="profil-section">
             <div className="profil-section-head"><div className="profil-section-title">Changer le mot de passe</div></div>
             <div className="profil-section-body">
-              <div className="profil-form-1" style={{ marginBottom: 16 }}>
-                <div className="field"><label className="field-label">Mot de passe actuel</label>
-                  <div className="pwd-wrap-input">
-                    <input type={showPwd.p0 ? 'text' : 'password'} className="field-input" value={pwd0} onChange={(e) => setPwd0(e.target.value)} placeholder="Votre mot de passe actuel" />
-                    <span className="pwd-eye" onClick={() => toggleEye('p0')}>{showPwd.p0 ? '🙈' : '👁'}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="profil-form-1" style={{ marginBottom: 16 }}>
-                <div className="field"><label className="field-label">Nouveau mot de passe</label>
-                  <div className="pwd-wrap-input">
-                    <input type={showPwd.p1 ? 'text' : 'password'} className="field-input" value={pwd1} onChange={(e) => setPwd1(e.target.value)} placeholder="Minimum 8 caractères" />
-                    <span className="pwd-eye" onClick={() => toggleEye('p1')}>{showPwd.p1 ? '🙈' : '👁'}</span>
-                  </div>
-                  <div className="pwd-bar-wrap"><div className="pwd-bar-fill" style={{ width: (strength.score * 25) + '%', background: strength.color }}></div></div>
-                  <div className="pwd-bar-label" style={{ color: strength.color }}>{strength.label}</div>
-                </div>
-              </div>
-              <div className="profil-form-1">
-                <div className="field"><label className="field-label">Confirmer le nouveau mot de passe</label>
-                  <div className="pwd-wrap-input">
-                    <input type={showPwd.p2 ? 'text' : 'password'} className="field-input" value={pwd2} onChange={(e) => setPwd2(e.target.value)} placeholder="Répétez le nouveau mot de passe" />
-                    <span className="pwd-eye" onClick={() => toggleEye('p2')}>{showPwd.p2 ? '🙈' : '👁'}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="profil-actions">
-                <span className={`profil-ok-msg${pwdOk ? ' show' : ''}`}>✓ Mot de passe mis à jour</span>
-                <button className="btn btn-primary" onClick={savePwd} disabled={savingPwd}>{savingPwd ? 'Mise à jour…' : 'Mettre à jour'}</button>
-              </div>
+              <div className="profil-form-1" style={{ marginBottom: 16 }}><div className="field"><label className="field-label">Mot de passe actuel</label><div className="pwd-wrap-input"><input type={showPwd.p0 ? 'text' : 'password'} className="field-input" value={pwd0} onChange={(e) => setPwd0(e.target.value)} placeholder="Votre mot de passe actuel" /><span className="pwd-eye" onClick={() => toggleEye('p0')}>{showPwd.p0 ? '🙈' : '👁'}</span></div></div></div>
+              <div className="profil-form-1" style={{ marginBottom: 16 }}><div className="field"><label className="field-label">Nouveau mot de passe</label><div className="pwd-wrap-input"><input type={showPwd.p1 ? 'text' : 'password'} className="field-input" value={pwd1} onChange={(e) => setPwd1(e.target.value)} placeholder="Minimum 8 caractères" /><span className="pwd-eye" onClick={() => toggleEye('p1')}>{showPwd.p1 ? '🙈' : '👁'}</span></div><div className="pwd-bar-wrap"><div className="pwd-bar-fill" style={{ width: (strength.score * 25) + '%', background: strength.color }}></div></div><div className="pwd-bar-label" style={{ color: strength.color }}>{strength.label}</div></div></div>
+              <div className="profil-form-1"><div className="field"><label className="field-label">Confirmer le nouveau mot de passe</label><div className="pwd-wrap-input"><input type={showPwd.p2 ? 'text' : 'password'} className="field-input" value={pwd2} onChange={(e) => setPwd2(e.target.value)} placeholder="Répétez le nouveau mot de passe" /><span className="pwd-eye" onClick={() => toggleEye('p2')}>{showPwd.p2 ? '🙈' : '👁'}</span></div></div></div>
+              <div className="profil-actions"><span className={`profil-ok-msg${pwdOk ? ' show' : ''}`}>✓ Mot de passe mis à jour</span><button className="btn btn-primary" onClick={savePwd} disabled={savingPwd}>{savingPwd ? 'Mise à jour…' : 'Mettre à jour'}</button></div>
             </div>
           </div>
         </div>

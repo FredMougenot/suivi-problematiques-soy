@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+
 import { usePlanningStore } from '../../store/usePlanningStore';
 import { useStatsParamsQuery, useSaveStatsParamsMutation, useCamionsRangeQuery } from './queries';
 import { getRange, periodLabel, todayStr, analyze } from './logic';
@@ -58,8 +58,7 @@ export default function StatsPonctualitePage() {
 
   return (
     <div className="tool-main">
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-        <Link to="/planning-camions" className="btn btn-secondary">← Planning</Link>
+      <div style={{ paddingLeft: 60, marginBottom: 8 }}>
         <div className="tool-title">Radar de Ponctualité</div>
       </div>
 
@@ -86,85 +85,29 @@ export default function StatsPonctualitePage() {
         ) : (
           <>
             <KpiRow A={A} seuils={seuils} />
-
             {period === 'day' ? (
               <div className="panels-row panels-2 anim d2">
-                <div className="panel">
-                  <div className="ph">
-                    <div className="ph-eye">Détail journée</div>
-                    <div className="ph-title">Timeline des arrivées</div>
-                    <div className="ph-sub">Camions ACTIFS uniquement · Inactifs affichés mais exclus des stats</div>
-                  </div>
-                  <DayTimeline data={data} seuils={seuils} />
-                </div>
-                <div className="panel">
-                  <div className="ph">
-                    <div className="ph-eye">Distribution</div>
-                    <div className="ph-title">Amplitude des retards</div>
-                    <div className="ph-sub">Camions actifs arrivés avec retard uniquement</div>
-                  </div>
-                  <DistChart retards={A.retards} seuils={seuils} />
-                </div>
+                <div className="panel"><div className="ph"><div className="ph-eye">Détail journée</div><div className="ph-title">Timeline des arrivées</div><div className="ph-sub">Camions ACTIFS uniquement · Inactifs affichés mais exclus des stats</div></div><DayTimeline data={data} seuils={seuils} /></div>
+                <div className="panel"><div className="ph"><div className="ph-eye">Distribution</div><div className="ph-title">Amplitude des retards</div><div className="ph-sub">Camions actifs arrivés avec retard uniquement</div></div><DistChart retards={A.retards} seuils={seuils} /></div>
               </div>
             ) : (
               <>
-                <div className="panels-row anim d2">
-                  <div className="panel panel-full">
-                    <div className="ph">
-                      <div className="ph-eye">Carte de chaleur</div>
-                      <div className="ph-title">Ponctualité par créneau horaire & journée</div>
-                      <div className="ph-sub">Taux de ponctualité ≤{seuils.seuil1}min · Tolérance critique {seuils.seuil2}min · Survol pour détail</div>
-                    </div>
-                    <Heatmap data={data} start={start} end={end} seuils={seuils} />
-                  </div>
-                </div>
+                <div className="panels-row anim d2"><div className="panel panel-full"><div className="ph"><div className="ph-eye">Carte de chaleur</div><div className="ph-title">Ponctualité par créneau horaire & journée</div><div className="ph-sub">Taux de ponctualité ≤{seuils.seuil1}min · Tolérance critique {seuils.seuil2}min</div></div><Heatmap data={data} start={start} end={end} seuils={seuils} /></div></div>
                 <div className="panels-row panels-2 anim d3">
-                  <div className="panel">
-                    <div className="ph">
-                      <div className="ph-eye">Évolution</div>
-                      <div className="ph-title">Taux de ponctualité par jour</div>
-                      <div className="ph-sub">Camions actifs arrivés uniquement · Objectif {seuils.objectif}%</div>
-                    </div>
-                    <div id="trend-chart-box"><TrendChart data={data} start={start} end={end} seuils={seuils} /></div>
-                  </div>
-                  <div className="panel">
-                    <div className="ph">
-                      <div className="ph-eye">Distribution</div>
-                      <div className="ph-title">Amplitude des retards</div>
-                      <div className="ph-sub">Vert ≤{seuils.seuil1}min · Orange ≤{seuils.seuil2}min · Rouge &gt;{seuils.seuil2}min</div>
-                    </div>
-                    <DistChart retards={A.retards} seuils={seuils} />
-                  </div>
+                  <div className="panel"><div className="ph"><div className="ph-eye">Évolution</div><div className="ph-title">Taux de ponctualité par jour</div><div className="ph-sub">Camions actifs arrivés uniquement · Objectif {seuils.objectif}%</div></div><div id="trend-chart-box"><TrendChart data={data} start={start} end={end} seuils={seuils} /></div></div>
+                  <div className="panel"><div className="ph"><div className="ph-eye">Distribution</div><div className="ph-title">Amplitude des retards</div><div className="ph-sub">Vert ≤{seuils.seuil1}min · Orange ≤{seuils.seuil2}min · Rouge &gt;{seuils.seuil2}min</div></div><DistChart retards={A.retards} seuils={seuils} /></div>
                 </div>
               </>
             )}
-
             <div className="panels-row panels-2 anim d4">
-              <div className="panel">
-                <div className="ph">
-                  <div className="ph-eye">Par destination</div>
-                  <div className="ph-title">Ponctualité selon la destination</div>
-                  <div className="ph-sub">Camions ACTIFS arrivés · tolérance ≤{seuils.seuil1} min</div>
-                </div>
-                <DestinationBars data={data} seuils={seuils} />
-              </div>
-              <div className="panel">
-                <div className="ph">
-                  <div className="ph-eye">Points chauds</div>
-                  <div className="ph-title">Créneaux les plus problématiques</div>
-                  <div className="ph-sub">Camions ACTIFS en retard · Orange &gt;{seuils.seuil1}min · Rouge &gt;{seuils.seuil2}min</div>
-                </div>
-                <WorstSlots data={data} seuils={seuils} />
-              </div>
+              <div className="panel"><div className="ph"><div className="ph-eye">Par destination</div><div className="ph-title">Ponctualité selon la destination</div><div className="ph-sub">Camions ACTIFS arrivés · tolérance ≤{seuils.seuil1} min</div></div><DestinationBars data={data} seuils={seuils} /></div>
+              <div className="panel"><div className="ph"><div className="ph-eye">Points chauds</div><div className="ph-title">Créneaux les plus problématiques</div><div className="ph-sub">Camions ACTIFS en retard · Orange &gt;{seuils.seuil1}min · Rouge &gt;{seuils.seuil2}min</div></div><WorstSlots data={data} seuils={seuils} /></div>
             </div>
           </>
         )}
       </div>
 
-      <StatsParamsModal
-        open={paramsOpen} onClose={() => setParamsOpen(false)}
-        seuils={seuils} onSave={handleSaveParams} saving={saveParamsMutation.isPending}
-      />
+      <StatsParamsModal open={paramsOpen} onClose={() => setParamsOpen(false)} seuils={seuils} onSave={handleSaveParams} saving={saveParamsMutation.isPending} />
     </div>
   );
 }
