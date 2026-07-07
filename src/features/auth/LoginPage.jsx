@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
-import NeuralVortexBackground from './NeuralVortexBackground';
+import TubesCursor from './NeuralVortexBackground';
 import './login.css';
 
 const REMEMBER_KEY = 'soy_remember_email';
@@ -47,7 +47,7 @@ export default function LoginPage() {
 
   return (
     <div className="lg-page">
-      <NeuralVortexBackground />
+      <TubesCursor />
       <div className="lg-scrim" />
 
       <div className="lg-card">
