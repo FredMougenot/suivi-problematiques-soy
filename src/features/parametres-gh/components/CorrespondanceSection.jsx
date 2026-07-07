@@ -44,7 +44,7 @@ export default function CorrespondanceSection({ rows, onSave, onDelete, saving }
       </div>
 
       {addOpen && (
-        <div style={{ background: 'var(--bg-float)', border: '1px solid rgba(45,212,160,.2)', borderRadius: 'var(--r-lg)', padding: '14px 16px', marginBottom: 14 }}>
+        <div style={{ background: 'var(--bg-float)', border: '1px solid rgba(45,212,160,.2)', borderRadius: 'var(--r-lg)', padding: '14px 16px', marginBottom: 14, transform: 'translateZ(0)'}}>
           <div style={{ fontSize: '.68rem', fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--emerald)', marginBottom: 10 }}>Nouvelle correspondance</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -68,9 +68,9 @@ export default function CorrespondanceSection({ rows, onSave, onDelete, saving }
       )}
 
       <div style={{ overflow: 'hidden', border: '1px solid rgba(255,255,255,.07)', borderRadius: 'var(--r-lg)', maxHeight: '65vh', overflowY: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', background: 'var(--bg-raised)' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', background: 'var(--bg-raised)', transform: 'translateZ(0)'}}>
           <thead style={{ position: 'sticky', top: 0, zIndex: 2 }}>
-            <tr style={{ background: 'var(--bg-float)', borderBottom: '1px solid rgba(255,255,255,.08)' }}>
+            <tr style={{ background: 'var(--bg-float)', borderBottom: '1px solid rgba(255,255,255,.08)', transform: 'translateZ(0)'}}>
               <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '.6rem', fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--text-faint)', width: 36 }}>#</th>
               <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '.6rem', fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--text-faint)' }}>Code TRAX</th>
               <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '.6rem', fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--text-faint)' }}>Code interne</th>
@@ -82,13 +82,13 @@ export default function CorrespondanceSection({ rows, onSave, onDelete, saving }
             {filtered.length === 0 ? (
               <tr><td colSpan={5} style={{ padding: 30, textAlign: 'center', color: 'var(--text-faint)' }}>Aucun résultat</td></tr>
             ) : filtered.map((row, i) => (
-              <tr key={row.id} style={{ borderBottom: '1px solid rgba(255,255,255,.04)' }}>
+              <tr key={row.id} style={{ borderBottom: '1px solid rgba(255,255,255,.04)', transform: 'translateZ(0)' }}>
                 {editingId === row.id ? (
                   <>
                     <td style={{ padding: '7px 14px', textAlign: 'center', fontSize: '.72rem', color: 'var(--text-faint)' }}>✏️</td>
-                    <td style={{ padding: '4px 8px' }}><input value={editForm.trax} onChange={(e) => setEditForm((f) => ({ ...f, trax: e.target.value }))} style={{ background: 'var(--bg-raised)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 4, padding: '3px 7px', color: 'var(--sapphire)', fontWeight: 700, fontSize: '.78rem', width: '100%', outline: 'none' }} /></td>
-                    <td style={{ padding: '4px 8px' }}><input value={editForm.interne} onChange={(e) => setEditForm((f) => ({ ...f, interne: e.target.value }))} style={{ background: 'var(--bg-raised)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 4, padding: '3px 7px', color: 'var(--emerald)', fontWeight: 600, fontSize: '.78rem', width: '100%', outline: 'none' }} /></td>
-                    <td style={{ padding: '4px 8px' }}><input value={editForm.desig} onChange={(e) => setEditForm((f) => ({ ...f, desig: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(row.id); if (e.key === 'Escape') setEditingId(null); }} style={{ background: 'var(--bg-raised)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 4, padding: '3px 7px', color: 'var(--text-primary)', fontSize: '.78rem', width: '100%', outline: 'none' }} /></td>
+                    <td style={{ padding: '4px 8px' }}><input value={editForm.trax} onChange={(e) => setEditForm((f) => ({ ...f, trax: e.target.value }))} style={{ background: 'var(--bg-raised)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 4, padding: '3px 7px', color: 'var(--sapphire)', fontWeight: 700, fontSize: '.78rem', width: '100%', outline: 'none', transform: 'translateZ(0)'}} /></td>
+                    <td style={{ padding: '4px 8px' }}><input value={editForm.interne} onChange={(e) => setEditForm((f) => ({ ...f, interne: e.target.value }))} style={{ background: 'var(--bg-raised)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 4, padding: '3px 7px', color: 'var(--emerald)', fontWeight: 600, fontSize: '.78rem', width: '100%', outline: 'none', transform: 'translateZ(0)'}} /></td>
+                    <td style={{ padding: '4px 8px' }}><input value={editForm.desig} onChange={(e) => setEditForm((f) => ({ ...f, desig: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(row.id); if (e.key === 'Escape') setEditingId(null); }} style={{ background: 'var(--bg-raised)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 4, padding: '3px 7px', color: 'var(--text-primary)', fontSize: '.78rem', width: '100%', outline: 'none', transform: 'translateZ(0)'}} /></td>
                     <td style={{ padding: '7px 8px', textAlign: 'center', display: 'flex', gap: 4, justifyContent: 'center' }}>
                       <button className="btn-icon" onClick={() => saveEdit(row.id)}>✓</button>
                       <button className="btn-icon" onClick={() => setEditingId(null)}>✕</button>
