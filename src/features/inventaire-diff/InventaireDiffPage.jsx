@@ -9,6 +9,7 @@ import DiffCategorySidebar from './components/DiffCategorySidebar';
 import DiffView from './components/DiffView';
 import SnapshotConfirmModal from './components/SnapshotConfirmModal';
 import './inventaireDiff.css';
+import LoadingOverlay from '../../design-system/LoadingOverlay';
 
 export default function InventaireDiffPage() {
   const addToast = usePlanningStore((s) => s.addToast);
@@ -99,7 +100,7 @@ export default function InventaireDiffPage() {
 
       <div className="diff-layout">
         {isLoading ? (
-          <div className="spinner-box" style={{ gridColumn: '1 / -1' }}><div className="spinner-ring"></div> Chargement…</div>
+          <LoadingOverlay />
         ) : !hasSnapshots ? (
           <div className="empty-state" style={{ gridColumn: '1 / -1' }}>
             <div className="empty-state-icon">📸</div>

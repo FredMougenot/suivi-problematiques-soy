@@ -11,6 +11,7 @@ import Heatmap from './components/Heatmap';
 import DoughnutChart from './components/DoughnutChart';
 import { exportErreursPapierPdf } from './exportErreursPapierPdf';
 import './erreurs-papier.css';
+import LoadingOverlay from '../../design-system/LoadingOverlay';
 
 export default function ErreursPapierPage() {
   const addToast = usePlanningStore((s) => s.addToast);
@@ -83,7 +84,7 @@ export default function ErreursPapierPage() {
 
       <div className="ep-main-content">
         {rowsQ.isLoading ? (
-          <div className="spinner-box"><div className="spinner-ring"></div> Analyse en cours…</div>
+          <LoadingOverlay />
         ) : (
           <>
             <div className="ep-grid-3">

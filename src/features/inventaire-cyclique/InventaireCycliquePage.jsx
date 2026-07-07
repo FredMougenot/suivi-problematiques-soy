@@ -11,6 +11,7 @@ import IcCharts from './components/IcCharts';
 import StockTable from './components/StockTable';
 import HistorySearch from './components/HistorySearch';
 import './inventaireCyclique.css';
+import LoadingOverlay from '../../design-system/LoadingOverlay';
 
 export default function InventaireCycliquePage() {
   const addToast = usePlanningStore((s) => s.addToast);
@@ -113,7 +114,7 @@ export default function InventaireCycliquePage() {
         <div className="section-divider-line"></div>
       </div>
       {paramItemsQ.isLoading ? (
-        <div className="spinner-box"><div className="spinner-ring"></div></div>
+        <LoadingOverlay />
       ) : (
         <>
           <IcCharts paramItems={paramItems} />
@@ -130,7 +131,7 @@ export default function InventaireCycliquePage() {
         <button className="btn btn-primary" onClick={handleAddItem}>Ajouter un item</button>
       </div>
       {stockQ.isLoading ? (
-        <div className="spinner-box"><div className="spinner-ring"></div></div>
+        <LoadingOverlay />
       ) : (
         <StockTable stockRows={stockRows} paramItems={paramItems} onFieldChange={handleFieldChange} onDeleteRow={handleDeleteRow} />
       )}
