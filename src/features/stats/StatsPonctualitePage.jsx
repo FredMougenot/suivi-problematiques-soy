@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+
 import { usePlanningStore } from '../../store/usePlanningStore';
 import { useStatsParamsQuery, useSaveStatsParamsMutation, useCamionsRangeQuery } from './queries';
 import { getRange, periodLabel, todayStr, analyze } from './logic';
@@ -58,8 +58,7 @@ export default function StatsPonctualitePage() {
 
   return (
     <div className="tool-main">
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-        <Link to="/planning-camions" className="btn btn-secondary">← Planning</Link>
+      <div style={{ paddingLeft: 60, marginBottom: 8 }}>
         <div className="tool-title">Radar de Ponctualité</div>
       </div>
 
@@ -131,7 +130,7 @@ export default function StatsPonctualitePage() {
                     <div className="ph">
                       <div className="ph-eye">Distribution</div>
                       <div className="ph-title">Amplitude des retards</div>
-                      <div className="ph-sub">Vert ≤{seuils.seuil1}min · Orange ≤{seuils.seuil2}min · Rouge &gt;{seuils.seuil2}min</div>
+                      <div className="ph-sub">Vert ≤{seuils.seuil1}min · Orange ≤{seuils.seuil2}min · Rouge >{seuils.seuil2}min</div>
                     </div>
                     <DistChart retards={A.retards} seuils={seuils} />
                   </div>
@@ -152,7 +151,7 @@ export default function StatsPonctualitePage() {
                 <div className="ph">
                   <div className="ph-eye">Points chauds</div>
                   <div className="ph-title">Créneaux les plus problématiques</div>
-                  <div className="ph-sub">Camions ACTIFS en retard · Orange &gt;{seuils.seuil1}min · Rouge &gt;{seuils.seuil2}min</div>
+                  <div className="ph-sub">Camions ACTIFS en retard · Orange >{seuils.seuil1}min · Rouge >{seuils.seuil2}min</div>
                 </div>
                 <WorstSlots data={data} seuils={seuils} />
               </div>
