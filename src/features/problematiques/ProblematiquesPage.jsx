@@ -114,7 +114,7 @@ export default function ProblematiquesPage() {
 
       <DateNav date={curDate} onChange={setCurDate} showTodayButton={false} />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, flexWrap: 'wrap', gap: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, flexWrap: 'wrap', gap: 10, transform: 'translateZ(0)' }}>
         <div className="pilier-btns">
           <span style={{ fontSize: '.78rem', color: 'var(--text-muted)', alignSelf: 'center', whiteSpace: 'nowrap' }}>Graphiques :</span>
           <button className={`pilier-btn${!activePilierChart && !incompletOnly ? ' active' : ''}`} onClick={() => { setActivePilierChart(''); setPilierFilter(''); setIncompletOnly(false); }}>Tous</button>
@@ -122,7 +122,7 @@ export default function ProblematiquesPage() {
             <button key={p} className={`pilier-btn${activePilierChart === p ? ' active' : ''}`} onClick={() => selectPilierBtn(p)}>{p}</button>
           ))}
           <button className={`pilier-btn${incompletOnly ? ' active' : ''}`} onClick={toggleIncomplet}>
-            Incomplètes {incompletCount > 0 && <span style={{ background: 'var(--amber)', color: '#0F1118', fontSize: '.6rem', fontWeight: 800, padding: '1px 5px', borderRadius: 10, marginLeft: 4 }}>{incompletCount}</span>}
+            Incomplètes {incompletCount > 0 && <span style={{ background: 'var(--amber)', color: '#0F1118', fontSize: '.6rem', fontWeight: 800, padding: '1px 5px', borderRadius: 10, marginLeft: 4, transform: 'translateZ(0)' }}>{incompletCount}</span>}
           </button>
         </div>
       </div>
@@ -149,7 +149,7 @@ export default function ProblematiquesPage() {
           <option value="">Tous les statuts</option>
           <option>À traiter</option><option>En cours</option><option>Résolu</option><option>Annulé</option><option>Clôturé</option>
         </select>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', fontSize: '.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', marginLeft: 4 }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', fontSize: '.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', marginLeft: 4, transform: 'translateZ(0)' }}>
           <input type="checkbox" checked={showCloture} onChange={(e) => setShowCloture(e.target.checked)} style={{ width: 15, height: 15, accentColor: 'var(--copper)', transform: 'translateZ(0)' }} />
           Afficher les clôturées / résolues
         </label>
