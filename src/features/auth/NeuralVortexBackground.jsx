@@ -72,7 +72,7 @@ export default function TubesCursor() {
     // Correction ici : la div est proprement ouverte et liée au clic
     <div 
       {/* Canvas element for the animation, positioned behind everything else */}
-      <canvas ref={canvasRef} className="fixed inset-0 z-0" />
+      <canvas ref={canvasRef} className="fixed inset-0 z-0" 
     </div>
   );
 }
