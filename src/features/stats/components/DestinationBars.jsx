@@ -30,7 +30,7 @@ export default function DestinationBars({ data, seuils }) {
           <div className="dest-row" key={name}>
             <div className="dest-name">{name}</div>
             <div className="dest-track">
-              <div className="dest-fill" style={{ width: t + '%', background: fill, boxShadow: glow }}>
+              <div className="dest-fill" style={{ width: t + '%', background: fill, boxShadow: glow, transform: 'translateZ(0)' }}>
                 {t > 22 && <span style={{ textShadow: '0 1px 3px rgba(0,0,0,.4)' }}>{t}%</span>}
               </div>
             </div>
