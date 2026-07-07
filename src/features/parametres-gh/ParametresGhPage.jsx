@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+
 import { usePlanningStore } from '../../store/usePlanningStore';
 import {
   useGhCategoriesQuery, useSaveCategoryMutation, useDeleteCategoryMutation,
@@ -92,9 +92,6 @@ export default function ParametresGhPage() {
 
   return (
     <div className="tool-main-full">
-      <div style={{ padding: '12px 24px 0' }}>
-        <Link to="/inventaire-gh" className="btn btn-secondary">← Inventaire GH</Link>
-      </div>
       <div className="param-layout">
         <div className="param-sidebar">
           <div className="sidebar-section">Navigation</div>
