@@ -8,29 +8,35 @@ export default function TubesCursorComponent() {
     let app = null;
     let animationFrameId = null;
     
-    // 1. On sauvegarde l'API WebGPU d'origine
-    const originalGpu = navigator.gpu;
+    // On conserve une référence vers le constructeur global original si Three est exposé
+    const originalWebGPURenderer = window.THREE?.WebGPURenderer;
 
     const initAnimation = async () => {
       if (canvasRef.current && !appRef.current) {
         try {
           /* 
-            2. BLOCAGE STRICT : On supprime temporairement la propriété gpu de navigator.
-               Three.js (et le script tubes1) va instantanément basculer sur WebGL2 (stable).
+            INTERCEPTION STRICTE :
+            On redéfinit la manière dont Three.js gère son WebGPURenderer global.
+            Dès que le script externe appelle "new WebGPURenderer()", on lui injecte 
+            de force le paramètre de repli WebGL de Three.js.
           */
-          if (originalGpu) {
-            Object.defineProperty(navigator, 'gpu', {
-              configurable: true,
-              enumerable: true,
-              get: () => undefined // Renvoie undefined pour faire croire qu'il n'y a pas de WebGPU
-            });
+          if (window.THREE) {
+            const OriginalRenderer = window.THREE.WebGPURenderer;
+            window.THREE.WebGPURenderer = function (parameters) {
+              return new OriginalRenderer({
+                ...parameters,
+                forceWebGL: true // Force Three.js à utiliser le backend WebGL2 classique
+              });
+            };
+            // On copie les propriétés statiques s'il y en a
+            Object.assign(window.THREE.WebGPURenderer, OriginalRenderer);
           }
 
-          // 3. On charge le script APRÈS avoir bloqué l'API WebGPU
+          // Chargement dynamique sécurisé du module de curseur
           const module = await import('https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js');
           const TubesCursor = module.default;
 
-          // 4. Initialisation sécurisée en WebGL2
+          // Initialisation du curseur
           app = new TubesCursor(canvasRef.current, {
             tubes: {
               colors: ["#5e72e4", "#8965e0", "#f5365c"],
@@ -43,22 +49,27 @@ export default function TubesCursorComponent() {
           
           appRef.current = app;
 
-          // 5. On restaure proprement l'API pour le reste du navigateur une fois l'init réussie
-          if (originalGpu) {
-            Object.defineProperty(navigator, 'gpu', {
-              configurable: true,
-              enumerable: true,
-              get: () => originalGpu
-            });
-          }
-
         } catch (err) {
           console.error("Failed to initialize TubesCursor safely:", err);
+          
+          // Solution de secours ultime : Si l'interception échoue, on neutralise l'API GPU
+          try {
+            if (navigator.gpu) {
+              Object.defineProperty(navigator, 'gpu', {
+                configurable: true,
+                get: () => undefined
+              });
+            }
+            const module = await import('https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js');
+            app = new module.default(canvasRef.current);
+            appRef.current = app;
+          } catch (fallbackErr) {
+            console.error("Ultimate fallback failed:", fallbackErr);
+          }
         }
       }
     };
 
-    // On attend que le canvas soit dessiné à l'écran
     animationFrameId = requestAnimationFrame(() => {
       initAnimation();
     });
@@ -66,13 +77,9 @@ export default function TubesCursorComponent() {
     return () => {
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
       
-      // Sécurité : On remet toujours le WebGPU d'origine si le composant s'en va
-      if (originalGpu) {
-        Object.defineProperty(navigator, 'gpu', {
-          configurable: true,
-          enumerable: true,
-          get: () => originalGpu
-        });
+      // Nettoyage et restauration de l'objet global THREE
+      if (window.THREE && originalWebGPURenderer) {
+        window.THREE.WebGPURenderer = originalWebGPURenderer;
       }
 
       if (appRef.current && typeof appRef.current.dispose === 'function') {
