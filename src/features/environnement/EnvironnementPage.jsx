@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { usePlanningStore } from '../../store/usePlanningStore';
-import {
-  useEnvRowsQuery, useEnvHistoryQuery, useSaveVerifMutation, useDeleteVerifMutation,
-  useCreateProblemesBulkMutation, usePilierCritereTitreQuery,
-} from './queries';
+import { useEnvRowsQuery, useEnvHistoryQuery, useSaveVerifMutation, useDeleteVerifMutation, useCreateProblemesBulkMutation, usePilierCritereTitreQuery } from './queries';
 import { VERIFS_FIXES, localToday, isToday, changeDayStr, getEnvLimit, saveEnvLimit, getNcParams, saveNcParams, computeNcSeries } from './logic';
 import VerifTable from './components/VerifTable';
 import EnvCharts from './components/EnvCharts';
@@ -44,29 +41,20 @@ export default function EnvironnementPage() {
     });
   }
 
-  function changeDay(delta) {
-    setCurDate((d) => changeDayStr(d, delta));
-    setPendingLocalRows({});
-  }
+  function changeDay(delta) { setCurDate((d) => changeDayStr(d, delta)); setPendingLocalRows({}); }
 
   async function handleAddVerif(label) {
     const key = 'extra_' + Date.now();
-    const newRow = { verif_key: key, label, date_jour: curDate, conforme: false, non_conforme: false };
-    setPendingLocalRows((prev) => ({ ...prev, [key]: newRow }));
+    setPendingLocalRows((prev) => ({ ...prev, [key]: { verif_key: key, label, date_jour: curDate, conforme: false, non_conforme: false } }));
     setAddModalOpen(false);
-    try {
-      await saveMutation.mutateAsync({ verif_key: key, date_jour: curDate, label, conforme: false, non_conforme: false, updated_at: new Date().toISOString() });
-      addToast('Vérification ajoutée ✓', 'success');
-    } catch (e) { addToast('Erreur : ' + e.message, 'error'); }
+    try { await saveMutation.mutateAsync({ verif_key: key, date_jour: curDate, label, conforme: false, non_conforme: false, updated_at: new Date().toISOString() }); addToast('Vérification ajoutée ✓', 'success'); }
+    catch (e) { addToast('Erreur : ' + e.message, 'error'); }
   }
 
   async function handleDelete(key, id) {
     if (!confirm('Supprimer cette vérification ?')) return;
-    try {
-      await deleteMutation.mutateAsync({ id, dateJour: curDate });
-      setPendingLocalRows((prev) => { const n = { ...prev }; delete n[key]; return n; });
-      addToast('Supprimé', 'success');
-    } catch (e) { addToast('Erreur : ' + e.message, 'error'); }
+    try { await deleteMutation.mutateAsync({ id, dateJour: curDate }); setPendingLocalRows((prev) => { const n = { ...prev }; delete n[key]; return n; }); addToast('Supprimé', 'success'); }
+    catch (e) { addToast('Erreur : ' + e.message, 'error'); }
   }
 
   async function handleSaveAll() {
@@ -75,9 +63,7 @@ export default function EnvironnementPage() {
     for (const key of allKeys) {
       const r = rows[key] || {};
       if (!r.id && !r.conforme && !r.non_conforme) continue;
-      try {
-        await saveMutation.mutateAsync({ verif_key: key, date_jour: curDate, label: r.label || key, conforme: !!r.conforme, non_conforme: !!r.non_conforme, updated_at: new Date().toISOString() });
-      } catch { errors++; }
+      try { await saveMutation.mutateAsync({ verif_key: key, date_jour: curDate, label: r.label || key, conforme: !!r.conforme, non_conforme: !!r.non_conforme, updated_at: new Date().toISOString() }); } catch { errors++; }
     }
     setPendingLocalRows({});
     if (errors) addToast(errors + ' erreur(s) lors de la sauvegarde', 'error');
@@ -96,18 +82,9 @@ export default function EnvironnementPage() {
 
   async function handleSubmitNc() {
     const params = getNcParams();
-    const payload = ncList.map((item) => ({
-      intitule: item.label,
-      description: 'Non-conformité détectée le ' + curDate + ' lors de la vérification environnement : ' + item.label,
-      pilier: params.pilier, priorite: params.priorite, statut: params.statut,
-      responsable: params.responsable || null, soumis_par: params.soumis_par || 'Environnement auto',
-    }));
-    try {
-      await createBulkMutation.mutateAsync(payload);
-      setConfirmModalOpen(false);
-      const n = payload.length;
-      addToast(n + ' problématique' + (n > 1 ? 's' : '') + ' créée' + (n > 1 ? 's' : '') + ' dans le registre ✓', 'success');
-    } catch (e) { addToast('Erreur : ' + e.message, 'error'); }
+    const payload = ncList.map((item) => ({ intitule: item.label, description: 'Non-conformité détectée le ' + curDate + ' lors de la vérification environnement : ' + item.label, pilier: params.pilier, priorite: params.priorite, statut: params.statut, responsable: params.responsable || null, soumis_par: params.soumis_par || 'Environnement auto' }));
+    try { await createBulkMutation.mutateAsync(payload); setConfirmModalOpen(false); const n = payload.length; addToast(n + ' problématique' + (n > 1 ? 's' : '') + ' créée' + (n > 1 ? 's' : '') + ' dans le registre ✓', 'success'); }
+    catch (e) { addToast('Erreur : ' + e.message, 'error'); }
   }
 
   function handleExportPdf() {
@@ -123,37 +100,25 @@ export default function EnvironnementPage() {
 
   return (
     <div className="tool-main">
-      <div className="sec-h" style={{ marginBottom: 8 }}>
+      <div className="sec-h" style={{ marginBottom: 8, paddingLeft: 60 }}>
         <div><div className="sec-t">🌿 {pageTitle}</div><div className="sec-s">Vérifications quotidiennes de conformité environnementale</div></div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn btn-ghost" onClick={handleExportPdf}>Exporter PDF</button>
           <button className="btn btn-ghost" onClick={() => setParamsModalOpen(true)}>Paramètres</button>
         </div>
       </div>
-
       <div className="date-nav-bar">
         <button className="date-nav-arr" onClick={() => changeDay(-1)}>←</button>
         <div className="date-nav-label">{dateLabel}{isToday(curDate) && <span className="date-nav-today-chip">Aujourd'hui</span>}</div>
         <button className="date-nav-arr" onClick={() => changeDay(1)}>→</button>
       </div>
-
       <EnvCharts series={series} weekLimit={weekLimit} monthLimit={monthLimit} onChangeWeekLimit={updateWeekLimit} onChangeMonthLimit={updateMonthLimit} />
-
-      <div style={{ marginBottom: 8 }}>
-        <button className="btn btn-primary" onClick={() => setAddModalOpen(true)}>Ajouter une vérification</button>
-      </div>
-
-      {rowsQ.isLoading ? (
-        <LoadingOverlay />
-      ) : (
-        <VerifTable rows={rows} onSetConf={setConf} onDelete={handleDelete} />
-      )}
-
+      <div style={{ marginBottom: 8 }}><button className="btn btn-primary" onClick={() => setAddModalOpen(true)}>Ajouter une vérification</button></div>
+      {rowsQ.isLoading ? <LoadingOverlay /> : <VerifTable rows={rows} onSetConf={setConf} onDelete={handleDelete} />}
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, padding: '16px 0 4px', flexWrap: 'wrap' }}>
         <button className="btn btn-primary" onClick={handleSaveAll}>Sauvegarder tout</button>
         <button className="btn btn-danger" onClick={handleOpenNcModal}>Soumettre les non-conformités</button>
       </div>
-
       <AddVerifModal open={addModalOpen} onClose={() => setAddModalOpen(false)} onConfirm={handleAddVerif} />
       <NcParamsModal open={paramsModalOpen} onClose={() => setParamsModalOpen(false)} params={getNcParams()} onSave={(p) => { saveNcParams(p); setParamsModalOpen(false); addToast('Paramètres enregistrés ✓', 'success'); }} />
       <NcConfirmModal open={confirmModalOpen} ncList={ncList} onClose={() => setConfirmModalOpen(false)} onConfirm={handleSubmitNc} submitting={createBulkMutation.isPending} />
