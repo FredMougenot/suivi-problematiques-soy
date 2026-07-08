@@ -1,12 +1,9 @@
 /* ═══════════════════════════════════════════════════════════════
    PARAMÈTRES GH — styles propres à cette page
-   (boutons, tableaux, empty state, page-header : voir design-system/components.css)
 ═══════════════════════════════════════════════════════════════ */
 
-.tool-main-full { min-height: 100%; }
-
-.param-layout { display: grid; grid-template-columns: 260px 1fr; gap: 0; }
-@media (max-width: 800px) { .param-layout { grid-template-columns: 1fr; } }
+.param-layout { display: grid; grid-template-columns: 260px 1fr; gap: 0; margin: 0 -28px; }
+@media (max-width: 800px) { .param-layout { grid-template-columns: 1fr; margin: 0; } }
 .param-sidebar { background: var(--bg-raised); border-right: 1px solid rgba(255,255,255,.06); padding: 16px 0; transform: translateZ(0); }
 .sidebar-section { font-size: .68rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--text-faint); padding: 0 18px 10px; margin-top: 8px; }
 .sidebar-section:first-child { margin-top: 0; }
@@ -44,7 +41,6 @@
 .emoji-opt { width: 32px; height: 32px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; }
 .emoji-opt:hover { background: rgba(255,255,255,.1); transform: translateZ(0); }
 
-/* Tableau des poids (scopé à .gh-poids-table pour la largeur des colonnes) */
 .gh-poids-table th:first-child, .gh-poids-table td:first-child { width: 120px; }
 .gh-poids-table th:last-child, .gh-poids-table td:last-child { width: 50px; }
 .gh-poids-table th:nth-child(4), .gh-poids-table td:nth-child(4) { width: 110px; text-align: center; }
