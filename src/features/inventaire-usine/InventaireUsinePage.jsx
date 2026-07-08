@@ -47,31 +47,27 @@ export default function InventaireUsinePage() {
 
   return (
     <div className="tool-main">
-      <div style={{ paddingLeft: 60, transform: 'translateZ(0)' }}>
-        <div className="page-eyebrow">Relevé hebdomadaire</div>
-        <div className="page-title">Stock Usine</div>
-        <div className="page-sub">Saisie du stock présent à l'usine. Chaque lundi, saisissez l'intégralité des produits présents. Le relevé précédent sera remplacé lors de la sauvegarde.</div>
-      </div>
-      <div className="releve-banner">
-        <div className="releve-info">
-          <div className="releve-date-wrap"><div className="releve-date-lbl">Date du relevé</div><div className="releve-date-val">{dateReleve ? fmtDate(dateReleve) : '—'}</div></div>
-          <div className="badge-usine">🏭 Usine</div>
-          <div className="releve-count">{totalLignes} produit{totalLignes !== 1 ? 's' : ''}</div>
-          {lastSavedDate && <div style={{ fontSize: '.76rem', color: 'var(--text-muted)' }}>Dernier relevé chargé — <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{fmtDate(lastSavedDate)}</span></div>}
+      <div className="sec-h" style={{ marginBottom: 8, paddingLeft: 60 }}>
+        <div>
+          <div className="sec-t">Stock usine</div>
+          <div className="sec-s">Saisie du relevé hebdomadaire — chaque lundi</div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <input type="date" value={dateReleve} onChange={(e) => setDateReleve(e.target.value)} style={{ background: 'var(--bg-float)', border: '1px solid var(--text-faint)', color: 'var(--text-primary)', borderRadius: 'var(--r-sm)', padding: '6px 10px', fontSize: '.84rem', outline: 'none', transform: 'translateZ(0)'}} />
-          <button className="btn btn-danger" onClick={() => setConfirmOpen(true)}>Nouveau relevé (effacer)</button>
-        </div>
-      </div>
-      <div className="toolbar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-danger" onClick={() => setConfirmOpen(true)}>Nouveau relevé</button>
           <button className="btn btn-primary" onClick={handleAddRow}>Ajouter un produit</button>
           <button className="btn btn-primary" onClick={handleSaveAll} disabled={saveMutation.isPending}>{saveMutation.isPending ? 'Sauvegarde…' : 'Sauvegarder'}</button>
           <Link to="/inventaire-global" className="btn btn-secondary">Inventaire global</Link>
         </div>
-        <div style={{ fontSize: '.72rem', color: 'var(--text-muted)' }}>* Champs obligatoires</div>
       </div>
+      <div className="releve-banner">
+        <div className="releve-info">
+          <div className="releve-date-wrap"><div className="releve-date-lbl">Date du relevé</div><div className="releve-date-val">{dateReleve ? fmtDate(dateReleve) : '—'}</div></div>
+          <div className="releve-count">{totalLignes} produit{totalLignes !== 1 ? 's' : ''}</div>
+          {lastSavedDate && <div style={{ fontSize: '.76rem', color: 'var(--text-muted)' }}>Dernier relevé — <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{fmtDate(lastSavedDate)}</span></div>}
+        </div>
+        <input type="date" value={dateReleve} onChange={(e) => setDateReleve(e.target.value)} style={{ background: 'var(--bg-float)', border: '1px solid var(--text-faint)', color: 'var(--text-primary)', borderRadius: 'var(--r-sm)', padding: '6px 10px', fontSize: '.84rem', outline: 'none', transform: 'translateZ(0)'}} />
+      </div>
+      <div style={{ fontSize: '.72rem', color: 'var(--text-muted)', marginBottom: 8 }}>* Code produit et No. lot sont obligatoires</div>
       <div className="tbl-wrap">
         {releveQ.isLoading ? <LoadingOverlay /> : (<><SaisieTable rows={rows} categories={categories} traxData={traxData} onFieldChange={handleFieldChange} onCategoryChange={handleCategoryChange} onPickTrax={handlePickTrax} onRemoveRow={handleRemoveRow} />{rows.length > 0 && <div className="tbl-footer"><div className="tbl-totaux"><div className="total-item"><div className="total-lbl">Produits</div><div className="total-val">{totalLignes}</div></div><div className="total-item"><div className="total-lbl">Qté totale</div><div className="total-val">{totalQte % 1 === 0 ? totalQte : totalQte.toFixed(2)}</div></div><div className="total-item"><div className="total-lbl">Poids total</div><div className="total-val">{totalPoids.toFixed(2)} kg</div></div></div><div style={{ fontSize: '.72rem', color: 'var(--text-muted)' }}>Poids calculé automatiquement : Qté × Poids unitaire + Balance</div></div>}</>)}
       </div>

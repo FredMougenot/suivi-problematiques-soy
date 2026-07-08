@@ -101,7 +101,10 @@ export default function EnvironnementPage() {
   return (
     <div className="tool-main">
       <div className="sec-h" style={{ marginBottom: 8, paddingLeft: 60 }}>
-        <div><div className="sec-t">🌿 {pageTitle}</div><div className="sec-s">Vérifications quotidiennes de conformité environnementale</div></div>
+        <div>
+          <div className="sec-t">{pageTitle}</div>
+          <div className="sec-s">Vérifications quotidiennes de conformité environnementale</div>
+        </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn btn-ghost" onClick={handleExportPdf}>Exporter PDF</button>
           <button className="btn btn-ghost" onClick={() => setParamsModalOpen(true)}>Paramètres</button>

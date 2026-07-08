@@ -83,18 +83,15 @@ export default function IntentionsProductionPage() {
 
   return (
     <div className="tool-main">
-      <div className="ip-topbar-row" style={{ paddingLeft: 60, transform: 'translateZ(0)' }}>
+      <div className="sec-h" style={{ marginBottom: 8, paddingLeft: 60 }}>
         <div>
-          <div className="page-eyebrow">Planification journalière</div>
-          <div className="page-title">Intentions de production</div>
-          <div className="page-sub">Configurez l'état des lignes de production pour le cycle N8n en cours.</div>
+          <div className="sec-t">Intentions de production</div>
+          <div className="sec-s">Planification journalière — {fmtDate(todayStr)}</div>
         </div>
         <button className="btn btn-primary" onClick={handleSave} disabled={saveMutation.isPending}>
           {saveMutation.isPending ? 'Sauvegarde…' : 'Sauvegarder'}
         </button>
       </div>
-
-      <div className="date-badge">📅 Journée du <span>{fmtDate(todayStr)}</span></div>
 
       <div className="info-box">
         <span className="info-box-ico">ℹ</span>
@@ -133,16 +130,8 @@ export default function IntentionsProductionPage() {
           ) : (
             historique.slice(0, 10).map((h, i) => (
               <div key={i}>
-                <div className="histo-row">
-                  <span className="histo-time">{h.heure}</span>
-                  <span className="histo-ligne">L1</span>
-                  <span className="histo-desc">{h.l1Actif ? 'Active' : 'Inactive'}</span>
-                </div>
-                <div className="histo-row">
-                  <span className="histo-time"></span>
-                  <span className="histo-ligne" style={{ color: 'var(--sapphire)' }}>L2</span>
-                  <span className="histo-desc">{h.l2Actif ? 'Active' : 'Inactive'}</span>
-                </div>
+                <div className="histo-row"><span className="histo-time">{h.heure}</span><span className="histo-ligne">L1</span><span className="histo-desc">{h.l1Actif ? 'Active' : 'Inactive'}</span></div>
+                <div className="histo-row"><span className="histo-time"></span><span className="histo-ligne" style={{ color: 'var(--sapphire)' }}>L2</span><span className="histo-desc">{h.l2Actif ? 'Active' : 'Inactive'}</span></div>
               </div>
             ))
           )}

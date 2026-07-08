@@ -35,34 +35,35 @@ export default function InventaireDiffPage() {
 
   return (
     <div className="tool-main">
-      <div style={{ paddingLeft: 60, transform: 'translateZ(0)' }}>
-        <div className="page-eyebrow">Comparaison hebdomadaire</div>
-        <div className="page-title">Inventaire Diff — Changements</div>
-        <div className="page-sub">Affiche uniquement les items nouveaux ou modifiés par rapport au relevé précédent.</div>
-        <div className="snap-info">
-          <div className="snap-block"><div className="snap-lbl">État précédent</div><div className="snap-val">{precDate ? new Date(precDate).toLocaleDateString('fr-CA') : 'Aucun'}</div></div>
-          <div className="snap-divider"></div>
-          <div className="snap-block"><div className="snap-lbl">État actuel</div><div className="snap-val">{actDate ? new Date(actDate).toLocaleDateString('fr-CA') : 'Aucun'}</div></div>
-          <div className="snap-divider"></div>
-          <div className="snap-block"><div className="snap-lbl">Lignes actuel</div><div className="snap-val">{actData.length > 0 ? actData.length + ' lignes' : '—'}</div></div>
+      <div className="sec-h" style={{ marginBottom: 8, paddingLeft: 60 }}>
+        <div>
+          <div className="sec-t">Inventaire diff</div>
+          <div className="sec-s">Changements entre le relevé précédent et l'état actuel</div>
         </div>
-        <div className="kpi-grid">
-          <div className="kpi-card kpi-new"><div className="kpi-lbl">🟢 Nouveaux</div><div className="kpi-val">{hasSnapshots ? kpis.newCount : '—'}</div><div className="kpi-sub">items absents avant</div></div>
-          <div className="kpi-card kpi-mod"><div className="kpi-lbl">🟡 Modifiés</div><div className="kpi-val">{hasSnapshots ? kpis.modCount : '—'}</div><div className="kpi-sub">quantité ou poids changé</div></div>
-          <div className="kpi-card" style={{ position: 'relative', overflow: 'hidden' }}><div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg,transparent,var(--ruby),transparent)', transform: 'translateZ(0)'}}></div><div className="kpi-lbl" style={{ color: 'var(--ruby)' }}>🔴 Disparus</div><div className="kpi-val">{hasSnapshots ? kpis.goneCount : '—'}</div><div className="kpi-sub">items absents maintenant</div></div>
-          <div className="kpi-card kpi-snap"><div className="kpi-lbl">📊 Total changements</div><div className="kpi-val">{hasSnapshots ? kpis.newCount + kpis.modCount + kpis.goneCount : '—'}</div><div className="kpi-sub">sur l'inventaire global</div></div>
-        </div>
-        <div className="toolbar">
+        <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn btn-primary" onClick={() => setConfirmOpen(true)}>Sauvegarder l'état actuel</button>
           <button className="btn btn-primary" onClick={handleExportPdf} disabled={diffRows.length === 0}>Exporter PDF</button>
         </div>
-        <div className="diff-layout">
-          {isLoading ? <LoadingOverlay /> : !hasSnapshots ? (
-            <div className="empty-state" style={{ gridColumn: '1 / -1' }}><div className="empty-state-icon">📸</div><div className="empty-state-title">Aucun état précédent disponible.</div><div className="empty-state-sub">Cliquez <strong>Sauvegarder l'état actuel</strong> pour créer le premier relevé.</div></div>
-          ) : (<><DiffCategorySidebar categories={categories} diffRows={diffRows} activeCat={activeCat} onSelectCat={setActiveCat} /><div className="diff-content"><DiffView filteredDiff={filteredDiff} categories={categories} /></div></>)}
-        </div>
-        <SnapshotConfirmModal open={confirmOpen} onClose={() => setConfirmOpen(false)} onConfirm={handleSaveSnapshot} saving={saveMutation.isPending} />
       </div>
+      <div className="snap-info">
+        <div className="snap-block"><div className="snap-lbl">État précédent</div><div className="snap-val">{precDate ? new Date(precDate).toLocaleDateString('fr-CA') : 'Aucun'}</div></div>
+        <div className="snap-divider"></div>
+        <div className="snap-block"><div className="snap-lbl">État actuel</div><div className="snap-val">{actDate ? new Date(actDate).toLocaleDateString('fr-CA') : 'Aucun'}</div></div>
+        <div className="snap-divider"></div>
+        <div className="snap-block"><div className="snap-lbl">Lignes actuel</div><div className="snap-val">{actData.length > 0 ? actData.length + ' lignes' : '—'}</div></div>
+      </div>
+      <div className="kpi-grid">
+        <div className="kpi-card kpi-new"><div className="kpi-lbl">Nouveaux</div><div className="kpi-val">{hasSnapshots ? kpis.newCount : '—'}</div><div className="kpi-sub">items absents avant</div></div>
+        <div className="kpi-card kpi-mod"><div className="kpi-lbl">Modifiés</div><div className="kpi-val">{hasSnapshots ? kpis.modCount : '—'}</div><div className="kpi-sub">quantité ou poids changé</div></div>
+        <div className="kpi-card" style={{ position: 'relative', overflow: 'hidden' }}><div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg,transparent,var(--ruby),transparent)', transform: 'translateZ(0)'}}></div><div className="kpi-lbl" style={{ color: 'var(--ruby)' }}>Disparus</div><div className="kpi-val">{hasSnapshots ? kpis.goneCount : '—'}</div><div className="kpi-sub">items absents maintenant</div></div>
+        <div className="kpi-card kpi-snap"><div className="kpi-lbl">Total changements</div><div className="kpi-val">{hasSnapshots ? kpis.newCount + kpis.modCount + kpis.goneCount : '—'}</div><div className="kpi-sub">sur l'inventaire global</div></div>
+      </div>
+      <div className="diff-layout">
+        {isLoading ? <LoadingOverlay /> : !hasSnapshots ? (
+          <div className="empty-state" style={{ gridColumn: '1 / -1' }}><div className="empty-state-icon">📸</div><div className="empty-state-title">Aucun état précédent disponible.</div><div className="empty-state-sub">Cliquez <strong>Sauvegarder l'état actuel</strong> pour créer le premier relevé.</div></div>
+        ) : (<><DiffCategorySidebar categories={categories} diffRows={diffRows} activeCat={activeCat} onSelectCat={setActiveCat} /><div className="diff-content"><DiffView filteredDiff={filteredDiff} categories={categories} /></div></>)}
+      </div>
+      <SnapshotConfirmModal open={confirmOpen} onClose={() => setConfirmOpen(false)} onConfirm={handleSaveSnapshot} saving={saveMutation.isPending} />
     </div>
   );
 }

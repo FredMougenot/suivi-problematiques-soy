@@ -32,10 +32,12 @@ export default function PlanningAutoPage() {
 
   return (
     <div className="tool-main">
-      <div className="maj-bar" style={{ paddingLeft: 60 }}>
-        <div className="maj-info"><span className="maj-dot"></span>Dernière mise à jour N8n : <strong>{data && data.updated_at ? fmtTimeTz(data.updated_at) : 'Chargement…'}</strong></div>
+      <div className="sec-h" style={{ marginBottom: 8, paddingLeft: 60 }}>
+        <div>
+          <div className="sec-t">Planning auto</div>
+          <div className="sec-s">Mise à jour : {data && data.updated_at ? fmtTimeTz(data.updated_at) : 'Chargement…'} · Date : {fmtDateFR(todayStr())}</div>
+        </div>
         <div className={clsx('statut-systeme', systemeActif ? 'actif' : 'arrete')}><span className="statut-systeme-dot"></span><span>{systemeActif ? 'Système actif' : 'Système arrêté'}</span></div>
-        <div className="maj-info">Date : <strong>{fmtDateFR(todayStr())}</strong></div>
       </div>
       <div className="plan-sec-h"><div><div className="sec-title">Lignes de production</div><div className="sec-sub">Heures de fin estimées par camion</div></div></div>
       {!data ? (<div className="empty-state"><div className="empty-state-icon">📡</div><div className="empty-state-title">{prodQ.isLoading ? 'Chargement…' : "Aucune donnée disponible pour aujourd'hui."}</div></div>) : (

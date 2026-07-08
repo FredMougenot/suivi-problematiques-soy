@@ -84,23 +84,22 @@ export default function InventaireGhPage() {
 
   return (
     <div className="tool-main" style={{ padding: 0 }}>
-      <div style={{ paddingLeft: 60, paddingTop: 0, transform: 'translateZ(0)' }}>
-        <div className="page-eyebrow">Portail GH Logistics</div>
-        <div className="page-title">Inventaire GH</div>
-        <div className="page-sub">Connectez-vous à GH Logistics pour charger et gérer l'inventaire de l'entrepôt externe.</div>
-      </div>
-      <div className="gh-status">
-        <div className={`gh-dot${isConnected ? ' connected' : ''}`}></div>
-        <span className="gh-status-text">{isConnected ? 'Connecté à GH Logistics' : 'Non connecté'}</span>
-        {session?.updated_at && <span className="gh-timestamp">Dernière connexion : {new Date(session.updated_at).toLocaleString('fr-CA')}</span>}
-        <button className="btn btn-primary" onClick={handleConnect} disabled={connectMutation.isPending}>{connectMutation.isPending ? 'Connexion…' : 'Se connecter à GH'}</button>
-        <button className="btn btn-secondary" onClick={handleLoadInventory} disabled={!isConnected || loadInventoryMutation.isPending}>{loadInventoryMutation.isPending ? 'Chargement…' : "Rafraîchir l'inventaire"}</button>
-        {allInventory.length > 0 && <span className="count-badge">{filtered.length} / {allInventory.length} items</span>}
+      <div className="sec-h" style={{ marginBottom: 8, paddingLeft: 60 }}>
+        <div>
+          <div className="sec-t">Inventaire GH</div>
+          <div className="sec-s">Portail GH Logistics — gestion des commandes camions</div>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-primary" onClick={handleConnect} disabled={connectMutation.isPending}>{connectMutation.isPending ? 'Connexion…' : 'Se connecter à GH'}</button>
+          <button className="btn btn-secondary" onClick={handleLoadInventory} disabled={!isConnected || loadInventoryMutation.isPending}>{loadInventoryMutation.isPending ? 'Chargement…' : "Rafraîchir l'inventaire"}</button>
+        </div>
       </div>
       <div className="gh-search-bar">
         <div className="search-wrap" style={{ flex: 2 }}><input className="gh-search" placeholder="Rechercher par code, description, lot…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ width: '100%' }} /></div>
         <select className="fsel-sm" value={filterDivision} onChange={(e) => setFilterDivision(e.target.value)}><option value="">Toutes les divisions</option>{divisions.map((d) => <option key={d} value={d}>{d}</option>)}</select>
         <select className="fsel-sm" value={filterProduit} onChange={(e) => setFilterProduit(e.target.value)}><option value="">Tous les produits</option>{produits.map((p) => <option key={p} value={p}>{p}</option>)}</select>
+        {allInventory.length > 0 && <span className="count-badge">{filtered.length} / {allInventory.length} items</span>}
+        {session?.updated_at && <span className="gh-timestamp">Dernière connexion : {new Date(session.updated_at).toLocaleString('fr-CA')}</span>}
       </div>
       <div className="gh-page-layout">
         <CategorySidebar categories={categories} allInventory={allInventory} activeCatId={activeCatId} onSelectCategory={handleSelectCategory} onSelectProduct={handleSelectProduct} extraContent={<CamionsSection camions={camionsList} camionActifId={camionActifId} onSelectCamion={setCamionActifId} onAddCamion={handleAddCamion} onDeleteCamion={handleDeleteCamion} />} />

@@ -43,10 +43,11 @@ export default function ParametresGhPage() {
 
   return (
     <div className="tool-main-full">
-      <div style={{ paddingLeft: 60, paddingTop: 0, paddingBottom: 20, transform: 'translateZ(0)' }}>
-        <div className="page-eyebrow">Configuration</div>
-        <div className="page-title">Paramètres GH</div>
-        <div className="page-sub">Gérez les catégories, poids unitaires et correspondances de codes produits GH Logistics.</div>
+      <div className="sec-h" style={{ marginBottom: 8, paddingLeft: 60 }}>
+        <div>
+          <div className="sec-t">Paramètres GH</div>
+          <div className="sec-s">Catégories, poids unitaires et correspondances de codes produits</div>
+        </div>
       </div>
       <div className="param-layout">
         <div className="param-sidebar">
