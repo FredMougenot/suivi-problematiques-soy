@@ -6,27 +6,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Fonds (teinte violette, void assombri comme le login) */
-  --bg-void: #06050F;
-  --bg-deep: #0A0716;
-  --bg-base: #0D0A1A;
-  --bg-raised: rgba(20, 15, 35, .62);
-  --bg-float: rgba(30, 22, 48, .72);
-  --bg-hover: rgba(139, 92, 246, .08);
-  --bg-active: rgba(139, 92, 246, .16);
+  /* Fonds (teinte bleu marine) */
+  --bg-void: #060B14;
+  --bg-deep: #08111C;
+  --bg-base: #0A1420;
+  --bg-raised: rgba(14, 26, 40, .62);
+  --bg-float: rgba(18, 32, 48, .72);
+  --bg-hover: rgba(20, 201, 183, .08);
+  --bg-active: rgba(20, 201, 183, .16);
 
-  /* Accent principal — violet (historiquement nommé "copper", conservé
+  /* Accent principal — turquoise (historiquement nommé "copper", conservé
      pour éviter de renommer dans tous les modules ; ne contient plus de cuivre) */
-  --copper: #8B5CF6;
-  --copper-light: #B794F6;
-  --copper-pale: #E4D9FF;
-  --copper-glow: rgba(139, 92, 246, .28);
-  --copper-dim: rgba(139, 92, 246, .12);
+  --copper: #14C9B7;
+  --copper-light: #4FE0D4;
+  --copper-pale: #C8F5EF;
+  --copper-glow: rgba(20, 201, 183, .28);
+  --copper-dim: rgba(20, 201, 183, .12);
 
-  /* Texte (légère teinte lavande) */
-  --text-primary: #F5F3FF;
-  --text-secondary: #C7BEDD;
-  --text-muted: #8A82A8;
+  /* Texte (neutre bleuté) */
+  --text-primary: #F2F6FA;
+  --text-secondary: #B8C7D6;
+  --text-muted: #7E93A8;
   --text-faint: rgba(255, 255, 255, .12);
 
   /* États / statuts — inchangés (sémantique universelle) */
@@ -36,9 +36,9 @@
   --ruby-bg: rgba(224, 85, 85, .08);
   --amber: #E8A43A;
   --amber-bg: rgba(232, 164, 58, .08);
-  /* Accent secondaire — rose (historiquement nommé "sapphire") */
-  --sapphire: #EC4899;
-  --sapphire-bg: rgba(236, 72, 153, .10);
+  /* Accent secondaire — bleu (historiquement nommé "sapphire") */
+  --sapphire: #2E7DE8;
+  --sapphire-bg: rgba(46, 125, 232, .10);
 
   /* Rayons */
   --r-sm: 4px;
@@ -100,8 +100,8 @@ body {
 .app-background {
   position: fixed; inset: 0; z-index: 0; pointer-events: none; transform: translateZ(0);
   background:
-    radial-gradient(circle at 18% 12%, rgba(139,92,246,.16), transparent 45%),
-    radial-gradient(circle at 85% 82%, rgba(236,72,153,.12), transparent 50%),
+    radial-gradient(circle at 18% 12%, rgba(20,201,183,.16), transparent 45%),
+    radial-gradient(circle at 85% 82%, rgba(46,125,232,.12), transparent 50%),
     var(--bg-void);
 }
 
