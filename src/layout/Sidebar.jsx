@@ -35,7 +35,6 @@ const NAV_ITEMS = [
   { label: 'Inventaire diff',        path: '/inventaire-diff',        icon: '📈' },
   { label: 'Environnement',          path: '/environnement',          icon: '🌿' },
   { label: 'Erreurs papier',         path: '/erreurs-papier',         icon: '📝' },
-  { label: 'Mon profil',             path: '/profil',                 icon: '◎' },
   { label: 'Paramètres GH',         path: '/parametres-gh',          icon: '⚙️' },
   { label: 'Paramètres inventaire',  path: '/parametres-inventaire',  icon: '⚙️' },
   { label: 'Paramètres prob.',       path: '/parametres-prob',        icon: '⚙️' },
@@ -97,7 +96,9 @@ export default function FloatingMenu() {
   const navigate = useNavigate();
   const { user, role, logout } = useAuthStore();
 
-  const initial = user?.email ? user.email[0].toUpperCase() : '?';
+  const meta = user?.user_metadata || {};
+  const displayName = [meta.prenom, meta.nom].filter(Boolean).join(' ') || (user?.email ?? '').split('@')[0];
+  const initial = displayName.substring(0, 2).toUpperCase() || '?';
 
   async function handleLogout() {
     await logout();
@@ -105,6 +106,11 @@ export default function FloatingMenu() {
   }
 
   function close() { setIsOpen(false); }
+
+  function goToProfile() {
+    close();
+    navigate('/profil');
+  }
 
   return (
     <>
@@ -216,41 +222,50 @@ export default function FloatingMenu() {
               borderTop: '1px solid var(--text-faint)',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
+              gap: '10px',
             }}>
-              <div style={{
-                width: '30px', height: '30px', borderRadius: '50%',
-                background: 'linear-gradient(135deg, var(--copper), var(--copper-light))',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '.68rem', fontWeight: 700,
-                color: 'var(--bg-void)', flexShrink: 0,
-                transform: 'translateZ(0)',
-              }}>{initial}</div>
+              {/* Rond avatar → clique → page profil */}
+              <button
+                onClick={goToProfile}
+                title="Mon profil"
+                style={{
+                  width: '34px', height: '34px', borderRadius: '50%',
+                  background: 'linear-gradient(135deg, var(--copper), var(--copper-light))',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '.72rem', fontWeight: 700,
+                  color: 'var(--bg-void)', flexShrink: 0,
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 0 0 2px rgba(184,115,51,.2), 0 0 0 5px rgba(184,115,51,.06)',
+                  transition: 'box-shadow .15s',
+                  transform: 'translateZ(0)',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 0 0 2px rgba(184,115,51,.5), 0 0 0 5px rgba(184,115,51,.12)'; }}
+                onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 0 0 2px rgba(184,115,51,.2), 0 0 0 5px rgba(184,115,51,.06)'; }}
+              >{initial}</button>
+
+              {/* Infos + Déconnexion */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '.78rem', fontWeight: 500, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {user?.email ?? '—'}
                 </div>
-                <div style={{ fontSize: '.64rem', color: 'var(--copper)', marginTop: '1px' }}>
-                  {role === 'admin' ? 'Admin' : 'Viewer'}
-                </div>
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    marginTop: '3px',
+                    padding: 0,
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '.68rem',
+                    color: 'var(--text-muted)',
+                    cursor: 'pointer',
+                    transition: 'color .15s',
+                    transform: 'translateZ(0)',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--ruby)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; }}
+                >Déconnexion</button>
               </div>
-              <button
-                onClick={handleLogout}
-                title="Se déconnecter"
-                style={{
-                  padding: '5px',
-                  borderRadius: '4px',
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--text-muted)',
-                  fontSize: '.85rem',
-                  cursor: 'pointer',
-                  transition: 'all .15s',
-                  transform: 'translateZ(0)',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.color = 'var(--ruby)'; e.currentTarget.style.background = 'var(--ruby-bg)'; }}
-                onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}
-              >⏻</button>
             </div>
 
           </div>
