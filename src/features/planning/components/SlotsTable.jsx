@@ -36,7 +36,7 @@ export default function SlotsTable({ slots, lineProg, overrides }) {
   const labels = { confirme: 'Confirmé', annule: 'Annulé', inactive: 'Inactif', cadence_inconnue: 'En attente' };
 
   return (
-    <table className="slots-tbl">
+    <table className="data-table dt-teal dt-center">
       <thead>
         <tr>
           <th>Type</th>
@@ -73,7 +73,7 @@ export default function SlotsTable({ slots, lineProg, overrides }) {
           const estForce = lineActive && (overrides[slot.ligne] || []).includes(slot.camion);
 
           return (
-            <tr key={index} className={clsx(`slot-global-${slot.statut}`, { 'slot-passe': passe }, typeClass)}>
+            <tr key={index} className={clsx({ 'state-confirme': slot.statut === 'confirme', 'state-annule': slot.statut === 'annule', 'state-inactif': slot.statut === 'inactive' }, { 'slot-passe': passe }, typeClass)}>
               <td style={{ textAlign: 'center', width: 60 }}>
                 {lineActive && (
                   <div className="row-track">

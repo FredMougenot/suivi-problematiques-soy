@@ -41,8 +41,5 @@
 .emoji-opt { width: 32px; height: 32px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; }
 .emoji-opt:hover { background: rgba(255,255,255,.1); transform: translateZ(0); }
 
-.gh-poids-table th:first-child, .gh-poids-table td:first-child { width: 120px; }
-.gh-poids-table th:last-child, .gh-poids-table td:last-child { width: 50px; }
-.gh-poids-table th:nth-child(4), .gh-poids-table td:nth-child(4) { width: 110px; text-align: center; }
 .poids-input { background: var(--bg-float); border: 1px solid rgba(255,255,255,.08); border-radius: 6px; padding: 5px 8px; color: var(--text-primary); font-size: .78rem; outline: none; width: 100px; transform: translateZ(0); }
 .poids-input:focus { border-color: var(--sapphire); }

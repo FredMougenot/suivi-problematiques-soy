@@ -13,8 +13,8 @@ export default function VerifTable({ rows, kpis, today }) {
         {kpis.nOk > 0 && <div className="verif-kpi verif-kpi-ok">{kpis.nOk} à jour</div>}
       </div>
 
-      <div className="verif-tbl-wrap">
-        <table className="verif-tbl">
+      <div className="table-shell dt-min-700" style={{ marginBottom: 10 }}>
+        <table className="data-table">
           <thead>
             <tr>
               <th style={{ width: 40 }}>#</th>

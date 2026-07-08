@@ -3,33 +3,12 @@
    (boutons, page-header, spinner, date-nav, tableau générique : voir design-system/components.css)
 ═══════════════════════════════════════════════════════════════ */
 
-.ic-tbl-wrap { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow-x: auto; position: relative; transform: translateZ(0); }
-.ic-tbl { width: 100%; border-collapse: collapse; min-width: 1100px; }
-.ic-tbl thead tr { background: var(--bg-float); border-bottom: 1px solid var(--text-faint); transform: translateZ(0); }
-.ic-tbl thead th { padding: 11px 12px; font-size: .6rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--text-muted); text-align: center; white-space: nowrap; }
-.ic-tbl thead th:first-child { text-align: left; padding-left: 16px; }
-.ic-tbl tbody tr { border-bottom: 1px solid rgba(44,51,80,.5); transition: background .1s; }
-.ic-tbl tbody tr:hover { background: var(--bg-hover); transform: translateZ(0); }
-.ic-tbl tbody tr:last-child { border-bottom: none; }
-.ic-tbl tbody td { padding: 8px 10px; font-size: .84rem; color: var(--text-primary); vertical-align: middle; text-align: center; }
-.ic-tbl tbody td:first-child { text-align: left; padding-left: 16px; }
-.ic-tbl tfoot tr { background: var(--bg-float); border-top: 2px solid rgba(200,132,58,.3); transform: translateZ(0); }
-.ic-tbl tfoot td { padding: 10px 12px; font-weight: 800; font-size: .84rem; color: var(--copper-light); }
-
-.th-group { background: var(--bg-active) !important; color: var(--copper) !important; font-size: .58rem !important; letter-spacing: .12em !important; border-bottom: 1px solid rgba(200,132,58,.2) !important; transform: translateZ(0); }
 
 .ni { background: var(--bg-float); border: 1px solid var(--text-faint); color: var(--text-primary); border-radius: var(--r-sm); padding: 5px 8px; font-size: .82rem; outline: none; width: 90px; text-align: center; transform: translateZ(0); }
 .ni:focus { border-color: var(--copper); }
 .ni-item { background: transparent; border: none; border-bottom: 1px solid var(--text-faint); color: var(--text-primary); font-size: .84rem; outline: none; padding: 4px 6px; width: 160px; text-align: left; }
 .ni-item:focus { border-color: var(--copper); }
 
-.td-calc { font-weight: 700; font-size: .85rem; }
-.td-total { font-family: var(--font-heading); font-size: .95rem; font-weight: 700; color: var(--text-primary); }
-.td-ecart-pos { color: var(--emerald); font-weight: 700; }
-.td-ecart-neg { color: var(--ruby); font-weight: 700; }
-.td-ecart-zero { color: var(--text-muted); font-weight: 600; }
-
-.item-num { font-weight: 800; color: var(--text-muted); font-size: .78rem; min-width: 24px; }
 
 /* Graphiques — voir design-system/components.css pour .chart-panel/.chart-grid/.chart-box/.chart-box-title */
 
@@ -37,24 +16,12 @@
 .section-divider-line { flex: 1; height: 1px; background: linear-gradient(90deg,var(--copper),transparent); transform: translateZ(0); }
 .section-divider-title { font-size: .68rem; font-weight: 800; color: var(--copper); letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
 
-.verif-tbl-wrap { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow-x: auto; position: relative; margin-bottom: 10px; transform: translateZ(0); }
-.verif-tbl { width: 100%; border-collapse: collapse; min-width: 700px; }
-.verif-tbl thead tr { background: var(--bg-float); border-bottom: 1px solid var(--text-faint); transform: translateZ(0); }
-.verif-tbl thead th { padding: 11px 14px; font-size: .6rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--text-muted); white-space: nowrap; }
-.verif-tbl thead th:first-child { padding-left: 18px; }
-.verif-tbl tbody tr { border-bottom: 1px solid rgba(44,51,80,.5); transition: background .1s; }
-.verif-tbl tbody tr:hover { background: var(--bg-hover); transform: translateZ(0); }
-.verif-tbl tbody tr:last-child { border-bottom: none; }
-.verif-tbl tbody td { padding: 10px 14px; font-size: .84rem; color: var(--text-primary); vertical-align: middle; }
-.verif-tbl tbody td:first-child { padding-left: 18px; }
 .vbadge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: .68rem; font-weight: 700; white-space: nowrap; }
 .vbadge-ok { background: rgba(45,212,160,.1); color: var(--emerald); border: 1px solid rgba(45,212,160,.25); transform: translateZ(0); }
 .vbadge-soon { background: rgba(232,164,58,.1); color: var(--amber); border: 1px solid rgba(232,164,58,.25); transform: translateZ(0); }
 .vbadge-overdue { background: rgba(224,85,85,.1); color: var(--ruby); border: 1px solid rgba(224,85,85,.25); transform: translateZ(0); }
 .vbadge-never { background: rgba(44,51,80,.3); color: var(--text-muted); border: 1px solid var(--text-faint); transform: translateZ(0); }
 .vbadge-recommended { background: rgba(74,158,232,.12); color: var(--sapphire); border: 1px solid rgba(74,158,232,.35); transform: translateZ(0); }
-.tr-recommended { background: rgba(74,158,232,.04) !important; transform: translateZ(0); }
-.tr-recommended:hover { background: rgba(74,158,232,.08) !important; transform: translateZ(0); }
 .verif-kpi-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
 .verif-kpi { padding: 6px 16px; border-radius: 20px; font-size: .78rem; font-weight: 700; }
 .verif-kpi-total { background: var(--bg-raised); border: 1px solid var(--text-faint); color: var(--text-secondary); transform: translateZ(0); }

@@ -1,9 +1,9 @@
 export default function PoidsTable({ poidsList, onUpdate, onDelete }) {
   return (
-    <div className="table-shell gh-poids-table">
+    <div className="table-shell">
       <table className="data-table">
         <thead>
-          <tr><th>Type</th><th>Code produit</th><th>Poids unitaire (kg)</th><th>Ajout manuel</th><th></th></tr>
+          <tr><th className="th-num" style={{ width: 120 }}>Type</th><th>Code produit</th><th className="th-c" style={{ width: 110 }}>Poids unitaire (kg)</th><th>Ajout manuel</th><th className="th-act"></th></tr>
         </thead>
         <tbody>
           {poidsList.length === 0 ? (
@@ -20,8 +20,8 @@ export default function PoidsTable({ poidsList, onUpdate, onDelete }) {
                 </td>
                 <td><input type="text" className="poids-input" style={{ width: 200 }} value={p.code} onChange={(e) => onUpdate(i, 'code', e.target.value)} placeholder={matchType === 'exact' ? 'Ex: ABCD123' : 'Ex: BOITE'} /></td>
                 <td><input type="number" step="0.1" className="poids-input" value={p.poids_unitaire} onChange={(e) => onUpdate(i, 'poids_unitaire', parseFloat(e.target.value) || 0)} /></td>
-                <td style={{ textAlign: 'center' }}><input type="checkbox" checked={!!p.ajout_manuel} onChange={(e) => onUpdate(i, 'ajout_manuel', e.target.checked)} style={{ width: 18, height: 18, cursor: 'pointer' }} /></td>
-                <td><button className="btn-icon" onClick={() => onDelete(i)} title="Supprimer">✕</button></td>
+                <td className="td-c"><input type="checkbox" checked={!!p.ajout_manuel} onChange={(e) => onUpdate(i, 'ajout_manuel', e.target.checked)} style={{ width: 18, height: 18, cursor: 'pointer' }} /></td>
+                <td className="td-act"><button className="btn-icon" onClick={() => onDelete(i)} title="Supprimer">✕</button></td>
               </tr>
             );
           })}

@@ -16,8 +16,8 @@ export default function CamionsTable({ dateStr, rows, params, context, role, onF
   const { all, awaitedIdx, effective } = context;
 
   return (
-    <div className="tbl-outer" id="tbl">
-      <table className="ptbl">
+    <div className="table-shell dt-min-1080" id="tbl">
+      <table className="data-table">
         <thead>
           <tr className="thead-sections">
             <th colSpan={3} className="th-section th-section-empty"></th>

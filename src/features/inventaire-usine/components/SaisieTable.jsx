@@ -14,7 +14,7 @@ export default function SaisieTable({ rows, categories, traxData, onFieldChange,
   }
 
   return (
-    <table className="saisie-tbl">
+    <table className="data-table">
       <thead>
         <tr>
           <th style={{ width: 36 }}>#</th>

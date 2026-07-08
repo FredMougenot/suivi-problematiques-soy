@@ -16,9 +16,6 @@
 
 .kpi-retard { padding: 5px 14px; border-radius: 20px; background: rgba(224,85,85,.1); border: 1px solid rgba(224,85,85,.3); color: var(--ruby); font-size: .78rem; font-weight: 700; transform: translateZ(0); }
 
-/* Colonnes du tableau des items (scopé à .param-items-table pour ne pas affecter les autres tableaux de l'app) */
-.param-items-table thead th:first-child, .param-items-table tbody td:first-child { width: 48px; text-align: center; }
-.param-items-table thead th:last-child, .param-items-table tbody td:last-child { width: 56px; text-align: center; }
 .inp-item { background: transparent; border: none; border-bottom: 1px solid transparent; color: var(--text-primary); font-size: .86rem; outline: none; padding: 4px 6px; width: 100%; }
 .inp-item:hover { border-bottom-color: var(--text-faint); }
 .inp-item:focus { border-bottom-color: var(--copper); }

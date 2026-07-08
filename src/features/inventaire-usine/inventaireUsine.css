@@ -12,18 +12,7 @@
 .releve-count { padding: 5px 14px; border-radius: 20px; background: var(--copper-dim); border: 1px solid rgba(200,132,58,.2); color: var(--copper); font-size: .78rem; font-weight: 700; transform: translateZ(0); }
 .badge-usine { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; background: rgba(200,132,58,.12); border: 1px solid rgba(200,132,58,.25); color: var(--copper); font-size: .68rem; font-weight: 700; transform: translateZ(0); }
 
-.tbl-wrap { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow: hidden; position: relative; overflow-x: auto; transform: translateZ(0); }
-.tbl-wrap::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg,transparent,var(--copper),transparent); pointer-events: none; transform: translateZ(0); }
-.saisie-tbl { width: 100%; border-collapse: collapse; }
-.saisie-tbl thead tr { background: var(--bg-float); border-bottom: 1px solid var(--text-faint); transform: translateZ(0); }
-.saisie-tbl thead th { padding: 10px; font-size: .58rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--text-muted); text-align: left; white-space: nowrap; }
-.saisie-tbl thead th.th-req::after { content: '*'; color: var(--ruby); margin-left: 2px; }
-.saisie-tbl tbody tr { border-bottom: 1px solid rgba(44,51,80,.5); transition: background .1s; }
-.saisie-tbl tbody tr:hover { background: var(--bg-hover); transform: translateZ(0); }
-.saisie-tbl tbody tr:last-child { border-bottom: none; }
-.saisie-tbl tbody td { padding: 6px 8px; vertical-align: middle; }
-.td-num { text-align: center; color: var(--text-muted); font-size: .74rem; font-weight: 700; width: 36px; }
-.td-rm { text-align: center; width: 40px; }
+
 
 .ac-wrap { position: relative; }
 .ac-overlay { position: fixed; inset: 0; z-index: 99990; }

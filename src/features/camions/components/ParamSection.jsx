@@ -49,9 +49,9 @@ export default function ParamSection({ category, rows, onAdd, onDelete, onSave, 
         <div className="note-style">ⓘ {category.note}</div>
       )}
 
-      <div className="ptbl-wrap">
-        <div className="ptbl-scroll">
-          <table className="ptbl">
+      <div className="table-shell dt-min-700">
+        <div>
+          <table className="data-table">
             <thead>
               <tr>
                 <th className="th-num">#</th>
