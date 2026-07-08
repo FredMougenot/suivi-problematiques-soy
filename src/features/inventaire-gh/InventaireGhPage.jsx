@@ -105,7 +105,7 @@ export default function InventaireGhPage() {
         <CategorySidebar categories={categories} allInventory={allInventory} activeCatId={activeCatId} onSelectCategory={handleSelectCategory} onSelectProduct={handleSelectProduct} extraContent={<CamionsSection camions={camionsList} camionActifId={camionActifId} onSelectCamion={setCamionActifId} onAddCamion={handleAddCamion} onDeleteCamion={handleDeleteCamion} />} />
         <div className="gh-content" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16, alignItems: 'start' }}>
           <div>
-            <div className="inv-tbl-wrap">
+            <div className="table-shell dt-min-1100 dt-glow">
               {allInventory.length === 0 ? <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: '.84rem' }}>Connectez-vous à GH pour charger l'inventaire.</div> : <InventoryTable filtered={filtered} poidsList={poidsList} traxCodes={traxCodes} selectedRows={selectedRows} onToggleSelect={handleToggleSelect} onTraxOpen={handleTraxOpen} />}
             </div>
             {selectedRows.size > 0 && (

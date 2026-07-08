@@ -11,25 +11,25 @@ export default function StockTable({ stockRows, paramItems, onFieldChange, onDel
   });
 
   return (
-    <div className="ic-tbl-wrap">
-      <table className="ic-tbl">
+    <div className="table-shell dt-min-1100">
+      <table className="data-table dt-center">
         <thead>
           <tr>
             <th rowSpan={2} style={{ textAlign: 'center' }}>#</th>
             <th rowSpan={2} style={{ textAlign: 'left', minWidth: 160 }}>Item</th>
             <th rowSpan={2}>Poids unitaire<br /><small style={{ fontWeight: 400, fontSize: '.58rem' }}>(kg)</small></th>
-            <th colSpan={2} className="th-group">Entrepôt 1</th>
-            <th colSpan={2} className="th-group">Entrepôt 2</th>
+            <th colSpan={2} className="th-group active">Entrepôt 1</th>
+            <th colSpan={2} className="th-group active">Entrepôt 2</th>
             <th rowSpan={2}>Total<br /><small style={{ fontWeight: 400, fontSize: '.58rem' }}>(kg)</small></th>
             <th rowSpan={2}>ERP<br /><small style={{ fontWeight: 400, fontSize: '.58rem' }}>(kg)</small></th>
             <th rowSpan={2}>Écart<br /><small style={{ fontWeight: 400, fontSize: '.58rem' }}>(kg)</small></th>
             <th rowSpan={2}></th>
           </tr>
           <tr>
-            <th className="th-group">Qté Entrepôt 1</th>
-            <th className="th-group">Balance 1</th>
-            <th className="th-group">Qté Entrepôt 2</th>
-            <th className="th-group">Balance 2</th>
+            <th className="th-group active">Qté Entrepôt 1</th>
+            <th className="th-group active">Balance 1</th>
+            <th className="th-group active">Qté Entrepôt 2</th>
+            <th className="th-group active">Balance 2</th>
           </tr>
         </thead>
         <tbody>

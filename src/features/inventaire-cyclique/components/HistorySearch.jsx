@@ -17,24 +17,24 @@ export default function HistorySearch({ historyData }) {
       </div>
 
       {term && (
-        <div className="ic-tbl-wrap" id="hist-wrap">
-          <table className="ic-tbl" style={{ minWidth: 900 }}>
+        <div className="table-shell dt-min-1100" id="hist-wrap">
+          <table className="data-table dt-center">
             <thead>
               <tr>
                 <th rowSpan={2} style={{ textAlign: 'left', paddingLeft: 16 }}>Date</th>
                 <th rowSpan={2} style={{ textAlign: 'left' }}>Item</th>
                 <th rowSpan={2}>Poids unit.<br /><small style={{ fontWeight: 400, fontSize: '.58rem' }}>(kg)</small></th>
-                <th colSpan={2} className="th-group">Entrepôt 1</th>
-                <th colSpan={2} className="th-group">Entrepôt 2</th>
+                <th colSpan={2} className="th-group active">Entrepôt 1</th>
+                <th colSpan={2} className="th-group active">Entrepôt 2</th>
                 <th rowSpan={2}>Total<br /><small style={{ fontWeight: 400, fontSize: '.58rem' }}>(kg)</small></th>
                 <th rowSpan={2}>ERP<br /><small style={{ fontWeight: 400, fontSize: '.58rem' }}>(kg)</small></th>
                 <th rowSpan={2}>Écart<br /><small style={{ fontWeight: 400, fontSize: '.58rem' }}>(kg)</small></th>
               </tr>
               <tr>
-                <th className="th-group">Qté E1</th>
-                <th className="th-group">Balance 1</th>
-                <th className="th-group">Qté E2</th>
-                <th className="th-group">Balance 2</th>
+                <th className="th-group active">Qté E1</th>
+                <th className="th-group active">Balance 1</th>
+                <th className="th-group active">Qté E2</th>
+                <th className="th-group active">Balance 2</th>
               </tr>
             </thead>
             <tbody>
