@@ -82,21 +82,7 @@
 .camion-row.is-parti { opacity: .62; background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0) 46%, rgba(0,0,0,.34)), repeating-linear-gradient(45deg, rgba(255,255,255,.055) 0 7px, transparent 7px 14px), #0a0d12; transform: translateZ(0); }
 .camion-row.is-parti .camion-num, .camion-row.is-parti .camion-heure { color: var(--text-muted); }
 
-/* Slots table */
-.slots-outer { background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)), var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow: hidden; margin-bottom: 30px; transform: translateZ(0); }
-.slots-tbl { width: 100%; border-collapse: collapse; }
-.slots-tbl thead tr { background: rgba(255,255,255,.018); border-bottom: 2px solid var(--text-faint); transform: translateZ(0); }
-.slots-tbl thead th { padding: 12px 16px; text-align: left; font-size: .62rem; font-weight: 800; color: #3ff0dd; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
-.slots-tbl thead th:not(:first-child) { text-align: center; }
-.slots-tbl tbody tr { border-bottom: 1px solid var(--text-faint); position: relative; }
-.slots-tbl tbody tr:last-child { border-bottom: none; }
-.slots-tbl tbody tr:hover td { background: rgba(25,224,200,.025); transform: translateZ(0); }
-.slots-tbl tbody td { padding: 12px 16px; font-size: .84rem; vertical-align: middle; }
-.slots-tbl tbody td:not(:first-child) { text-align: center; position: relative; z-index: 1; }
-.slots-tbl tbody tr.slot-passe td { opacity: .35; }
-.slots-tbl tbody tr.slot-global-confirme { border-left: 3px solid #19e0c8; }
-.slots-tbl tbody tr.slot-global-annule { border-left: 3px solid var(--ruby); }
-.slots-tbl tbody tr.slot-global-inactif { border-left: 3px solid var(--text-faint); }
+
 .slot-label { font-family: var(--font-heading); font-size: .92rem; font-weight: 600; }
 .slot-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 20px; font-size: .72rem; font-weight: 700; }
 .slot-badge.confirme { background: var(--emerald-bg); color: var(--emerald); border: 1px solid rgba(45,212,160,.2); transform: translateZ(0); }
