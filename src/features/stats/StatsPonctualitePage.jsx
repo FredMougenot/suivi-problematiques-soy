@@ -58,8 +58,10 @@ export default function StatsPonctualitePage() {
 
   return (
     <div className="tool-main">
-      <div style={{ paddingLeft: 60, marginBottom: 8 }}>
-        <div className="tool-title">Radar de Ponctualité</div>
+      <div style={{ paddingLeft: 60, marginBottom: 8, transform: 'translateZ(0)' }}>
+        <div className="page-eyebrow">Suivi opérationnel</div>
+        <div className="page-title">Radar de Ponctualité</div>
+        <div className="page-sub">Analyse des arrivées camions par période, créneau et destination.</div>
       </div>
 
       <div className="sp-controls">

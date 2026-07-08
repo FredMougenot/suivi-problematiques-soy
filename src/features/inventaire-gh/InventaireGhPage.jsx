@@ -84,7 +84,12 @@ export default function InventaireGhPage() {
 
   return (
     <div className="tool-main" style={{ padding: 0 }}>
-      <div className="gh-status" style={{ paddingLeft: 60 }}>
+      <div style={{ paddingLeft: 60, paddingTop: 0, transform: 'translateZ(0)' }}>
+        <div className="page-eyebrow">Portail GH Logistics</div>
+        <div className="page-title">Inventaire GH</div>
+        <div className="page-sub">Connectez-vous à GH Logistics pour charger et gérer l'inventaire de l'entrepôt externe.</div>
+      </div>
+      <div className="gh-status">
         <div className={`gh-dot${isConnected ? ' connected' : ''}`}></div>
         <span className="gh-status-text">{isConnected ? 'Connecté à GH Logistics' : 'Non connecté'}</span>
         {session?.updated_at && <span className="gh-timestamp">Dernière connexion : {new Date(session.updated_at).toLocaleString('fr-CA')}</span>}

@@ -40,7 +40,7 @@ export default function InventaireGlobalPage() {
 
   return (
     <div className="tool-main">
-      <div style={{ paddingLeft: 60 }}>
+      <div style={{ paddingLeft: 60, transform: 'translateZ(0)' }}>
         <div className="page-eyebrow">Vue consolidée</div>
         <div className="page-title">Inventaire Global — Usine + GH</div>
         <div className="page-sub">Stock combiné de l'usine et de l'entrepôt GH Logistics. Classé par catégorie, code produit et numéro de lot.</div>

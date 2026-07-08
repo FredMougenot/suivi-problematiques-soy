@@ -47,7 +47,7 @@ export default function InventaireUsinePage() {
 
   return (
     <div className="tool-main">
-      <div style={{ paddingLeft: 60 }}>
+      <div style={{ paddingLeft: 60, transform: 'translateZ(0)' }}>
         <div className="page-eyebrow">Relevé hebdomadaire</div>
         <div className="page-title">Stock Usine</div>
         <div className="page-sub">Saisie du stock présent à l'usine. Chaque lundi, saisissez l'intégralité des produits présents. Le relevé précédent sera remplacé lors de la sauvegarde.</div>

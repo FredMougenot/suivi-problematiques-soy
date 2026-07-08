@@ -46,8 +46,12 @@ export default function ErreursPapierPage() {
 
   return (
     <div className="tool-main">
-      <div className="page-header-row" style={{ paddingLeft: 60 }}>
-        <div><div className="page-eyebrow">Excellence opérationnelle</div><div className="page-title">Analyse erreurs papier</div></div>
+      <div className="page-header-row" style={{ paddingLeft: 60, transform: 'translateZ(0)' }}>
+        <div>
+          <div className="page-eyebrow">Excellence opérationnelle</div>
+          <div className="page-title">Analyse erreurs papier</div>
+          <div className="page-sub">Suivi des non-conformités documentaires par quart et par période.</div>
+        </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn btn-ghost" onClick={handleExportPdf}>Export PDF</button>
           <button className="btn btn-secondary" onClick={handleGoToday}>Aujourd'hui</button>

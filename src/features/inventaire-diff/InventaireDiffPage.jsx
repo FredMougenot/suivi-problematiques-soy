@@ -35,7 +35,7 @@ export default function InventaireDiffPage() {
 
   return (
     <div className="tool-main">
-      <div style={{ paddingLeft: 60 }}>
+      <div style={{ paddingLeft: 60, transform: 'translateZ(0)' }}>
         <div className="page-eyebrow">Comparaison hebdomadaire</div>
         <div className="page-title">Inventaire Diff — Changements</div>
         <div className="page-sub">Affiche uniquement les items nouveaux ou modifiés par rapport au relevé précédent.</div>
