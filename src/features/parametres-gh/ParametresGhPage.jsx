@@ -42,7 +42,7 @@ export default function ParametresGhPage() {
   async function deleteCorr(row) { if (!confirm(`Supprimer "${row.trax}" ?`)) return; try { await deleteCorrMutation.mutateAsync(row.id); addToast('Supprimé', 'success'); } catch (e) { addToast('Erreur : ' + e.message, 'error'); } }
 
   return (
-    <div className="tool-main-full">
+    <div className="tool-main">
       <div className="sec-h" style={{ marginBottom: 8, paddingLeft: 60 }}>
         <div>
           <div className="sec-t">Paramètres GH</div>
@@ -70,7 +70,7 @@ export default function ParametresGhPage() {
               ) : (
                 <>
                   <div className="sec-h" style={{ marginBottom: 16 }}>
-                    <div><div className="sec-t">{activeCat.icon} {activeCat.name}</div><div className="sec-s">Modifier la catégorie</div></div>
+                    <div><div className="sec-t">{activeCat.name}</div><div className="sec-s">Modifier la catégorie</div></div>
                     <button className="btn btn-secondary" onClick={() => setActiveCatId(null)}>← Retour</button>
                   </div>
                   <CategoryEditor cat={activeCat} allCategories={localCategories} onChange={updateActiveCat} onSave={saveActiveCat} onDelete={deleteActiveCat} onBack={() => setActiveCatId(null)} saving={saveCatMutation.isPending} />
