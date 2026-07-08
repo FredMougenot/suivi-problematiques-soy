@@ -57,9 +57,47 @@ export default function ParametresGhPage() {
           <div className={`cat-nav-item${section === 'correspondance' ? ' active' : ''}`} onClick={() => setSection('correspondance')}><div className="cat-nav-icon">🔗</div><div className="cat-nav-name">Correspondance</div><div className="cat-nav-count">{corrQ.data?.length || 0}</div></div>
         </div>
         <div className="param-main">
-          {section === 'categories' && (<div>{!activeCat ? (<><div className="page-header-row"><h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Catégories d'inventaire</h2><button className="btn btn-primary" onClick={createCategory}>Nouvelle catégorie</button></div><CategoriesList categories={localCategories} onEdit={setActiveCatId} /></>) : (<CategoryEditor cat={activeCat} allCategories={localCategories} onChange={updateActiveCat} onSave={saveActiveCat} onDelete={deleteActiveCat} onBack={() => setActiveCatId(null)} saving={saveCatMutation.isPending} />)}</div>)}
-          {section === 'poids' && (<div><div className="page-header-row"><div><h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px 0' }}>Poids unitaires</h2><p style={{ fontSize: '.82rem', color: 'var(--text-muted)', margin: 0 }}>Définissez le poids unitaire (kg) pour chaque code produit</p></div><button className="btn btn-primary" onClick={addPoidsRow}>Ajouter un produit</button></div><PoidsTable poidsList={localPoids} onUpdate={updatePoidsRow} onDelete={deletePoidsRow} /><div className="toolbar" style={{ marginTop: 20 }}><button className="btn btn-primary" onClick={saveAllPoids} disabled={saveAllPoidsMutation.isPending}>{saveAllPoidsMutation.isPending ? 'Enregistrement…' : 'Sauvegarder'}</button></div></div>)}
-          {section === 'correspondance' && <CorrespondanceSection rows={corrQ.data || []} onSave={saveCorr} onDelete={deleteCorr} saving={saveCorrMutation.isPending} />}
+          {section === 'categories' && (
+            <div>
+              {!activeCat ? (
+                <>
+                  <div className="sec-h" style={{ marginBottom: 16 }}>
+                    <div><div className="sec-t">Catégories d'inventaire</div><div className="sec-s">Règles de catégorisation des produits GH</div></div>
+                    <button className="btn btn-primary" onClick={createCategory}>Nouvelle catégorie</button>
+                  </div>
+                  <CategoriesList categories={localCategories} onEdit={setActiveCatId} />
+                </>
+              ) : (
+                <>
+                  <div className="sec-h" style={{ marginBottom: 16 }}>
+                    <div><div className="sec-t">{activeCat.icon} {activeCat.name}</div><div className="sec-s">Modifier la catégorie</div></div>
+                    <button className="btn btn-secondary" onClick={() => setActiveCatId(null)}>← Retour</button>
+                  </div>
+                  <CategoryEditor cat={activeCat} allCategories={localCategories} onChange={updateActiveCat} onSave={saveActiveCat} onDelete={deleteActiveCat} onBack={() => setActiveCatId(null)} saving={saveCatMutation.isPending} />
+                </>
+              )}
+            </div>
+          )}
+          {section === 'poids' && (
+            <div>
+              <div className="sec-h" style={{ marginBottom: 16 }}>
+                <div><div className="sec-t">Poids unitaires</div><div className="sec-s">Poids unitaire (kg) par code produit</div></div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className="btn btn-primary" onClick={addPoidsRow}>Ajouter un produit</button>
+                  <button className="btn btn-primary" onClick={saveAllPoids} disabled={saveAllPoidsMutation.isPending}>{saveAllPoidsMutation.isPending ? 'Enregistrement…' : 'Sauvegarder'}</button>
+                </div>
+              </div>
+              <PoidsTable poidsList={localPoids} onUpdate={updatePoidsRow} onDelete={deletePoidsRow} />
+            </div>
+          )}
+          {section === 'correspondance' && (
+            <>
+              <div className="sec-h" style={{ marginBottom: 16 }}>
+                <div><div className="sec-t">Correspondance TRAX</div><div className="sec-s">Codes TRAX ↔ codes internes SOY</div></div>
+              </div>
+              <CorrespondanceSection rows={corrQ.data || []} onSave={saveCorr} onDelete={deleteCorr} saving={saveCorrMutation.isPending} />
+            </>
+          )}
         </div>
       </div>
     </div>

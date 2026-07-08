@@ -13,34 +13,15 @@ export default function CorrespondanceSection({ rows, onSave, onDelete, saving }
     return rows.filter((r) => r.trax.toLowerCase().includes(q) || r.interne.toLowerCase().includes(q) || r.desig.toLowerCase().includes(q));
   }, [rows, search]);
 
-  function startEdit(row) {
-    setEditingId(row.id);
-    setEditForm({ trax: row.trax, interne: row.interne, desig: row.desig });
-  }
-
-  async function saveEdit(id) {
-    await onSave({ id, ...editForm });
-    setEditingId(null);
-  }
-
-  async function saveAdd() {
-    if (!addForm.trax.trim()) return;
-    await onSave({ id: null, ...addForm });
-    setAddForm({ trax: '', interne: '', desig: '' });
-    setAddOpen(false);
-  }
+  function startEdit(row) { setEditingId(row.id); setEditForm({ trax: row.trax, interne: row.interne, desig: row.desig }); }
+  async function saveEdit(id) { await onSave({ id, ...editForm }); setEditingId(null); }
+  async function saveAdd() { if (!addForm.trax.trim()) return; await onSave({ id: null, ...addForm }); setAddForm({ trax: '', interne: '', desig: '' }); setAddOpen(false); }
 
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
-        <div>
-          <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px 0' }}>Correspondance codes TRAX</h2>
-          <p style={{ fontSize: '.82rem', color: 'var(--text-muted)', margin: 0 }}>Table de correspondance entre les codes TRAX, les codes internes SOY et la désignation.</p>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <input type="text" className="field-input" placeholder="Rechercher…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ width: 220 }} />
-          <button onClick={() => setAddOpen((o) => !o)} className="btn btn-primary">Ajouter</button>
-        </div>
+        <input type="text" className="field-input" placeholder="Rechercher…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ width: 220 }} />
+        <button onClick={() => setAddOpen((o) => !o)} className="btn btn-primary">Ajouter</button>
       </div>
 
       {addOpen && (
