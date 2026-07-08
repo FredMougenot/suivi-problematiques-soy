@@ -44,7 +44,7 @@ export default function PlanningAutoPage() {
         <div className="lignes-grid"><LigneCard numero={1} data={data} heuresReelles={heuresReelles} heuresDepuisSlots={heuresDepuisSlots} /><QuaisCenterCard /><LigneCard numero={2} data={data} heuresReelles={heuresReelles} heuresDepuisSlots={heuresDepuisSlots} /></div>
       )}
       <div className="plan-sec-h" style={{ marginTop: 10 }}><div><div className="sec-title">Slots de ramassage</div><div className="sec-sub">Planning du transporteur · 06h00 à 22h00</div></div></div>
-      <div className="slots-outer">{data ? <SlotsTable slots={data.slots} lineProg={lineProg} overrides={overridesQ.data || { L1: [], L2: [] }} /> : <div className="empty-state"><div className="empty-state-title">Chargement…</div></div>}</div>
+      <div className="table-shell dt-teal" style={{ marginBottom: 30 }}>{data ? <SlotsTable slots={data.slots} lineProg={lineProg} overrides={overridesQ.data || { L1: [], L2: [] }} /> : <div className="empty-state"><div className="empty-state-title">Chargement…</div></div>}</div>
     </div>
   );
 }

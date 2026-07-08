@@ -51,10 +51,10 @@ export default function ParametresInventairePage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><div className="count-pill">{rows.length} item{rows.length !== 1 ? 's' : ''}</div>{retardCount > 0 && <div className="kpi-retard">{retardCount} en retard</div>}</div>
       </div>
       {paramsQ.isLoading ? <LoadingOverlay /> : (
-        <div className="table-shell param-items-table">
+        <div className="table-shell">
           <table className="data-table">
-            <thead><tr><th>#</th><th>Item (nom libre)</th><th>Récurrence</th><th>Dernière vérif.</th><th>Prochaine vérif.</th><th></th></tr></thead>
-            <tbody>{rows.map((r, i) => { const info = prochaineInfo(r); return (<tr key={r.id}><td>{r.item_number}</td><td><input className="inp-item" value={r.nom} placeholder="Nom de l'item…" onChange={(e) => markDirty(i, 'nom', e.target.value)} /></td><td><select className="sel-rec" value={r.recurrence} onChange={(e) => markDirty(i, 'recurrence', parseInt(e.target.value, 10))}>{sortedRecs.map((rec) => <option key={rec} value={rec}>{rec} jour{rec > 1 ? 's' : ''}</option>)}</select></td><td className="td-date">{fmtDate(r.derniere_verification)}</td><td className={`td-prochaine ${info.cls}`}>{info.lbl}</td><td><button className="btn-icon" onClick={() => removeRow(i)} title="Supprimer">✕</button></td></tr>); })}</tbody>
+            <thead><tr><th className="th-num" style={{ width: 48 }}>#</th><th>Item (nom libre)</th><th>Récurrence</th><th>Dernière vérif.</th><th>Prochaine vérif.</th><th className="th-act" style={{ width: 56 }}></th></tr></thead>
+            <tbody>{rows.map((r, i) => { const info = prochaineInfo(r); return (<tr key={r.id}><td className="td-c">{r.item_number}</td><td><input className="inp-item" value={r.nom} placeholder="Nom de l'item…" onChange={(e) => markDirty(i, 'nom', e.target.value)} /></td><td><select className="sel-rec" value={r.recurrence} onChange={(e) => markDirty(i, 'recurrence', parseInt(e.target.value, 10))}>{sortedRecs.map((rec) => <option key={rec} value={rec}>{rec} jour{rec > 1 ? 's' : ''}</option>)}</select></td><td className="td-date">{fmtDate(r.derniere_verification)}</td><td className={`td-prochaine ${info.cls}`}>{info.lbl}</td><td className="td-act"><button className="btn-icon" onClick={() => removeRow(i)} title="Supprimer">✕</button></td></tr>); })}</tbody>
           </table>
         </div>
       )}
