@@ -25,7 +25,7 @@ export default function ParametresProbPage() {
 
   return (
     <div className="tool-main">
-      <div style={{ paddingLeft: 60 }}>
+      <div style={{ paddingLeft: 60, transform: 'translateZ(0)' }}>
         <div className="page-eyebrow">Configuration</div>
         <div className="page-title">Responsables</div>
         <div className="page-sub">Définissez la liste des responsables disponibles dans le formulaire de création de problématiques.</div>

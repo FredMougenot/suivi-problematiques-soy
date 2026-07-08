@@ -31,7 +31,7 @@ export default function ParametresInventairePage() {
 
   return (
     <div className="tool-main">
-      <div style={{ paddingLeft: 60 }}>
+      <div style={{ paddingLeft: 60, transform: 'translateZ(0)' }}>
         <div className="page-eyebrow">Configuration</div>
         <div className="page-title">Items à vérifier</div>
         <div className="page-sub">Définissez les items et leur fréquence de vérification. Chaque item a un numéro et une récurrence.</div>

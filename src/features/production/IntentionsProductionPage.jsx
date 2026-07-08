@@ -83,10 +83,11 @@ export default function IntentionsProductionPage() {
 
   return (
     <div className="tool-main">
-      <div className="ip-topbar-row" style={{ paddingLeft: 60 }}>
+      <div className="ip-topbar-row" style={{ paddingLeft: 60, transform: 'translateZ(0)' }}>
         <div>
-          <div className="tool-title">Intentions de production</div>
-          <div className="sec-sub">Planification journalière des lignes</div>
+          <div className="page-eyebrow">Planification journalière</div>
+          <div className="page-title">Intentions de production</div>
+          <div className="page-sub">Configurez l'état des lignes de production pour le cycle N8n en cours.</div>
         </div>
         <button className="btn btn-primary" onClick={handleSave} disabled={saveMutation.isPending}>
           {saveMutation.isPending ? 'Sauvegarde…' : 'Sauvegarder'}
@@ -106,7 +107,7 @@ export default function IntentionsProductionPage() {
       <div className="sec-h">
         <div>
           <div className="sec-title">Lignes de production</div>
-          <div className="sec-sub">Configurez l'intention pour chaque ligne</div>
+          <div className="sec-s">Configurez l'intention pour chaque ligne</div>
         </div>
         <div className="last-update">
           {lastUpdate ? <>Dernière sauvegarde : <strong>{fmtTime(lastUpdate)}</strong></> : 'Chargement…'}
@@ -121,7 +122,7 @@ export default function IntentionsProductionPage() {
       <div className="sec-h" style={{ marginTop: 10 }}>
         <div>
           <div className="sec-title">Historique du jour</div>
-          <div className="sec-sub">Modifications enregistrées aujourd'hui</div>
+          <div className="sec-s">Modifications enregistrées aujourd'hui</div>
         </div>
       </div>
       <div className="histo-card">
