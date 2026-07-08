@@ -2,20 +2,14 @@
    INVENTAIRE GH — styles (partie 1 : connexion, tableau, catégories)
 ═══════════════════════════════════════════════════════════════ */
 
-.gh-status { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; padding: 16px 20px 0; }
-.gh-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-faint); flex-shrink: 0; transition: background .3s; transform: translateZ(0); }
-.gh-dot.connected { background: var(--emerald); box-shadow: 0 0 6px rgba(45,212,160,.5); }
-.gh-status-text { font-size: .82rem; color: var(--text-muted); font-weight: 600; }
-.gh-timestamp { font-size: .74rem; color: var(--text-faint); }
-
-.gh-search-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; padding: 0 20px 16px; }
+.gh-search-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
 .gh-search { padding: 8px 12px 8px 34px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); font-size: .84rem; color: var(--text-primary); outline: none; transform: translateZ(0); }
 .gh-search:focus { border-color: var(--copper); }
 .search-wrap { position: relative; flex: 1; min-width: 200px; }
 .search-wrap::before { content: '⌕'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: .9rem; pointer-events: none; }
 .fsel-sm { padding: 7px 12px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); color: var(--text-secondary); font-size: .8rem; cursor: pointer; outline: none; transform: translateZ(0); }
 
-.gh-page-layout { display: grid; grid-template-columns: 180px 1fr; gap: 0; position: relative; }
+.gh-page-layout { display: grid; grid-template-columns: 180px 1fr; gap: 0; position: relative; margin: 0 -28px; }
 .cat-sidebar { width: 180px; flex-shrink: 0; background: var(--bg-raised); border-right: 1px solid rgba(255,255,255,.06); padding: 12px 8px; display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; z-index: 50; transform: translateZ(0); }
 .cat-btn { min-width: 36px; height: 36px; padding: 0 8px; border-radius: 10px; display: flex; align-items: center; justify-content: flex-start; gap: 8px; cursor: pointer; transition: all .18s; border: 1.5px solid transparent; background: transparent; }
 .cat-btn-icon { font-size: 1.1rem; flex-shrink: 0; }
@@ -37,7 +31,7 @@
 .cat-flyout-item-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-faint); flex-shrink: 0; transform: translateZ(0); }
 .cat-overlay { position: fixed; inset: 0; z-index: 48; }
 
-.gh-content { flex: 1; padding: 0 20px 16px 20px; overflow-x: auto; min-width: 0; }
+.gh-content { flex: 1; padding: 0 28px 16px 20px; overflow-x: auto; min-width: 0; }
 
 .inv-tbl-wrap { background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-lg); overflow-x: auto; position: relative; transform: translateZ(0); }
 .inv-tbl-wrap::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg,transparent,var(--sapphire),transparent); pointer-events: none; transform: translateZ(0); }
@@ -65,8 +59,9 @@
 .sel-stat strong { font-weight: 800; color: #fff; font-size: .95rem; }
 
 @media (max-width: 900px) {
-  .gh-page-layout { grid-template-columns: 1fr; }
+  .gh-page-layout { grid-template-columns: 1fr; margin: 0; }
   .cat-sidebar { position: static; max-height: none; width: 100%; flex-direction: row; flex-wrap: wrap; }
+  .gh-content { padding: 0 0 16px; }
 }
 
 /* ── Section camions ── */
