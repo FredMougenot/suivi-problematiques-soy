@@ -1,4 +1,4 @@
-/* ═══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════════════════
    SOY DESIGN SYSTEM — COMPOSANTS PARTAGÉS
    Source de vérité unique pour les boutons, tableaux, modales,
    formulaires, spinners et empty states de toute l'app React.
@@ -126,6 +126,74 @@
 .data-table tbody tr { transform: translateZ(0); }
 .data-table tbody tr:last-child td { border-bottom: none; }
 .data-table tbody tr:hover td { background: var(--bg-hover); transform: translateZ(0); }
+
+/* Variantes de densité (utiliser sur .data-table, ex: className="data-table dt-compact") */
+.data-table.dt-compact thead th { padding: 8px 10px; font-size: .58rem; }
+.data-table.dt-compact tbody td { padding: 6px 8px; font-size: .78rem; }
+.data-table.dt-center thead th:not(:first-child), .data-table.dt-center tbody td:not(:first-child) { text-align: center; }
+.data-table.dt-center thead th:first-child, .data-table.dt-center tbody td:first-child { text-align: left; padding-left: 16px; }
+.data-table tfoot tr { background: var(--bg-float); border-top: 2px solid rgba(200,132,58,.3); transform: translateZ(0); }
+.data-table tfoot td { padding: 10px 12px; font-weight: 800; font-size: .84rem; color: var(--copper-light); }
+.data-table th.th-group.active { background: var(--bg-active) !important; color: var(--copper) !important; font-size: .58rem !important; letter-spacing: .12em !important; border-bottom: 1px solid rgba(200,132,58,.2) !important; }
+
+/* Largeur minimale du contenu (utiliser sur .table-shell, ex: className="table-shell dt-min-1100") */
+.table-shell.dt-min-500 .data-table { min-width: 500px; }
+.table-shell.dt-min-700 .data-table { min-width: 700px; }
+.table-shell.dt-min-800 .data-table { min-width: 800px; }
+.table-shell.dt-min-1080 .data-table { min-width: 1080px; }
+.table-shell.dt-min-1100 .data-table { min-width: 1100px; }
+.table-shell.dt-min-1300 .data-table { min-width: 1300px; }
+
+/* Variante "glow" : liseré lumineux en haut du shell (tableaux de sélection) */
+.table-shell.dt-glow { position: relative; }
+.table-shell.dt-glow::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg,transparent,var(--sapphire),transparent); pointer-events: none; transform: translateZ(0); }
+.table-shell.dt-glow-copper { position: relative; }
+.table-shell.dt-glow-copper::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg,transparent,var(--copper),transparent); pointer-events: none; transform: translateZ(0); }
+
+/* Variante "dense" : lignes cliquables, cellules compactes (tableaux de sélection/recherche) */
+.data-table.dt-dense tbody td { padding: 7px 11px; font-size: .78rem; color: var(--text-secondary); white-space: nowrap; }
+.data-table.dt-dense tbody tr { cursor: pointer; user-select: none; }
+.data-table.dt-dense tbody tr:hover td { background: rgba(255,255,255,.03); }
+
+/* En-têtes : alignement / regroupement / champ requis */
+.data-table th.th-c, .data-table td.td-c { text-align: center; }
+.data-table th.th-group { text-align: center; background: var(--bg-hover); }
+.data-table th.th-req::after { content: '*'; color: var(--ruby); margin-left: 2px; }
+.data-table th.th-section { text-align: center; font-size: .6rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--copper-light); background: var(--bg-hover); border-bottom: 1px solid var(--text-faint); }
+.data-table th.th-section-empty { background: transparent; border-bottom: none; }
+.data-table th.th-section-sep { width: 10px; padding: 0; background: transparent; }
+
+/* Cellules : nombre / total / calcul / suppression */
+.data-table td.td-num { text-align: center; color: var(--text-muted); font-size: .74rem; font-weight: 700; }
+.data-table .item-num { font-weight: 800; color: var(--text-muted); font-size: .78rem; min-width: 24px; display: inline-block; }
+.data-table td.td-total { font-weight: 800; color: var(--copper-light); }
+.data-table td.td-calc { font-weight: 700; font-size: .85rem; }
+.data-table td.td-calc.up, .data-table td.td-calc.td-ecart-pos { color: var(--emerald); }
+.data-table td.td-calc.down, .data-table td.td-calc.td-ecart-neg { color: var(--ruby); }
+.data-table td.td-calc.td-ecart-zero { color: var(--text-muted); font-weight: 600; }
+.data-table td.td-rm { text-align: center; }
+.data-table td.chk-cell { text-align: center; }
+.data-table th.th-num { width: 40px; text-align: center; }
+.data-table th.th-act, .data-table td.td-act { width: 48px; text-align: center; }
+.data-table th.th-style { width: 140px; }
+
+/* Lignes : états (extra / annulé / sélectionné / passé) */
+.data-table tr.row-extra { border-left: 3px solid rgba(200,132,58,.4); }
+.data-table tr.row-annule td:not(.td-act) { opacity: .42; text-decoration: line-through; }
+.data-table tr.row-nc td { background: rgba(224,85,85,.04); }
+.data-table tr.selected td { background: rgba(74,158,232,.15); border-left: 3px solid var(--sapphire); }
+.data-table tr.selected:hover td { background: rgba(74,158,232,.2); }
+.data-table tr.slot-passe td { opacity: .35; }
+.data-table tr.tr-recommended td { background: rgba(74,158,232,.04); }
+.data-table tr.tr-recommended:hover td { background: rgba(74,158,232,.08); }
+.data-table tr.state-confirme { border-left: 3px solid #19e0c8; }
+.data-table tr.state-annule { border-left: 3px solid var(--ruby); }
+.data-table tr.state-inactif { border-left: 3px solid var(--text-faint); }
+
+/* Variante "teal" (accent cyan) : en-tête teintée, survol teal (ex: planning des créneaux) */
+.table-shell.dt-teal { background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)), var(--bg-raised); }
+.data-table.dt-teal thead th { background: rgba(255,255,255,.018); color: #3ff0dd; border-bottom: 2px solid var(--text-faint); }
+.data-table.dt-teal tbody tr:hover td { background: rgba(25,224,200,.025); }
 
 /* ── EN-TÊTE DE SECTION (dans une page, pour une sous-section) ──
    Usage : <div className="sec-h"><div><div className="sec-t">Titre</div>

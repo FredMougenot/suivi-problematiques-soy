@@ -11,8 +11,8 @@ export default function VerifTable({ rows, onSetConf, onDelete }) {
   ];
 
   return (
-    <div className="env-outer">
-      <table className="env-tbl">
+    <div className="table-shell dt-min-500">
+      <table className="data-table">
         <thead>
           <tr><th>Vérification</th><th className="th-c">Conforme</th><th className="th-c">Non-conforme</th><th style={{ width: 44 }}></th></tr>
         </thead>

@@ -4,23 +4,7 @@
 
 /* BOUTON AJOUTER (legacy — voir design-system/components.css pour les boutons partagés) */
 
-/* TABLE CAMIONS — sections */
-.ptbl { width: 100%; border-collapse: collapse; min-width: 1080px; }
-.ptbl thead tr { background: var(--bg-float); border-bottom: 2px solid var(--text-faint); transform: translateZ(0); }
-.ptbl thead tr.thead-sections { border-bottom: none; }
-.th-section { padding: 7px 12px; font-size: .65rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; text-align: center; background: var(--bg-deep); }
-.th-section-empty { background: var(--bg-deep); border-right: 1px solid rgba(255,255,255,.22); }
-.th-section-mid { color: var(--sapphire); border-left: 1px solid rgba(255,255,255,.22); }
-.th-section-right { color: var(--emerald); border-left: 1px solid rgba(255,255,255,.22); }
-.th-section-sep { border-right: 1px solid rgba(255,255,255,.22) !important; background: var(--bg-deep); }
-.ptbl thead th { padding: 13px 12px; text-align: left; font-size: .62rem; font-weight: 800; color: var(--copper); letter-spacing: .15em; text-transform: uppercase; white-space: nowrap; }
-.ptbl tbody tr { border-bottom: 1px solid var(--text-faint); transition: background .15s; }
-.ptbl tbody tr:last-child { border-bottom: none; }
-.ptbl tbody tr:hover td { background: rgba(200,132,58,.025); transform: translateZ(0); }
-.ptbl tbody tr.row-extra { border-left: 3px solid rgba(200,132,58,.4); }
-.ptbl tbody tr.row-annule td:not(.td-act) { opacity: .42; text-decoration: line-through; }
-.ptbl tbody tr.row-annule .cs, .ptbl tbody tr.row-annule .ci { text-decoration: none; opacity: .55; }
-.ptbl tbody td { padding: 11px 12px; font-size: .84rem; color: var(--text-primary); vertical-align: middle; }
+/* TABLE CAMIONS — styles de base centralisés dans design-system/components.css (.table-shell / .data-table) */
 .th-ep { text-align: center !important; padding: 13px 8px !important; min-width: 180px; }
 .td-ep { text-align: center; padding: 11px 8px; }
 
@@ -61,8 +45,3 @@
 .verif-thumb[data-state="q3_err"] { left: calc(100% - 25px); background: linear-gradient(135deg, #EF4444, #F87171); transform: translateZ(0); }
 
 /* (styles de formulaire migrés vers .field/.field-label/.field-input du design system) */
-
-@media (max-width: 1100px) {
-  .ptbl thead th { font-size: .58rem; padding: 10px 8px; }
-  .ptbl tbody td { font-size: .78rem; padding: 9px 8px; }
-}
