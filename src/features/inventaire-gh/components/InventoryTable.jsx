@@ -24,7 +24,7 @@ export default function InventoryTable({ filtered, poidsList, traxCodes, selecte
   }
 
   return (
-    <table className="inv-tbl">
+    <table className="data-table dt-dense">
       <thead>
         <tr>
           <th>No. produit</th><th>Description</th><th>Qté inv.</th><th>No. comm client</th>
