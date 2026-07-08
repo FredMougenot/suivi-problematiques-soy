@@ -216,9 +216,9 @@
 .date-nav-arr { width: 34px; height: 34px; border-radius: var(--r-md); background: var(--bg-raised); border: 1px solid var(--text-faint); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; transform: translateZ(0); }
 .date-nav-arr:hover { border-color: var(--copper); color: var(--copper-light); }
 .date-nav-label { font-size: .9rem; font-weight: 700; color: var(--text-primary); padding: 7px 20px; background: var(--bg-raised); border: 1px solid var(--text-faint); border-radius: var(--r-md); min-width: 240px; text-align: center; transform: translateZ(0); }
-.date-nav-today-chip { font-size: .62rem; font-weight: 700; color: var(--copper-light); background: var(--copper-dim); border: 1px solid rgba(139,92,246,.3); padding: 1px 8px; border-radius: 20px; margin-left: 8px; vertical-align: middle; transform: translateZ(0); }
-.date-nav-today-btn { padding: 6px 14px; border-radius: var(--r-md); background: var(--copper-dim); border: 1px solid rgba(139,92,246,.35); color: var(--copper-light); font-size: .78rem; font-weight: 700; cursor: pointer; transform: translateZ(0); }
-.date-nav-today-btn:hover { background: rgba(139,92,246,.24); transform: translateZ(0); }
+.date-nav-today-chip { font-size: .62rem; font-weight: 700; color: var(--copper-light); background: var(--copper-dim); border: 1px solid rgba(20,201,183,.3); padding: 1px 8px; border-radius: 20px; margin-left: 8px; vertical-align: middle; transform: translateZ(0); }
+.date-nav-today-btn { padding: 6px 14px; border-radius: var(--r-md); background: var(--copper-dim); border: 1px solid rgba(20,201,183,.35); color: var(--copper-light); font-size: .78rem; font-weight: 700; cursor: pointer; transform: translateZ(0); }
+.date-nav-today-btn:hover { background: rgba(20,201,183,.24); transform: translateZ(0); }
 
 /* ── PANNEAU GRAPHIQUE ────────────────────────────────────────
    Usage : <div className="chart-panel">
