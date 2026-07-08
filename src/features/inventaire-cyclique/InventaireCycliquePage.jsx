@@ -40,9 +40,12 @@ export default function InventaireCycliquePage() {
 
   return (
     <div className="tool-main">
-      <div className="page-header-row" style={{ paddingLeft: 60 }}>
-        <div><div className="page-eyebrow">Qualité</div><div className="page-title">📋 Inventaire Cyclique</div></div>
-        <div style={{ display: 'flex', gap: 8 }}><button className="btn btn-ghost" onClick={handleExportPdf}>Export PDF</button></div>
+      <div className="sec-h" style={{ marginBottom: 8, paddingLeft: 60 }}>
+        <div>
+          <div className="sec-t">Inventaire cyclique</div>
+          <div className="sec-s">Vérifications cycliques et comptage de stock</div>
+        </div>
+        <button className="btn btn-ghost" onClick={handleExportPdf}>Export PDF</button>
       </div>
       <div className="date-nav-bar">
         <button className="date-nav-arr" onClick={() => changeDate(-1)}>←</button>
@@ -50,12 +53,12 @@ export default function InventaireCycliquePage() {
         <button className="date-nav-arr" onClick={() => changeDate(1)}>→</button>
         <button className="date-nav-today-btn" onClick={() => setDateStr(localToday())}>Aujourd'hui</button>
       </div>
-      <div className="section-divider"><div className="section-divider-title">✓ Vérifications cycliques</div><div className="section-divider-line"></div></div>
+      <div className="section-divider"><div className="section-divider-title">Vérifications cycliques</div><div className="section-divider-line"></div></div>
       {paramItemsQ.isLoading ? <LoadingOverlay /> : (<><IcCharts paramItems={paramItems} /><VerifTable rows={verifRows} kpis={kpis} today={today} /></>)}
-      <div className="section-divider" style={{ marginTop: 36 }}><div className="section-divider-title">📦 Comptage stock</div><div className="section-divider-line"></div></div>
+      <div className="section-divider" style={{ marginTop: 36 }}><div className="section-divider-title">Comptage stock</div><div className="section-divider-line"></div></div>
       <div style={{ marginBottom: 8 }}><button className="btn btn-primary" onClick={handleAddItem}>Ajouter un item</button></div>
       {stockQ.isLoading ? <LoadingOverlay /> : <StockTable stockRows={stockRows} paramItems={paramItems} onFieldChange={handleFieldChange} onDeleteRow={handleDeleteRow} />}
-      <div className="section-divider" style={{ marginTop: 36 }}><div className="section-divider-title">🕐 Historique des comptages</div><div className="section-divider-line"></div></div>
+      <div className="section-divider" style={{ marginTop: 36 }}><div className="section-divider-title">Historique des comptages</div><div className="section-divider-line"></div></div>
       <HistorySearch historyData={historyQ.data || []} />
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, padding: '12px 0 4px', flexWrap: 'wrap' }}>
         <button className="btn btn-primary" onClick={handleSaveAll} disabled={saveAllMutation.isPending}>{saveAllMutation.isPending ? 'Sauvegarde…' : 'Sauvegarder tout'}</button>

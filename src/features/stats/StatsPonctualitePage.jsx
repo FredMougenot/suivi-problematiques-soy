@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-
 import { usePlanningStore } from '../../store/usePlanningStore';
 import { useStatsParamsQuery, useSaveStatsParamsMutation, useCamionsRangeQuery } from './queries';
 import { getRange, periodLabel, todayStr, analyze } from './logic';
@@ -28,7 +27,6 @@ export default function StatsPonctualitePage() {
 
   const seuils = statsParamsQ.data || { seuil1: 30, seuil2: 60, objectif: 80, slActif: 'ACTIF', slInactif: 'INACTIF', slNonLivre: null };
   const data = camionsQ.data || [];
-
   const A = useMemo(() => analyze(data, seuils), [data, seuils]);
 
   function navigate(dir) {
@@ -47,23 +45,24 @@ export default function StatsPonctualitePage() {
   }
 
   async function handleExportPdf() {
-    try {
-      await exportStatsPdf({ cachedData: data, period, curDate, seuils, A });
-    } catch (e) {
-      addToast('Erreur export PDF : ' + (e?.message || e), 'error');
-    }
+    try { await exportStatsPdf({ cachedData: data, period, curDate, seuils, A }); }
+    catch (e) { addToast('Erreur export PDF : ' + (e?.message || e), 'error'); }
   }
 
   const isLoading = statsParamsQ.isLoading || camionsQ.isLoading;
 
   return (
     <div className="tool-main">
-      <div style={{ paddingLeft: 60, marginBottom: 8, transform: 'translateZ(0)' }}>
-        <div className="page-eyebrow">Suivi opérationnel</div>
-        <div className="page-title">Radar de Ponctualité</div>
-        <div className="page-sub">Analyse des arrivées camions par période, créneau et destination.</div>
+      <div className="sec-h" style={{ marginBottom: 8, paddingLeft: 60 }}>
+        <div>
+          <div className="sec-t">Radar de ponctualité</div>
+          <div className="sec-s">Analyse des arrivées camions par période, créneau et destination</div>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-ghost" onClick={handleExportPdf}>Export PDF</button>
+          <button className="btn btn-ghost" onClick={() => setParamsOpen(true)}>Paramètres</button>
+        </div>
       </div>
-
       <div className="sp-controls">
         <div className="period-tabs">
           {['day', 'week', 'month'].map((p) => (
@@ -75,12 +74,7 @@ export default function StatsPonctualitePage() {
         <button className="nav-btn-sp" onClick={() => navigate(-1)}>←</button>
         <div className="period-lbl-sp">{periodLabel(period, curDate)}</div>
         <button className="nav-btn-sp" onClick={() => navigate(1)}>→</button>
-        <div className="sp-actions">
-          <button className="btn btn-ghost" onClick={handleExportPdf}>Export PDF</button>
-          <button className="btn btn-ghost" onClick={() => setParamsOpen(true)}>Paramètres</button>
-        </div>
       </div>
-
       <div className="dash">
         {isLoading ? (
           <LoadingOverlay />
@@ -108,7 +102,6 @@ export default function StatsPonctualitePage() {
           </>
         )}
       </div>
-
       <StatsParamsModal open={paramsOpen} onClose={() => setParamsOpen(false)} seuils={seuils} onSave={handleSaveParams} saving={saveParamsMutation.isPending} />
     </div>
   );

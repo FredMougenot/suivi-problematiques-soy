@@ -105,39 +105,39 @@ export default function PlanningCamionsPage() {
 
   return (
     <div className="tool-main">
-      <div className="date-nav-bar" style={{ paddingLeft: 60 }}>
-        <button className="date-nav-arr" onClick={() => changeDay(-1)}>←</button>
-        <div className="date-nav-label">{fmtDateLbl(dateStr)}{isToday && <span className="date-nav-today-chip">Aujourd'hui</span>}</div>
-        <button className="date-nav-arr" onClick={() => changeDay(1)}>→</button>
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0 4px 0' }}>
-        {role !== 'viewer' ? <button className="btn btn-primary" onClick={() => setModalOpen(true)}>Ajouter un camion</button> : <span />}
+      <div className="sec-h" style={{ marginBottom: 8, paddingLeft: 60 }}>
+        <div>
+          <div className="sec-t">Planification camions</div>
+          <div className="sec-s">Suivi des arrivées et départs journaliers</div>
+        </div>
         <div style={{ display: 'flex', gap: 8 }}>
           {role !== 'viewer' && <Link to="/parametres-planning" className="btn btn-ghost">Paramètres</Link>}
           <button className="btn btn-ghost" onClick={() => exportPlanningPdf(dateStr, rows, context, params)}>Export PDF</button>
         </div>
       </div>
-
+      <div className="date-nav-bar">
+        <button className="date-nav-arr" onClick={() => changeDay(-1)}>←</button>
+        <div className="date-nav-label">{fmtDateLbl(dateStr)}{isToday && <span className="date-nav-today-chip">Aujourd'hui</span>}</div>
+        <button className="date-nav-arr" onClick={() => changeDay(1)}>→</button>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0 4px 0' }}>
+        {role !== 'viewer' ? <button className="btn btn-primary" onClick={() => setModalOpen(true)}>Ajouter un camion</button> : <span />}
+      </div>
       <div style={{ position: 'relative' }} ref={outerRef}>
         <CamionsTable dateStr={dateStr} rows={rows} params={params} context={context} role={role} onFieldChange={handleFieldChange} onDeleteRow={handleDeleteRow} rowRefs={rowRefs} />
         <TimelineLine isToday={isToday} rows={rows} all={context.all} rowRefs={rowRefs} outerRef={outerRef} virtualMin={virtualMin} setVirtualMin={setVirtualMin} />
       </div>
-
       {isToday && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0 0' }}>
-          <span style={{ fontSize: '.62rem', fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' }}>⏱ Test</span>
           <input type="range" min={0} max={840} defaultValue={0} style={{ flex: 1, accentColor: 'var(--amber)', transform: 'translateZ(0)' }} onInput={(e) => setVirtualMin(6 * 60 + parseInt(e.target.value))} />
           <button className="btn btn-ghost" onClick={() => setVirtualMin(null)}>Maintenant</button>
         </div>
       )}
-
       {role !== 'viewer' && (
         <div style={{ display: 'flex', justifyContent: 'center', gap: 12, padding: '18px 0 8px' }}>
           <button className="btn btn-primary" onClick={handleSaveAll} disabled={saveMutation.isPending}>{saveMutation.isPending ? 'Sauvegarde…' : 'Sauvegarder tout'}</button>
         </div>
       )}
-
       <AddCamionModal open={modalOpen} onClose={() => setModalOpen(false)} onConfirm={handleAddCamion} />
     </div>
   );

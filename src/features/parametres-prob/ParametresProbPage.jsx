@@ -25,26 +25,27 @@ export default function ParametresProbPage() {
 
   return (
     <div className="tool-main">
-      <div style={{ paddingLeft: 60, transform: 'translateZ(0)' }}>
-        <div className="page-eyebrow">Configuration</div>
-        <div className="page-title">Responsables</div>
-        <div className="page-sub">Définissez la liste des responsables disponibles dans le formulaire de création de problématiques.</div>
-        <div className="toolbar">
-          <button className="btn btn-primary" onClick={addRow}>Ajouter</button>
-          <button className="btn btn-primary" onClick={saveAll} disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button>
+      <div className="sec-h" style={{ marginBottom: 8, paddingLeft: 60 }}>
+        <div>
+          <div className="sec-t">Responsables</div>
+          <div className="sec-s">Liste des responsables disponibles dans le formulaire de création de problématiques</div>
         </div>
-        <div className="table-shell" style={{ marginBottom: 40 }}>
-          <table className="data-table" style={{ minWidth: 320 }}>
-            <thead><tr><th>Nom du responsable</th><th style={{ width: 48, textAlign: 'center' }}>—</th></tr></thead>
-            <tbody>{rows.length === 0 ? (<tr><td colSpan={2} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 18, fontSize: '.85rem' }}>Aucun responsable. Cliquez sur Ajouter.</td></tr>) : rows.map((r, i) => (<tr key={r.id}><td><input className="inp-resp" value={r.nom} placeholder="Nom du responsable…" onChange={(e) => updateNom(i, e.target.value)} /></td><td style={{ textAlign: 'center', width: 48 }}><button className="btn-icon" onClick={() => deleteRow(i)}>✕</button></td></tr>))}</tbody>
-          </table>
-        </div>
-        <div className="danger-zone">
-          <div className="danger-eyebrow">Zone dangereuse</div>
-          <div className="danger-title">Supprimer toutes les problématiques</div>
-          <div className="danger-sub">Supprime définitivement tous les enregistrements. Cette action est irréversible.</div>
-          <button className="btn btn-danger" onClick={confirmDeleteAll}>Tout supprimer</button>
-        </div>
+      </div>
+      <div className="toolbar">
+        <button className="btn btn-primary" onClick={addRow}>Ajouter</button>
+        <button className="btn btn-primary" onClick={saveAll} disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button>
+      </div>
+      <div className="table-shell" style={{ marginBottom: 40 }}>
+        <table className="data-table" style={{ minWidth: 320 }}>
+          <thead><tr><th>Nom du responsable</th><th style={{ width: 48, textAlign: 'center' }}>—</th></tr></thead>
+          <tbody>{rows.length === 0 ? (<tr><td colSpan={2} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 18, fontSize: '.85rem' }}>Aucun responsable. Cliquez sur Ajouter.</td></tr>) : rows.map((r, i) => (<tr key={r.id}><td><input className="inp-resp" value={r.nom} placeholder="Nom du responsable…" onChange={(e) => updateNom(i, e.target.value)} /></td><td style={{ textAlign: 'center', width: 48 }}><button className="btn-icon" onClick={() => deleteRow(i)}>✕</button></td></tr>))}</tbody>
+        </table>
+      </div>
+      <div className="danger-zone">
+        <div className="danger-eyebrow">Zone dangereuse</div>
+        <div className="danger-title">Supprimer toutes les problématiques</div>
+        <div className="danger-sub">Supprime définitivement tous les enregistrements. Cette action est irréversible.</div>
+        <button className="btn btn-danger" onClick={confirmDeleteAll}>Tout supprimer</button>
       </div>
     </div>
   );

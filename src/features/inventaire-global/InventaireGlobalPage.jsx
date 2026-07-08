@@ -40,28 +40,29 @@ export default function InventaireGlobalPage() {
 
   return (
     <div className="tool-main">
-      <div style={{ paddingLeft: 60, transform: 'translateZ(0)' }}>
-        <div className="page-eyebrow">Vue consolidée</div>
-        <div className="page-title">Inventaire Global — Usine + GH</div>
-        <div className="page-sub">Stock combiné de l'usine et de l'entrepôt GH Logistics. Classé par catégorie, code produit et numéro de lot.</div>
-      </div>
-      {noGhData && <div className="info-banner"><span>ⓘ</span><span>Stock GH non disponible — connectez-vous à GH Logistics.</span></div>}
-      <div className="kpi-grid">
-        <div className="kpi-card kpi-global"><div className="kpi-lbl">🌐 Total global</div><div className="kpi-val">{kpis.total}</div><div className="kpi-sub">lignes de stock</div></div>
-        <div className="kpi-card kpi-usine"><div className="kpi-lbl">🏭 Stock usine</div><div className="kpi-val">{kpis.usine}</div><div className="kpi-sub">relevé : {dateReleveUsine ? fmtDate(dateReleveUsine) : '—'}</div></div>
-        <div className="kpi-card kpi-gh"><div className="kpi-lbl">🏪 Stock GH</div><div className="kpi-val">{kpis.gh}</div><div className="kpi-sub">entrepôt externe</div></div>
-        <div className="kpi-card kpi-poids"><div className="kpi-lbl">⚖️ Poids total</div><div className="kpi-val">{kpis.poids > 0 ? kpis.poids.toFixed(0) : '—'}</div><div className="kpi-sub">kg combinés</div></div>
-      </div>
-      <div className="toolbar">
-        <div className="toolbar-left">
-          <div className="gib-search-wrap"><span className="search-icon">⌕</span><input type="text" placeholder="Rechercher code, lot, description…" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
-          <select className="fsel" value={locFilter} onChange={(e) => setLocFilter(e.target.value)}><option value="">Tous les emplacements</option><option value="usine">🏭 Usine seulement</option><option value="gh">🏪 GH seulement</option></select>
-          <button className="btn btn-secondary" onClick={handleRefresh}>Actualiser</button>
-          <Link to="/inventaire-usine" className="btn btn-secondary">Saisie usine</Link>
+      <div className="sec-h" style={{ marginBottom: 8, paddingLeft: 60 }}>
+        <div>
+          <div className="sec-t">Inventaire global</div>
+          <div className="sec-s">Stock combiné usine et entrepôt GH Logistics</div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn btn-primary" onClick={handleExportPdf} disabled={allRows.length === 0}>Exporter PDF</button>
           <button className="btn btn-primary" style={{ background: 'linear-gradient(135deg,#1d7044,#2a9a5e)', transform: 'translateZ(0)'}} onClick={handleExportExcel} disabled={allRows.length === 0}>Exporter Excel</button>
+        </div>
+      </div>
+      {noGhData && <div className="info-banner"><span>ⓘ</span><span>Stock GH non disponible — connectez-vous à GH Logistics.</span></div>}
+      <div className="kpi-grid">
+        <div className="kpi-card kpi-global"><div className="kpi-lbl">Total global</div><div className="kpi-val">{kpis.total}</div><div className="kpi-sub">lignes de stock</div></div>
+        <div className="kpi-card kpi-usine"><div className="kpi-lbl">Stock usine</div><div className="kpi-val">{kpis.usine}</div><div className="kpi-sub">relevé : {dateReleveUsine ? fmtDate(dateReleveUsine) : '—'}</div></div>
+        <div className="kpi-card kpi-gh"><div className="kpi-lbl">Stock GH</div><div className="kpi-val">{kpis.gh}</div><div className="kpi-sub">entrepôt externe</div></div>
+        <div className="kpi-card kpi-poids"><div className="kpi-lbl">Poids total</div><div className="kpi-val">{kpis.poids > 0 ? kpis.poids.toFixed(0) : '—'}</div><div className="kpi-sub">kg combinés</div></div>
+      </div>
+      <div className="toolbar">
+        <div className="toolbar-left">
+          <div className="gib-search-wrap"><span className="search-icon">⌕</span><input type="text" placeholder="Rechercher code, lot, description…" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
+          <select className="fsel" value={locFilter} onChange={(e) => setLocFilter(e.target.value)}><option value="">Tous les emplacements</option><option value="usine">Usine seulement</option><option value="gh">GH seulement</option></select>
+          <button className="btn btn-secondary" onClick={handleRefresh}>Actualiser</button>
+          <Link to="/inventaire-usine" className="btn btn-secondary">Saisie usine</Link>
         </div>
       </div>
       <div className="global-layout">
