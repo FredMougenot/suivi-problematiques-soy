@@ -6,6 +6,7 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import { queryClient } from './lib/queryClient';
 import { router } from './router';
 import { useAuthStore } from './store/useAuthStore';
+import { SessionGuard } from './layout/sessionGuard';
 import './design-system/tokens.css';
 import './design-system/components.css';
 
@@ -19,6 +20,7 @@ function Root() {
   return (
     <QueryClientProvider client={queryClient}>
       <Tooltip.Provider delayDuration={200}>
+        <SessionGuard />
         <RouterProvider router={router} />
       </Tooltip.Provider>
     </QueryClientProvider>
