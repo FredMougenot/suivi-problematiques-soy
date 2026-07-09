@@ -33,6 +33,45 @@ async function supprimerSessionActive(userId) {
   if (error) console.error('Erreur suppression session active :', error);
 }
 
+// Empêche deux appels concurrents (ex: init() + onAuthStateChange déclenché par
+// signInWithPassword) de traiter le même événement SIGNED_IN en double.
+let traitementEnCours = null;
+
+async function traiterSession(session, set, get) {
+  if (!session?.user) {
+    set({ user: null, role: null, isAuthenticated: false, isLoading: false, sessionToken: null });
+    return;
+  }
+
+  // Si on suit déjà cet utilisateur avec un token actif, un événement
+  // onAuthStateChange supplémentaire (refresh de token, etc.) ne doit rien
+  // ré-enregistrer : ça écraserait inutilement la session active.
+  if (get().user?.id === session.user.id && get().sessionToken) {
+    set({ user: session.user, isAuthenticated: true, isLoading: false });
+    return;
+  }
+
+  // Déduplique les appels concurrents pour le même utilisateur (évite la
+  // double écriture qui causait le blocage intermittent sur l'écran login).
+  if (traitementEnCours?.userId === session.user.id) {
+    await traitementEnCours.promise;
+    return;
+  }
+
+  const promise = (async () => {
+    const role = await fetchUserRole(session.user.email);
+    const sessionToken = await enregistrerSessionActive(session.user.id);
+    set({ user: session.user, role, isAuthenticated: true, isLoading: false, sessionToken });
+  })();
+
+  traitementEnCours = { userId: session.user.id, promise };
+  try {
+    await promise;
+  } finally {
+    traitementEnCours = null;
+  }
+}
+
 export const useAuthStore = create((set, get) => ({
   user: null,
   role: null,           // 'admin' | 'viewer' | null
@@ -45,41 +84,24 @@ export const useAuthStore = create((set, get) => ({
    */
   init: async () => {
     const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) {
-      const role = await fetchUserRole(session.user.email);
-      const sessionToken = await enregistrerSessionActive(session.user.id);
-      set({ user: session.user, role, isAuthenticated: true, isLoading: false, sessionToken });
-    } else {
-      set({ user: null, role: null, isAuthenticated: false, isLoading: false, sessionToken: null });
-    }
+    await traiterSession(session, set, get);
 
-    // Réagit aux changements de session (login/logout dans un autre onglet, expiration, etc.)
-    supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        // Ne pas ré-enregistrer si c'est toujours le même utilisateur déjà suivi
-        // (évite d'écraser le token à chaque refresh de token Supabase).
-        const dejaSuivi = get().user?.id === session.user.id && get().sessionToken;
-        if (dejaSuivi) {
-          set({ user: session.user, isAuthenticated: true, isLoading: false });
-          return;
-        }
-        const role = await fetchUserRole(session.user.email);
-        const sessionToken = await enregistrerSessionActive(session.user.id);
-        set({ user: session.user, role, isAuthenticated: true, isLoading: false, sessionToken });
-      } else {
-        set({ user: null, role: null, isAuthenticated: false, isLoading: false, sessionToken: null });
-      }
+    // Source unique de vérité pour toute transition d'état d'auth : login,
+    // logout, refresh de token, connexion dans un autre onglet, etc.
+    supabase.auth.onAuthStateChange((_event, session) => {
+      traiterSession(session, set, get);
     });
   },
 
+  /**
+   * Ne fait que déclencher l'authentification côté Supabase. C'est
+   * onAuthStateChange (via traiterSession) qui met à jour le store — une
+   * seule source de vérité, pour éviter toute course avec l'événement
+   * SIGNED_IN déclenché automatiquement par signInWithPassword.
+   */
   login: async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
-
-    const role = await fetchUserRole(data.user.email);
-    const sessionToken = await enregistrerSessionActive(data.user.id);
-    set({ user: data.user, role, isAuthenticated: true, isLoading: false, sessionToken });
-    return data.user;
   },
 
   /**
