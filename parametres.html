@@ -302,10 +302,15 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwcHptZG1udXp0b3pndWtyY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMDM3MTIsImV4cCI6MjA4NzU3OTcxMn0.9-wMrvuz08TaI8-y2x3JLbLOKDnHpTUqJc66ET-8Kug';
 
+let sb = null;
+
+// Authorization portera le JETON DE L'UTILISATEUR connecte (et non la cle anon),
+// ce qui permet a RLS de reconnaitre le role "authenticated".
 const headers = {
   'apikey': SUPABASE_KEY,
   'Authorization': `Bearer ${SUPABASE_KEY}`,
@@ -495,9 +500,24 @@ async function saveSkuDestinations() {
   }
 }
 
-// Init
-loadParams();
-loadSkuDestinations();
+// ── Init : authentification obligatoire ─────────────────────────
+async function init() {
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.href = 'index.html'; return; }
+
+    // Toutes les requetes REST partent desormais avec le jeton de l'utilisateur
+    headers['Authorization'] = `Bearer ${session.access_token}`;
+
+    await loadParams();
+    await loadSkuDestinations();
+  } catch (e) {
+    window.location.href = 'index.html';
+  }
+}
+
+init();
 </script>
 </body>
 </html>
