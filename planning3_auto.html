@@ -110,13 +110,26 @@
 
   .slot.libre .contenu::after { content: '—'; }
 
-  .slot.affecte .heure { color: var(--texte); }
-  .slot.affecte .pastille { background: var(--emeraude); box-shadow: 0 0 0 3px rgba(16,185,129,0.15); }
-  .slot.affecte .contenu { color: var(--texte); font-weight: 500; }
-  .slot.affecte.l1 .pastille { background: var(--or); box-shadow: 0 0 0 3px rgba(201,151,63,0.15); }
-  .slot.affecte.l2 .pastille { background: var(--bleu); box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
-  .slot.affecte .badge { border-color: var(--emeraude); color: var(--emeraude); }
-  .slot.force .badge { border-color: var(--ambre); color: var(--ambre); }
+  /* Plein : engagé, slot figé */
+  .slot.plein .heure { color: var(--texte); }
+  .slot.plein .contenu { color: var(--texte); font-weight: 500; }
+  .slot.plein .pastille { background: var(--emeraude); box-shadow: 0 0 0 3px rgba(16,185,129,0.15); }
+  .slot.plein.l1 .pastille { background: var(--or); box-shadow: 0 0 0 3px rgba(201,151,63,0.15); }
+  .slot.plein.l2 .pastille { background: var(--bleu); box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+  .slot.plein .badge { border-color: var(--emeraude); color: var(--emeraude); }
+
+  /* Forcé : parti partiellement plein, slot figé */
+  .slot.force .heure { color: var(--texte); }
+  .slot.force .contenu { color: var(--texte); font-weight: 500; }
+  .slot.force .pastille { background: var(--ambre); box-shadow: 0 0 0 3px rgba(245,158,11,0.18); }
+  .slot.force .badge { border-color: var(--ambre); color: var(--ambre); background: rgba(245,158,11,0.08); }
+
+  /* Prévu : camion en cours ou projeté — son slot glisse à chaque tick */
+  .slot.prevu .contenu { color: var(--texte-faible); }
+  .slot.prevu .pastille { background: transparent; border: 1px dashed var(--texte-faible); }
+  .slot.prevu.l1 .pastille { border-color: var(--or); }
+  .slot.prevu.l2 .pastille { border-color: var(--bleu); }
+  .slot.prevu .badge { border-style: dashed; }
 
   .dest { font-family: 'JetBrains Mono', monospace; font-weight: 600; letter-spacing: 0.02em; }
 
@@ -124,10 +137,14 @@
   section { margin-top: 32px; }
   section > h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--texte-faible); font-weight: 600; margin-bottom: 12px; }
   .camion {
-    display: grid; grid-template-columns: 90px 1fr 120px auto; align-items: center; gap: 14px;
+    display: grid; grid-template-columns: 150px 1fr 130px 46px auto; align-items: center; gap: 14px;
     padding: 10px 0; border-top: 1px solid var(--trait); font-size: 14px;
   }
   .camion:last-child { border-bottom: 1px solid var(--trait); }
+  .sous-camion { font-size: 11px; color: var(--texte-faible); margin-top: 2px; }
+  button.forcer { font-size: 12px; padding: 6px 10px; white-space: nowrap; }
+  button.forcer:hover:not(:disabled) { background: var(--ambre); color: #1c1408; border-color: var(--ambre); }
+  button.forcer:disabled { opacity: 0.45; cursor: default; border-style: dashed; }
   .jauge { height: 5px; background: var(--ardoise-clair); border-radius: 3px; overflow: hidden; }
   .jauge > div { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
   .camion.l1 .jauge > div { background: var(--or); }
@@ -146,8 +163,8 @@
     .lignes { grid-template-columns: 1fr; }
     .slot { grid-template-columns: 54px 10px 1fr; }
     .slot .badge { grid-column: 3; justify-self: start; }
-    .camion { grid-template-columns: 80px 1fr 60px; }
-    .camion .heure-fin { display: none; }
+    .camion { grid-template-columns: 1fr 60px auto; }
+    .camion .jauge, .camion .heure-fin { display: none; }
   }
   @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; }
@@ -309,22 +326,31 @@ function rendre(p) {
   $('anomalies').innerHTML = anomalies
     .map(a => `<div class="anomalie">${echapper(a)}</div>`).join('');
 
-  // Rail des slots
+  // Rail des slots.
+  // plein / force = camion ENGAGÉ, slot FIGÉ, ne bougera plus.
+  // prevu         = camion en cours ou projeté, son slot glisse à chaque tick.
   const slots = p.slots || [];
+  const occupe = (s) => ['plein', 'force', 'prevu'].includes(s.statut);
+
   $('rail').innerHTML = slots.map(s => {
     const classes = ['slot'];
     if (!s.actif) classes.push('inactif');
-    else if (s.statut === 'affecte') {
-      classes.push('affecte', (s.ligne || '').toLowerCase());
-      if (s.force) classes.push('force');
-    } else classes.push('libre');
+    else if (occupe(s)) classes.push(s.statut, (s.ligne || '').toLowerCase());
+    else classes.push('libre');
 
-    const contenu = s.statut === 'affecte'
-      ? `<span class="dest">${echapper(s.destination)}</span> · ${echapper(s.ligne)} camion ${s.camion}`
-      : '';
-    const badge = s.statut === 'affecte'
-      ? `<span class="badge">${s.force ? 'départ forcé' : 'prêt ' + echapper(s.heure_camion)}</span>`
-      : '';
+    let contenu = '', badge = '';
+    if (occupe(s)) {
+      const charge = s.palettes != null
+        ? ` · ${(+s.palettes).toFixed(1)}/${s.capacite} pal.`
+        : '';
+      contenu = `<span class="dest">${echapper(s.destination)}</span> · ${echapper(s.ligne)} camion ${s.camion}${charge}`;
+
+      const libelle = s.statut === 'force'
+        ? `départ forcé · ${Math.round((s.palettes / s.capacite) * 100)} %`
+        : s.statut === 'plein' ? 'plein'
+        : 'prévu ' + echapper(s.heure_camion);
+      badge = `<span class="badge">${libelle}</span>`;
+    }
 
     return `<div class="${classes.join(' ')}">
       <div class="heure">${echapper(s.heure)}</div>
@@ -334,24 +360,81 @@ function rendre(p) {
     </div>`;
   }).join('');
 
-  // Camions en remplissage
-  const enCours = (p.camions || []).filter(c => c.statut !== 'pret' && c.progression > 0);
+  // Camions en remplissage — les seuls qu'on peut faire partir de force
+  const enCours = (p.camions || []).filter(c => c.statut === 'en_cours');
   $('camions').innerHTML = enCours.length ? enCours.map(c => {
     const pct = Math.round((c.progression || 0) * 100);
-    const fin = c.temps != null ? minutesEnHeure(c.temps) : '—';
+    const fin = c.temps != null ? 'plein vers ' + minutesEnHeure(c.temps) : 'cadence non établie';
+    const charge = c.palettes != null
+      ? `${(+c.palettes).toFixed(1)} / ${c.capacite} palettes · ${Math.round(c.caisses || 0)} caisses`
+      : '';
+    const attente = forcagesEnAttente.has(`${c.ligne}|${c.destination}`);
     return `<div class="camion ${(c.ligne || '').toLowerCase()}">
-      <div><span class="mono">${echapper(c.ligne)}</span> · camion ${c.camion}</div>
+      <div>
+        <span class="mono">${echapper(c.ligne)}</span> · camion ${c.camion}
+        <div class="sous-camion mono">${echapper(c.destination)} · ${charge}</div>
+      </div>
       <div class="jauge"><div style="width:${pct}%"></div></div>
-      <div class="heure-fin mono" style="font-size:12px;color:var(--texte-faible)">fin estimée ${fin}</div>
+      <div class="heure-fin mono" style="font-size:12px;color:var(--texte-faible)">${fin}</div>
       <div class="pct">${pct}%</div>
+      <button class="forcer"
+        data-ligne="${echapper(c.ligne)}"
+        data-dest="${echapper(c.destination)}"
+        data-camion="${c.camion}"
+        data-pct="${pct}"
+        data-caisses="${Math.round(c.caisses || 0)}" ${attente ? 'disabled' : ''}>
+        ${attente ? 'Départ demandé' : 'Faire partir'}
+      </button>
     </div>`;
   }).join('') : '<div class="vide">Aucun camion en remplissage.</div>';
+
+  document.querySelectorAll('button.forcer').forEach(b => {
+    b.addEventListener('click', () => forcerDepart(
+      b.dataset.ligne, b.dataset.dest, +b.dataset.camion,
+      +b.dataset.pct, +b.dataset.caisses, p.date
+    ));
+  });
 }
 
 function minutesEnHeure(m) {
   const h = Math.floor(m / 60), mn = m % 60;
   return `${String(h).padStart(2, '0')}h${String(mn).padStart(2, '0')}`;
 }
+
+// --- Départ forcé d'un camion partiellement plein ---
+// La demande porte sur (ligne, destination) : il n'y a qu'un seul camion en cours
+// par destination, et les numéros sont recalculés à chaque tick — s'y accrocher
+// serait fragile.
+// Le workflow applique la demande au tick suivant : il engage le camion avec son
+// chargement RÉEL (pas la capacité pleine) et lui fige le premier slot libre.
+// La capacité non utilisée est définitivement perdue.
+const forcagesEnAttente = new Set();
+
+async function forcerDepart(ligne, destination, camion, pct, caisses, jour) {
+  const ok = confirm(
+    `Faire partir le camion ${camion} (${ligne} → ${destination}) ?\n\n` +
+    `Il emportera son chargement RÉEL : ${caisses} caisses, soit ${pct} % de la capacité.\n` +
+    `Il ne sera PAS compté comme plein.\n\n` +
+    `La capacité restante est définitivement perdue : elle ne sera pas reportée ` +
+    `sur le camion suivant, qui repartira de zéro à cet instant.`
+  );
+  if (!ok) return;
+
+  const { error } = await sb.from('pl_override')
+    .insert({ date: jour, ligne, destination, applique: false });
+
+  if (error) {
+    const msg = error.code === '23505'
+      ? `Un départ est déjà demandé pour ${ligne} → ${destination}.`
+      : `Départ non enregistré : ${error.message}`;
+    $('anomalies').innerHTML =
+      `<div class="anomalie">${echapper(msg)}</div>` + $('anomalies').innerHTML;
+    return;
+  }
+  forcagesEnAttente.add(`${ligne}|${destination}`);
+  charger();
+}
+
 function echapper(v) {
   return String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
