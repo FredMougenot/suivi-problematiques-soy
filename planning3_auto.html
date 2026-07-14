@@ -169,6 +169,7 @@
   <header>
     <h1>Planning 3 Auto <span id="date-jour"></span></h1>
     <div style="display:flex;align-items:center;gap:12px">
+      <div class="horodatage" id="canal">—</div>
       <div class="horodatage" id="maj">—</div>
       <button id="btn-deconnexion">Se déconnecter</button>
     </div>
@@ -236,6 +237,7 @@ sb.auth.onAuthStateChange((_e, session) => {
 
 // --- Planning ---
 let abonnement = null;
+let repli = null;
 
 function dateLocale() {
   const d = new Date();
@@ -244,12 +246,32 @@ function dateLocale() {
   }).format(d);
 }
 
+// Le workflow réécrit pl_planning toutes les 2 min : chaque écriture émet un
+// événement Realtime. Si le canal ne s'établit pas, on retombe sur un
+// rafraîchissement périodique plutôt que d'afficher une page figée en silence.
+function etatCanal(etat) {
+  const el = $('canal');
+  if (etat === 'direct') {
+    el.textContent = '● direct';
+    el.style.color = 'var(--emeraude)';
+    if (repli) { clearInterval(repli); repli = null; }
+  } else {
+    el.textContent = '● rafraîchissement périodique';
+    el.style.color = 'var(--ambre)';
+    if (!repli) repli = setInterval(charger, 60000);
+  }
+}
+
 async function demarrer() {
   await charger();
   if (abonnement) return;
+
+  etatCanal('repli');
   abonnement = sb.channel('pl_planning')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'pl_planning' }, charger)
-    .subscribe();
+    .subscribe((statut) => {
+      etatCanal(statut === 'SUBSCRIBED' ? 'direct' : 'repli');
+    });
 }
 
 async function charger() {
