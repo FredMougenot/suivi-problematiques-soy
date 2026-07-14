@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planning 3 Auto — Ramassages transporteur</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --noir: #0a0a0c;
+    --ardoise: #141419;
+    --ardoise-clair: #1d1d24;
+    --trait: #2a2a33;
+    --texte: #e8e8ec;
+    --texte-faible: #7a7a88;
+    --or: #c9973f;
+    --bleu: #3b82f6;
+    --emeraude: #10b981;
+    --ambre: #f59e0b;
+    --rouge: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--noir);
+    color: var(--texte);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    padding: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+    border-bottom: 1px solid var(--trait);
+    padding-bottom: 16px; margin-bottom: 24px;
+  }
+  h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+  h1 span { color: var(--texte-faible); font-weight: 400; }
+  .horodatage { font-size: 12px; color: var(--texte-faible); font-family: 'JetBrains Mono', monospace; }
+
+  /* Connexion */
+  #connexion { max-width: 340px; margin: 80px auto; }
+  #connexion h2 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  #connexion p { font-size: 13px; color: var(--texte-faible); margin-bottom: 20px; }
+  input {
+    width: 100%; padding: 10px 12px; margin-bottom: 10px;
+    background: var(--ardoise); border: 1px solid var(--trait);
+    border-radius: 6px; color: var(--texte); font-size: 14px; font-family: inherit;
+  }
+  input:focus { outline: 2px solid var(--or); outline-offset: 1px; border-color: transparent; }
+  button {
+    padding: 10px 14px; border-radius: 6px; border: 1px solid var(--trait);
+    background: var(--ardoise-clair); color: var(--texte);
+    font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
+  }
+  button:hover { background: var(--trait); }
+  button:focus-visible { outline: 2px solid var(--or); outline-offset: 2px; }
+  button.primaire { width: 100%; background: var(--or); color: #17130a; border-color: var(--or); font-weight: 600; }
+  button.primaire:hover { filter: brightness(1.1); }
+
+  /* Bandeau lignes */
+  .lignes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+  .ligne {
+    background: var(--ardoise); border: 1px solid var(--trait);
+    border-left: 3px solid var(--trait); border-radius: 8px; padding: 14px 16px;
+  }
+  .ligne.l1 { border-left-color: var(--or); }
+  .ligne.l2 { border-left-color: var(--bleu); }
+  .ligne h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--texte-faible); font-weight: 600; margin-bottom: 8px; }
+  .chiffre { font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+  .ligne.l1 .chiffre { color: var(--or); }
+  .ligne.l2 .chiffre { color: var(--bleu); }
+  .sous { font-size: 12px; color: var(--texte-faible); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+
+  /* Le rail : signature de la page */
+  .rail-entete {
+    display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px;
+  }
+  .rail-entete h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--texte-faible); font-weight: 600; }
+  .rail-entete .plage { font-size: 12px; color: var(--texte-faible); font-family: 'JetBrains Mono', monospace; }
+
+  .rail { display: flex; flex-direction: column; }
+  .slot {
+    display: grid;
+    grid-template-columns: 62px 10px 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 11px 0;
+    border-top: 1px solid var(--trait);
+    position: relative;
+  }
+  .slot:last-child { border-bottom: 1px solid var(--trait); }
+  .heure { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 500; color: var(--texte-faible); }
+  .pastille { width: 10px; height: 10px; border-radius: 50%; background: var(--trait); }
+  .contenu { font-size: 14px; color: var(--texte-faible); }
+  .badge {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500;
+    padding: 3px 8px; border-radius: 4px;
+    border: 1px solid var(--trait); color: var(--texte-faible);
+  }
+
+  .slot.inactif { opacity: 0.32; }
+  .slot.inactif .contenu::after { content: 'hors horaires transporteur'; }
+
+  .slot.libre .contenu::after { content: '—'; }
+
+  .slot.affecte .heure { color: var(--texte); }
+  .slot.affecte .pastille { background: var(--emeraude); box-shadow: 0 0 0 3px rgba(16,185,129,0.15); }
+  .slot.affecte .contenu { color: var(--texte); font-weight: 500; }
+  .slot.affecte.l1 .pastille { background: var(--or); box-shadow: 0 0 0 3px rgba(201,151,63,0.15); }
+  .slot.affecte.l2 .pastille { background: var(--bleu); box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+  .slot.affecte .badge { border-color: var(--emeraude); color: var(--emeraude); }
+  .slot.force .badge { border-color: var(--ambre); color: var(--ambre); }
+
+  .dest { font-family: 'JetBrains Mono', monospace; font-weight: 600; letter-spacing: 0.02em; }
+
+  /* Camions en cours */
+  section { margin-top: 32px; }
+  section > h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--texte-faible); font-weight: 600; margin-bottom: 12px; }
+  .camion {
+    display: grid; grid-template-columns: 90px 1fr 120px auto; align-items: center; gap: 14px;
+    padding: 10px 0; border-top: 1px solid var(--trait); font-size: 14px;
+  }
+  .camion:last-child { border-bottom: 1px solid var(--trait); }
+  .jauge { height: 5px; background: var(--ardoise-clair); border-radius: 3px; overflow: hidden; }
+  .jauge > div { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+  .camion.l1 .jauge > div { background: var(--or); }
+  .camion.l2 .jauge > div { background: var(--bleu); }
+  .pct { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--texte-faible); text-align: right; }
+
+  .anomalie {
+    background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3);
+    color: #fca5a5; border-radius: 6px; padding: 10px 12px; font-size: 13px; margin-bottom: 8px;
+  }
+  .vide { color: var(--texte-faible); font-size: 13px; padding: 16px 0; }
+  .erreur { color: var(--rouge); font-size: 13px; margin-top: 8px; min-height: 18px; }
+
+  @media (max-width: 640px) {
+    body { padding: 16px; }
+    .lignes { grid-template-columns: 1fr; }
+    .slot { grid-template-columns: 54px 10px 1fr; }
+    .slot .badge { grid-column: 3; justify-self: start; }
+    .camion { grid-template-columns: 80px 1fr 60px; }
+    .camion .heure-fin { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="connexion" hidden>
+  <h2>Planning 3 Auto</h2>
+  <p>Connexion requise pour consulter le planning des ramassages.</p>
+  <input id="email" type="email" placeholder="Courriel" autocomplete="username">
+  <input id="mdp" type="password" placeholder="Mot de passe" autocomplete="current-password">
+  <button class="primaire" id="btn-connexion">Se connecter</button>
+  <div class="erreur" id="erreur-connexion"></div>
+</div>
+
+<div id="app" hidden>
+  <header>
+    <h1>Planning 3 Auto <span id="date-jour"></span></h1>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="horodatage" id="maj">—</div>
+      <button id="btn-deconnexion">Se déconnecter</button>
+    </div>
+  </header>
+
+  <div id="anomalies"></div>
+
+  <div class="lignes">
+    <div class="ligne l1">
+      <h3>Ligne 1</h3>
+      <div class="chiffre" id="caisses-l1">—</div>
+      <div class="sous" id="cadence-l1">caisses cumulées aujourd'hui</div>
+    </div>
+    <div class="ligne l2">
+      <h3>Ligne 2</h3>
+      <div class="chiffre" id="caisses-l2">—</div>
+      <div class="sous" id="cadence-l2">caisses cumulées aujourd'hui</div>
+    </div>
+  </div>
+
+  <div class="rail-entete">
+    <h2>Ramassages</h2>
+    <div class="plage" id="plage">—</div>
+  </div>
+  <div class="rail" id="rail"></div>
+
+  <section>
+    <h2>Camions en remplissage</h2>
+    <div id="camions"></div>
+  </section>
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SUPABASE_URL = 'https://xppzmdmnuztozgukrcta.supabase.co';
+// Clé publique. Ne donne accès à rien sans session : les tables pl_* exigent le rôle "authenticated".
+const SUPABASE_ANON = 'sb_publishable_pj0u4TSJNMqQ6h_HBDasqQ_aDYfjJfc';
+
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+const $ = (id) => document.getElementById(id);
+const vueConnexion = $('connexion');
+const vueApp = $('app');
+
+// --- Authentification ---
+$('btn-connexion').addEventListener('click', async () => {
+  const err = $('erreur-connexion');
+  err.textContent = '';
+  const { error } = await sb.auth.signInWithPassword({
+    email: $('email').value.trim(),
+    password: $('mdp').value
+  });
+  if (error) err.textContent = 'Connexion refusée. Vérifie le courriel et le mot de passe.';
+});
+$('mdp').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btn-connexion').click(); });
+$('btn-deconnexion').addEventListener('click', () => sb.auth.signOut());
+
+sb.auth.onAuthStateChange((_e, session) => {
+  const connecte = !!session;
+  vueConnexion.hidden = connecte;
+  vueApp.hidden = !connecte;
+  if (connecte) demarrer();
+});
+
+// --- Planning ---
+let abonnement = null;
+
+function dateLocale() {
+  const d = new Date();
+  return new Intl.DateTimeFormat('fr-CA', {
+    timeZone: 'America/Toronto', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).format(d);
+}
+
+async function demarrer() {
+  await charger();
+  if (abonnement) return;
+  abonnement = sb.channel('pl_planning')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'pl_planning' }, charger)
+    .subscribe();
+}
+
+async function charger() {
+  const jour = dateLocale();
+  const { data, error } = await sb
+    .from('pl_planning')
+    .select('*')
+    .eq('date', jour)
+    .maybeSingle();
+
+  if (error) {
+    $('anomalies').innerHTML = `<div class="anomalie">Lecture impossible : ${error.message}</div>`;
+    return;
+  }
+  if (!data) {
+    $('date-jour').textContent = jour;
+    $('rail').innerHTML = '<div class="vide">Aucun planning pour aujourd\'hui. Le workflow n\'a pas encore écrit de données.</div>';
+    $('camions').innerHTML = '';
+    return;
+  }
+  rendre(data);
+}
+
+function rendre(p) {
+  $('date-jour').textContent = `${p.date} · ${p.periode === 'degel' ? 'période de dégel' : 'hors dégel'}`;
+  $('maj').textContent = p.updated_at ? `maj ${String(p.updated_at).slice(11, 16)}` : '';
+  $('plage').textContent = `${p.heure_debut_transport} → ${p.heure_fin_transport} · slots de 1 h 30`;
+
+  $('caisses-l1').textContent = (p.caisses_l1 ?? 0).toLocaleString('fr-CA');
+  $('caisses-l2').textContent = (p.caisses_l2 ?? 0).toLocaleString('fr-CA');
+  $('cadence-l1').textContent = p.cadence_l1 ? `${p.cadence_l1} caisses/h sur la dernière heure` : 'cadence non établie';
+  $('cadence-l2').textContent = p.cadence_l2 ? `${p.cadence_l2} caisses/h sur la dernière heure` : 'cadence non établie';
+
+  const anomalies = p.anomalies || [];
+  $('anomalies').innerHTML = anomalies
+    .map(a => `<div class="anomalie">${echapper(a)}</div>`).join('');
+
+  // Rail des slots
+  const slots = p.slots || [];
+  $('rail').innerHTML = slots.map(s => {
+    const classes = ['slot'];
+    if (!s.actif) classes.push('inactif');
+    else if (s.statut === 'affecte') {
+      classes.push('affecte', (s.ligne || '').toLowerCase());
+      if (s.force) classes.push('force');
+    } else classes.push('libre');
+
+    const contenu = s.statut === 'affecte'
+      ? `<span class="dest">${echapper(s.destination)}</span> · ${echapper(s.ligne)} camion ${s.camion}`
+      : '';
+    const badge = s.statut === 'affecte'
+      ? `<span class="badge">${s.force ? 'départ forcé' : 'prêt ' + echapper(s.heure_camion)}</span>`
+      : '';
+
+    return `<div class="${classes.join(' ')}">
+      <div class="heure">${echapper(s.heure)}</div>
+      <div class="pastille"></div>
+      <div class="contenu">${contenu}</div>
+      ${badge}
+    </div>`;
+  }).join('');
+
+  // Camions en remplissage
+  const enCours = (p.camions || []).filter(c => c.statut !== 'pret' && c.progression > 0);
+  $('camions').innerHTML = enCours.length ? enCours.map(c => {
+    const pct = Math.round((c.progression || 0) * 100);
+    const fin = c.temps != null ? minutesEnHeure(c.temps) : '—';
+    return `<div class="camion ${(c.ligne || '').toLowerCase()}">
+      <div><span class="mono">${echapper(c.ligne)}</span> · camion ${c.camion}</div>
+      <div class="jauge"><div style="width:${pct}%"></div></div>
+      <div class="heure-fin mono" style="font-size:12px;color:var(--texte-faible)">fin estimée ${fin}</div>
+      <div class="pct">${pct}%</div>
+    </div>`;
+  }).join('') : '<div class="vide">Aucun camion en remplissage.</div>';
+}
+
+function minutesEnHeure(m) {
+  const h = Math.floor(m / 60), mn = m % 60;
+  return `${String(h).padStart(2, '0')}h${String(mn).padStart(2, '0')}`;
+}
+function echapper(v) {
+  return String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+// Vue initiale
+sb.auth.getSession().then(({ data }) => {
+  if (!data.session) vueConnexion.hidden = false;
+});
+</script>
+</body>
+</html>
