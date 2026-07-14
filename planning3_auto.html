@@ -145,6 +145,9 @@
   button.forcer { font-size: 12px; padding: 6px 10px; white-space: nowrap; }
   button.forcer:hover:not(:disabled) { background: var(--ambre); color: #1c1408; border-color: var(--ambre); }
   button.forcer:disabled { opacity: 0.45; cursor: default; border-style: dashed; }
+  button.annuler { font-size: 12px; padding: 6px 10px; white-space: nowrap; border-style: dashed; color: var(--texte-faible); }
+  button.annuler:hover { background: rgba(239,68,68,0.12); border-color: var(--rouge); color: #fca5a5; border-style: solid; }
+  .camion.force .sous-camion { color: var(--ambre); }
   .jauge { height: 5px; background: var(--ardoise-clair); border-radius: 3px; overflow: hidden; }
   .jauge > div { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
   .camion.l1 .jauge > div { background: var(--or); }
@@ -216,6 +219,11 @@
   <section>
     <h2>Camions en remplissage</h2>
     <div id="camions"></div>
+  </section>
+
+  <section>
+    <h2>Départs forcés</h2>
+    <div id="forces"></div>
   </section>
 </div>
 
@@ -293,14 +301,26 @@ async function demarrer() {
 
 async function charger() {
   const jour = dateLocale();
-  const { data, error } = await sb
-    .from('pl_planning')
-    .select('*')
-    .eq('date', jour)
-    .maybeSingle();
 
+  // L'état des demandes est LU depuis la base à chaque tick, jamais gardé en
+  // mémoire locale : sinon le bouton reste bloqué sur le camion suivant.
+  const [planning, forcages] = await Promise.all([
+    sb.from('pl_planning').select('*').eq('date', jour).maybeSingle(),
+    sb.from('pl_override').select('id,ligne,destination,applique,camion').eq('date', jour)
+  ]);
+
+  enAttente.clear();
+  appliques.length = 0;
+  if (!forcages.error && forcages.data) {
+    for (const o of forcages.data) {
+      if (o.applique) appliques.push(o);
+      else enAttente.add(`${o.ligne}|${o.destination}`);
+    }
+  }
+
+  const { data, error } = planning;
   if (error) {
-    $('anomalies').innerHTML = `<div class="anomalie">Lecture impossible : ${error.message}</div>`;
+    $('anomalies').innerHTML = `<div class="anomalie">Lecture impossible : ${echapper(error.message)}</div>`;
     return;
   }
   if (!data) {
@@ -368,30 +388,68 @@ function rendre(p) {
     const charge = c.palettes != null
       ? `${(+c.palettes).toFixed(1)} / ${c.capacite} palettes · ${Math.round(c.caisses || 0)} caisses`
       : '';
-    const attente = forcagesEnAttente.has(`${c.ligne}|${c.destination}`);
+    const attente = enAttente.has(`${c.ligne}|${c.destination}`);
+
+    const action = attente
+      ? `<button class="annuler"
+           data-ligne="${echapper(c.ligne)}" data-dest="${echapper(c.destination)}">
+           Annuler la demande
+         </button>`
+      : `<button class="forcer"
+           data-ligne="${echapper(c.ligne)}"
+           data-dest="${echapper(c.destination)}"
+           data-camion="${c.camion}"
+           data-pct="${pct}"
+           data-caisses="${Math.round(c.caisses || 0)}">
+           Faire partir
+         </button>`;
+
     return `<div class="camion ${(c.ligne || '').toLowerCase()}">
       <div>
         <span class="mono">${echapper(c.ligne)}</span> · camion ${c.camion}
         <div class="sous-camion mono">${echapper(c.destination)} · ${charge}</div>
       </div>
       <div class="jauge"><div style="width:${pct}%"></div></div>
-      <div class="heure-fin mono" style="font-size:12px;color:var(--texte-faible)">${fin}</div>
+      <div class="heure-fin mono" style="font-size:12px;color:var(--texte-faible)">
+        ${attente ? 'départ demandé — appliqué au prochain tick' : fin}
+      </div>
       <div class="pct">${pct}%</div>
-      <button class="forcer"
-        data-ligne="${echapper(c.ligne)}"
-        data-dest="${echapper(c.destination)}"
-        data-camion="${c.camion}"
-        data-pct="${pct}"
-        data-caisses="${Math.round(c.caisses || 0)}" ${attente ? 'disabled' : ''}>
-        ${attente ? 'Départ demandé' : 'Faire partir'}
-      </button>
+      ${action}
     </div>`;
   }).join('') : '<div class="vide">Aucun camion en remplissage.</div>';
+
+  // Départs forcés déjà engagés : annulables tant que le camion n'a pas quitté le quai
+  const forces = (p.camions || []).filter(c => c.statut === 'force');
+  $('forces').innerHTML = forces.length ? forces.map(c => {
+    const pct = Math.round((c.progression || 0) * 100);
+    const slot = c.slot_minutes != null ? minutesEnHeure(c.slot_minutes) : 'reporté';
+    return `<div class="camion force ${(c.ligne || '').toLowerCase()}">
+      <div>
+        <span class="mono">${echapper(c.ligne)}</span> · camion ${c.camion}
+        <div class="sous-camion mono">${echapper(c.destination)} · ${(+c.palettes).toFixed(1)} / ${c.capacite} palettes · ${Math.round(c.caisses || 0)} caisses</div>
+      </div>
+      <div class="jauge"><div style="width:${pct}%"></div></div>
+      <div class="heure-fin mono" style="font-size:12px;color:var(--ambre)">slot ${slot} · figé</div>
+      <div class="pct">${pct}%</div>
+      <button class="annuler"
+        data-ligne="${echapper(c.ligne)}"
+        data-dest="${echapper(c.destination)}"
+        data-camion="${c.camion}">
+        Annuler
+      </button>
+    </div>`;
+  }).join('') : '<div class="vide">Aucun départ forcé aujourd\'hui.</div>';
 
   document.querySelectorAll('button.forcer').forEach(b => {
     b.addEventListener('click', () => forcerDepart(
       b.dataset.ligne, b.dataset.dest, +b.dataset.camion,
       +b.dataset.pct, +b.dataset.caisses, p.date
+    ));
+  });
+  document.querySelectorAll('button.annuler').forEach(b => {
+    b.addEventListener('click', () => annulerForcage(
+      b.dataset.ligne, b.dataset.dest, p.date,
+      b.dataset.camion ? +b.dataset.camion : null
     ));
   });
 }
@@ -403,12 +461,14 @@ function minutesEnHeure(m) {
 
 // --- Départ forcé d'un camion partiellement plein ---
 // La demande porte sur (ligne, destination) : il n'y a qu'un seul camion en cours
-// par destination, et les numéros sont recalculés à chaque tick — s'y accrocher
-// serait fragile.
+// par destination, et les numéros sont recalculés à chaque tick.
 // Le workflow applique la demande au tick suivant : il engage le camion avec son
-// chargement RÉEL (pas la capacité pleine) et lui fige le premier slot libre.
-// La capacité non utilisée est définitivement perdue.
-const forcagesEnAttente = new Set();
+// chargement RÉEL et lui fige son slot. La capacité non utilisée est perdue.
+//
+// enAttente / appliques sont RECONSTRUITS depuis la base à chaque chargement.
+// Aucun état de bouton n'est conservé en mémoire locale.
+const enAttente = new Set();
+const appliques = [];
 
 async function forcerDepart(ligne, destination, camion, pct, caisses, jour) {
   const ok = confirm(
@@ -431,7 +491,44 @@ async function forcerDepart(ligne, destination, camion, pct, caisses, jour) {
       `<div class="anomalie">${echapper(msg)}</div>` + $('anomalies').innerHTML;
     return;
   }
-  forcagesEnAttente.add(`${ligne}|${destination}`);
+  charger();
+}
+
+// --- Annulation d'un forçage ---
+// En attente  : la demande n'a rien produit, on la supprime, sans conséquence.
+// Déjà appliqué : on supprime le camion du registre. Ses palettes retournent
+// aussitôt dans le pool et le camion en cours les réabsorbe au tick suivant.
+async function annulerForcage(ligne, destination, jour, camion) {
+  const applique = camion != null;
+  const ok = confirm(applique
+    ? `Annuler le départ forcé du camion ${camion} (${ligne} → ${destination}) ?\n\n` +
+      `Son chargement retournera dans le camion en cours au prochain tick, comme si ` +
+      `le départ n'avait jamais eu lieu.\n\n` +
+      `À ne faire QUE si le camion n'a pas physiquement quitté le quai.`
+    : `Annuler la demande de départ pour ${ligne} → ${destination} ?\n\n` +
+      `Elle n'a pas encore été appliquée : aucune conséquence.`);
+  if (!ok) return;
+
+  if (applique) {
+    const r = await sb.from('pl_camion').delete()
+      .eq('date', jour).eq('ligne', ligne).eq('camion', camion);
+    if (r.error) {
+      $('anomalies').innerHTML =
+        `<div class="anomalie">Annulation impossible : ${echapper(r.error.message)}</div>`
+        + $('anomalies').innerHTML;
+      return;
+    }
+  }
+
+  const r2 = await sb.from('pl_override').delete()
+    .eq('date', jour).eq('ligne', ligne).eq('destination', destination)
+    .eq('applique', applique);
+  if (r2.error) {
+    $('anomalies').innerHTML =
+      `<div class="anomalie">Annulation partielle : ${echapper(r2.error.message)}</div>`
+      + $('anomalies').innerHTML;
+    return;
+  }
   charger();
 }
 
