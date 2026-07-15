@@ -334,20 +334,43 @@ function dateLocale() {
   }).format(d);
 }
 
-// Le workflow réécrit pl_planning toutes les 2 min : chaque écriture émet un
-// événement Realtime. Si le canal ne s'établit pas, on retombe sur un
-// rafraîchissement périodique plutôt que d'afficher une page figée en silence.
+// Le workflow réécrit pl_planning toutes les 2 min. Realtime accélère l'affichage,
+// mais un polling permanent de 30 s garantit que la page ne fige jamais.
 function etatCanal(etat) {
   const el = $('canal');
   if (etat === 'direct') {
     el.textContent = '● direct';
     el.style.color = 'var(--emeraude)';
-    if (repli) { clearInterval(repli); repli = null; }
   } else {
     el.textContent = '● rafraîchissement périodique';
     el.style.color = 'var(--ambre)';
-    if (!repli) repli = setInterval(charger, 60000);
   }
+}
+
+async function demarrer() {
+  await chargerIntentions();
+  await charger();
+  if (abonnement) return;
+
+  // Realtime = accélérateur. On n'utilise PAS le contenu de l'événement : à chaque
+  // notification on relit la table nous-mêmes (donc payload léger suffit).
+  etatCanal('repli');
+  abonnement = sb.channel('pl_planning')
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pl_planning' }, charger)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pl_planning' }, charger)
+    .subscribe((statut) => {
+      etatCanal(statut === 'SUBSCRIBED' ? 'direct' : 'repli');
+    });
+
+  // Filet PERMANENT : rafraîchissement toutes les 30 s quel que soit l'état du
+  // canal. La page ne peut jamais rester figée plus de 30 s.
+  if (!repli) repli = setInterval(charger, 30000);
+
+  // Resynchro quand l'onglet reprend le focus (Realtime se met en veille en
+  // arrière-plan sur mobile / onglet caché).
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') charger();
+  });
 }
 
 // --- Intentions de production (base d'évaluation ; la cadence corrige ensuite) ---
@@ -388,18 +411,7 @@ async function enregistrerIntentions() {
   charger();
 }
 
-async function demarrer() {
-  await chargerIntentions();
-  await charger();
-  if (abonnement) return;
 
-  etatCanal('repli');
-  abonnement = sb.channel('pl_planning')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'pl_planning' }, charger)
-    .subscribe((statut) => {
-      etatCanal(statut === 'SUBSCRIBED' ? 'direct' : 'repli');
-    });
-}
 
 async function charger() {
   const jour = dateLocale();
