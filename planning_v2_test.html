@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quai — Planification camions V2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#121A22;
+  --panel:#1A242E;
+  --panel-2:#212D39;
+  --line:#2E3D4B;
+  --ink:#E8F0F6;
+  --muted:#8497A6;
+  --froid:#4FB3D9;
+  --chaud:#E8A33D;
+  --alerte:#E4572E;
+  --ok:#5FC28A;
+  --r:3px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--ground);
+  color:var(--ink);
+  font-family:'Barlow',system-ui,sans-serif;
+  font-size:15px;
+  line-height:1.5;
+  padding:0 0 64px;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+/* ---------- en-tete ---------- */
+header{
+  border-bottom:1px solid var(--line);
+  padding:26px 0 22px;
+  margin-bottom:28px;
+  background:linear-gradient(180deg,#16202A 0%,var(--ground) 100%);
+}
+.eyebrow{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:8px;
+}
+h1{
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;font-size:clamp(30px,5vw,46px);
+  text-transform:uppercase;letter-spacing:.02em;
+  margin:0 0 4px;line-height:1;
+}
+.verdict{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:clamp(19px,3vw,26px);font-weight:600;
+  color:var(--ink);margin-top:14px;line-height:1.25;
+}
+.verdict .n{font-family:'IBM Plex Mono',monospace;font-size:.92em}
+.verdict .froid{color:var(--froid)}
+.verdict .chaud{color:var(--chaud)}
+.meta{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin-top:10px}
+
+/* ---------- sections ---------- */
+section{margin-bottom:34px}
+h2{
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:600;font-size:17px;text-transform:uppercase;letter-spacing:.12em;
+  color:var(--muted);margin:0 0 14px;
+  padding-bottom:8px;border-bottom:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+}
+h2 .hint{font-family:'Barlow',sans-serif;font-size:12px;letter-spacing:0;text-transform:none;color:#63footer}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+
+/* ---------- bande horaire (signature) ---------- */
+.strip{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:18px 16px 12px;overflow-x:auto;
+}
+.strip-rail{display:flex;gap:4px;min-width:900px}
+.slot{
+  flex:1;min-width:52px;border-radius:var(--r);
+  border:1px solid var(--line);background:var(--panel-2);
+  padding:8px 6px 10px;position:relative;
+  display:flex;flex-direction:column;gap:6px;min-height:104px;
+}
+.slot.inactif{
+  background:repeating-linear-gradient(45deg,#182129,#182129 5px,#1C2731 5px,#1C2731 10px);
+  border-color:#232F3A;opacity:.55;
+}
+.slot .h{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.02em}
+.slot.passe .h{text-decoration:line-through}
+.chip{
+  border-radius:2px;padding:5px 6px;font-size:11px;line-height:1.3;
+  font-family:'IBM Plex Mono',monospace;
+}
+.chip.froid{background:rgba(79,179,217,.14);border-left:3px solid var(--froid);color:#BEE6F5}
+.chip.chaud{background:rgba(232,163,61,.13);border-left:3px solid var(--chaud);color:#F6DDB2}
+.chip .d{display:block;font-weight:600;letter-spacing:.02em}
+.chip .l{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+.slot .vide{font-size:11px;color:#4E5F6D;font-family:'IBM Plex Mono',monospace}
+.legende{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;font-size:12px;color:var(--muted)}
+.legende i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+
+/* ---------- chiffres ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px}
+.stat .k{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:700;line-height:1.1;margin-top:4px}
+.stat.froid .v{color:var(--froid)}
+.stat.chaud .v{color:var(--chaud)}
+.stat.alerte .v{color:var(--alerte)}
+
+/* ---------- quais ---------- */
+.quais{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:10px}
+.quai{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.quai.plein{border-color:var(--alerte)}
+.quai h3{
+  font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.1em;
+  font-size:14px;margin:0 0 10px;color:var(--muted);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.badge{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 6px;border-radius:2px;letter-spacing:.06em}
+.badge.dispo{background:rgba(95,194,138,.15);color:var(--ok)}
+.badge.part{background:rgba(228,87,46,.16);color:var(--alerte)}
+.badge.libre{background:#232F3A;color:var(--muted)}
+.row{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px}
+.row label{color:var(--muted);min-width:74px}
+
+/* ---------- formulaires ---------- */
+input,select,button{font-family:inherit;font-size:14px}
+input[type=text],input[type=number],input[type=password],input[type=email],select{
+  background:#141D25;border:1px solid var(--line);color:var(--ink);
+  border-radius:2px;padding:6px 8px;width:100%;
+}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--froid);outline-offset:1px}
+input[type=checkbox]{accent-color:var(--froid);width:16px;height:16px}
+button{
+  background:var(--panel-2);border:1px solid var(--line);color:var(--ink);
+  padding:7px 14px;border-radius:2px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;
+  text-transform:uppercase;letter-spacing:.08em;font-size:13px;
+}
+button:hover{background:#2A3846;border-color:#3E4F5F}
+button.primaire{background:var(--froid);color:#0C161C;border-color:var(--froid)}
+button.primaire:hover{background:#6FC4E4}
+button.danger{color:var(--alerte);border-color:#3A2A28}
+button.danger:hover{background:#2A1E1C}
+table{width:100%;border-collapse:collapse}
+th{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);text-align:left;
+  padding:6px 8px;border-bottom:1px solid var(--line);font-weight:500;
+}
+td{padding:5px 8px;border-bottom:1px solid #232F3A;vertical-align:middle}
+td.num{width:96px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:center}
+
+/* ---------- alertes / etats ---------- */
+.alerte-box{
+  background:rgba(228,87,46,.1);border:1px solid #46281F;border-left:3px solid var(--alerte);
+  border-radius:2px;padding:10px 12px;margin-bottom:8px;font-size:14px;
+}
+.vide-msg{color:var(--muted);font-size:14px;padding:6px 0}
+#toast{
+  position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--panel-2);border:1px solid var(--line);border-left:3px solid var(--ok);
+  padding:11px 18px;border-radius:2px;font-size:14px;
+  transition:transform .25s ease;z-index:50;max-width:90vw;
+}
+#toast.on{transform:translateX(-50%) translateY(0)}
+#toast.err{border-left-color:var(--alerte)}
+
+/* ---------- connexion ---------- */
+#login{max-width:340px;margin:70px auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:26px}
+#login h1{font-size:24px;margin-bottom:6px}
+#login p{color:var(--muted);font-size:13px;margin:0 0 18px}
+#login .row{display:block;margin-bottom:12px}
+#login label{display:block;margin-bottom:5px;font-size:12px;color:var(--muted)}
+.err{color:var(--alerte);font-size:13px;margin-top:10px;min-height:18px}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media(max-width:640px){
+  .row label{min-width:64px}
+  td,th{padding:5px 5px}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= CONNEXION ================= -->
+<div id="login" hidden>
+  <h1>Quai V2</h1>
+  <p>Connexion requise pour lire et modifier les données.</p>
+  <div class="row"><label for="mail">Courriel</label><input id="mail" type="email" autocomplete="username"></div>
+  <div class="row"><label for="pass">Mot de passe</label><input id="pass" type="password" autocomplete="current-password"></div>
+  <button class="primaire" id="btn-login" style="width:100%">Se connecter</button>
+  <div class="err" id="login-err"></div>
+</div>
+
+<!-- ================= APPLICATION ================= -->
+<div id="app" hidden>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Planification camions — banc d'essai V2</div>
+    <h1>Journée de quai</h1>
+    <div class="verdict" id="verdict">Chargement…</div>
+    <div class="meta" id="meta"></div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section id="sec-alertes" hidden>
+    <h2>Alertes</h2>
+    <div id="alertes"></div>
+  </section>
+
+  <!-- SIGNATURE : la bande horaire -->
+  <section>
+    <h2>Créneaux de ramassage <span class="hint" id="strip-hint"></span></h2>
+    <div class="strip">
+      <div class="strip-rail" id="rail"></div>
+      <div class="legende">
+        <span><i style="background:var(--froid)"></i>Réfrigéré — frais (L2)</span>
+        <span><i style="background:var(--chaud)"></i>Tempéré — L1</span>
+        <span><i style="background:#2A3540"></i>Hors horaire transporteur</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Ce que le transporteur doit apporter</h2>
+    <div class="grid" id="chiffres"></div>
+  </section>
+
+  <!-- ============ PARAMÈTRES MODIFIABLES ============ -->
+  <section>
+    <h2>Horaires du transporteur <span class="hint">modifiable</span></h2>
+    <div class="panel" id="params"></div>
+    <div class="actions">
+      <button class="primaire" id="btn-params">Enregistrer les horaires</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>État des quais <span class="hint">modifiable — un camion plein n'est pas un vide disponible</span></h2>
+    <div class="quais" id="quais"></div>
+    <div class="actions">
+      <button class="primaire" id="btn-quais">Enregistrer les quais</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Intentions de production <span class="hint">modifiable — plusieurs SKU par ligne = plusieurs destinations</span></h2>
+    <div class="panel">
+      <table>
+        <thead><tr>
+          <th>Date</th><th>Ligne</th><th>SKU</th><th>Camions</th><th>Destination</th><th>Actif</th><th></th>
+        </tr></thead>
+        <tbody id="intentions"></tbody>
+      </table>
+      <div class="actions">
+        <button id="btn-ajout">Ajouter une intention</button>
+        <button class="primaire" id="btn-intentions">Enregistrer les intentions</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="actions" style="border-top:1px solid var(--line);padding-top:18px">
+    <button class="primaire" id="btn-recharger">Recharger le planning</button>
+    <button id="btn-logout">Se déconnecter</button>
+    <span class="vide-msg" id="rappel"></span>
+  </div>
+
+</div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const URL_SB = 'https://xppzmdmnuztozgukrcta.supabase.co';
+const CLE_PUB = 'sb_publishable_pj0u4TSJNMqQ6h_HBDasqQ_aDYfjJfc';
+const sb = createClient(URL_SB, CLE_PUB);
+
+const $ = s => document.querySelector(s);
+let etat = { params:[], quais:[], intentions:[], planning:null };
+
+/* ---------- utilitaires ---------- */
+function toast(msg, erreur){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = 'on' + (erreur ? ' err' : '');
+  setTimeout(()=>{ t.className=''; }, 3200);
+}
+const aujourdhui = () =>
+  new Intl.DateTimeFormat('en-CA',{timeZone:'America/Toronto',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+function minutesMaintenant(){
+  const h = new Intl.DateTimeFormat('en-GB',{timeZone:'America/Toronto',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
+  const [a,b] = h.split(':').map(Number);
+  return a*60+b;
+}
+/* destination déduite du SKU — mêmes règles que les nœuds n8n */
+function destinationDe(ligne, sku){
+  const s = String(sku||'').toUpperCase();
+  if(ligne === 'L1') return s.includes('LCB') ? 'ADVANTECH' : 'GH';
+  return s.includes('3') ? 'LJDERY' : 'PROACTIVE';
+}
+const typeDe = ligne => ligne === 'L2' ? 'refrigere' : 'tempere';
+
+/* ---------- chargement ---------- */
+async function charger(){
+  const [p,q,i,pl] = await Promise.all([
+    sb.from('v2_parametres').select('cle,valeur').order('cle'),
+    sb.from('v2_quais').select('*').order('quai'),
+    sb.from('v2_intention').select('*').order('date').order('ligne').order('sku'),
+    sb.from('v2_planning').select('*').eq('date', aujourdhui()).maybeSingle()
+  ]);
+  const err = [p,q,i,pl].find(r=>r.error);
+  if(err){ toast('Lecture impossible : '+err.error.message, true); return; }
+  etat = { params:p.data||[], quais:q.data||[], intentions:i.data||[], planning:pl.data||null };
+  dessinerTout();
+}
+
+function dessinerTout(){
+  dessinerEntete();
+  dessinerBande();
+  dessinerChiffres();
+  dessinerParams();
+  dessinerQuais();
+  dessinerIntentions();
+  $('#rappel').textContent = 'Après modification, relancez la Section 8 dans n8n puis rechargez.';
+}
+
+/* ---------- en-tête ---------- */
+function dessinerEntete(){
+  const pl = etat.planning;
+  if(!pl){
+    $('#verdict').textContent = 'Aucun planning calculé pour aujourd’hui.';
+    $('#meta').textContent = 'Lancez la Section 8 dans n8n, puis rechargez cette page.';
+    $('#sec-alertes').hidden = true;
+    return;
+  }
+  const r = pl.reste_a_apporter || {};
+  $('#verdict').innerHTML =
+    'Le transporteur doit apporter <span class="froid n">' + (r.reste_refrigere||0) + '</span> <span class="froid">réfrigéré(s)</span> ' +
+    'et <span class="chaud n">' + (r.reste_tempere||0) + '</span> <span class="chaud">tempéré(s)</span>.' +
+    ((pl.quais?.a_faire_partir||[]).length
+      ? ' <span style="color:var(--alerte)">' + pl.quais.a_faire_partir.length + ' camion(s) plein(s) à faire partir.</span>'
+      : '');
+  $('#meta').textContent =
+    pl.date + '  ·  transporteur ' + (pl.est_24_24 ? '24/24' : (pl.heure_debut_transport+' → '+pl.heure_fin_transport)) +
+    '  ·  dernier calcul ' + (pl.updated_at||'').slice(0,16);
+
+  const al = pl.alertes||[];
+  $('#sec-alertes').hidden = al.length === 0;
+  $('#alertes').innerHTML = al.map(a=>'<div class="alerte-box">'+a+'</div>').join('');
+}
+
+/* ---------- bande horaire ---------- */
+function dessinerBande(){
+  const rail = $('#rail');
+  const slots = etat.planning?.slots || [];
+  if(!slots.length){ rail.innerHTML = '<div class="vide-msg">Aucun créneau calculé.</div>'; $('#strip-hint').textContent=''; return; }
+  const maintenant = minutesMaintenant();
+  let util=0;
+  rail.innerHTML = slots.map(s=>{
+    const actif = s.utilisable === true;
+    if(actif) util++;
+    const passe = actif && s.minutes < maintenant;
+    let corps = '<span class="vide">' + (actif ? '—' : 'fermé') + '</span>';
+    if(actif && s.type_vide){
+      const cl = s.type_vide === 'refrigere' ? 'froid' : 'chaud';
+      const ico = s.type_vide === 'refrigere' ? '❄' : '☀';
+      corps = '<div class="chip '+cl+'"><span class="d">'+ico+' '+(s.destination||'—')+'</span>'+
+              '<span class="l">'+(s.ligne||'')+'</span></div>';
+    }
+    return '<div class="slot'+(actif?'':' inactif')+(passe?' passe':'')+'">'+
+             '<span class="h">'+s.heure+'</span>'+corps+
+           '</div>';
+  }).join('');
+  $('#strip-hint').textContent = util + ' créneaux utilisables sur ' + slots.length + ' — barrés = déjà passés';
+}
+
+/* ---------- chiffres ---------- */
+function dessinerChiffres(){
+  const r = etat.planning?.reste_a_apporter;
+  if(!r){ $('#chiffres').innerHTML = '<div class="vide-msg">Aucun calcul disponible.</div>'; return; }
+  const cases = [
+    ['À apporter — réfrigéré', r.reste_refrigere||0, 'froid'],
+    ['À apporter — tempéré',   r.reste_tempere||0,   'chaud'],
+    ['Besoin réfrigéré',       r.besoin_refrigere||0,''],
+    ['Besoin tempéré',         r.besoin_tempere||0,  ''],
+    ['Déjà au quai — réfrig.', r.deja_aux_quais_refrigere||0,''],
+    ['Déjà au quai — tempéré', r.deja_aux_quais_tempere||0,''],
+    ['Camions ajoutés',        r.camions_supplementaires||0, (r.camions_supplementaires?'alerte':'')]
+  ];
+  $('#chiffres').innerHTML = cases.map(([k,v,c])=>
+    '<div class="stat '+c+'"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>').join('');
+}
+
+/* ---------- paramètres ---------- */
+const LIBELLES = {
+  est_24_24:'Transporteur 24/24',
+  heure_debut_transport:'Heure de début',
+  heure_fin_transport:'Heure de fin',
+  slot_minutes:'Espacement des créneaux (min)',
+  tampon_max_palettes:'Zone tampon max (palettes)',
+  pool_max:'Vides max aux quais'
+};
+function dessinerParams(){
+  $('#params').innerHTML = etat.params.map(p=>{
+    const lib = LIBELLES[p.cle] || p.cle;
+    const champ = p.cle === 'est_24_24'
+      ? '<input type="checkbox" data-cle="'+p.cle+'"'+(String(p.valeur)==='true'?' checked':'')+'>'
+      : '<input type="text" data-cle="'+p.cle+'" value="'+p.valeur+'" style="max-width:130px">';
+    return '<div class="row"><label style="min-width:210px">'+lib+'</label>'+champ+'</div>';
+  }).join('');
+}
+async function enregistrerParams(){
+  const lignes = [...$('#params').querySelectorAll('[data-cle]')].map(el=>({
+    cle: el.dataset.cle,
+    valeur: el.type === 'checkbox' ? String(el.checked) : el.value.trim()
+  }));
+  const { error } = await sb.from('v2_parametres').upsert(lignes, { onConflict:'cle' });
+  error ? toast('Échec : '+error.message, true) : toast('Horaires enregistrés');
+  if(!error) charger();
+}
+
+/* ---------- quais ---------- */
+function dessinerQuais(){
+  $('#quais').innerHTML = etat.quais.map(q=>{
+    const badge = !q.camion_present ? '<span class="badge libre">Quai libre</span>'
+      : q.plein ? '<span class="badge part">Doit partir</span>'
+                : '<span class="badge dispo">Vide disponible</span>';
+    return '<div class="quai'+(q.plein?' plein':'')+'">'+
+      '<h3>Quai '+q.quai+' '+badge+'</h3>'+
+      '<div class="row"><label>Camion</label><input type="checkbox" data-q="'+q.quai+'" data-f="camion_present"'+(q.camion_present?' checked':'')+'></div>'+
+      '<div class="row"><label>Type</label><select data-q="'+q.quai+'" data-f="type_camion">'+
+        '<option value="refrigere"'+(q.type_camion==='refrigere'?' selected':'')+'>Réfrigéré</option>'+
+        '<option value="tempere"'+(q.type_camion==='tempere'?' selected':'')+'>Tempéré</option>'+
+        '<option value=""'+(!q.type_camion?' selected':'')+'>—</option></select></div>'+
+      '<div class="row"><label>Plein</label><input type="checkbox" data-q="'+q.quai+'" data-f="plein"'+(q.plein?' checked':'')+'></div>'+
+    '</div>';
+  }).join('');
+}
+async function enregistrerQuais(){
+  const parQuai = {};
+  $('#quais').querySelectorAll('[data-q]').forEach(el=>{
+    const n = Number(el.dataset.q);
+    parQuai[n] = parQuai[n] || { quai:n };
+    parQuai[n][el.dataset.f] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  const { error } = await sb.from('v2_quais').upsert(Object.values(parQuai), { onConflict:'quai' });
+  error ? toast('Échec : '+error.message, true) : toast('Quais enregistrés');
+  if(!error) charger();
+}
+
+/* ---------- intentions ---------- */
+function ligneIntention(it, idx){
+  const dest = destinationDe(it.ligne, it.sku);
+  const type = typeDe(it.ligne);
+  const pastille = type === 'refrigere'
+    ? '<span style="color:var(--froid)">❄ '+dest+'</span>'
+    : '<span style="color:var(--chaud)">☀ '+dest+'</span>';
+  return '<tr data-i="'+idx+'">'+
+    '<td><input type="text" data-f="date" value="'+(it.date||'')+'" style="max-width:126px"></td>'+
+    '<td><select data-f="ligne"><option value="L1"'+(it.ligne==='L1'?' selected':'')+'>L1</option>'+
+        '<option value="L2"'+(it.ligne==='L2'?' selected':'')+'>L2</option></select></td>'+
+    '<td><input type="text" data-f="sku" value="'+(it.sku||'')+'"></td>'+
+    '<td class="num"><input type="number" min="0" data-f="nb_camions" value="'+(it.nb_camions??0)+'"></td>'+
+    '<td>'+pastille+'</td>'+
+    '<td><input type="checkbox" data-f="actif"'+(it.actif!==false?' checked':'')+'></td>'+
+    '<td><button class="danger" data-suppr="'+idx+'">Retirer</button></td>'+
+  '</tr>';
+}
+function dessinerIntentions(){
+  const t = $('#intentions');
+  t.innerHTML = etat.intentions.length
+    ? etat.intentions.map((it,i)=>ligneIntention(it,i)).join('')
+    : '<tr><td colspan="7" class="vide-msg">Aucune intention déclarée.</td></tr>';
+  t.querySelectorAll('select[data-f=ligne], input[data-f=sku]').forEach(el=>{
+    el.addEventListener('change', ()=>{
+      const tr = el.closest('tr');
+      const ligne = tr.querySelector('[data-f=ligne]').value;
+      const sku = tr.querySelector('[data-f=sku]').value;
+      const dest = destinationDe(ligne, sku), type = typeDe(ligne);
+      tr.children[4].innerHTML = type==='refrigere'
+        ? '<span style="color:var(--froid)">❄ '+dest+'</span>'
+        : '<span style="color:var(--chaud)">☀ '+dest+'</span>';
+    });
+  });
+  t.querySelectorAll('[data-suppr]').forEach(b=>{
+    b.addEventListener('click', ()=>supprimerIntention(Number(b.dataset.suppr)));
+  });
+}
+function lireIntentions(){
+  return [...$('#intentions').querySelectorAll('tr[data-i]')].map(tr=>({
+    date: tr.querySelector('[data-f=date]').value.trim(),
+    ligne: tr.querySelector('[data-f=ligne]').value,
+    sku: tr.querySelector('[data-f=sku]').value.trim(),
+    nb_camions: Number(tr.querySelector('[data-f=nb_camions]').value)||0,
+    actif: tr.querySelector('[data-f=actif]').checked
+  })).filter(x=>x.date && x.sku);
+}
+async function enregistrerIntentions(){
+  const lignes = lireIntentions();
+  if(!lignes.length){ toast('Rien à enregistrer', true); return; }
+  const { error } = await sb.from('v2_intention').upsert(lignes, { onConflict:'date,ligne,sku' });
+  error ? toast('Échec : '+error.message, true) : toast(lignes.length+' intention(s) enregistrée(s)');
+  if(!error) charger();
+}
+async function supprimerIntention(idx){
+  const it = etat.intentions[idx];
+  if(!it) return;
+  const { error } = await sb.from('v2_intention').delete()
+    .eq('date', it.date).eq('ligne', it.ligne).eq('sku', it.sku);
+  error ? toast('Échec : '+error.message, true) : toast('Intention retirée');
+  charger();
+}
+function ajouterLigne(){
+  etat.intentions.push({ date: aujourdhui(), ligne:'L1', sku:'', nb_camions:1, actif:true });
+  dessinerIntentions();
+}
+
+/* ---------- session ---------- */
+async function connecter(){
+  $('#login-err').textContent = '';
+  const { error } = await sb.auth.signInWithPassword({ email:$('#mail').value, password:$('#pass').value });
+  if(error){ $('#login-err').textContent = 'Connexion refusée : '+error.message; return; }
+  demarrer();
+}
+async function demarrer(){
+  const { data } = await sb.auth.getSession();
+  const connecte = !!data.session;
+  $('#login').hidden = connecte;
+  $('#app').hidden = !connecte;
+  if(connecte) charger();
+}
+
+$('#btn-login').addEventListener('click', connecter);
+$('#pass').addEventListener('keydown', e=>{ if(e.key==='Enter') connecter(); });
+$('#btn-logout').addEventListener('click', async()=>{ await sb.auth.signOut(); location.reload(); });
+$('#btn-recharger').addEventListener('click', charger);
+$('#btn-params').addEventListener('click', enregistrerParams);
+$('#btn-quais').addEventListener('click', enregistrerQuais);
+$('#btn-intentions').addEventListener('click', enregistrerIntentions);
+$('#btn-ajout').addEventListener('click', ajouterLigne);
+
+demarrer();
+</script>
+</body>
+</html>
