@@ -137,7 +137,6 @@ export function enrichir(lignes, indexPoids, reglesTriees) {
 
 /** Libelles lisibles. Toute colonne absente d'ici est affichee avec son nom brut. */
 export const LIBELLES = {
-  id: 'ID',
   client: 'Client',
   no_produit: 'N° produit',
   description: 'Description',
@@ -152,18 +151,24 @@ export const LIBELLES = {
   date_lot: 'Date lot',
   date_expiration: 'Expiration',
   date_reception_originale: 'Réception orig.',
-  unite2_type: 'Type',
   unite2_qte_inv: 'Qté inventaire',
 };
+
+/**
+ * Colonnes presentes en base mais jamais affichees.
+ * `id` reste indispensable comme cle de ligne cote React,
+ * `imported_at` et `unite2_type` sont conserves en base car
+ * la vue v_gh_inventaire_complet en depend.
+ */
+const MASQUEES = new Set(['id', 'imported_at', 'unite2_type']);
 
 /** Ordre d'affichage souhaite. Les colonnes non listees sont ajoutees a la fin. */
 const ORDRE = [
   'client', 'no_produit', 'description',
   'categorie', 'sous_categorie',
-  'unite2_type', 'unite2_qte_inv', 'poids_unitaire', 'poids_total',
+  'unite2_qte_inv', 'poids_unitaire', 'poids_total',
   'etiquette', 'no_lot', 'no_sous_lot', 'no_comm_client',
   'date_lot', 'date_expiration', 'date_reception_originale',
-  'id',
 ];
 
 export const COLONNES_NUM = new Set(['unite2_qte_inv', 'poids_unitaire', 'poids_total']);
@@ -172,7 +177,7 @@ const estVide = (v) => v === null || v === undefined || String(v).trim() === '';
 
 /**
  * Colonnes derivees des donnees reelles, pas d'une liste ecrite en dur.
- * Les colonnes vides sur TOUTES les lignes sont masquees.
+ * Les colonnes masquees et celles vides sur TOUTES les lignes sont exclues.
  */
 export function colonnesDe(lignes) {
   if (!lignes.length) return [];
@@ -180,7 +185,8 @@ export function colonnesDe(lignes) {
   lignes.slice(0, 50).forEach((l) => Object.keys(l).forEach((k) => presentes.add(k)));
 
   const utiles = [...presentes].filter(
-    (c) => c === 'client' || lignes.some((l) => !estVide(l[c])),
+    (c) => !MASQUEES.has(c)
+      && (c === 'client' || lignes.some((l) => !estVide(l[c]))),
   );
 
   const connues = ORDRE.filter((c) => utiles.includes(c));
@@ -220,12 +226,11 @@ export function analyserColonnes(lignes, colonnes) {
 
 /** Filtre + tri. `tri` = { colonne, sens }. */
 export function filtrerEtTrier(lignes, criteres, tri) {
-  const { client, recherche, type, categorie, stock } = criteres;
+  const { client, recherche, categorie, stock } = criteres;
   const mots = recherche.trim().toLowerCase().split(/\s+/).filter(Boolean);
 
   const filtrees = lignes.filter((l) => {
     if (client && l.client !== client) return false;
-    if (type && l.unite2_type !== type) return false;
     if (categorie === '(sans)') {
       if (l.categorie) return false;
     } else if (categorie && l.categorie !== categorie) return false;
