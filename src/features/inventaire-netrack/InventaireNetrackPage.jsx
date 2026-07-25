@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { usePlanningStore } from '../../store/usePlanningStore';
-import { useInventaireNetrackQuery } from './queries';
+import { useInventaireNetrackQuery, usePoidsQuery, useReglesCategorieQuery } from './queries';
 import {
   CLIENTS, LIBELLES, COLONNES_NUM,
   nombre, joursAvantExpiration, colonnesDe, analyserColonnes,
-  filtrerEtTrier, exporterCsv,
+  indexerPoids, trierRegles, enrichir, filtrerEtTrier, exporterCsv,
 } from './logic';
 import LoadingOverlay from '../../design-system/LoadingOverlay';
 import './inventaireNetrack.css';
@@ -17,15 +17,32 @@ const COLLANTES = 2;
 export default function InventaireNetrackPage() {
   const addToast = usePlanningStore((s) => s.addToast);
   const inventaireQ = useInventaireNetrackQuery();
-  const lignes = useMemo(() => inventaireQ.data || [], [inventaireQ.data]);
+  const poidsQ = usePoidsQuery();
+  const reglesQ = useReglesCategorieQuery();
 
   const [client, setClient] = useState('');
   const [recherche, setRecherche] = useState('');
   const [type, setType] = useState('');
+  const [categorie, setCategorie] = useState('');
   const [stock, setStock] = useState('');
   const [tri, setTri] = useState({ colonne: 'no_produit', sens: 1 });
   const [affichees, setAffichees] = useState(PAR_PAGE);
   const [analyseVisible, setAnalyseVisible] = useState(false);
+
+  const indexPoids = useMemo(
+    () => indexerPoids(poidsQ.data || []),
+    [poidsQ.data],
+  );
+  const reglesTriees = useMemo(
+    () => trierRegles(reglesQ.data || []),
+    [reglesQ.data],
+  );
+
+  /** Enrichissement a l'affichage : rien n'est recopie en base. */
+  const lignes = useMemo(
+    () => enrichir(inventaireQ.data || [], indexPoids, reglesTriees),
+    [inventaireQ.data, indexPoids, reglesTriees],
+  );
 
   const colonnes = useMemo(() => colonnesDe(lignes), [lignes]);
 
@@ -33,10 +50,14 @@ export default function InventaireNetrackPage() {
     () => [...new Set(lignes.map((l) => l.unite2_type).filter(Boolean))].sort(),
     [lignes],
   );
+  const categories = useMemo(
+    () => [...new Set(lignes.map((l) => l.categorie).filter(Boolean))].sort(),
+    [lignes],
+  );
 
   const filtrees = useMemo(
-    () => filtrerEtTrier(lignes, { client, recherche, type, stock }, tri),
-    [lignes, client, recherche, type, stock, tri],
+    () => filtrerEtTrier(lignes, { client, recherche, type, categorie, stock }, tri),
+    [lignes, client, recherche, type, categorie, stock, tri],
   );
 
   const analyse = useMemo(
@@ -44,16 +65,18 @@ export default function InventaireNetrackPage() {
     [analyseVisible, filtrees, colonnes],
   );
 
-  const kpis = useMemo(() => ({
-    total: filtrees.length,
-    eo: filtrees.filter((l) => l.client === 'EO').length,
-    pbc: filtrees.filter((l) => l.client === 'PBC').length,
-    dispo: Math.round(filtrees.reduce((s, l) => s + nombre(l.unite2_disponibles), 0)),
-    expirent: filtrees.filter((l) => {
-      const j = joursAvantExpiration(l);
-      return j !== null && j <= 30;
-    }).length,
-  }), [filtrees]);
+  const kpis = useMemo(() => {
+    const sansPoids = filtrees.filter((l) => l.poids_unitaire === null).length;
+    const sansCat = filtrees.filter((l) => !l.categorie).length;
+    return {
+      total: filtrees.length,
+      eo: filtrees.filter((l) => l.client === 'EO').length,
+      pbc: filtrees.filter((l) => l.client === 'PBC').length,
+      poids: Math.round(filtrees.reduce((s, l) => s + (l.poids_total || 0), 0)),
+      sansPoids,
+      sansCat,
+    };
+  }, [filtrees]);
 
   function changerFiltre(setter, valeur) {
     setter(valeur);
@@ -66,7 +89,7 @@ export default function InventaireNetrackPage() {
   }
 
   function reinitialiser() {
-    setClient(''); setRecherche(''); setType(''); setStock('');
+    setClient(''); setRecherche(''); setType(''); setCategorie(''); setStock('');
     setAffichees(PAR_PAGE);
   }
 
@@ -81,10 +104,12 @@ export default function InventaireNetrackPage() {
   }
 
   async function handleActualiser() {
-    await inventaireQ.refetch();
+    await Promise.all([inventaireQ.refetch(), poidsQ.refetch(), reglesQ.refetch()]);
     addToast('Inventaire actualisé ✓', 'success');
   }
 
+  const enCours = inventaireQ.isLoading || poidsQ.isLoading || reglesQ.isLoading;
+  const enErreur = inventaireQ.error || poidsQ.error || reglesQ.error;
   const visibles = filtrees.slice(0, affichees);
 
   return (
@@ -92,7 +117,9 @@ export default function InventaireNetrackPage() {
       <div className="sec-h" style={{ marginBottom: 8, paddingLeft: 60 }}>
         <div>
           <div className="sec-t">Inventaire NetRack</div>
-          <div className="sec-s">Inventaire fusionné EO et PBC — relevé automatique quotidien</div>
+          <div className="sec-s">
+            Inventaire fusionné EO et PBC — poids et catégories appliqués depuis les référentiels
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <button
@@ -109,10 +136,10 @@ export default function InventaireNetrackPage() {
         </div>
       </div>
 
-      {inventaireQ.isError && (
+      {enErreur && (
         <div className="info-banner">
           <span>ⓘ</span>
-          <span>Lecture impossible : {inventaireQ.error.message}</span>
+          <span>Lecture impossible : {enErreur.message}</span>
         </div>
       )}
 
@@ -125,17 +152,17 @@ export default function InventaireNetrackPage() {
         <div className="kpi-card kpi-gh">
           <div className="kpi-lbl">Client EO</div>
           <div className="kpi-val">{kpis.eo}</div>
-          <div className="kpi-sub">lignes</div>
-        </div>
-        <div className="kpi-card kpi-usine">
-          <div className="kpi-lbl">Client PBC</div>
-          <div className="kpi-val">{kpis.pbc}</div>
-          <div className="kpi-sub">lignes</div>
+          <div className="kpi-sub">{kpis.pbc} pour PBC</div>
         </div>
         <div className="kpi-card kpi-poids">
-          <div className="kpi-lbl">Quantité disponible</div>
-          <div className="kpi-val">{kpis.dispo.toLocaleString('fr-CA')}</div>
-          <div className="kpi-sub">{kpis.expirent} ligne(s) expirent sous 30 j</div>
+          <div className="kpi-lbl">Poids total</div>
+          <div className="kpi-val">{kpis.poids.toLocaleString('fr-CA')}</div>
+          <div className="kpi-sub">sélection courante</div>
+        </div>
+        <div className="kpi-card kpi-usine">
+          <div className="kpi-lbl">Référentiels incomplets</div>
+          <div className="kpi-val">{kpis.sansPoids}</div>
+          <div className="kpi-sub">sans poids · {kpis.sansCat} sans catégorie</div>
         </div>
       </div>
 
@@ -143,7 +170,7 @@ export default function InventaireNetrackPage() {
         <div className="nr-analyse">
           <div className="nr-analyse-t">
             Diagnostic sur les {filtrees.length} lignes filtrées. Les colonnes vides sur
-            l'ensemble du relevé ne sont plus affichées dans le tableau.
+            l'ensemble du relevé ne sont pas affichées dans le tableau.
           </div>
           <table className="data-table nr-analyse-table">
             <thead>
@@ -195,11 +222,17 @@ export default function InventaireNetrackPage() {
             <span className="search-icon">⌕</span>
             <input
               type="text"
-              placeholder="Rechercher produit, description, lot, étiquette, commande…"
+              placeholder="Rechercher produit, description, lot, catégorie…"
               value={recherche}
               onChange={(e) => changerFiltre(setRecherche, e.target.value)}
             />
           </div>
+
+          <select className="fsel" value={categorie} onChange={(e) => changerFiltre(setCategorie, e.target.value)}>
+            <option value="">Toutes les catégories</option>
+            {categories.map((v) => <option key={v} value={v}>{v}</option>)}
+            <option value="(sans)">— sans catégorie —</option>
+          </select>
 
           <select className="fsel" value={type} onChange={(e) => changerFiltre(setType, e.target.value)}>
             <option value="">Tous les types</option>
@@ -208,8 +241,9 @@ export default function InventaireNetrackPage() {
 
           <select className="fsel" value={stock} onChange={(e) => changerFiltre(setStock, e.target.value)}>
             <option value="">Tout le stock</option>
-            <option value="dispo">Disponible seulement</option>
+            <option value="dispo">Quantité positive</option>
             <option value="zero">Quantité nulle</option>
+            <option value="sans_poids">Sans poids connu</option>
             <option value="expire">Expire sous 30 jours</option>
             <option value="expire90">Expire sous 90 jours</option>
           </select>
@@ -219,7 +253,7 @@ export default function InventaireNetrackPage() {
       </div>
 
       <div className="table-shell dt-glow nr-scroll">
-        {inventaireQ.isLoading ? <LoadingOverlay /> : filtrees.length === 0 ? (
+        {enCours ? <LoadingOverlay /> : filtrees.length === 0 ? (
           <div className="nr-vide">
             {lignes.length === 0
               ? "Aucune donnée. Le relevé est produit chaque matin par le workflow NetRack."
@@ -262,19 +296,27 @@ export default function InventaireNetrackPage() {
                           </td>
                         );
                       }
+                      const manquant = (c === 'poids_unitaire' || c === 'poids_total' || c === 'categorie')
+                        && (l[c] === null || l[c] === undefined || l[c] === '');
                       const classes = [
                         COLONNES_NUM.has(c) ? 'nr-num' : 'nr-mono',
                         c === 'date_expiration' && proche ? 'nr-expire' : '',
+                        manquant ? 'nr-manquant' : '',
                         i < COLLANTES ? 'nr-collante' : '',
                         c === 'description' ? 'nr-desc' : '',
                       ].filter(Boolean).join(' ');
+                      const v = l[c];
                       return (
                         <td
                           key={c}
                           className={classes}
                           style={i === 1 ? { left: 'var(--nr-col0)' } : undefined}
                         >
-                          {l[c] === null || l[c] === undefined || l[c] === '' ? '—' : String(l[c])}
+                          {v === null || v === undefined || v === ''
+                            ? '—'
+                            : COLONNES_NUM.has(c) && typeof v === 'number'
+                              ? v.toLocaleString('fr-CA')
+                              : String(v)}
                         </td>
                       );
                     })}
