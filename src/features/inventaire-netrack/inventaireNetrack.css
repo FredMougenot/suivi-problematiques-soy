@@ -133,6 +133,9 @@
 
 .nr-expire { color: var(--ruby); font-weight: 600; }
 
+/* Valeur absente d'un referentiel : signale une regle ou un poids a completer */
+.nr-manquant { color: var(--text-faint); }
+
 /* Panneau d'analyse des colonnes */
 .nr-analyse {
   margin: 4px 0 14px;
