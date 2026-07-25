@@ -164,8 +164,8 @@ const MASQUEES = new Set(['id', 'imported_at', 'unite2_type']);
 
 /** Ordre d'affichage souhaite. Les colonnes non listees sont ajoutees a la fin. */
 const ORDRE = [
-  'client', 'no_produit', 'description',
-  'categorie', 'sous_categorie',
+  'client', 'categorie', 'sous_categorie',
+  'no_produit', 'description',
   'unite2_qte_inv', 'poids_unitaire', 'poids_total',
   'etiquette', 'no_lot', 'no_sous_lot', 'no_comm_client',
   'date_lot', 'date_expiration', 'date_reception_originale',
