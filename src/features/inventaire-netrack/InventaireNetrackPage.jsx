@@ -3,7 +3,7 @@ import { usePlanningStore } from '../../store/usePlanningStore';
 import { useInventaireNetrackQuery, usePoidsQuery, useReglesCategorieQuery } from './queries';
 import {
   CLIENTS, LIBELLES, COLONNES_NUM,
-  nombre, joursAvantExpiration, colonnesDe, analyserColonnes,
+  joursAvantExpiration, colonnesDe, analyserColonnes,
   indexerPoids, trierRegles, enrichir, filtrerEtTrier, exporterCsv,
 } from './logic';
 import LoadingOverlay from '../../design-system/LoadingOverlay';
@@ -22,7 +22,6 @@ export default function InventaireNetrackPage() {
 
   const [client, setClient] = useState('');
   const [recherche, setRecherche] = useState('');
-  const [type, setType] = useState('');
   const [categorie, setCategorie] = useState('');
   const [stock, setStock] = useState('');
   const [tri, setTri] = useState({ colonne: 'no_produit', sens: 1 });
@@ -46,18 +45,14 @@ export default function InventaireNetrackPage() {
 
   const colonnes = useMemo(() => colonnesDe(lignes), [lignes]);
 
-  const types = useMemo(
-    () => [...new Set(lignes.map((l) => l.unite2_type).filter(Boolean))].sort(),
-    [lignes],
-  );
   const categories = useMemo(
     () => [...new Set(lignes.map((l) => l.categorie).filter(Boolean))].sort(),
     [lignes],
   );
 
   const filtrees = useMemo(
-    () => filtrerEtTrier(lignes, { client, recherche, type, categorie, stock }, tri),
-    [lignes, client, recherche, type, categorie, stock, tri],
+    () => filtrerEtTrier(lignes, { client, recherche, categorie, stock }, tri),
+    [lignes, client, recherche, categorie, stock, tri],
   );
 
   const analyse = useMemo(
@@ -65,18 +60,14 @@ export default function InventaireNetrackPage() {
     [analyseVisible, filtrees, colonnes],
   );
 
-  const kpis = useMemo(() => {
-    const sansPoids = filtrees.filter((l) => l.poids_unitaire === null).length;
-    const sansCat = filtrees.filter((l) => !l.categorie).length;
-    return {
-      total: filtrees.length,
-      eo: filtrees.filter((l) => l.client === 'EO').length,
-      pbc: filtrees.filter((l) => l.client === 'PBC').length,
-      poids: Math.round(filtrees.reduce((s, l) => s + (l.poids_total || 0), 0)),
-      sansPoids,
-      sansCat,
-    };
-  }, [filtrees]);
+  const kpis = useMemo(() => ({
+    total: filtrees.length,
+    eo: filtrees.filter((l) => l.client === 'EO').length,
+    pbc: filtrees.filter((l) => l.client === 'PBC').length,
+    poids: Math.round(filtrees.reduce((s, l) => s + (l.poids_total || 0), 0)),
+    sansPoids: filtrees.filter((l) => l.poids_unitaire === null).length,
+    sansCat: filtrees.filter((l) => !l.categorie).length,
+  }), [filtrees]);
 
   function changerFiltre(setter, valeur) {
     setter(valeur);
@@ -89,7 +80,7 @@ export default function InventaireNetrackPage() {
   }
 
   function reinitialiser() {
-    setClient(''); setRecherche(''); setType(''); setCategorie(''); setStock('');
+    setClient(''); setRecherche(''); setCategorie(''); setStock('');
     setAffichees(PAR_PAGE);
   }
 
@@ -234,11 +225,6 @@ export default function InventaireNetrackPage() {
             <option value="(sans)">— sans catégorie —</option>
           </select>
 
-          <select className="fsel" value={type} onChange={(e) => changerFiltre(setType, e.target.value)}>
-            <option value="">Tous les types</option>
-            {types.map((v) => <option key={v} value={v}>{v}</option>)}
-          </select>
-
           <select className="fsel" value={stock} onChange={(e) => changerFiltre(setStock, e.target.value)}>
             <option value="">Tout le stock</option>
             <option value="dispo">Quantité positive</option>
@@ -296,8 +282,10 @@ export default function InventaireNetrackPage() {
                           </td>
                         );
                       }
-                      const manquant = (c === 'poids_unitaire' || c === 'poids_total' || c === 'categorie')
-                        && (l[c] === null || l[c] === undefined || l[c] === '');
+                      const v = l[c];
+                      const vide = v === null || v === undefined || v === '';
+                      const manquant = vide
+                        && (c === 'poids_unitaire' || c === 'poids_total' || c === 'categorie');
                       const classes = [
                         COLONNES_NUM.has(c) ? 'nr-num' : 'nr-mono',
                         c === 'date_expiration' && proche ? 'nr-expire' : '',
@@ -305,14 +293,13 @@ export default function InventaireNetrackPage() {
                         i < COLLANTES ? 'nr-collante' : '',
                         c === 'description' ? 'nr-desc' : '',
                       ].filter(Boolean).join(' ');
-                      const v = l[c];
                       return (
                         <td
                           key={c}
                           className={classes}
                           style={i === 1 ? { left: 'var(--nr-col0)' } : undefined}
                         >
-                          {v === null || v === undefined || v === ''
+                          {vide
                             ? '—'
                             : COLONNES_NUM.has(c) && typeof v === 'number'
                               ? v.toLocaleString('fr-CA')
