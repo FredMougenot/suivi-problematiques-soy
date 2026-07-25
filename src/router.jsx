@@ -9,6 +9,7 @@ import ParametresPlanningPage from './features/camions/ParametresPlanningPage';
 import StatsPonctualitePage from './features/stats/StatsPonctualitePage';
 import InventaireCycliquePage from './features/inventaire-cyclique/InventaireCycliquePage';
 import InventaireGhPage from './features/inventaire-gh/InventaireGhPage';
+import InventaireNetrackPage from './features/inventaire-netrack/InventaireNetrackPage';
 import InventaireUsinePage from './features/inventaire-usine/InventaireUsinePage';
 import InventaireGlobalPage from './features/inventaire-global/InventaireGlobalPage';
 import InventaireDiffPage from './features/inventaire-diff/InventaireDiffPage';
@@ -42,6 +43,7 @@ export const router = createHashRouter([
       { path: 'stats-ponctualite', element: <StatsPonctualitePage /> },
       { path: 'inventaire-cyclique', element: <InventaireCycliquePage /> },
       { path: 'inventaire-gh', element: <InventaireGhPage /> },
+      { path: 'inventaire-netrack', element: <InventaireNetrackPage /> },
       { path: 'inventaire-usine', element: <InventaireUsinePage /> },
       { path: 'inventaire-global', element: <InventaireGlobalPage /> },
       { path: 'inventaire-diff', element: <InventaireDiffPage /> },

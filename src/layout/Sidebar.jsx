@@ -30,6 +30,7 @@ const NAV_ITEMS = [
   { label: 'Radar de ponctualité',   path: '/stats-ponctualite',      icon: '📊' },
   { label: 'Inventaire cyclique',    path: '/inventaire-cyclique',    icon: '📋' },
   { label: 'Inventaire GH',          path: '/inventaire-gh',          icon: '🔗' },
+  { label: 'Inventaire NetRack',     path: '/inventaire-netrack',     icon: '📦' },
   { label: 'Inventaire usine',       path: '/inventaire-usine',       icon: '🏭' },
   { label: 'Inventaire global',      path: '/inventaire-global',      icon: '🌐' },
   { label: 'Inventaire diff',        path: '/inventaire-diff',        icon: '📈' },

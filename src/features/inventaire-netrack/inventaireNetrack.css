@@ -1,0 +1,136 @@
+/* Inventaire NetRack — styles specifiques.
+   translateZ(0) systematique sur les fonds semi-transparents / degrades :
+   contourne le bug de repaint du compositeur GPU de Chrome. */
+
+.nr-chips {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--text-faint);
+  border-radius: 10px;
+  background: var(--bg-raised);
+  transform: translateZ(0);
+}
+
+.nr-chip {
+  padding: 6px 14px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: .78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s cubic-bezier(.4, 0, .2, 1);
+  transform: translateZ(0);
+}
+
+.nr-chip:hover { color: var(--text-primary); }
+
+.nr-chip[aria-pressed='true'] {
+  background: var(--copper-dim);
+  border-color: rgba(139, 92, 246, .28);
+  color: var(--copper-pale);
+}
+
+.nr-chip[data-client='EO'][aria-pressed='true'] {
+  background: rgba(56, 152, 214, .18);
+  border-color: rgba(56, 152, 214, .45);
+  color: #7cc4ec;
+}
+
+.nr-chip[data-client='PBC'][aria-pressed='true'] {
+  background: rgba(214, 122, 56, .18);
+  border-color: rgba(214, 122, 56, .45);
+  color: #eda875;
+}
+
+/* Pastille client dans le tableau */
+.nr-badge {
+  display: inline-block;
+  min-width: 42px;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-align: center;
+  transform: translateZ(0);
+}
+
+.nr-badge[data-client='EO'] {
+  background: rgba(56, 152, 214, .16);
+  border: 1px solid rgba(56, 152, 214, .4);
+  color: #7cc4ec;
+}
+
+.nr-badge[data-client='PBC'] {
+  background: rgba(214, 122, 56, .16);
+  border: 1px solid rgba(214, 122, 56, .4);
+  color: #eda875;
+}
+
+.nr-th {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.nr-th .nr-fleche {
+  margin-left: 4px;
+  font-size: .58rem;
+  color: var(--text-muted);
+}
+
+.nr-ligne { cursor: pointer; }
+
+.nr-num {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.nr-mono { font-family: var(--font-mono); }
+
+.nr-expire { color: var(--ruby); font-weight: 600; }
+
+.nr-detail td {
+  padding: 14px 16px 18px;
+  background: var(--bg-raised);
+  transform: translateZ(0);
+}
+
+.nr-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px 22px;
+  margin: 0;
+}
+
+.nr-detail-grid dt {
+  font-size: .62rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.nr-detail-grid dd {
+  margin: 3px 0 0;
+  font-family: var(--font-mono);
+  font-size: .76rem;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.nr-vide {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: .84rem;
+}
+
+.nr-plus {
+  display: block;
+  margin: 16px auto 0;
+}
