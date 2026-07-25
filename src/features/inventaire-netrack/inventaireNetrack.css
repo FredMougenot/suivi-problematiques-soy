@@ -2,6 +2,8 @@
    translateZ(0) systematique sur les fonds semi-transparents / degrades :
    contourne le bug de repaint du compositeur GPU de Chrome. */
 
+:root { --nr-col0: 74px; }
+
 .nr-chips {
   display: flex;
   gap: 4px;
@@ -71,6 +73,35 @@
   color: #eda875;
 }
 
+/* Tableau large : defilement horizontal, 2 premieres colonnes figees */
+.nr-scroll { overflow-x: auto; }
+
+.nr-large {
+  min-width: max-content;
+  font-size: .74rem;
+}
+
+.nr-large th,
+.nr-large td {
+  white-space: nowrap;
+  padding: 5px 9px;
+}
+
+.nr-large td.nr-desc {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nr-collante {
+  position: sticky;
+  z-index: 2;
+  background: var(--bg-raised);
+  transform: translateZ(0);
+}
+
+.nr-large thead .nr-collante { z-index: 4; }
+
 .nr-th {
   cursor: pointer;
   user-select: none;
@@ -83,8 +114,6 @@
   color: var(--text-muted);
 }
 
-.nr-ligne { cursor: pointer; }
-
 .nr-num {
   text-align: right;
   font-family: var(--font-mono);
@@ -93,34 +122,63 @@
 
 .nr-mono { font-family: var(--font-mono); }
 
+.nr-faible { color: var(--text-muted); }
+
+.nr-tronque {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .nr-expire { color: var(--ruby); font-weight: 600; }
 
-.nr-detail td {
-  padding: 14px 16px 18px;
+/* Panneau d'analyse des colonnes */
+.nr-analyse {
+  margin: 4px 0 14px;
+  padding: 14px 16px 6px;
+  border: 1px solid var(--text-faint);
+  border-radius: 12px;
   background: var(--bg-raised);
   transform: translateZ(0);
 }
 
-.nr-detail-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 12px 22px;
-  margin: 0;
-}
-
-.nr-detail-grid dt {
-  font-size: .62rem;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.nr-detail-grid dd {
-  margin: 3px 0 0;
-  font-family: var(--font-mono);
+.nr-analyse-t {
+  margin-bottom: 10px;
   font-size: .76rem;
-  color: var(--text-primary);
-  word-break: break-word;
+  color: var(--text-secondary);
+  max-width: 70ch;
+}
+
+.nr-analyse-table { font-size: .74rem; }
+
+.nr-verdict {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 5px;
+  font-size: .64rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  transform: translateZ(0);
+}
+
+.nr-verdict[data-v='utile'] {
+  background: rgba(80, 170, 120, .14);
+  border: 1px solid rgba(80, 170, 120, .38);
+  color: #7fce9f;
+}
+
+.nr-verdict[data-v='rare'] {
+  background: rgba(214, 168, 56, .14);
+  border: 1px solid rgba(214, 168, 56, .38);
+  color: #e0c072;
+}
+
+.nr-verdict[data-v='constante'],
+.nr-verdict[data-v='vide'] {
+  background: rgba(200, 70, 70, .14);
+  border: 1px solid rgba(200, 70, 70, .38);
+  color: #e08a8a;
 }
 
 .nr-vide {

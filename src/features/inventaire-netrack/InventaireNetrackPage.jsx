@@ -1,25 +1,18 @@
 import { useMemo, useState } from 'react';
 import { usePlanningStore } from '../../store/usePlanningStore';
 import { useInventaireNetrackQuery } from './queries';
-import { CLIENTS, CHAMPS_DETAIL, nombre, joursAvantExpiration, filtrerEtTrier, exporterCsv } from './logic';
+import {
+  CLIENTS, LIBELLES, COLONNES_NUM,
+  nombre, joursAvantExpiration, colonnesDe, analyserColonnes,
+  filtrerEtTrier, exporterCsv,
+} from './logic';
 import LoadingOverlay from '../../design-system/LoadingOverlay';
 import './inventaireNetrack.css';
 
-const PAR_PAGE = 300;
+const PAR_PAGE = 200;
 
-const COLONNES = [
-  { cle: 'client', libelle: 'Client' },
-  { cle: 'no_produit', libelle: 'Produit' },
-  { cle: 'description', libelle: 'Description' },
-  { cle: 'entrepot', libelle: 'Entr.' },
-  { cle: 'no_lot', libelle: 'Lot' },
-  { cle: 'unite1_qte_inv', libelle: 'Qté U1', num: true },
-  { cle: 'unite1_type', libelle: 'U1' },
-  { cle: 'unite1_disponibles', libelle: 'Dispo U1', num: true },
-  { cle: 'unite2_qte_inv', libelle: 'Qté U2', num: true },
-  { cle: 'unite2_type', libelle: 'U2' },
-  { cle: 'date_expiration', libelle: 'Expiration' },
-];
+/** Les deux premieres colonnes restent visibles au defilement horizontal. */
+const COLLANTES = 2;
 
 export default function InventaireNetrackPage() {
   const addToast = usePlanningStore((s) => s.addToast);
@@ -33,7 +26,9 @@ export default function InventaireNetrackPage() {
   const [stock, setStock] = useState('');
   const [tri, setTri] = useState({ colonne: 'no_produit', sens: 1 });
   const [affichees, setAffichees] = useState(PAR_PAGE);
-  const [ligneOuverte, setLigneOuverte] = useState(null);
+  const [analyseVisible, setAnalyseVisible] = useState(false);
+
+  const colonnes = useMemo(() => colonnesDe(lignes), [lignes]);
 
   const entrepots = useMemo(
     () => [...new Set(lignes.map((l) => l.entrepot).filter(Boolean))].sort(),
@@ -49,17 +44,21 @@ export default function InventaireNetrackPage() {
     [lignes, client, recherche, entrepot, division, stock, tri],
   );
 
+  const analyse = useMemo(
+    () => (analyseVisible ? analyserColonnes(filtrees, colonnes) : []),
+    [analyseVisible, filtrees, colonnes],
+  );
+
   const kpis = useMemo(() => ({
     total: filtrees.length,
     eo: filtrees.filter((l) => l.client === 'EO').length,
     pbc: filtrees.filter((l) => l.client === 'PBC').length,
-    dispo: Math.round(filtrees.reduce((s, l) => s + nombre(l.unite1_disponibles), 0)),
+    dispo: Math.round(filtrees.reduce((s, l) => s + nombre(l.unite2_disponibles), 0)),
   }), [filtrees]);
 
   function changerFiltre(setter, valeur) {
     setter(valeur);
     setAffichees(PAR_PAGE);
-    setLigneOuverte(null);
   }
 
   function trierPar(cle) {
@@ -69,13 +68,13 @@ export default function InventaireNetrackPage() {
 
   function reinitialiser() {
     setClient(''); setRecherche(''); setEntrepot(''); setDivision(''); setStock('');
-    setAffichees(PAR_PAGE); setLigneOuverte(null);
+    setAffichees(PAR_PAGE);
   }
 
   function handleExport() {
     if (!filtrees.length) { addToast('Rien à exporter', 'error'); return; }
     try {
-      exporterCsv(filtrees);
+      exporterCsv(filtrees, colonnes);
       addToast(filtrees.length + ' lignes exportées ✓', 'success');
     } catch (e) {
       addToast('Erreur export : ' + e.message, 'error');
@@ -94,9 +93,15 @@ export default function InventaireNetrackPage() {
       <div className="sec-h" style={{ marginBottom: 8, paddingLeft: 60 }}>
         <div>
           <div className="sec-t">Inventaire NetRack</div>
-          <div className="sec-s">Inventaire fusionné EO et PBC — relevé automatique quotidien</div>
+          <div className="sec-s">Inventaire fusionné EO et PBC — toutes colonnes</div>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            className={analyseVisible ? 'btn btn-primary' : 'btn btn-secondary'}
+            onClick={() => setAnalyseVisible((v) => !v)}
+          >
+            Analyse des colonnes
+          </button>
           <button className="btn btn-secondary" onClick={handleActualiser} disabled={inventaireQ.isFetching}>
             {inventaireQ.isFetching ? 'Chargement…' : 'Actualiser'}
           </button>
@@ -129,11 +134,44 @@ export default function InventaireNetrackPage() {
           <div className="kpi-sub">lignes</div>
         </div>
         <div className="kpi-card kpi-poids">
-          <div className="kpi-lbl">Unités disponibles</div>
-          <div className="kpi-val">{kpis.dispo}</div>
-          <div className="kpi-sub">unité  1, sélection courante</div>
+          <div className="kpi-lbl">Unité 2 disponibles</div>
+          <div className="kpi-val">{kpis.dispo.toLocaleString('fr-CA')}</div>
+          <div className="kpi-sub">sélection courante</div>
         </div>
       </div>
+
+      {analyseVisible && (
+        <div className="nr-analyse">
+          <div className="nr-analyse-t">
+            Diagnostic sur les {filtrees.length} lignes filtrées — sert à repérer les colonnes
+            vides, constantes ou trop rares pour être conservées en base.
+          </div>
+          <table className="data-table nr-analyse-table">
+            <thead>
+              <tr>
+                <th>Colonne</th>
+                <th>Champ</th>
+                <th style={{ textAlign: 'right' }}>Rempli</th>
+                <th style={{ textAlign: 'right' }}>Distinctes</th>
+                <th>Exemple</th>
+                <th>Verdict</th>
+              </tr>
+            </thead>
+            <tbody>
+              {analyse.map((a) => (
+                <tr key={a.colonne}>
+                  <td>{a.libelle}</td>
+                  <td className="nr-mono nr-faible">{a.colonne}</td>
+                  <td className="nr-num">{a.pct} %</td>
+                  <td className="nr-num">{a.distinctes}</td>
+                  <td className="nr-mono nr-tronque">{a.exemple ?? '—'}</td>
+                  <td><span className="nr-verdict" data-v={a.verdict}>{a.verdict}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <div className="toolbar">
         <div className="toolbar-left">
@@ -185,7 +223,7 @@ export default function InventaireNetrackPage() {
         </div>
       </div>
 
-      <div className="table-shell dt-min-1100 dt-glow">
+      <div className="table-shell dt-glow nr-scroll">
         {inventaireQ.isLoading ? <LoadingOverlay /> : filtrees.length === 0 ? (
           <div className="nr-vide">
             {lignes.length === 0
@@ -193,18 +231,22 @@ export default function InventaireNetrackPage() {
               : "Aucun résultat pour ces filtres."}
           </div>
         ) : (
-          <table className="data-table">
+          <table className="data-table nr-large">
             <thead>
               <tr>
-                {COLONNES.map((c) => (
+                {colonnes.map((c, i) => (
                   <th
-                    key={c.cle}
-                    className="nr-th"
-                    style={c.num ? { textAlign: 'right' } : undefined}
-                    onClick={() => trierPar(c.cle)}
+                    key={c}
+                    className={'nr-th' + (i < COLLANTES ? ' nr-collante' : '')}
+                    style={{
+                      textAlign: COLONNES_NUM.has(c) ? 'right' : 'left',
+                      left: i === 0 ? 0 : i === 1 ? 'var(--nr-col0)' : undefined,
+                    }}
+                    title={c}
+                    onClick={() => trierPar(c)}
                   >
-                    {c.libelle}
-                    {tri.colonne === c.cle && (
+                    {LIBELLES[c] || c}
+                    {tri.colonne === c && (
                       <span className="nr-fleche">{tri.sens === 1 ? '▲' : '▼'}</span>
                     )}
                   </th>
@@ -215,40 +257,34 @@ export default function InventaireNetrackPage() {
               {visibles.map((l) => {
                 const jours = joursAvantExpiration(l);
                 const proche = jours !== null && jours <= 30;
-                const ouverte = ligneOuverte === l.id;
-                return [
-                  <tr
-                    key={l.id}
-                    className="nr-ligne"
-                    onClick={() => setLigneOuverte(ouverte ? null : l.id)}
-                  >
-                    <td><span className="nr-badge" data-client={l.client}>{l.client || '—'}</span></td>
-                    <td className="nr-mono">{l.no_produit || '—'}</td>
-                    <td>{l.description || '—'}</td>
-                    <td className="nr-mono">{l.entrepot || '—'}</td>
-                    <td className="nr-mono">{l.no_lot || '—'}</td>
-                    <td className="nr-num">{l.unite1_qte_inv || '—'}</td>
-                    <td>{l.unite1_type || '—'}</td>
-                    <td className="nr-num">{l.unite1_disponibles || '—'}</td>
-                    <td className="nr-num">{l.unite2_qte_inv || '—'}</td>
-                    <td>{l.unite2_type || '—'}</td>
-                    <td className={'nr-mono' + (proche ? ' nr-expire' : '')}>{l.date_expiration || '—'}</td>
-                  </tr>,
-                  ouverte && (
-                    <tr key={l.id + '-detail'} className="nr-detail">
-                      <td colSpan={COLONNES.length}>
-                        <dl className="nr-detail-grid">
-                          {CHAMPS_DETAIL.map(([cle, libelle]) => (
-                            <div key={cle}>
-                              <dt>{libelle}</dt>
-                              <dd>{l[cle] || '—'}</dd>
-                            </div>
-                          ))}
-                        </dl>
-                      </td>
-                    </tr>
-                  ),
-                ];
+                return (
+                  <tr key={l.id}>
+                    {colonnes.map((c, i) => {
+                      if (c === 'client') {
+                        return (
+                          <td key={c} className="nr-collante" style={{ left: 0 }}>
+                            <span className="nr-badge" data-client={l.client}>{l.client || '—'}</span>
+                          </td>
+                        );
+                      }
+                      const classes = [
+                        COLONNES_NUM.has(c) ? 'nr-num' : 'nr-mono',
+                        c === 'date_expiration' && proche ? 'nr-expire' : '',
+                        i < COLLANTES ? 'nr-collante' : '',
+                        c === 'description' ? 'nr-desc' : '',
+                      ].filter(Boolean).join(' ');
+                      return (
+                        <td
+                          key={c}
+                          className={classes}
+                          style={i === 1 ? { left: 'var(--nr-col0)' } : undefined}
+                        >
+                          {l[c] === null || l[c] === undefined || l[c] === '' ? '—' : String(l[c])}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
               })}
             </tbody>
           </table>
