@@ -52,10 +52,8 @@ export function joursAvantExpiration(ligne) {
 export const LIBELLES = {
   id: 'ID',
   client: 'Client',
-  division: 'Division',
   no_produit: 'N° produit',
   description: 'Description',
-  entrepot: 'Entrepôt',
   etiquette: 'Étiquette',
   no_comm_client: 'N° comm. client',
   no_lot: 'N° lot',
@@ -63,49 +61,45 @@ export const LIBELLES = {
   date_lot: 'Date lot',
   date_expiration: 'Expiration',
   date_reception_originale: 'Réception orig.',
-  unite1_type: 'U1 type',
-  unite1_qte_inv: 'U1 qté inv.',
-  unite1_exped_att: 'U1 expéd. att.',
-  unite1_bloques: 'U1 bloqués',
-  unite1_disponibles: 'U1 dispo',
-  unite2_type: 'U2 type',
-  unite2_qte_inv: 'U2 qté inv.',
-  unite2_exped_att: 'U2 expéd. att.',
-  unite2_bloques: 'U2 bloqués',
-  unite2_disponibles: 'U2 dispo',
+  unite2_type: 'Type',
+  unite2_qte_inv: 'Qté inventaire',
+  unite2_disponibles: 'Disponibles',
   execution_id: 'Exécution n8n',
   imported_at: 'Importé le',
 };
 
 /** Ordre d'affichage souhaite. Les colonnes non listees sont ajoutees a la fin. */
 const ORDRE = [
-  'client', 'no_produit', 'description', 'division', 'entrepot', 'etiquette',
-  'no_lot', 'no_sous_lot', 'no_comm_client',
-  'unite1_type', 'unite1_qte_inv', 'unite1_disponibles', 'unite1_bloques', 'unite1_exped_att',
-  'unite2_type', 'unite2_qte_inv', 'unite2_disponibles', 'unite2_bloques', 'unite2_exped_att',
+  'client', 'no_produit', 'description',
+  'unite2_type', 'unite2_qte_inv', 'unite2_disponibles',
+  'etiquette', 'no_lot', 'no_sous_lot', 'no_comm_client',
   'date_lot', 'date_expiration', 'date_reception_originale',
   'imported_at', 'execution_id', 'id',
 ];
 
-export const COLONNES_NUM = new Set([
-  'unite1_qte_inv', 'unite1_disponibles', 'unite1_bloques', 'unite1_exped_att',
-  'unite2_qte_inv', 'unite2_disponibles', 'unite2_bloques', 'unite2_exped_att',
-]);
+export const COLONNES_NUM = new Set(['unite2_qte_inv', 'unite2_disponibles']);
+
+const estVide = (v) => v === null || v === undefined || String(v).trim() === '';
 
 /**
- * Colonnes derivees des donnees reelles, pas d'une liste ecrite en dur :
- * si le workflow ajoute un champ, il apparait automatiquement.
+ * Colonnes derivees des donnees reelles, pas d'une liste ecrite en dur.
+ * Les colonnes vides sur TOUTES les lignes sont masquees : les champs
+ * retires du parseur n8n disparaissent donc d'eux-memes, que la colonne
+ * ait ete droppee en base ou non.
  */
 export function colonnesDe(lignes) {
   if (!lignes.length) return [];
   const presentes = new Set();
   lignes.slice(0, 50).forEach((l) => Object.keys(l).forEach((k) => presentes.add(k)));
-  const connues = ORDRE.filter((c) => presentes.has(c));
-  const extras = [...presentes].filter((c) => !ORDRE.includes(c)).sort();
+
+  const utiles = [...presentes].filter(
+    (c) => c === 'client' || lignes.some((l) => !estVide(l[c])),
+  );
+
+  const connues = ORDRE.filter((c) => utiles.includes(c));
+  const extras = utiles.filter((c) => !ORDRE.includes(c)).sort();
   return [...connues, ...extras];
 }
-
-const estVide = (v) => v === null || v === undefined || String(v).trim() === '';
 
 /**
  * Diagnostic par colonne : taux de remplissage, valeurs distinctes, exemple.
@@ -142,22 +136,25 @@ export function analyserColonnes(lignes, colonnes) {
 
 /** Filtre + tri. `tri` = { colonne, sens }. */
 export function filtrerEtTrier(lignes, criteres, tri) {
-  const { client, recherche, entrepot, division, stock } = criteres;
+  const { client, recherche, type, stock } = criteres;
   const mots = recherche.trim().toLowerCase().split(/\s+/).filter(Boolean);
 
   const filtrees = lignes.filter((l) => {
     if (client && l.client !== client) return false;
-    if (entrepot && l.entrepot !== entrepot) return false;
-    if (division && l.division !== division) return false;
-    if (stock === 'dispo' && nombre(l.unite1_disponibles) <= 0) return false;
-    if (stock === 'bloque' && nombre(l.unite1_bloques) <= 0) return false;
+    if (type && l.unite2_type !== type) return false;
+    if (stock === 'dispo' && nombre(l.unite2_disponibles) <= 0) return false;
+    if (stock === 'zero' && nombre(l.unite2_disponibles) > 0) return false;
     if (stock === 'expire') {
       const j = joursAvantExpiration(l);
       if (j === null || j > 30) return false;
     }
+    if (stock === 'expire90') {
+      const j = joursAvantExpiration(l);
+      if (j === null || j > 90) return false;
+    }
     if (mots.length) {
       const foin = [l.no_produit, l.description, l.no_lot, l.no_sous_lot,
-        l.etiquette, l.no_comm_client, l.division].join(' ').toLowerCase();
+        l.etiquette, l.no_comm_client].join(' ').toLowerCase();
       if (!mots.every((m) => foin.includes(m))) return false;
     }
     return true;

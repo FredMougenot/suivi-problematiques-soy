@@ -21,8 +21,7 @@ export default function InventaireNetrackPage() {
 
   const [client, setClient] = useState('');
   const [recherche, setRecherche] = useState('');
-  const [entrepot, setEntrepot] = useState('');
-  const [division, setDivision] = useState('');
+  const [type, setType] = useState('');
   const [stock, setStock] = useState('');
   const [tri, setTri] = useState({ colonne: 'no_produit', sens: 1 });
   const [affichees, setAffichees] = useState(PAR_PAGE);
@@ -30,18 +29,14 @@ export default function InventaireNetrackPage() {
 
   const colonnes = useMemo(() => colonnesDe(lignes), [lignes]);
 
-  const entrepots = useMemo(
-    () => [...new Set(lignes.map((l) => l.entrepot).filter(Boolean))].sort(),
-    [lignes],
-  );
-  const divisions = useMemo(
-    () => [...new Set(lignes.map((l) => l.division).filter(Boolean))].sort(),
+  const types = useMemo(
+    () => [...new Set(lignes.map((l) => l.unite2_type).filter(Boolean))].sort(),
     [lignes],
   );
 
   const filtrees = useMemo(
-    () => filtrerEtTrier(lignes, { client, recherche, entrepot, division, stock }, tri),
-    [lignes, client, recherche, entrepot, division, stock, tri],
+    () => filtrerEtTrier(lignes, { client, recherche, type, stock }, tri),
+    [lignes, client, recherche, type, stock, tri],
   );
 
   const analyse = useMemo(
@@ -54,6 +49,10 @@ export default function InventaireNetrackPage() {
     eo: filtrees.filter((l) => l.client === 'EO').length,
     pbc: filtrees.filter((l) => l.client === 'PBC').length,
     dispo: Math.round(filtrees.reduce((s, l) => s + nombre(l.unite2_disponibles), 0)),
+    expirent: filtrees.filter((l) => {
+      const j = joursAvantExpiration(l);
+      return j !== null && j <= 30;
+    }).length,
   }), [filtrees]);
 
   function changerFiltre(setter, valeur) {
@@ -67,7 +66,7 @@ export default function InventaireNetrackPage() {
   }
 
   function reinitialiser() {
-    setClient(''); setRecherche(''); setEntrepot(''); setDivision(''); setStock('');
+    setClient(''); setRecherche(''); setType(''); setStock('');
     setAffichees(PAR_PAGE);
   }
 
@@ -93,7 +92,7 @@ export default function InventaireNetrackPage() {
       <div className="sec-h" style={{ marginBottom: 8, paddingLeft: 60 }}>
         <div>
           <div className="sec-t">Inventaire NetRack</div>
-          <div className="sec-s">Inventaire fusionné EO et PBC — toutes colonnes</div>
+          <div className="sec-s">Inventaire fusionné EO et PBC — relevé automatique quotidien</div>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <button
@@ -134,17 +133,17 @@ export default function InventaireNetrackPage() {
           <div className="kpi-sub">lignes</div>
         </div>
         <div className="kpi-card kpi-poids">
-          <div className="kpi-lbl">Unité 2 disponibles</div>
+          <div className="kpi-lbl">Quantité disponible</div>
           <div className="kpi-val">{kpis.dispo.toLocaleString('fr-CA')}</div>
-          <div className="kpi-sub">sélection courante</div>
+          <div className="kpi-sub">{kpis.expirent} ligne(s) expirent sous 30 j</div>
         </div>
       </div>
 
       {analyseVisible && (
         <div className="nr-analyse">
           <div className="nr-analyse-t">
-            Diagnostic sur les {filtrees.length} lignes filtrées — sert à repérer les colonnes
-            vides, constantes ou trop rares pour être conservées en base.
+            Diagnostic sur les {filtrees.length} lignes filtrées. Les colonnes vides sur
+            l'ensemble du relevé ne sont plus affichées dans le tableau.
           </div>
           <table className="data-table nr-analyse-table">
             <thead>
@@ -202,21 +201,17 @@ export default function InventaireNetrackPage() {
             />
           </div>
 
-          <select className="fsel" value={entrepot} onChange={(e) => changerFiltre(setEntrepot, e.target.value)}>
-            <option value="">Tous les entrepôts</option>
-            {entrepots.map((v) => <option key={v} value={v}>{v}</option>)}
-          </select>
-
-          <select className="fsel" value={division} onChange={(e) => changerFiltre(setDivision, e.target.value)}>
-            <option value="">Toutes les divisions</option>
-            {divisions.map((v) => <option key={v} value={v}>{v}</option>)}
+          <select className="fsel" value={type} onChange={(e) => changerFiltre(setType, e.target.value)}>
+            <option value="">Tous les types</option>
+            {types.map((v) => <option key={v} value={v}>{v}</option>)}
           </select>
 
           <select className="fsel" value={stock} onChange={(e) => changerFiltre(setStock, e.target.value)}>
             <option value="">Tout le stock</option>
             <option value="dispo">Disponible seulement</option>
-            <option value="bloque">Avec quantité bloquée</option>
-            <option value="expire">Expire dans 30 jours ou moins</option>
+            <option value="zero">Quantité nulle</option>
+            <option value="expire">Expire sous 30 jours</option>
+            <option value="expire90">Expire sous 90 jours</option>
           </select>
 
           <button className="btn btn-secondary" onClick={reinitialiser}>Réinitialiser</button>
