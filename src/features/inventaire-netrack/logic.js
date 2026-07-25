@@ -10,9 +10,9 @@ export const CLIENTS = ['EO', 'PBC'];
 export function nombre(v) {
   if (v === null || v === undefined) return 0;
   const brut = String(v)
-    .replace(/[\s\u00a0]/g, '')  // espaces et espaces insecables
-    .replace(/,/g, '')           // separateur de milliers
-    .replace(/\.$/, '');         // point final orphelin
+    .replace(/[\s\u00a0]/g, '')
+    .replace(/,/g, '')
+    .replace(/\.$/, '');
   const n = parseFloat(brut);
   return Number.isNaN(n) ? 0 : n;
 }
@@ -48,12 +48,103 @@ export function joursAvantExpiration(ligne) {
   return Math.ceil((d - new Date()) / 86400000);
 }
 
+// ───── Appariement poids et categorie ─────
+
+const norm = (v) => String(v ?? '').trim().toUpperCase();
+
+/**
+ * gh_poids : `exact` l'emporte sur `contains`.
+ * A egalite de type, le code le plus long gagne (le plus specifique).
+ */
+export function indexerPoids(rows) {
+  const exacts = new Map();
+  const contient = [];
+  for (const r of rows) {
+    const code = norm(r.code);
+    if (!code) continue;
+    if (r.match_type === 'contains') contient.push({ code, poids: r.poids_unitaire });
+    else exacts.set(code, r.poids_unitaire);
+  }
+  contient.sort((a, b) => b.code.length - a.code.length);
+  return { exacts, contient };
+}
+
+export function poidsUnitaire(noProduit, index) {
+  if (!index) return null;
+  const p = norm(noProduit);
+  if (!p) return null;
+  if (index.exacts.has(p)) return index.exacts.get(p);
+  const trouve = index.contient.find((r) => p.includes(r.code));
+  return trouve ? trouve.poids : null;
+}
+
+const RANG_OPERATEUR = { egal: 0, commence_par: 1, contient: 2 };
+
+/**
+ * gh_regles_categorie : priorite croissante, puis operateur du plus
+ * specifique au plus large, puis valeur la plus longue.
+ * La premiere regle qui matche l'emporte.
+ */
+export function trierRegles(rows) {
+  return [...rows]
+    .filter((r) => r.actif !== false)
+    .sort((a, b) => (a.priorite ?? 99) - (b.priorite ?? 99)
+      || (RANG_OPERATEUR[a.operateur] ?? 9) - (RANG_OPERATEUR[b.operateur] ?? 9)
+      || String(b.valeur ?? '').length - String(a.valeur ?? '').length);
+}
+
+export function categoriser(ligne, regles) {
+  if (!regles || !regles.length) return { categorie: null, sous_categorie: null };
+  for (const r of regles) {
+    const champ = norm(ligne[r.champ] ?? ligne.no_produit);
+    const val = norm(r.valeur);
+    if (!val) continue;
+    const ok = r.operateur === 'egal' ? champ === val
+      : r.operateur === 'commence_par' ? champ.startsWith(val)
+        : r.operateur === 'contient' ? champ.includes(val)
+          : false;
+    if (ok) {
+      return {
+        categorie: r.categorie || null,
+        sous_categorie: r.sous_categorie || null,
+      };
+    }
+  }
+  return { categorie: null, sous_categorie: null };
+}
+
+/**
+ * Enrichit chaque ligne avec categorie, sous_categorie, poids unitaire et
+ * poids total. Rien n'est ecrit en base : les referentiels restent la
+ * source de verite, une modification de regle prend effet immediatement.
+ */
+export function enrichir(lignes, indexPoids, reglesTriees) {
+  return lignes.map((l) => {
+    const { categorie, sous_categorie } = categoriser(l, reglesTriees);
+    const pu = poidsUnitaire(l.no_produit, indexPoids);
+    const qte = nombre(l.unite2_qte_inv);
+    return {
+      ...l,
+      categorie,
+      sous_categorie,
+      poids_unitaire: pu,
+      poids_total: pu === null ? null : Math.round(pu * qte * 100) / 100,
+    };
+  });
+}
+
+// ───── Affichage ─────
+
 /** Libelles lisibles. Toute colonne absente d'ici est affichee avec son nom brut. */
 export const LIBELLES = {
   id: 'ID',
   client: 'Client',
   no_produit: 'N° produit',
   description: 'Description',
+  categorie: 'Catégorie',
+  sous_categorie: 'Sous-catégorie',
+  poids_unitaire: 'Poids unit.',
+  poids_total: 'Poids total',
   etiquette: 'Étiquette',
   no_comm_client: 'N° comm. client',
   no_lot: 'N° lot',
@@ -63,29 +154,25 @@ export const LIBELLES = {
   date_reception_originale: 'Réception orig.',
   unite2_type: 'Type',
   unite2_qte_inv: 'Qté inventaire',
-  unite2_disponibles: 'Disponibles',
-  execution_id: 'Exécution n8n',
-  imported_at: 'Importé le',
 };
 
 /** Ordre d'affichage souhaite. Les colonnes non listees sont ajoutees a la fin. */
 const ORDRE = [
   'client', 'no_produit', 'description',
-  'unite2_type', 'unite2_qte_inv', 'unite2_disponibles',
+  'categorie', 'sous_categorie',
+  'unite2_type', 'unite2_qte_inv', 'poids_unitaire', 'poids_total',
   'etiquette', 'no_lot', 'no_sous_lot', 'no_comm_client',
   'date_lot', 'date_expiration', 'date_reception_originale',
-  'imported_at', 'execution_id', 'id',
+  'id',
 ];
 
-export const COLONNES_NUM = new Set(['unite2_qte_inv', 'unite2_disponibles']);
+export const COLONNES_NUM = new Set(['unite2_qte_inv', 'poids_unitaire', 'poids_total']);
 
 const estVide = (v) => v === null || v === undefined || String(v).trim() === '';
 
 /**
  * Colonnes derivees des donnees reelles, pas d'une liste ecrite en dur.
- * Les colonnes vides sur TOUTES les lignes sont masquees : les champs
- * retires du parseur n8n disparaissent donc d'eux-memes, que la colonne
- * ait ete droppee en base ou non.
+ * Les colonnes vides sur TOUTES les lignes sont masquees.
  */
 export function colonnesDe(lignes) {
   if (!lignes.length) return [];
@@ -101,10 +188,7 @@ export function colonnesDe(lignes) {
   return [...connues, ...extras];
 }
 
-/**
- * Diagnostic par colonne : taux de remplissage, valeurs distinctes, exemple.
- * Sert a decider quelles colonnes conserver en base.
- */
+/** Diagnostic par colonne : remplissage, valeurs distinctes, exemple. */
 export function analyserColonnes(lignes, colonnes) {
   const total = lignes.length || 1;
   return colonnes.map((c) => {
@@ -136,25 +220,26 @@ export function analyserColonnes(lignes, colonnes) {
 
 /** Filtre + tri. `tri` = { colonne, sens }. */
 export function filtrerEtTrier(lignes, criteres, tri) {
-  const { client, recherche, type, stock } = criteres;
+  const { client, recherche, type, categorie, stock } = criteres;
   const mots = recherche.trim().toLowerCase().split(/\s+/).filter(Boolean);
 
   const filtrees = lignes.filter((l) => {
     if (client && l.client !== client) return false;
     if (type && l.unite2_type !== type) return false;
-    if (stock === 'dispo' && nombre(l.unite2_disponibles) <= 0) return false;
-    if (stock === 'zero' && nombre(l.unite2_disponibles) > 0) return false;
-    if (stock === 'expire') {
+    if (categorie === '(sans)') {
+      if (l.categorie) return false;
+    } else if (categorie && l.categorie !== categorie) return false;
+    if (stock === 'dispo' && nombre(l.unite2_qte_inv) <= 0) return false;
+    if (stock === 'zero' && nombre(l.unite2_qte_inv) > 0) return false;
+    if (stock === 'sans_poids' && l.poids_unitaire !== null) return false;
+    if (stock === 'expire' || stock === 'expire90') {
       const j = joursAvantExpiration(l);
-      if (j === null || j > 30) return false;
-    }
-    if (stock === 'expire90') {
-      const j = joursAvantExpiration(l);
-      if (j === null || j > 90) return false;
+      if (j === null || j > (stock === 'expire' ? 30 : 90)) return false;
     }
     if (mots.length) {
       const foin = [l.no_produit, l.description, l.no_lot, l.no_sous_lot,
-        l.etiquette, l.no_comm_client].join(' ').toLowerCase();
+        l.etiquette, l.no_comm_client, l.categorie, l.sous_categorie]
+        .join(' ').toLowerCase();
       if (!mots.every((m) => foin.includes(m))) return false;
     }
     return true;
