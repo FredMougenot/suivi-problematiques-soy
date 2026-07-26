@@ -4,7 +4,7 @@ import { usePlanningStore } from '../../store/usePlanningStore';
 import { useInventaireNetrackQuery, useReglesCategorieQuery } from './queries';
 import {
   CLIENTS, LIBELLES, COLONNES_NUM, COLONNES_GROUPE, SEUILS_EXPIRATION,
-  colonnesDe, analyserColonnes, trierRegles, enrichir, filtrerEtTrier,
+  colonnesDe, analyserColonnes, preparerRegles, enrichir, filtrerEtTrier,
   grouperParProduit, totauxParCategorie, couvertureRegles,
   exporterCsv, exporterCsvGroupe,
 } from './logic';
@@ -62,12 +62,12 @@ export default function InventaireNetrackPage() {
   useEffect(() => { setAffichees(PAR_PAGE); },
     [client, categorie, expiration, stock, recherche, vue]);
 
-  const reglesTriees = useMemo(() => trierRegles(reglesQ.data || []), [reglesQ.data]);
+  const reglesPretes = useMemo(() => preparerRegles(reglesQ.data || []), [reglesQ.data]);
 
   /** Enrichissement a l'affichage : rien n'est recopie en base. */
   const lignes = useMemo(
-    () => enrichir(inventaireQ.data || [], reglesTriees),
-    [inventaireQ.data, reglesTriees],
+    () => enrichir(inventaireQ.data || [], reglesPretes),
+    [inventaireQ.data, reglesPretes],
   );
 
   const colonnes = useMemo(() => colonnesDe(lignes), [lignes]);
@@ -265,7 +265,7 @@ export default function InventaireNetrackPage() {
       {panneau === 'couverture' && (
         <div className="nr-analyse">
           <div className="nr-analyse-t">
-            Produits qu'aucune règle de <code>gh_regles_categorie</code> ne couvre entièrement,
+            Produits qu'aucune règle de <code>gh_regles</code> ne couvre entièrement,
             triés par nombre de lots concernés. Traiter le haut de la liste est ce qui fait
             progresser la couverture le plus vite.
           </div>
