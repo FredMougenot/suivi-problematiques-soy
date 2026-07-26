@@ -1,7 +1,5 @@
 /** Helpers de l'inventaire NetRack (donnees texte issues du scraping NetRack). */
 
-export const CLIENTS = ['EO', 'PBC'];
-
 /**
  * Les quantites arrivent au format anglais du portail : « 1,418. », « 0. ».
  * La virgule est un separateur de MILLIERS, pas une decimale.
@@ -387,7 +385,10 @@ export function filtrerEtTrier(lignes, criteres, tri) {
   const groupes = analyserRecherche(recherche);
 
   const filtrees = lignes.filter((l) => {
-    if (client && l.client !== client) return false;
+    // `client` designe ici le client final issu des regles, pas le compte NetRack.
+    if (client === '(sans)') {
+      if (l.client_regle) return false;
+    } else if (client && l.client_regle !== client) return false;
     if (categorie === '(sans)') {
       if (l.categorie) return false;
     } else if (categorie && l.categorie !== categorie) return false;
