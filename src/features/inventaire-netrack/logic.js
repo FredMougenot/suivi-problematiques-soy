@@ -55,14 +55,14 @@ export function joursAvantExpiration(ligne) {
 
 /**
  * Degre de gravite, utilise pour la couleur de ligne.
- * Les seuils sont volontairement peu nombreux : au-dela de 90 jours,
- * aucune couleur, pour que le tableau reste lisible.
+ * Au-dela de 90 jours, aucune couleur : sinon le tableau entier
+ * serait teinte et le signal se perdrait.
  */
 export const SEUILS_EXPIRATION = [
-  { cle: 'expire', libelle: 'Déjà expiré', max: -1 },
-  { cle: 'critique', libelle: '7 jours ou moins', max: 7 },
-  { cle: 'proche', libelle: '8 à 30 jours', max: 30 },
-  { cle: 'surveille', libelle: '31 à 90 jours', max: 90 },
+  { cle: 'expire', libelle: 'Déjà expiré' },
+  { cle: 'critique', libelle: '7 jours ou moins' },
+  { cle: 'proche', libelle: '8 à 30 jours' },
+  { cle: 'surveille', libelle: '31 à 90 jours' },
 ];
 
 export function niveauExpiration(jours) {
@@ -83,8 +83,8 @@ const RANG_OPERATEUR = { egal: 0, commence_par: 1, contient: 2 };
 /**
  * gh_regles_categorie : priorite croissante, puis operateur du plus
  * specifique au plus large, puis valeur la plus longue.
- * La premiere regle qui matche l'emporte et fournit a la fois la
- * categorie, la sous-categorie et le poids unitaire.
+ * La premiere regle qui matche fournit categorie, sous-categorie
+ * ET poids unitaire.
  */
 export function trierRegles(rows) {
   return [...rows]
@@ -94,7 +94,6 @@ export function trierRegles(rows) {
       || String(b.valeur ?? '').length - String(a.valeur ?? '').length);
 }
 
-/** Retourne la regle applicable a une ligne, ou null. */
 export function regleDe(ligne, regles) {
   if (!regles || !regles.length) return null;
   for (const r of regles) {
@@ -111,9 +110,8 @@ export function regleDe(ligne, regles) {
 }
 
 /**
- * Enrichit chaque ligne avec categorie, sous_categorie, poids et jours
- * avant expiration. Rien n'est ecrit en base : le referentiel reste la
- * source de verite, une modification de regle prend effet aussitot.
+ * Enrichit chaque ligne. Rien n'est ecrit en base : le referentiel
+ * reste la source de verite, une modification de regle prend effet aussitot.
  */
 export function enrichir(lignes, reglesTriees) {
   return lignes.map((l) => {
@@ -135,33 +133,95 @@ export function enrichir(lignes, reglesTriees) {
   });
 }
 
-// ───── Recherche multi-items ─────
+// ───── Recherche ─────
 
-/**
- * La virgule (ou le point-virgule) separe des items alternatifs,
- * l'espace cumule les criteres au sein d'un meme item.
- *   « 4021, 3855 »          → l'un OU l'autre
- *   « palette bleue »       → les deux mots ensemble
- *   « 4021, palette bleue » → le code, OU les deux mots ensemble
- */
-export function analyserRecherche(texte) {
-  return String(texte || '')
-    .split(/[,;\n]+/)
-    .map((groupe) => groupe.trim().toLowerCase().split(/\s+/).filter(Boolean))
-    .filter((mots) => mots.length > 0);
+/** Prefixes de champ acceptes dans la barre de recherche. */
+export const CHAMPS_RECHERCHE = {
+  prod: 'no_produit',
+  desc: 'description',
+  lot: 'no_lot',
+  sslot: 'no_sous_lot',
+  cat: 'categorie',
+  sc: 'sous_categorie',
+  cmd: 'no_comm_client',
+  etq: 'etiquette',
+};
+
+/** Decoupe en items alternatifs, sans casser les guillemets. */
+function decouperGroupes(texte) {
+  const groupes = [];
+  let courant = '';
+  let dansGuillemets = false;
+  for (const ch of String(texte || '')) {
+    if (ch === '"') { dansGuillemets = !dansGuillemets; courant += ch; continue; }
+    if (!dansGuillemets && (ch === ',' || ch === ';' || ch === '\n')) {
+      groupes.push(courant);
+      courant = '';
+      continue;
+    }
+    courant += ch;
+  }
+  groupes.push(courant);
+  return groupes;
 }
 
-function correspond(ligne, groupes) {
+const RE_JETON = /(-)?(?:([a-zA-Z]+):)?(?:"([^"]*)"|(\S+))/g;
+
+/**
+ * Grammaire de recherche :
+ *   espace          criteres cumules (ET)
+ *   virgule         items alternatifs (OU)
+ *   -mot            exclusion
+ *   "phrase exacte" recherche la suite de mots telle quelle
+ *   champ:valeur    restreint a un champ (prod, desc, lot, cat, sc, cmd, etq)
+ */
+export function analyserRecherche(texte) {
+  return decouperGroupes(texte)
+    .map((brut) => {
+      const jetons = [];
+      let m;
+      RE_JETON.lastIndex = 0;
+      while ((m = RE_JETON.exec(brut)) !== null) {
+        const [, negation, champ, phrase, mot] = m;
+        const valeur = (phrase !== undefined ? phrase : (mot || '')).trim().toLowerCase();
+        if (!valeur) continue;
+        const cle = champ ? champ.toLowerCase() : null;
+        jetons.push({
+          exclu: Boolean(negation),
+          champ: cle && CHAMPS_RECHERCHE[cle] ? CHAMPS_RECHERCHE[cle] : null,
+          valeur,
+        });
+      }
+      return jetons;
+    })
+    .filter((jetons) => jetons.length > 0);
+}
+
+const CHAMPS_BALAYES = ['no_produit', 'description', 'no_lot', 'no_sous_lot',
+  'etiquette', 'no_comm_client', 'categorie', 'sous_categorie'];
+
+function jetonMatche(ligne, jeton) {
+  if (jeton.champ) {
+    return String(ligne[jeton.champ] ?? '').toLowerCase().includes(jeton.valeur);
+  }
+  return CHAMPS_BALAYES.some(
+    (c) => String(ligne[c] ?? '').toLowerCase().includes(jeton.valeur),
+  );
+}
+
+export function correspond(ligne, groupes) {
   if (!groupes.length) return true;
-  const foin = [ligne.no_produit, ligne.description, ligne.no_lot, ligne.no_sous_lot,
-    ligne.etiquette, ligne.no_comm_client, ligne.categorie, ligne.sous_categorie]
-    .join(' ').toLowerCase();
-  return groupes.some((mots) => mots.every((m) => foin.includes(m)));
+  return groupes.some((jetons) => {
+    const inclus = jetons.filter((j) => !j.exclu);
+    const exclus = jetons.filter((j) => j.exclu);
+    if (exclus.some((j) => jetonMatche(ligne, j))) return false;
+    // Un item ne contenant que des exclusions signifie « tout sauf ça ».
+    return inclus.every((j) => jetonMatche(ligne, j));
+  });
 }
 
 // ───── Affichage ─────
 
-/** Libelles lisibles. Toute colonne absente d'ici est affichee avec son nom brut. */
 export const LIBELLES = {
   client: 'Client',
   no_produit: 'N° produit',
@@ -183,12 +243,11 @@ export const LIBELLES = {
 
 /**
  * Colonnes jamais affichees, meme si elles contiennent des donnees.
- * `id` sert de cle de ligne cote React.
- * `imported_at` et `unite2_type` sont conserves en base car la vue
- * v_gh_inventaire_complet en depend.
- * `unite2_disponibles`, `execution_id` et les champs retires du parseur
- * figurent ici pour que l'affichage reste stable meme si une execution
- * planifiee tourne encore sur une version anterieure du workflow.
+ * `id` sert de cle de ligne cote React ; `imported_at` et `unite2_type`
+ * restent en base car la vue v_gh_inventaire_complet en depend ;
+ * les autres sont des champs retires du parseur, listes ici pour que
+ * l'affichage reste stable si une execution tourne sur une version
+ * anterieure du workflow.
  */
 const MASQUEES = new Set([
   'id', 'imported_at', 'unite2_type',
@@ -200,7 +259,6 @@ const MASQUEES = new Set([
   'niveau_expiration',
 ]);
 
-/** Ordre d'affichage souhaite. Les colonnes non listees sont ajoutees a la fin. */
 const ORDRE = [
   'client', 'categorie', 'sous_categorie',
   'no_produit', 'description',
@@ -215,10 +273,6 @@ export const COLONNES_NUM = new Set([
 
 const estVide = (v) => v === null || v === undefined || String(v).trim() === '';
 
-/**
- * Colonnes derivees des donnees reelles, pas d'une liste ecrite en dur.
- * Les colonnes masquees et celles vides sur TOUTES les lignes sont exclues.
- */
 export function colonnesDe(lignes) {
   if (!lignes.length) return [];
   const presentes = new Set();
@@ -234,7 +288,6 @@ export function colonnesDe(lignes) {
   return [...connues, ...extras];
 }
 
-/** Diagnostic par colonne : remplissage, valeurs distinctes, exemple. */
 export function analyserColonnes(lignes, colonnes) {
   const total = lignes.length || 1;
   return colonnes.map((c) => {
@@ -307,7 +360,6 @@ export function filtrerEtTrier(lignes, criteres, tri) {
     const A = a[tri.colonne];
     const B = b[tri.colonne];
     if (COLONNES_NUM.has(tri.colonne)) {
-      // Les lignes sans valeur sont renvoyees en fin de tri, quel que soit le sens.
       if (A === null && B === null) return 0;
       if (A === null) return 1;
       if (B === null) return -1;
@@ -325,17 +377,195 @@ export function filtrerEtTrier(lignes, criteres, tri) {
   });
 }
 
-/** CSV point-virgule + BOM, pour ouverture directe dans Excel FR. */
-export function exporterCsv(lignes, colonnes) {
-  const entetes = colonnes.map((c) => LIBELLES[c] || c);
-  const echapper = (v) => '"' + String(v ?? '').replace(/"/g, '""') + '"';
-  const contenu = [entetes.join(';')]
-    .concat(lignes.map((l) => colonnes.map((c) => echapper(l[c])).join(';')))
-    .join('\r\n');
+// ───── Vue groupee par produit ─────
+
+/** Colonnes de la vue groupee, avec leur mode de tri. */
+export const COLONNES_GROUPE = [
+  { cle: 'client', libelle: 'Client' },
+  { cle: 'categorie', libelle: 'Catégorie' },
+  { cle: 'sous_categorie', libelle: 'Sous-catégorie' },
+  { cle: 'no_produit', libelle: 'N° produit' },
+  { cle: 'description', libelle: 'Description' },
+  { cle: 'nb_lots', libelle: 'Lots', num: true },
+  { cle: 'qte', libelle: 'Qté totale', num: true },
+  { cle: 'poids', libelle: 'Poids total', num: true },
+  { cle: 'jours_min', libelle: 'Plus proche exp.', num: true },
+];
+
+/**
+ * Regroupe par client + produit. Le niveau d'expiration du groupe est
+ * celui de son lot le plus urgent : c'est ce lot qui commande l'action.
+ */
+export function grouperParProduit(lignes, tri) {
+  const parCle = new Map();
+
+  for (const l of lignes) {
+    const cle = (l.client || '') + '\u0000' + (l.no_produit || '');
+    let g = parCle.get(cle);
+    if (!g) {
+      g = {
+        cle,
+        client: l.client,
+        no_produit: l.no_produit,
+        description: l.description,
+        categorie: l.categorie,
+        sous_categorie: l.sous_categorie,
+        nb_lots: 0,
+        qte: 0,
+        poids: 0,
+        poids_connu: false,
+        jours_min: null,
+        lignes: [],
+      };
+      parCle.set(cle, g);
+    }
+    g.lignes.push(l);
+    g.nb_lots += 1;
+    g.qte += nombre(l.unite2_qte_inv);
+    if (l.poids_total !== null) {
+      g.poids += l.poids_total;
+      g.poids_connu = true;
+    }
+    if (l.jours_expiration !== null
+      && (g.jours_min === null || l.jours_expiration < g.jours_min)) {
+      g.jours_min = l.jours_expiration;
+    }
+    if (!g.description && l.description) g.description = l.description;
+  }
+
+  const groupes = [...parCle.values()].map((g) => ({
+    ...g,
+    qte: Math.round(g.qte * 100) / 100,
+    poids: g.poids_connu ? Math.round(g.poids * 100) / 100 : null,
+    niveau: niveauExpiration(g.jours_min),
+    lignes: g.lignes.slice().sort((a, b) => {
+      // Le lot le plus urgent en premier : c'est celui a sortir.
+      const A = a.jours_expiration;
+      const B = b.jours_expiration;
+      if (A === null && B === null) return 0;
+      if (A === null) return 1;
+      if (B === null) return -1;
+      return A - B;
+    }),
+  }));
+
+  const num = new Set(['nb_lots', 'qte', 'poids', 'jours_min']);
+  const colonne = tri && tri.colonne in groupes[0 || 0] ? tri.colonne : 'no_produit';
+  const sens = tri ? tri.sens : 1;
+
+  return groupes.sort((a, b) => {
+    const A = a[colonne];
+    const B = b[colonne];
+    if (num.has(colonne)) {
+      if (A === null && B === null) return 0;
+      if (A === null) return 1;
+      if (B === null) return -1;
+      return (A - B) * sens;
+    }
+    return String(A ?? '').localeCompare(String(B ?? ''), 'fr', { numeric: true }) * sens;
+  });
+}
+
+// ───── Totaux par categorie ─────
+
+export function totauxParCategorie(lignes) {
+  const parCat = new Map();
+  for (const l of lignes) {
+    const cle = l.categorie || '(sans catégorie)';
+    let t = parCat.get(cle);
+    if (!t) {
+      t = { categorie: cle, lignes: 0, produits: new Set(), qte: 0, poids: 0, poids_connu: false };
+      parCat.set(cle, t);
+    }
+    t.lignes += 1;
+    t.produits.add(l.no_produit);
+    t.qte += nombre(l.unite2_qte_inv);
+    if (l.poids_total !== null) { t.poids += l.poids_total; t.poids_connu = true; }
+  }
+  return [...parCat.values()]
+    .map((t) => ({
+      categorie: t.categorie,
+      lignes: t.lignes,
+      produits: t.produits.size,
+      qte: Math.round(t.qte * 100) / 100,
+      poids: t.poids_connu ? Math.round(t.poids * 100) / 100 : null,
+    }))
+    .sort((a, b) => (b.poids ?? -1) - (a.poids ?? -1)
+      || b.qte - a.qte
+      || a.categorie.localeCompare(b.categorie, 'fr'));
+}
+
+// ───── Couverture des regles ─────
+
+/**
+ * Produits dont aucune regle ne fournit la categorie ou le poids.
+ * Tries par nombre de lignes concernees : traiter le premier de la
+ * liste est ce qui fait progresser la couverture le plus vite.
+ */
+export function couvertureRegles(lignes) {
+  const parCle = new Map();
+  for (const l of lignes) {
+    const sansCat = !l.categorie;
+    const sansPoids = l.poids_unitaire === null;
+    if (!sansCat && !sansPoids) continue;
+    const cle = (l.client || '') + '\u0000' + (l.no_produit || '');
+    let p = parCle.get(cle);
+    if (!p) {
+      p = {
+        cle,
+        client: l.client,
+        no_produit: l.no_produit,
+        description: l.description,
+        lignes: 0,
+        qte: 0,
+        sans_categorie: false,
+        sans_poids: false,
+      };
+      parCle.set(cle, p);
+    }
+    p.lignes += 1;
+    p.qte += nombre(l.unite2_qte_inv);
+    if (sansCat) p.sans_categorie = true;
+    if (sansPoids) p.sans_poids = true;
+    if (!p.description && l.description) p.description = l.description;
+  }
+  return [...parCle.values()]
+    .map((p) => ({
+      ...p,
+      qte: Math.round(p.qte * 100) / 100,
+      manque: p.sans_categorie && p.sans_poids ? 'catégorie et poids'
+        : p.sans_categorie ? 'catégorie' : 'poids',
+    }))
+    .sort((a, b) => b.lignes - a.lignes || b.qte - a.qte);
+}
+
+// ───── Export ─────
+
+function telecharger(contenu, nom) {
   const blob = new Blob(['\ufeff' + contenu], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'inventaire-netrack-' + new Date().toISOString().slice(0, 10) + '.csv';
+  a.download = nom;
   a.click();
   URL.revokeObjectURL(a.href);
+}
+
+const echapper = (v) => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+const horodatage = () => new Date().toISOString().slice(0, 10);
+
+/** CSV point-virgule + BOM, pour ouverture directe dans Excel FR. */
+export function exporterCsv(lignes, colonnes) {
+  const entetes = colonnes.map((c) => LIBELLES[c] || c);
+  const contenu = [entetes.join(';')]
+    .concat(lignes.map((l) => colonnes.map((c) => echapper(l[c])).join(';')))
+    .join('\r\n');
+  telecharger(contenu, 'inventaire-netrack-' + horodatage() + '.csv');
+}
+
+export function exporterCsvGroupe(groupes) {
+  const entetes = COLONNES_GROUPE.map((c) => c.libelle);
+  const contenu = [entetes.join(';')]
+    .concat(groupes.map((g) => COLONNES_GROUPE.map((c) => echapper(g[c.cle])).join(';')))
+    .join('\r\n');
+  telecharger(contenu, 'inventaire-netrack-par-produit-' + horodatage() + '.csv');
 }
