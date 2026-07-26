@@ -392,6 +392,9 @@ export const COLONNES_GROUPE = [
   { cle: 'jours_min', libelle: 'Plus proche exp.', num: true },
 ];
 
+const TRIABLES_GROUPE = new Set(COLONNES_GROUPE.map((c) => c.cle));
+const NUM_GROUPE = new Set(['nb_lots', 'qte', 'poids', 'jours_min']);
+
 /**
  * Regroupe par client + produit. Le niveau d'expiration du groupe est
  * celui de son lot le plus urgent : c'est ce lot qui commande l'action.
@@ -449,14 +452,13 @@ export function grouperParProduit(lignes, tri) {
     }),
   }));
 
-  const num = new Set(['nb_lots', 'qte', 'poids', 'jours_min']);
-  const colonne = tri && tri.colonne in groupes[0 || 0] ? tri.colonne : 'no_produit';
+  const colonne = tri && TRIABLES_GROUPE.has(tri.colonne) ? tri.colonne : 'no_produit';
   const sens = tri ? tri.sens : 1;
 
   return groupes.sort((a, b) => {
     const A = a[colonne];
     const B = b[colonne];
-    if (num.has(colonne)) {
+    if (NUM_GROUPE.has(colonne)) {
       if (A === null && B === null) return 0;
       if (A === null) return 1;
       if (B === null) return -1;
