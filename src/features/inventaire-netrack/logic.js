@@ -80,27 +80,16 @@ const norm = (v) => String(v ?? '').trim().toUpperCase();
 
 const RANG_OPERATEUR = { egal: 0, commence_par: 1, contient: 2 };
 
-/** Colonnes qu'une regle peut renseigner. */
-export const SORTIES = ['client', 'categorie', 'sous_categorie', 'poids_unitaire', 'trax_code'];
-
 /**
- * Prepare les regles : une Map par colonne de sortie, chaque liste triee
- * par priorite, puis operateur du plus specifique au plus large, puis
- * valeur la plus longue. La premiere regle qui matche l'emporte.
+ * Tri des regles : priorite, puis operateur du plus specifique au plus
+ * large, puis valeur la plus longue. La premiere qui matche l'emporte.
  */
 export function preparerRegles(rows) {
-  const parSortie = new Map(SORTIES.map((c) => [c, []]));
-  for (const r of rows || []) {
-    if (r.actif === false) continue;
-    const liste = parSortie.get(r.colonne_sortie);
-    if (liste) liste.push(r);
-  }
-  for (const liste of parSortie.values()) {
-    liste.sort((a, b) => (a.priorite ?? 99) - (b.priorite ?? 99)
+  return [...(rows || [])]
+    .filter((r) => r.actif !== false)
+    .sort((a, b) => (a.priorite ?? 99) - (b.priorite ?? 99)
       || (RANG_OPERATEUR[a.operateur] ?? 9) - (RANG_OPERATEUR[b.operateur] ?? 9)
       || String(b.valeur ?? '').length - String(a.valeur ?? '').length);
-  }
-  return parSortie;
 }
 
 /** Evalue une condition elementaire. */
@@ -114,31 +103,41 @@ function conditionVraie(ligne, champ, operateur, valeur) {
   return false;
 }
 
+/** Premiere regle dont la condition 1 est vraie. */
+export function regleDe(ligne, regles) {
+  if (!regles || !regles.length) return null;
+  for (const r of regles) {
+    if (conditionVraie(ligne, r.champ, r.operateur, r.valeur)) return r;
+  }
+  return null;
+}
+
 const vide = (v) => v === null || v === undefined || String(v).trim() === '';
 
 /**
- * Valeur d'une colonne de sortie pour une ligne.
+ * Valeur d'un attribut pour une ligne.
  *
- * Condition 1 : si elle est fausse, la regle est ignoree et on passe a la
- * suivante. Si elle est vraie, la regle s'applique et on s'arrete la.
- * Condition 2, optionnelle : evaluee seulement dans ce cas, elle arbitre
- * entre valeur_si_vrai et valeur_si_faux.
+ * Par defaut, l'attribut vient de sa colonne (categorie, poids_unitaire,
+ * trax_code...). La 2e condition ne concerne qu'UN attribut, celui designe
+ * par `colonne_sortie` : pour celui-la seulement, elle arbitre entre
+ * valeur_si_vrai et valeur_si_faux. Les autres ne sont pas affectes.
  *
- *   no_produit contient DCA  puis  description contient EO
- *     vraie -> valeur_si_vrai   fausse -> valeur_si_faux
+ *   no_produit contient DCA, colonne_sortie = client
+ *   + description contient EO -> client EO, sinon PBC
+ *   ... pendant que categorie, poids et trax_code de la ligne s'appliquent
+ *   dans les deux cas.
  */
-export function valeurSortie(ligne, parSortie, colonne) {
-  const liste = parSortie && parSortie.get(colonne);
-  if (!liste || !liste.length) return null;
-  for (const r of liste) {
-    if (!conditionVraie(ligne, r.champ, r.operateur, r.valeur)) continue;
-    const aCondition2 = Boolean(r.champ2 && r.operateur2 && r.valeur2);
-    const valeur = !aCondition2 || conditionVraie(ligne, r.champ2, r.operateur2, r.valeur2)
-      ? r.valeur_si_vrai
-      : r.valeur_si_faux;
-    return vide(valeur) ? null : valeur;
+function attribut(ligne, regle, cle) {
+  if (!regle) return null;
+  const arbitre = regle.colonne_sortie === cle
+    && Boolean(regle.champ2 && regle.operateur2 && regle.valeur2);
+  if (arbitre) {
+    const v = conditionVraie(ligne, regle.champ2, regle.operateur2, regle.valeur2)
+      ? regle.valeur_si_vrai
+      : regle.valeur_si_faux;
+    return vide(v) ? null : v;
   }
-  return null;
+  return vide(regle[cle]) ? null : regle[cle];
 }
 
 /**
@@ -149,18 +148,19 @@ export function valeurSortie(ligne, parSortie, colonne) {
  * `client_regle` = client final, attribue par une regle. Deux notions
  * distinctes, a ne pas confondre.
  */
-export function enrichir(lignes, parSortie) {
+export function enrichir(lignes, regles) {
   return lignes.map((l) => {
-    const brut = valeurSortie(l, parSortie, 'poids_unitaire');
-    const pu = brut === null ? null : (Number.isNaN(Number(brut)) ? null : Number(brut));
+    const r = regleDe(l, regles);
+    const brut = attribut(l, r, 'poids_unitaire');
+    const pu = brut === null || Number.isNaN(Number(brut)) ? null : Number(brut);
     const qte = nombre(l.unite2_qte_inv);
     const jours = joursAvantExpiration(l);
     return {
       ...l,
-      categorie: valeurSortie(l, parSortie, 'categorie'),
-      sous_categorie: valeurSortie(l, parSortie, 'sous_categorie'),
-      client_regle: valeurSortie(l, parSortie, 'client'),
-      trax_code: valeurSortie(l, parSortie, 'trax_code'),
+      categorie: attribut(l, r, 'categorie'),
+      sous_categorie: attribut(l, r, 'sous_categorie'),
+      client_regle: attribut(l, r, 'client'),
+      trax_code: attribut(l, r, 'trax_code'),
       poids_unitaire: pu,
       poids_total: pu === null ? null : Math.round(pu * qte * 100) / 100,
       jours_expiration: jours,
