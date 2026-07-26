@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { usePlanningStore } from '../../store/usePlanningStore';
-import { useInventaireNetrackQuery, usePoidsQuery, useReglesCategorieQuery } from './queries';
+import { useInventaireNetrackQuery, useReglesCategorieQuery } from './queries';
 import {
   CLIENTS, LIBELLES, COLONNES_NUM, SEUILS_EXPIRATION,
   colonnesDe, analyserColonnes,
-  indexerPoids, trierRegles, enrichir, filtrerEtTrier, exporterCsv,
+  trierRegles, enrichir, filtrerEtTrier, exporterCsv,
 } from './logic';
 import LoadingOverlay from '../../design-system/LoadingOverlay';
 import './inventaireNetrack.css';
@@ -17,7 +17,6 @@ const COLLANTES = 2;
 export default function InventaireNetrackPage() {
   const addToast = usePlanningStore((s) => s.addToast);
   const inventaireQ = useInventaireNetrackQuery();
-  const poidsQ = usePoidsQuery();
   const reglesQ = useReglesCategorieQuery();
 
   const [client, setClient] = useState('');
@@ -29,13 +28,12 @@ export default function InventaireNetrackPage() {
   const [affichees, setAffichees] = useState(PAR_PAGE);
   const [analyseVisible, setAnalyseVisible] = useState(false);
 
-  const indexPoids = useMemo(() => indexerPoids(poidsQ.data || []), [poidsQ.data]);
   const reglesTriees = useMemo(() => trierRegles(reglesQ.data || []), [reglesQ.data]);
 
   /** Enrichissement a l'affichage : rien n'est recopie en base. */
   const lignes = useMemo(
-    () => enrichir(inventaireQ.data || [], indexPoids, reglesTriees),
-    [inventaireQ.data, indexPoids, reglesTriees],
+    () => enrichir(inventaireQ.data || [], reglesTriees),
+    [inventaireQ.data, reglesTriees],
   );
 
   const colonnes = useMemo(() => colonnesDe(lignes), [lignes]);
@@ -62,6 +60,7 @@ export default function InventaireNetrackPage() {
       eo: filtrees.filter((l) => l.client === 'EO').length,
       pbc: filtrees.filter((l) => l.client === 'PBC').length,
       poids: Math.round(filtrees.reduce((s, l) => s + (l.poids_total || 0), 0)),
+      sansPoids: filtrees.filter((l) => l.poids_unitaire === null).length,
       expire: parNiveau('expire'),
       critique: parNiveau('critique'),
       proche: parNiveau('proche'),
@@ -94,12 +93,12 @@ export default function InventaireNetrackPage() {
   }
 
   async function handleActualiser() {
-    await Promise.all([inventaireQ.refetch(), poidsQ.refetch(), reglesQ.refetch()]);
+    await Promise.all([inventaireQ.refetch(), reglesQ.refetch()]);
     addToast('Inventaire actualisé ✓', 'success');
   }
 
-  const enCours = inventaireQ.isLoading || poidsQ.isLoading || reglesQ.isLoading;
-  const enErreur = inventaireQ.error || poidsQ.error || reglesQ.error;
+  const enCours = inventaireQ.isLoading || reglesQ.isLoading;
+  const enErreur = inventaireQ.error || reglesQ.error;
   const visibles = filtrees.slice(0, affichees);
 
   return (
@@ -108,7 +107,7 @@ export default function InventaireNetrackPage() {
         <div>
           <div className="sec-t">Inventaire NetRack</div>
           <div className="sec-s">
-            Inventaire fusionné EO et PBC — poids et catégories appliqués depuis les référentiels
+            Inventaire fusionné EO et PBC — catégories et poids issus des règles de catégorisation
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -147,7 +146,7 @@ export default function InventaireNetrackPage() {
         <div className="kpi-card kpi-poids">
           <div className="kpi-lbl">Poids total</div>
           <div className="kpi-val">{kpis.poids.toLocaleString('fr-CA')}</div>
-          <div className="kpi-sub">sélection courante</div>
+          <div className="kpi-sub">{kpis.sansPoids} ligne(s) sans poids connu</div>
         </div>
         <div className="kpi-card kpi-usine">
           <div className="kpi-lbl">Expirés</div>
