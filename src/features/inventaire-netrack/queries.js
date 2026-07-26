@@ -33,10 +33,12 @@ export function useInventaireNetrackQuery() {
 }
 
 /**
- * Referentiel unique : chaque regle porte la categorie, la sous-categorie,
- * le poids unitaire, le client final et le code TRAX. La regle qui matche
- * fournit le tout d'un coup. Rien n'est recopie dans l'inventaire,
- * l'appariement se fait a l'affichage.
+ * Referentiel unique. Chaque regle porte :
+ *   - la condition 1 (champ / operateur / valeur), qui definit sa portee
+ *   - une condition 2 optionnelle, qui arbitre entre les deux jeux de valeurs
+ *   - les valeurs principales, et les valeurs `_sinon` appliquees quand
+ *     la condition 2 est fausse
+ * Rien n'est recopie dans l'inventaire : l'appariement se fait a l'affichage.
  */
 export function useReglesCategorieQuery() {
   return useQuery({
@@ -45,7 +47,7 @@ export function useReglesCategorieQuery() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('gh_regles_categorie')
-        .select('priorite, champ, operateur, valeur, categorie, sous_categorie, poids_unitaire, client, trax_code, actif')
+        .select('priorite, champ, operateur, valeur, champ2, operateur2, valeur2, connecteur, categorie, sous_categorie, poids_unitaire, client, trax_code, categorie_sinon, sous_categorie_sinon, poids_unitaire_sinon, client_sinon, trax_code_sinon, actif')
         .eq('actif', true);
       if (error) throw error;
       return data || [];
