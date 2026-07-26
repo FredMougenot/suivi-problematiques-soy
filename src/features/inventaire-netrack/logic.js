@@ -83,8 +83,8 @@ const RANG_OPERATEUR = { egal: 0, commence_par: 1, contient: 2 };
 /**
  * gh_regles_categorie : priorite croissante, puis operateur du plus
  * specifique au plus large, puis valeur la plus longue.
- * La premiere regle qui matche fournit categorie, sous-categorie
- * ET poids unitaire.
+ * La premiere regle qui matche fournit categorie, sous-categorie,
+ * poids unitaire, client final ET code TRAX.
  */
 export function trierRegles(rows) {
   return [...rows]
@@ -112,6 +112,10 @@ export function regleDe(ligne, regles) {
 /**
  * Enrichit chaque ligne. Rien n'est ecrit en base : le referentiel
  * reste la source de verite, une modification de regle prend effet aussitot.
+ *
+ * `client` = compte NetRack (EO / PBC), issu de l'inventaire.
+ * `client_regle` = client final, attribue par la regle. Les deux notions
+ * sont distinctes et ne doivent pas etre confondues.
  */
 export function enrichir(lignes, reglesTriees) {
   return lignes.map((l) => {
@@ -125,6 +129,8 @@ export function enrichir(lignes, reglesTriees) {
       ...l,
       categorie: (r && r.categorie) || null,
       sous_categorie: (r && r.sous_categorie) || null,
+      client_regle: (r && r.client) || null,
+      trax_code: (r && r.trax_code) || null,
       poids_unitaire: pu,
       poids_total: pu === null ? null : Math.round(pu * qte * 100) / 100,
       jours_expiration: jours,
@@ -145,6 +151,9 @@ export const CHAMPS_RECHERCHE = {
   sc: 'sous_categorie',
   cmd: 'no_comm_client',
   etq: 'etiquette',
+  cli: 'client_regle',
+  trax: 'trax_code',
+  compte: 'client',
 };
 
 /** Decoupe en items alternatifs, sans casser les guillemets. */
@@ -173,7 +182,7 @@ const RE_JETON = /(-)?(?:([a-zA-Z]+):)?(?:"([^"]*)"|(\S+))/g;
  *   virgule         items alternatifs (OU)
  *   -mot            exclusion
  *   "phrase exacte" recherche la suite de mots telle quelle
- *   champ:valeur    restreint a un champ (prod, desc, lot, cat, sc, cmd, etq)
+ *   champ:valeur    restreint a un champ
  */
 export function analyserRecherche(texte) {
   return decouperGroupes(texte)
@@ -198,7 +207,8 @@ export function analyserRecherche(texte) {
 }
 
 const CHAMPS_BALAYES = ['no_produit', 'description', 'no_lot', 'no_sous_lot',
-  'etiquette', 'no_comm_client', 'categorie', 'sous_categorie'];
+  'etiquette', 'no_comm_client', 'categorie', 'sous_categorie',
+  'client_regle', 'trax_code'];
 
 function jetonMatche(ligne, jeton) {
   if (jeton.champ) {
@@ -223,7 +233,9 @@ export function correspond(ligne, groupes) {
 // ───── Affichage ─────
 
 export const LIBELLES = {
-  client: 'Client',
+  client: 'Compte',
+  client_regle: 'Client',
+  trax_code: 'TRAXcode',
   no_produit: 'N° produit',
   description: 'Description',
   categorie: 'Catégorie',
@@ -260,8 +272,8 @@ const MASQUEES = new Set([
 ]);
 
 const ORDRE = [
-  'client', 'categorie', 'sous_categorie',
-  'no_produit', 'description',
+  'client', 'client_regle', 'categorie', 'sous_categorie',
+  'no_produit', 'trax_code', 'description',
   'unite2_qte_inv', 'poids_unitaire', 'poids_total',
   'etiquette', 'no_lot', 'no_sous_lot', 'no_comm_client',
   'date_lot', 'date_expiration', 'jours_expiration', 'date_reception_originale',
@@ -381,10 +393,12 @@ export function filtrerEtTrier(lignes, criteres, tri) {
 
 /** Colonnes de la vue groupee, avec leur mode de tri. */
 export const COLONNES_GROUPE = [
-  { cle: 'client', libelle: 'Client' },
+  { cle: 'client', libelle: 'Compte' },
+  { cle: 'client_regle', libelle: 'Client' },
   { cle: 'categorie', libelle: 'Catégorie' },
   { cle: 'sous_categorie', libelle: 'Sous-catégorie' },
   { cle: 'no_produit', libelle: 'N° produit' },
+  { cle: 'trax_code', libelle: 'TRAXcode' },
   { cle: 'description', libelle: 'Description' },
   { cle: 'nb_lots', libelle: 'Lots', num: true },
   { cle: 'qte', libelle: 'Qté totale', num: true },
@@ -396,7 +410,7 @@ const TRIABLES_GROUPE = new Set(COLONNES_GROUPE.map((c) => c.cle));
 const NUM_GROUPE = new Set(['nb_lots', 'qte', 'poids', 'jours_min']);
 
 /**
- * Regroupe par client + produit. Le niveau d'expiration du groupe est
+ * Regroupe par compte + produit. Le niveau d'expiration du groupe est
  * celui de son lot le plus urgent : c'est ce lot qui commande l'action.
  */
 export function grouperParProduit(lignes, tri) {
@@ -413,6 +427,8 @@ export function grouperParProduit(lignes, tri) {
         description: l.description,
         categorie: l.categorie,
         sous_categorie: l.sous_categorie,
+        client_regle: l.client_regle,
+        trax_code: l.trax_code,
         nb_lots: 0,
         qte: 0,
         poids: 0,
