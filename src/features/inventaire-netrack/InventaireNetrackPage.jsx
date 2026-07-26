@@ -1,10 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { usePlanningStore } from '../../store/usePlanningStore';
 import { useInventaireNetrackQuery, useReglesCategorieQuery } from './queries';
 import {
-  CLIENTS, LIBELLES, COLONNES_NUM, SEUILS_EXPIRATION,
-  colonnesDe, analyserColonnes,
-  trierRegles, enrichir, filtrerEtTrier, exporterCsv,
+  CLIENTS, LIBELLES, COLONNES_NUM, COLONNES_GROUPE, SEUILS_EXPIRATION,
+  colonnesDe, analyserColonnes, trierRegles, enrichir, filtrerEtTrier,
+  grouperParProduit, totauxParCategorie, couvertureRegles,
+  exporterCsv, exporterCsvGroupe,
 } from './logic';
 import LoadingOverlay from '../../design-system/LoadingOverlay';
 import './inventaireNetrack.css';
@@ -14,19 +16,51 @@ const PAR_PAGE = 200;
 /** Les deux premieres colonnes restent visibles au defilement horizontal. */
 const COLLANTES = 2;
 
+const nb = (v) => (typeof v === 'number' ? v.toLocaleString('fr-CA') : v);
+
 export default function InventaireNetrackPage() {
   const addToast = usePlanningStore((s) => s.addToast);
   const inventaireQ = useInventaireNetrackQuery();
   const reglesQ = useReglesCategorieQuery();
 
-  const [client, setClient] = useState('');
-  const [recherche, setRecherche] = useState('');
-  const [categorie, setCategorie] = useState('');
-  const [stock, setStock] = useState('');
-  const [expiration, setExpiration] = useState('');
-  const [tri, setTri] = useState({ colonne: 'no_produit', sens: 1 });
+  // ── Etat porte par l'URL : un lien reproduit exactement l'ecran ──
+  const [params, setParams] = useSearchParams();
+  const vue = params.get('vue') === 'produit' ? 'produit' : 'lot';
+  const client = params.get('cli') || '';
+  const categorie = params.get('cat') || '';
+  const expiration = params.get('exp') || '';
+  const stock = params.get('stk') || '';
+  const recherche = params.get('q') || '';
+  const triColonne = params.get('tri') || (vue === 'produit' ? 'no_produit' : 'no_produit');
+  const triSens = params.get('sens') === '-1' ? -1 : 1;
+  const tri = useMemo(() => ({ colonne: triColonne, sens: triSens }), [triColonne, triSens]);
+
+  const majParams = useCallback((modifs) => {
+    setParams((prec) => {
+      const suivant = new URLSearchParams(prec);
+      Object.entries(modifs).forEach(([cle, valeur]) => {
+        if (valeur === '' || valeur === null || valeur === undefined) suivant.delete(cle);
+        else suivant.set(cle, String(valeur));
+      });
+      return suivant;
+    }, { replace: true });
+  }, [setParams]);
+
+  // La saisie reste locale et n'ecrit dans l'URL qu'apres une pause.
+  const [saisie, setSaisie] = useState(recherche);
+  useEffect(() => { setSaisie(recherche); }, [recherche]);
+  useEffect(() => {
+    if (saisie === recherche) return undefined;
+    const minuteur = setTimeout(() => majParams({ q: saisie }), 220);
+    return () => clearTimeout(minuteur);
+  }, [saisie, recherche, majParams]);
+
   const [affichees, setAffichees] = useState(PAR_PAGE);
-  const [analyseVisible, setAnalyseVisible] = useState(false);
+  const [deplies, setDeplies] = useState(() => new Set());
+  const [panneau, setPanneau] = useState('');
+
+  useEffect(() => { setAffichees(PAR_PAGE); },
+    [client, categorie, expiration, stock, recherche, vue]);
 
   const reglesTriees = useMemo(() => trierRegles(reglesQ.data || []), [reglesQ.data]);
 
@@ -48,15 +82,29 @@ export default function InventaireNetrackPage() {
     [lignes, client, recherche, categorie, stock, expiration, tri],
   );
 
+  const groupes = useMemo(
+    () => (vue === 'produit' ? grouperParProduit(filtrees, tri) : []),
+    [vue, filtrees, tri],
+  );
+
+  const totaux = useMemo(
+    () => (panneau === 'totaux' ? totauxParCategorie(filtrees) : []),
+    [panneau, filtrees],
+  );
+  const couverture = useMemo(
+    () => (panneau === 'couverture' ? couvertureRegles(filtrees) : []),
+    [panneau, filtrees],
+  );
   const analyse = useMemo(
-    () => (analyseVisible ? analyserColonnes(filtrees, colonnes) : []),
-    [analyseVisible, filtrees, colonnes],
+    () => (panneau === 'analyse' ? analyserColonnes(filtrees, colonnes) : []),
+    [panneau, filtrees, colonnes],
   );
 
   const kpis = useMemo(() => {
     const parNiveau = (n) => filtrees.filter((l) => l.niveau_expiration === n).length;
     return {
-      total: filtrees.length,
+      lignes: filtrees.length,
+      produits: new Set(filtrees.map((l) => l.client + '|' + l.no_produit)).size,
       eo: filtrees.filter((l) => l.client === 'EO').length,
       pbc: filtrees.filter((l) => l.client === 'PBC').length,
       poids: Math.round(filtrees.reduce((s, l) => s + (l.poids_total || 0), 0)),
@@ -67,26 +115,38 @@ export default function InventaireNetrackPage() {
     };
   }, [filtrees]);
 
-  function changerFiltre(setter, valeur) {
-    setter(valeur);
+  function trierPar(cle) {
+    majParams({ tri: cle, sens: tri.colonne === cle && tri.sens === 1 ? -1 : 1 });
     setAffichees(PAR_PAGE);
   }
 
-  function trierPar(cle) {
-    setTri((t) => ({ colonne: cle, sens: t.colonne === cle ? -t.sens : 1 }));
-    setAffichees(PAR_PAGE);
+  function basculerGroupe(cle) {
+    setDeplies((prec) => {
+      const suivant = new Set(prec);
+      if (suivant.has(cle)) suivant.delete(cle);
+      else suivant.add(cle);
+      return suivant;
+    });
   }
 
   function reinitialiser() {
-    setClient(''); setRecherche(''); setCategorie(''); setStock(''); setExpiration('');
+    setSaisie('');
+    setParams(new URLSearchParams(), { replace: true });
     setAffichees(PAR_PAGE);
+    setDeplies(new Set());
   }
 
   function handleExport() {
-    if (!filtrees.length) { addToast('Rien à exporter', 'error'); return; }
+    const rien = vue === 'produit' ? !groupes.length : !filtrees.length;
+    if (rien) { addToast('Rien à exporter', 'error'); return; }
     try {
-      exporterCsv(filtrees, colonnes);
-      addToast(filtrees.length + ' lignes exportées ✓', 'success');
+      if (vue === 'produit') {
+        exporterCsvGroupe(groupes);
+        addToast(groupes.length + ' produits exportés ✓', 'success');
+      } else {
+        exporterCsv(filtrees, colonnes);
+        addToast(filtrees.length + ' lignes exportées ✓', 'success');
+      }
     } catch (e) {
       addToast('Erreur export : ' + e.message, 'error');
     }
@@ -97,9 +157,24 @@ export default function InventaireNetrackPage() {
     addToast('Inventaire actualisé ✓', 'success');
   }
 
+  function copierLien() {
+    navigator.clipboard.writeText(window.location.href)
+      .then(() => addToast('Lien de la vue copié ✓', 'success'))
+      .catch(() => addToast('Copie impossible', 'error'));
+  }
+
   const enCours = inventaireQ.isLoading || reglesQ.isLoading;
   const enErreur = inventaireQ.error || reglesQ.error;
-  const visibles = filtrees.slice(0, affichees);
+  const visiblesLots = filtrees.slice(0, affichees);
+  const visiblesGroupes = groupes.slice(0, affichees);
+  const restants = (vue === 'produit' ? groupes.length : filtrees.length) - affichees;
+
+  const boutonPanneau = (cle, libelle) => (
+    <button
+      className={panneau === cle ? 'btn btn-primary' : 'btn btn-secondary'}
+      onClick={() => setPanneau(panneau === cle ? '' : cle)}
+    >{libelle}</button>
+  );
 
   return (
     <div className="tool-main">
@@ -111,17 +186,14 @@ export default function InventaireNetrackPage() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <button
-            className={analyseVisible ? 'btn btn-primary' : 'btn btn-secondary'}
-            onClick={() => setAnalyseVisible((v) => !v)}
-          >
-            Analyse des colonnes
-          </button>
+          {boutonPanneau('totaux', 'Totaux par catégorie')}
+          {boutonPanneau('couverture', 'Couverture des règles')}
+          {boutonPanneau('analyse', 'Analyse des colonnes')}
+          <button className="btn btn-secondary" onClick={copierLien}>Copier le lien</button>
           <button className="btn btn-secondary" onClick={handleActualiser} disabled={inventaireQ.isFetching}>
             {inventaireQ.isFetching ? 'Chargement…' : 'Actualiser'}
           </button>
-          <button className="btn btn-primary" onClick={handleExport} disabled={!filtrees.length}>Exporter CSV</button>
-          {lignes.length > 0 && <span className="count-pill">{filtrees.length} / {lignes.length}</span>}
+          <button className="btn btn-primary" onClick={handleExport}>Exporter CSV</button>
         </div>
       </div>
 
@@ -134,9 +206,13 @@ export default function InventaireNetrackPage() {
 
       <div className="kpi-grid">
         <div className="kpi-card kpi-global">
-          <div className="kpi-lbl">Lignes affichées</div>
-          <div className="kpi-val">{kpis.total}</div>
-          <div className="kpi-sub">sur {lignes.length} au total</div>
+          <div className="kpi-lbl">{vue === 'produit' ? 'Produits' : 'Lignes'}</div>
+          <div className="kpi-val">{vue === 'produit' ? kpis.produits : kpis.lignes}</div>
+          <div className="kpi-sub">
+            {vue === 'produit'
+              ? kpis.lignes + ' lots au total'
+              : 'sur ' + lignes.length + ' au total'}
+          </div>
         </div>
         <div className="kpi-card kpi-gh">
           <div className="kpi-lbl">Client EO</div>
@@ -155,7 +231,76 @@ export default function InventaireNetrackPage() {
         </div>
       </div>
 
-      {analyseVisible && (
+      {panneau === 'totaux' && (
+        <div className="nr-analyse">
+          <div className="nr-analyse-t">
+            Totaux sur la sélection courante. Les lignes dont le poids est inconnu
+            comptent dans les quantités mais pas dans les poids.
+          </div>
+          <table className="data-table nr-analyse-table">
+            <thead>
+              <tr>
+                <th>Catégorie</th>
+                <th style={{ textAlign: 'right' }}>Produits</th>
+                <th style={{ textAlign: 'right' }}>Lots</th>
+                <th style={{ textAlign: 'right' }}>Qté totale</th>
+                <th style={{ textAlign: 'right' }}>Poids total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {totaux.map((t) => (
+                <tr key={t.categorie}>
+                  <td>{t.categorie}</td>
+                  <td className="nr-num">{nb(t.produits)}</td>
+                  <td className="nr-num">{nb(t.lignes)}</td>
+                  <td className="nr-num">{nb(t.qte)}</td>
+                  <td className="nr-num">{t.poids === null ? '—' : nb(t.poids)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {panneau === 'couverture' && (
+        <div className="nr-analyse">
+          <div className="nr-analyse-t">
+            Produits qu'aucune règle de <code>gh_regles_categorie</code> ne couvre entièrement,
+            triés par nombre de lots concernés. Traiter le haut de la liste est ce qui fait
+            progresser la couverture le plus vite.
+          </div>
+          {couverture.length === 0 ? (
+            <div className="nr-vide">Tous les produits de la sélection sont couverts.</div>
+          ) : (
+            <table className="data-table nr-analyse-table">
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>N° produit</th>
+                  <th>Description</th>
+                  <th style={{ textAlign: 'right' }}>Lots</th>
+                  <th style={{ textAlign: 'right' }}>Qté</th>
+                  <th>Manque</th>
+                </tr>
+              </thead>
+              <tbody>
+                {couverture.map((p) => (
+                  <tr key={p.cle}>
+                    <td><span className="nr-badge" data-client={p.client}>{p.client}</span></td>
+                    <td className="nr-mono">{p.no_produit}</td>
+                    <td className="nr-tronque">{p.description || '—'}</td>
+                    <td className="nr-num">{nb(p.lignes)}</td>
+                    <td className="nr-num">{nb(p.qte)}</td>
+                    <td><span className="nr-verdict" data-v="rare">{p.manque}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {panneau === 'analyse' && (
         <div className="nr-analyse">
           <div className="nr-analyse-t">
             Diagnostic sur les {filtrees.length} lignes filtrées. Les colonnes vides sur
@@ -190,11 +335,24 @@ export default function InventaireNetrackPage() {
 
       <div className="toolbar">
         <div className="toolbar-left">
+          <div className="nr-chips" role="group" aria-label="Mode d'affichage">
+            <button
+              className="nr-chip"
+              aria-pressed={vue === 'lot'}
+              onClick={() => majParams({ vue: '' })}
+            >Par lot</button>
+            <button
+              className="nr-chip"
+              aria-pressed={vue === 'produit'}
+              onClick={() => majParams({ vue: 'produit' })}
+            >Par produit</button>
+          </div>
+
           <div className="nr-chips" role="group" aria-label="Filtrer par client">
             <button
               className="nr-chip"
               aria-pressed={client === ''}
-              onClick={() => changerFiltre(setClient, '')}
+              onClick={() => majParams({ cli: '' })}
             >Tous</button>
             {CLIENTS.map((c) => (
               <button
@@ -202,7 +360,7 @@ export default function InventaireNetrackPage() {
                 className="nr-chip"
                 data-client={c}
                 aria-pressed={client === c}
-                onClick={() => changerFiltre(setClient, c)}
+                onClick={() => majParams({ cli: c })}
               >{c}</button>
             ))}
           </div>
@@ -211,20 +369,19 @@ export default function InventaireNetrackPage() {
             <span className="search-icon">⌕</span>
             <input
               type="text"
-              placeholder="Plusieurs items : séparer par des virgules — ex. 4021, 3855, palette bleue"
-              title="Espace = critères cumulés. Virgule = items alternés."
-              value={recherche}
-              onChange={(e) => changerFiltre(setRecherche, e.target.value)}
+              placeholder="4021, 3855  ·  lot:338  ·  &quot;sac avoine&quot;  ·  palette -bleue"
+              value={saisie}
+              onChange={(e) => setSaisie(e.target.value)}
             />
           </div>
 
-          <select className="fsel" value={categorie} onChange={(e) => changerFiltre(setCategorie, e.target.value)}>
+          <select className="fsel" value={categorie} onChange={(e) => majParams({ cat: e.target.value })}>
             <option value="">Toutes les catégories</option>
             {categories.map((v) => <option key={v} value={v}>{v}</option>)}
             <option value="(sans)">— sans catégorie —</option>
           </select>
 
-          <select className="fsel" value={expiration} onChange={(e) => changerFiltre(setExpiration, e.target.value)}>
+          <select className="fsel" value={expiration} onChange={(e) => majParams({ exp: e.target.value })}>
             <option value="">Toutes les dates</option>
             <option value="expire">Déjà expiré</option>
             <option value="critique">Expire sous 7 jours</option>
@@ -234,7 +391,7 @@ export default function InventaireNetrackPage() {
             <option value="sans_date">Sans date d'expiration</option>
           </select>
 
-          <select className="fsel" value={stock} onChange={(e) => changerFiltre(setStock, e.target.value)}>
+          <select className="fsel" value={stock} onChange={(e) => majParams({ stk: e.target.value })}>
             <option value="">Tout le stock</option>
             <option value="dispo">Quantité positive</option>
             <option value="zero">Quantité nulle</option>
@@ -243,6 +400,14 @@ export default function InventaireNetrackPage() {
 
           <button className="btn btn-secondary" onClick={reinitialiser}>Réinitialiser</button>
         </div>
+      </div>
+
+      <div className="nr-aide">
+        <span><b>espace</b> cumule</span>
+        <span><b>,</b> alterne</span>
+        <span><b>-mot</b> exclut</span>
+        <span><b>« mot mot »</b> entre guillemets : phrase exacte</span>
+        <span><b>champ:</b> prod, desc, lot, sslot, cat, sc, cmd, etq</span>
       </div>
 
       <div className="nr-legende">
@@ -261,6 +426,93 @@ export default function InventaireNetrackPage() {
               ? "Aucune donnée. Le relevé est produit chaque matin par le workflow NetRack."
               : "Aucun résultat pour ces filtres."}
           </div>
+        ) : vue === 'produit' ? (
+          <table className="data-table nr-large">
+            <thead>
+              <tr>
+                <th style={{ width: 28 }} aria-label="Déplier" />
+                {COLONNES_GROUPE.map((c) => (
+                  <th
+                    key={c.cle}
+                    className="nr-th"
+                    style={{ textAlign: c.num ? 'right' : 'left' }}
+                    onClick={() => trierPar(c.cle)}
+                  >
+                    {c.libelle}
+                    {tri.colonne === c.cle && (
+                      <span className="nr-fleche">{tri.sens === 1 ? '▲' : '▼'}</span>
+                    )}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {visiblesGroupes.map((g) => {
+                const ouvert = deplies.has(g.cle);
+                return [
+                  <tr
+                    key={g.cle}
+                    data-exp={g.niveau || undefined}
+                    className="nr-ligne-groupe"
+                    onClick={() => basculerGroupe(g.cle)}
+                  >
+                    <td className="nr-chevron">{ouvert ? '▾' : '▸'}</td>
+                    <td><span className="nr-badge" data-client={g.client}>{g.client}</span></td>
+                    <td className={g.categorie ? '' : 'nr-manquant'}>{g.categorie || '—'}</td>
+                    <td>{g.sous_categorie || '—'}</td>
+                    <td className="nr-mono">{g.no_produit}</td>
+                    <td className="nr-desc">{g.description || '—'}</td>
+                    <td className="nr-num">{nb(g.nb_lots)}</td>
+                    <td className="nr-num">{nb(g.qte)}</td>
+                    <td className={'nr-num' + (g.poids === null ? ' nr-manquant' : '')}>
+                      {g.poids === null ? '—' : nb(g.poids)}
+                    </td>
+                    <td className="nr-num nr-jours" data-n={g.niveau || undefined}>
+                      {g.jours_min === null ? '—' : nb(g.jours_min)}
+                    </td>
+                  </tr>,
+                  ouvert && (
+                    <tr key={g.cle + '-lots'} className="nr-sous">
+                      <td colSpan={COLONNES_GROUPE.length + 1}>
+                        <table className="data-table nr-sous-table">
+                          <thead>
+                            <tr>
+                              <th>N° lot</th>
+                              <th>Sous-lot</th>
+                              <th>Étiquette</th>
+                              <th>N° comm. client</th>
+                              <th style={{ textAlign: 'right' }}>Qté</th>
+                              <th style={{ textAlign: 'right' }}>Poids</th>
+                              <th>Expiration</th>
+                              <th style={{ textAlign: 'right' }}>Jours rest.</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {g.lignes.map((l) => (
+                              <tr key={l.id} data-exp={l.niveau_expiration || undefined}>
+                                <td className="nr-mono">{l.no_lot || '—'}</td>
+                                <td className="nr-mono">{l.no_sous_lot || '—'}</td>
+                                <td className="nr-mono">{l.etiquette || '—'}</td>
+                                <td className="nr-mono">{l.no_comm_client || '—'}</td>
+                                <td className="nr-num">{l.unite2_qte_inv || '—'}</td>
+                                <td className="nr-num">{l.poids_total === null ? '—' : nb(l.poids_total)}</td>
+                                <td className="nr-mono nr-jours" data-n={l.niveau_expiration || undefined}>
+                                  {l.date_expiration || '—'}
+                                </td>
+                                <td className="nr-num nr-jours" data-n={l.niveau_expiration || undefined}>
+                                  {l.jours_expiration === null ? '—' : nb(l.jours_expiration)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  ),
+                ];
+              })}
+            </tbody>
+          </table>
         ) : (
           <table className="data-table nr-large">
             <thead>
@@ -285,7 +537,7 @@ export default function InventaireNetrackPage() {
               </tr>
             </thead>
             <tbody>
-              {visibles.map((l) => {
+              {visiblesLots.map((l) => {
                 const j = l.jours_expiration;
                 const niveau = l.niveau_expiration;
                 return (
@@ -320,11 +572,7 @@ export default function InventaireNetrackPage() {
                             ? 'Expiré depuis ' + Math.abs(j) + ' jour(s)'
                             : undefined}
                         >
-                          {vide
-                            ? '—'
-                            : COLONNES_NUM.has(c) && typeof v === 'number'
-                              ? v.toLocaleString('fr-CA')
-                              : String(v)}
+                          {vide ? '—' : COLONNES_NUM.has(c) ? nb(v) : String(v)}
                         </td>
                       );
                     })}
@@ -335,12 +583,12 @@ export default function InventaireNetrackPage() {
           </table>
         )}
 
-        {affichees < filtrees.length && (
+        {restants > 0 && (
           <button
             className="btn btn-secondary nr-plus"
             onClick={() => setAffichees((n) => n + PAR_PAGE)}
           >
-            Afficher {Math.min(PAR_PAGE, filtrees.length - affichees)} lignes de plus
+            Afficher {Math.min(PAR_PAGE, restants)} de plus
           </button>
         )}
       </div>
