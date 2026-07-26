@@ -31,7 +31,7 @@ export default function InventaireNetrackPage() {
   const expiration = params.get('exp') || '';
   const stock = params.get('stk') || '';
   const recherche = params.get('q') || '';
-  const triColonne = params.get('tri') || (vue === 'produit' ? 'no_produit' : 'no_produit');
+  const triColonne = params.get('tri') || 'no_produit';
   const triSens = params.get('sens') === '-1' ? -1 : 1;
   const tri = useMemo(() => ({ colonne: triColonne, sens: triSens }), [triColonne, triSens]);
 
@@ -182,7 +182,7 @@ export default function InventaireNetrackPage() {
         <div>
           <div className="sec-t">Inventaire NetRack</div>
           <div className="sec-s">
-            Inventaire fusionné EO et PBC — catégories et poids issus des règles de catégorisation
+            Inventaire fusionné EO et PBC — client, catégorie, poids et TRAXcode issus des règles
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -215,7 +215,7 @@ export default function InventaireNetrackPage() {
           </div>
         </div>
         <div className="kpi-card kpi-gh">
-          <div className="kpi-lbl">Client EO</div>
+          <div className="kpi-lbl">Compte EO</div>
           <div className="kpi-val">{kpis.eo}</div>
           <div className="kpi-sub">{kpis.pbc} pour PBC</div>
         </div>
@@ -275,7 +275,7 @@ export default function InventaireNetrackPage() {
             <table className="data-table nr-analyse-table">
               <thead>
                 <tr>
-                  <th>Client</th>
+                  <th>Compte</th>
                   <th>N° produit</th>
                   <th>Description</th>
                   <th style={{ textAlign: 'right' }}>Lots</th>
@@ -348,7 +348,7 @@ export default function InventaireNetrackPage() {
             >Par produit</button>
           </div>
 
-          <div className="nr-chips" role="group" aria-label="Filtrer par client">
+          <div className="nr-chips" role="group" aria-label="Filtrer par compte">
             <button
               className="nr-chip"
               aria-pressed={client === ''}
@@ -369,7 +369,7 @@ export default function InventaireNetrackPage() {
             <span className="search-icon">⌕</span>
             <input
               type="text"
-              placeholder="4021, 3855  ·  lot:338  ·  &quot;sac avoine&quot;  ·  palette -bleue"
+              placeholder="4021, 3855 · lot:338 · trax:YR23 · &quot;sac avoine&quot; · palette -bleue"
               value={saisie}
               onChange={(e) => setSaisie(e.target.value)}
             />
@@ -407,7 +407,7 @@ export default function InventaireNetrackPage() {
         <span><b>,</b> alterne</span>
         <span><b>-mot</b> exclut</span>
         <span><b>« mot mot »</b> entre guillemets : phrase exacte</span>
-        <span><b>champ:</b> prod, desc, lot, sslot, cat, sc, cmd, etq</span>
+        <span><b>champ:</b> compte, cli, trax, prod, desc, lot, sslot, cat, sc, cmd, etq</span>
       </div>
 
       <div className="nr-legende">
@@ -457,19 +457,33 @@ export default function InventaireNetrackPage() {
                     onClick={() => basculerGroupe(g.cle)}
                   >
                     <td className="nr-chevron">{ouvert ? '▾' : '▸'}</td>
-                    <td><span className="nr-badge" data-client={g.client}>{g.client}</span></td>
-                    <td className={g.categorie ? '' : 'nr-manquant'}>{g.categorie || '—'}</td>
-                    <td>{g.sous_categorie || '—'}</td>
-                    <td className="nr-mono">{g.no_produit}</td>
-                    <td className="nr-desc">{g.description || '—'}</td>
-                    <td className="nr-num">{nb(g.nb_lots)}</td>
-                    <td className="nr-num">{nb(g.qte)}</td>
-                    <td className={'nr-num' + (g.poids === null ? ' nr-manquant' : '')}>
-                      {g.poids === null ? '—' : nb(g.poids)}
-                    </td>
-                    <td className="nr-num nr-jours" data-n={g.niveau || undefined}>
-                      {g.jours_min === null ? '—' : nb(g.jours_min)}
-                    </td>
+                    {COLONNES_GROUPE.map((c) => {
+                      if (c.cle === 'client') {
+                        return (
+                          <td key={c.cle}>
+                            <span className="nr-badge" data-client={g.client}>{g.client}</span>
+                          </td>
+                        );
+                      }
+                      const v = g[c.cle];
+                      const vide = v === null || v === undefined || v === '';
+                      const classes = [
+                        c.num ? 'nr-num' : '',
+                        c.cle === 'no_produit' || c.cle === 'trax_code' ? 'nr-mono' : '',
+                        c.cle === 'description' ? 'nr-desc' : '',
+                        c.cle === 'jours_min' ? 'nr-jours' : '',
+                        vide ? 'nr-manquant' : '',
+                      ].filter(Boolean).join(' ');
+                      return (
+                        <td
+                          key={c.cle}
+                          className={classes}
+                          data-n={c.cle === 'jours_min' ? (g.niveau || undefined) : undefined}
+                        >
+                          {vide ? '—' : c.num ? nb(v) : String(v)}
+                        </td>
+                      );
+                    })}
                   </tr>,
                   ouvert && (
                     <tr key={g.cle + '-lots'} className="nr-sous">
@@ -554,7 +568,8 @@ export default function InventaireNetrackPage() {
                       const vide = v === null || v === undefined || v === '';
                       const estDate = c === 'date_expiration' || c === 'jours_expiration';
                       const manquant = vide
-                        && (c === 'poids_unitaire' || c === 'poids_total' || c === 'categorie');
+                        && (c === 'poids_unitaire' || c === 'poids_total' || c === 'categorie'
+                          || c === 'client_regle' || c === 'trax_code');
                       const classes = [
                         COLONNES_NUM.has(c) ? 'nr-num' : 'nr-mono',
                         estDate ? 'nr-jours' : '',
