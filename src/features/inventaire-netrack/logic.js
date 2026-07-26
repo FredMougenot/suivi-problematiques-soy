@@ -83,8 +83,6 @@ const RANG_OPERATEUR = { egal: 0, commence_par: 1, contient: 2 };
 /**
  * gh_regles_categorie : priorite croissante, puis operateur du plus
  * specifique au plus large, puis valeur la plus longue.
- * La premiere regle qui matche fournit categorie, sous-categorie,
- * poids unitaire, client final ET code TRAX.
  */
 export function trierRegles(rows) {
   return [...rows]
@@ -94,19 +92,59 @@ export function trierRegles(rows) {
       || String(b.valeur ?? '').length - String(a.valeur ?? '').length);
 }
 
+/** Evalue une condition elementaire d'une regle. */
+function conditionVraie(ligne, champ, operateur, valeur) {
+  const val = norm(valeur);
+  if (!val) return false;
+  const contenu = norm(ligne[champ] ?? ligne.no_produit);
+  if (operateur === 'egal') return contenu === val;
+  if (operateur === 'commence_par') return contenu.startsWith(val);
+  if (operateur === 'contient') return contenu.includes(val);
+  return false;
+}
+
+/**
+ * Retourne la regle applicable et la branche a utiliser.
+ *
+ * La condition 1 definit la PORTEE : c'est elle qui selectionne la regle,
+ * comme avant. La condition 2, optionnelle, ARBITRE entre les valeurs
+ * principales et les valeurs `_sinon` :
+ *
+ *   no_produit contient DCA  ET  description contient EO
+ *     vrai  -> client = EO           (valeurs principales)
+ *     faux  -> client = client_sinon (valeurs de repli)
+ *
+ * Avec le connecteur `ou`, la regle s'applique aussi quand seule la
+ * condition 2 est vraie ; la branche principale est alors toujours retenue.
+ */
 export function regleDe(ligne, regles) {
   if (!regles || !regles.length) return null;
   for (const r of regles) {
-    const champ = norm(ligne[r.champ] ?? ligne.no_produit);
-    const val = norm(r.valeur);
-    if (!val) continue;
-    const ok = r.operateur === 'egal' ? champ === val
-      : r.operateur === 'commence_par' ? champ.startsWith(val)
-        : r.operateur === 'contient' ? champ.includes(val)
-          : false;
-    if (ok) return r;
+    const c1 = conditionVraie(ligne, r.champ, r.operateur, r.valeur);
+    const aCondition2 = Boolean(r.champ2 && r.operateur2 && r.valeur2);
+    if (!aCondition2) {
+      if (c1) return { regle: r, principale: true };
+      continue;
+    }
+    const c2 = conditionVraie(ligne, r.champ2, r.operateur2, r.valeur2);
+    const ou = r.connecteur === 'ou';
+    const retenue = ou ? (c1 || c2) : c1;
+    if (!retenue) continue;
+    return { regle: r, principale: ou ? (c1 || c2) : (c1 && c2) };
   }
   return null;
+}
+
+/**
+ * Valeur d'un attribut selon la branche.
+ * Dans la branche `sinon`, un champ non renseigne retombe sur la valeur
+ * principale : on ne saisit que ce qui change reellement.
+ */
+function attribut(regle, cle, principale) {
+  if (!regle) return null;
+  if (principale) return regle[cle] ?? null;
+  const repli = regle[cle + '_sinon'];
+  return (repli === null || repli === undefined || repli === '') ? (regle[cle] ?? null) : repli;
 }
 
 /**
@@ -119,18 +157,19 @@ export function regleDe(ligne, regles) {
  */
 export function enrichir(lignes, reglesTriees) {
   return lignes.map((l) => {
-    const r = regleDe(l, reglesTriees);
-    const pu = r && r.poids_unitaire !== null && r.poids_unitaire !== undefined
-      ? Number(r.poids_unitaire)
-      : null;
+    const trouve = regleDe(l, reglesTriees);
+    const r = trouve ? trouve.regle : null;
+    const principale = trouve ? trouve.principale : true;
+    const brut = attribut(r, 'poids_unitaire', principale);
+    const pu = brut === null || brut === undefined ? null : Number(brut);
     const qte = nombre(l.unite2_qte_inv);
     const jours = joursAvantExpiration(l);
     return {
       ...l,
-      categorie: (r && r.categorie) || null,
-      sous_categorie: (r && r.sous_categorie) || null,
-      client_regle: (r && r.client) || null,
-      trax_code: (r && r.trax_code) || null,
+      categorie: attribut(r, 'categorie', principale),
+      sous_categorie: attribut(r, 'sous_categorie', principale),
+      client_regle: attribut(r, 'client', principale),
+      trax_code: attribut(r, 'trax_code', principale),
       poids_unitaire: pu,
       poids_total: pu === null ? null : Math.round(pu * qte * 100) / 100,
       jours_expiration: jours,
