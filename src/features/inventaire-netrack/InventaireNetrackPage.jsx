@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { usePlanningStore } from '../../store/usePlanningStore';
 import { useInventaireNetrackQuery, useReglesCategorieQuery } from './queries';
 import {
-  CLIENTS, LIBELLES, COLONNES_NUM, COLONNES_GROUPE, SEUILS_EXPIRATION,
+  LIBELLES, COLONNES_NUM, COLONNES_GROUPE, SEUILS_EXPIRATION,
   colonnesDe, analyserColonnes, preparerRegles, enrichir, filtrerEtTrier,
   grouperParProduit, totauxParCategorie, couvertureRegles,
   exporterCsv, exporterCsvGroupe,
@@ -77,6 +77,12 @@ export default function InventaireNetrackPage() {
     [lignes],
   );
 
+  /** Clients reellement presents, issus des regles : rien n'est code en dur. */
+  const clients = useMemo(
+    () => [...new Set(lignes.map((l) => l.client_regle).filter(Boolean))].sort(),
+    [lignes],
+  );
+
   const filtrees = useMemo(
     () => filtrerEtTrier(lignes, { client, recherche, categorie, stock, expiration }, tri),
     [lignes, client, recherche, categorie, stock, expiration, tri],
@@ -105,8 +111,8 @@ export default function InventaireNetrackPage() {
     return {
       lignes: filtrees.length,
       produits: new Set(filtrees.map((l) => l.client + '|' + l.no_produit)).size,
-      eo: filtrees.filter((l) => l.client === 'EO').length,
-      pbc: filtrees.filter((l) => l.client === 'PBC').length,
+      avecClient: filtrees.filter((l) => l.client_regle).length,
+      sansClient: filtrees.filter((l) => !l.client_regle).length,
       poids: Math.round(filtrees.reduce((s, l) => s + (l.poids_total || 0), 0)),
       sansPoids: filtrees.filter((l) => l.poids_unitaire === null).length,
       expire: parNiveau('expire'),
@@ -215,9 +221,9 @@ export default function InventaireNetrackPage() {
           </div>
         </div>
         <div className="kpi-card kpi-gh">
-          <div className="kpi-lbl">Compte EO</div>
-          <div className="kpi-val">{kpis.eo}</div>
-          <div className="kpi-sub">{kpis.pbc} pour PBC</div>
+          <div className="kpi-lbl">Avec client</div>
+          <div className="kpi-val">{kpis.avecClient}</div>
+          <div className="kpi-sub">{kpis.sansClient} sans client attribué</div>
         </div>
         <div className="kpi-card kpi-poids">
           <div className="kpi-lbl">Poids total</div>
@@ -265,7 +271,7 @@ export default function InventaireNetrackPage() {
       {panneau === 'couverture' && (
         <div className="nr-analyse">
           <div className="nr-analyse-t">
-            Produits qu'aucune règle de <code>gh_regles</code> ne couvre entièrement,
+            Produits qu'aucune règle de <code>gh_regles_categorie</code> ne couvre entièrement,
             triés par nombre de lots concernés. Traiter le haut de la liste est ce qui fait
             progresser la couverture le plus vite.
           </div>
@@ -348,13 +354,13 @@ export default function InventaireNetrackPage() {
             >Par produit</button>
           </div>
 
-          <div className="nr-chips" role="group" aria-label="Filtrer par compte">
+          <div className="nr-chips" role="group" aria-label="Filtrer par client">
             <button
               className="nr-chip"
               aria-pressed={client === ''}
               onClick={() => majParams({ cli: '' })}
             >Tous</button>
-            {CLIENTS.map((c) => (
+            {clients.map((c) => (
               <button
                 key={c}
                 className="nr-chip"
@@ -363,6 +369,12 @@ export default function InventaireNetrackPage() {
                 onClick={() => majParams({ cli: c })}
               >{c}</button>
             ))}
+            <button
+              className="nr-chip"
+              aria-pressed={client === '(sans)'}
+              onClick={() => majParams({ cli: '(sans)' })}
+              title="Lignes sans client attribué par une règle"
+            >Sans client</button>
           </div>
 
           <div className="gib-search-wrap">
