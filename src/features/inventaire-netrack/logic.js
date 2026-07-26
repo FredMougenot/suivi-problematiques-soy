@@ -53,6 +53,27 @@ export function joursAvantExpiration(ligne) {
   return Math.round((d - auj) / 86400000);
 }
 
+/**
+ * Degre de gravite, utilise pour la couleur de ligne.
+ * Les seuils sont volontairement peu nombreux : au-dela de 90 jours,
+ * aucune couleur, pour que le tableau reste lisible.
+ */
+export const SEUILS_EXPIRATION = [
+  { cle: 'expire', libelle: 'Déjà expiré', max: -1 },
+  { cle: 'critique', libelle: '7 jours ou moins', max: 7 },
+  { cle: 'proche', libelle: '8 à 30 jours', max: 30 },
+  { cle: 'surveille', libelle: '31 à 90 jours', max: 90 },
+];
+
+export function niveauExpiration(jours) {
+  if (jours === null || jours === undefined) return null;
+  if (jours < 0) return 'expire';
+  if (jours <= 7) return 'critique';
+  if (jours <= 30) return 'proche';
+  if (jours <= 90) return 'surveille';
+  return null;
+}
+
 // ───── Appariement poids et categorie ─────
 
 const norm = (v) => String(v ?? '').trim().toUpperCase();
@@ -128,13 +149,15 @@ export function enrichir(lignes, indexPoids, reglesTriees) {
     const { categorie, sous_categorie } = categoriser(l, reglesTriees);
     const pu = poidsUnitaire(l.no_produit, indexPoids);
     const qte = nombre(l.unite2_qte_inv);
+    const jours = joursAvantExpiration(l);
     return {
       ...l,
       categorie,
       sous_categorie,
       poids_unitaire: pu,
       poids_total: pu === null ? null : Math.round(pu * qte * 100) / 100,
-      jours_expiration: joursAvantExpiration(l),
+      jours_expiration: jours,
+      niveau_expiration: niveauExpiration(jours),
     };
   });
 }
@@ -186,12 +209,23 @@ export const LIBELLES = {
 };
 
 /**
- * Colonnes presentes en base mais jamais affichees.
- * `id` reste indispensable comme cle de ligne cote React,
- * `imported_at` et `unite2_type` sont conserves en base car
- * la vue v_gh_inventaire_complet en depend.
+ * Colonnes jamais affichees, meme si elles contiennent des donnees.
+ * `id` sert de cle de ligne cote React.
+ * `imported_at` et `unite2_type` sont conserves en base car la vue
+ * v_gh_inventaire_complet en depend.
+ * `unite2_disponibles`, `execution_id` et les champs retires du parseur
+ * figurent ici pour que l'affichage reste stable meme si une execution
+ * planifiee tourne encore sur une version anterieure du workflow.
  */
-const MASQUEES = new Set(['id', 'imported_at', 'unite2_type']);
+const MASQUEES = new Set([
+  'id', 'imported_at', 'unite2_type',
+  'unite2_disponibles', 'execution_id',
+  'division', 'entrepot',
+  'unite1_type', 'unite1_qte_inv', 'unite1_disponibles',
+  'unite1_bloques', 'unite1_exped_att',
+  'unite2_bloques', 'unite2_exped_att',
+  'niveau_expiration',
+]);
 
 /** Ordre d'affichage souhaite. Les colonnes non listees sont ajoutees a la fin. */
 const ORDRE = [
@@ -279,6 +313,8 @@ export function filtrerEtTrier(lignes, criteres, tri) {
       } else if (j === null) {
         return false;
       } else if (expiration === 'expire' && j >= 0) {
+        return false;
+      } else if (expiration === 'critique' && (j < 0 || j > 7)) {
         return false;
       } else if (expiration === 'j30' && (j < 0 || j > 30)) {
         return false;
