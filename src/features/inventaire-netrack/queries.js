@@ -34,25 +34,11 @@ export function useInventaireNetrackQuery() {
 }
 
 /**
- * Referentiel des poids unitaires (gh_poids).
- * Source de verite unique : rien n'est recopie dans l'inventaire,
+ * Referentiel unique : chaque regle porte a la fois la categorie,
+ * la sous-categorie et le poids unitaire. La regle qui matche donne
+ * donc les trois d'un coup. Rien n'est recopie dans l'inventaire,
  * l'appariement se fait a l'affichage.
  */
-export function usePoidsQuery() {
-  return useQuery({
-    queryKey: ['gh_poids'],
-    staleTime: 10 * 60 * 1000,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('gh_poids')
-        .select('code, description, poids_unitaire, match_type');
-      if (error) throw error;
-      return data || [];
-    },
-  });
-}
-
-/** Regles de categorisation (gh_regles_categorie), appliquees par priorite. */
 export function useReglesCategorieQuery() {
   return useQuery({
     queryKey: ['gh_regles_categorie'],
@@ -60,7 +46,7 @@ export function useReglesCategorieQuery() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('gh_regles_categorie')
-        .select('priorite, champ, operateur, valeur, categorie, sous_categorie, actif')
+        .select('priorite, champ, operateur, valeur, categorie, sous_categorie, poids_unitaire, actif')
         .eq('actif', true);
       if (error) throw error;
       return data || [];

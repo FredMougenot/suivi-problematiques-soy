@@ -74,42 +74,17 @@ export function niveauExpiration(jours) {
   return null;
 }
 
-// ───── Appariement poids et categorie ─────
+// ───── Appariement par regle ─────
 
 const norm = (v) => String(v ?? '').trim().toUpperCase();
-
-/**
- * gh_poids : `exact` l'emporte sur `contains`.
- * A egalite de type, le code le plus long gagne (le plus specifique).
- */
-export function indexerPoids(rows) {
-  const exacts = new Map();
-  const contient = [];
-  for (const r of rows) {
-    const code = norm(r.code);
-    if (!code) continue;
-    if (r.match_type === 'contains') contient.push({ code, poids: r.poids_unitaire });
-    else exacts.set(code, r.poids_unitaire);
-  }
-  contient.sort((a, b) => b.code.length - a.code.length);
-  return { exacts, contient };
-}
-
-export function poidsUnitaire(noProduit, index) {
-  if (!index) return null;
-  const p = norm(noProduit);
-  if (!p) return null;
-  if (index.exacts.has(p)) return index.exacts.get(p);
-  const trouve = index.contient.find((r) => p.includes(r.code));
-  return trouve ? trouve.poids : null;
-}
 
 const RANG_OPERATEUR = { egal: 0, commence_par: 1, contient: 2 };
 
 /**
  * gh_regles_categorie : priorite croissante, puis operateur du plus
  * specifique au plus large, puis valeur la plus longue.
- * La premiere regle qui matche l'emporte.
+ * La premiere regle qui matche l'emporte et fournit a la fois la
+ * categorie, la sous-categorie et le poids unitaire.
  */
 export function trierRegles(rows) {
   return [...rows]
@@ -119,8 +94,9 @@ export function trierRegles(rows) {
       || String(b.valeur ?? '').length - String(a.valeur ?? '').length);
 }
 
-export function categoriser(ligne, regles) {
-  if (!regles || !regles.length) return { categorie: null, sous_categorie: null };
+/** Retourne la regle applicable a une ligne, ou null. */
+export function regleDe(ligne, regles) {
+  if (!regles || !regles.length) return null;
   for (const r of regles) {
     const champ = norm(ligne[r.champ] ?? ligne.no_produit);
     const val = norm(r.valeur);
@@ -129,31 +105,28 @@ export function categoriser(ligne, regles) {
       : r.operateur === 'commence_par' ? champ.startsWith(val)
         : r.operateur === 'contient' ? champ.includes(val)
           : false;
-    if (ok) {
-      return {
-        categorie: r.categorie || null,
-        sous_categorie: r.sous_categorie || null,
-      };
-    }
+    if (ok) return r;
   }
-  return { categorie: null, sous_categorie: null };
+  return null;
 }
 
 /**
  * Enrichit chaque ligne avec categorie, sous_categorie, poids et jours
- * avant expiration. Rien n'est ecrit en base : les referentiels restent
- * la source de verite, une modification de regle prend effet aussitot.
+ * avant expiration. Rien n'est ecrit en base : le referentiel reste la
+ * source de verite, une modification de regle prend effet aussitot.
  */
-export function enrichir(lignes, indexPoids, reglesTriees) {
+export function enrichir(lignes, reglesTriees) {
   return lignes.map((l) => {
-    const { categorie, sous_categorie } = categoriser(l, reglesTriees);
-    const pu = poidsUnitaire(l.no_produit, indexPoids);
+    const r = regleDe(l, reglesTriees);
+    const pu = r && r.poids_unitaire !== null && r.poids_unitaire !== undefined
+      ? Number(r.poids_unitaire)
+      : null;
     const qte = nombre(l.unite2_qte_inv);
     const jours = joursAvantExpiration(l);
     return {
       ...l,
-      categorie,
-      sous_categorie,
+      categorie: (r && r.categorie) || null,
+      sous_categorie: (r && r.sous_categorie) || null,
       poids_unitaire: pu,
       poids_total: pu === null ? null : Math.round(pu * qte * 100) / 100,
       jours_expiration: jours,
