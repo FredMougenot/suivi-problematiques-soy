@@ -33,7 +33,8 @@ export function useInventaireNetrackQuery() {
 }
 
 /**
- * Referentiel des regles. Une ligne = une regle :
+ * gh_regles_categorie : table de reference UNIQUE de toutes les regles.
+ * Une ligne = une regle :
  *   condition 1 (champ / operateur / valeur) — si fausse, regle ignoree
  *   condition 2 optionnelle — evaluee seulement si la 1 est vraie,
  *     elle arbitre entre valeur_si_vrai et valeur_si_faux
@@ -42,12 +43,12 @@ export function useInventaireNetrackQuery() {
  */
 export function useReglesCategorieQuery() {
   return useQuery({
-    queryKey: ['gh_regles'],
+    queryKey: ['gh_regles_categorie'],
     staleTime: 10 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('gh_regles')
-        .select('priorite, champ, operateur, valeur, champ2, operateur2, valeur2, colonne_sortie, valeur_si_vrai, valeur_si_faux, actif')
+        .from('gh_regles_categorie')
+        .select('id, priorite, champ, operateur, valeur, champ2, operateur2, valeur2, colonne_sortie, valeur_si_vrai, valeur_si_faux, actif')
         .eq('actif', true);
       if (error) throw error;
       return data || [];
