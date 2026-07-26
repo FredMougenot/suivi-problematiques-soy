@@ -33,21 +33,21 @@ export function useInventaireNetrackQuery() {
 }
 
 /**
- * Referentiel unique. Chaque regle porte :
- *   - la condition 1 (champ / operateur / valeur), qui definit sa portee
- *   - une condition 2 optionnelle, qui arbitre entre les deux jeux de valeurs
- *   - les valeurs principales, et les valeurs `_sinon` appliquees quand
- *     la condition 2 est fausse
+ * Referentiel des regles. Une ligne = une regle :
+ *   condition 1 (champ / operateur / valeur) — si fausse, regle ignoree
+ *   condition 2 optionnelle — evaluee seulement si la 1 est vraie,
+ *     elle arbitre entre valeur_si_vrai et valeur_si_faux
+ *   colonne_sortie — l'attribut que la regle renseigne
  * Rien n'est recopie dans l'inventaire : l'appariement se fait a l'affichage.
  */
 export function useReglesCategorieQuery() {
   return useQuery({
-    queryKey: ['gh_regles_categorie'],
+    queryKey: ['gh_regles'],
     staleTime: 10 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('gh_regles_categorie')
-        .select('priorite, champ, operateur, valeur, champ2, operateur2, valeur2, connecteur, categorie, sous_categorie, poids_unitaire, client, trax_code, categorie_sinon, sous_categorie_sinon, poids_unitaire_sinon, client_sinon, trax_code_sinon, actif')
+        .from('gh_regles')
+        .select('priorite, champ, operateur, valeur, champ2, operateur2, valeur2, colonne_sortie, valeur_si_vrai, valeur_si_faux, actif')
         .eq('actif', true);
       if (error) throw error;
       return data || [];
