@@ -25,6 +25,8 @@ const MOIS_FR = {
 /**
  * NetRack renvoie « 01-AVR-2026 » (mois francais abrege).
  * On accepte aussi AAAA-MM-JJ et JJ/MM/AAAA par securite.
+ * Le format d'origine n'est jamais reecrit : seule cette lecture
+ * sert au tri et aux filtres, l'affichage garde le mois en lettres.
  */
 export function versDate(v) {
   if (!v) return null;
@@ -42,10 +44,13 @@ export function versDate(v) {
   return null;
 }
 
+/** Jours restants avant expiration. Negatif si la date est passee. */
 export function joursAvantExpiration(ligne) {
   const d = versDate(ligne.date_expiration);
   if (!d) return null;
-  return Math.ceil((d - new Date()) / 86400000);
+  const auj = new Date();
+  auj.setHours(0, 0, 0, 0);
+  return Math.round((d - auj) / 86400000);
 }
 
 // ───── Appariement poids et categorie ─────
@@ -114,9 +119,9 @@ export function categoriser(ligne, regles) {
 }
 
 /**
- * Enrichit chaque ligne avec categorie, sous_categorie, poids unitaire et
- * poids total. Rien n'est ecrit en base : les referentiels restent la
- * source de verite, une modification de regle prend effet immediatement.
+ * Enrichit chaque ligne avec categorie, sous_categorie, poids et jours
+ * avant expiration. Rien n'est ecrit en base : les referentiels restent
+ * la source de verite, une modification de regle prend effet aussitot.
  */
 export function enrichir(lignes, indexPoids, reglesTriees) {
   return lignes.map((l) => {
@@ -129,8 +134,33 @@ export function enrichir(lignes, indexPoids, reglesTriees) {
       sous_categorie,
       poids_unitaire: pu,
       poids_total: pu === null ? null : Math.round(pu * qte * 100) / 100,
+      jours_expiration: joursAvantExpiration(l),
     };
   });
+}
+
+// ───── Recherche multi-items ─────
+
+/**
+ * La virgule (ou le point-virgule) separe des items alternatifs,
+ * l'espace cumule les criteres au sein d'un meme item.
+ *   « 4021, 3855 »          → l'un OU l'autre
+ *   « palette bleue »       → les deux mots ensemble
+ *   « 4021, palette bleue » → le code, OU les deux mots ensemble
+ */
+export function analyserRecherche(texte) {
+  return String(texte || '')
+    .split(/[,;\n]+/)
+    .map((groupe) => groupe.trim().toLowerCase().split(/\s+/).filter(Boolean))
+    .filter((mots) => mots.length > 0);
+}
+
+function correspond(ligne, groupes) {
+  if (!groupes.length) return true;
+  const foin = [ligne.no_produit, ligne.description, ligne.no_lot, ligne.no_sous_lot,
+    ligne.etiquette, ligne.no_comm_client, ligne.categorie, ligne.sous_categorie]
+    .join(' ').toLowerCase();
+  return groupes.some((mots) => mots.every((m) => foin.includes(m)));
 }
 
 // ───── Affichage ─────
@@ -150,6 +180,7 @@ export const LIBELLES = {
   no_sous_lot: 'N° sous-lot',
   date_lot: 'Date lot',
   date_expiration: 'Expiration',
+  jours_expiration: 'Jours rest.',
   date_reception_originale: 'Réception orig.',
   unite2_qte_inv: 'Qté inventaire',
 };
@@ -168,10 +199,12 @@ const ORDRE = [
   'no_produit', 'description',
   'unite2_qte_inv', 'poids_unitaire', 'poids_total',
   'etiquette', 'no_lot', 'no_sous_lot', 'no_comm_client',
-  'date_lot', 'date_expiration', 'date_reception_originale',
+  'date_lot', 'date_expiration', 'jours_expiration', 'date_reception_originale',
 ];
 
-export const COLONNES_NUM = new Set(['unite2_qte_inv', 'poids_unitaire', 'poids_total']);
+export const COLONNES_NUM = new Set([
+  'unite2_qte_inv', 'poids_unitaire', 'poids_total', 'jours_expiration',
+]);
 
 const estVide = (v) => v === null || v === undefined || String(v).trim() === '';
 
@@ -226,28 +259,37 @@ export function analyserColonnes(lignes, colonnes) {
 
 /** Filtre + tri. `tri` = { colonne, sens }. */
 export function filtrerEtTrier(lignes, criteres, tri) {
-  const { client, recherche, categorie, stock } = criteres;
-  const mots = recherche.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const { client, recherche, categorie, stock, expiration } = criteres;
+  const groupes = analyserRecherche(recherche);
 
   const filtrees = lignes.filter((l) => {
     if (client && l.client !== client) return false;
     if (categorie === '(sans)') {
       if (l.categorie) return false;
     } else if (categorie && l.categorie !== categorie) return false;
+
     if (stock === 'dispo' && nombre(l.unite2_qte_inv) <= 0) return false;
     if (stock === 'zero' && nombre(l.unite2_qte_inv) > 0) return false;
     if (stock === 'sans_poids' && l.poids_unitaire !== null) return false;
-    if (stock === 'expire' || stock === 'expire90') {
-      const j = joursAvantExpiration(l);
-      if (j === null || j > (stock === 'expire' ? 30 : 90)) return false;
+
+    if (expiration) {
+      const j = l.jours_expiration;
+      if (expiration === 'sans_date') {
+        if (j !== null) return false;
+      } else if (j === null) {
+        return false;
+      } else if (expiration === 'expire' && j >= 0) {
+        return false;
+      } else if (expiration === 'j30' && (j < 0 || j > 30)) {
+        return false;
+      } else if (expiration === 'j90' && (j < 0 || j > 90)) {
+        return false;
+      } else if (expiration === 'expire_ou_j30' && j > 30) {
+        return false;
+      }
     }
-    if (mots.length) {
-      const foin = [l.no_produit, l.description, l.no_lot, l.no_sous_lot,
-        l.etiquette, l.no_comm_client, l.categorie, l.sous_categorie]
-        .join(' ').toLowerCase();
-      if (!mots.every((m) => foin.includes(m))) return false;
-    }
-    return true;
+
+    return correspond(l, groupes);
   });
 
   const dates = new Set(['date_lot', 'date_expiration', 'date_reception_originale']);
@@ -255,7 +297,13 @@ export function filtrerEtTrier(lignes, criteres, tri) {
   return filtrees.sort((a, b) => {
     const A = a[tri.colonne];
     const B = b[tri.colonne];
-    if (COLONNES_NUM.has(tri.colonne)) return (nombre(A) - nombre(B)) * tri.sens;
+    if (COLONNES_NUM.has(tri.colonne)) {
+      // Les lignes sans valeur sont renvoyees en fin de tri, quel que soit le sens.
+      if (A === null && B === null) return 0;
+      if (A === null) return 1;
+      if (B === null) return -1;
+      return (nombre(A) - nombre(B)) * tri.sens;
+    }
     if (dates.has(tri.colonne)) {
       const dA = versDate(A);
       const dB = versDate(B);
