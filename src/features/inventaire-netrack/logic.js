@@ -78,7 +78,7 @@ export function niveauExpiration(jours) {
 
 const norm = (v) => String(v ?? '').trim().toUpperCase();
 
-const RANG_OPERATEUR = { egal: 0, commence_par: 1, contient: 2 };
+const RANG_OPERATEUR = { egal: 0, commence_par: 1, finit_par: 2, contient: 3, regex: 4 };
 
 /**
  * Tri des regles : priorite, puis operateur du plus specifique au plus
@@ -92,14 +92,36 @@ export function preparerRegles(rows) {
       || String(b.valeur ?? '').length - String(a.valeur ?? '').length);
 }
 
-/** Evalue une condition elementaire. */
+/**
+ * Contenu du champ vise. Seuls `no_produit` et `description` existent ;
+ * tout autre nom retombe sur no_produit, comme cote SQL. Une description
+ * absente vaut une chaine vide et non le numero de produit, sinon une
+ * condition sur la description matcherait le mauvais champ.
+ */
+function valeurChamp(ligne, champ) {
+  if (champ === 'description') return ligne.description ?? '';
+  return ligne.no_produit ?? '';
+}
+
+/** Evalue une condition elementaire. Memes operateurs que les vues SQL. */
 function conditionVraie(ligne, champ, operateur, valeur) {
-  const val = norm(valeur);
-  if (!val) return false;
-  const contenu = norm(ligne[champ] ?? ligne.no_produit);
-  if (operateur === 'egal') return contenu === val;
-  if (operateur === 'commence_par') return contenu.startsWith(val);
-  if (operateur === 'contient') return contenu.includes(val);
+  if (valeur === null || valeur === undefined || String(valeur).trim() === '') return false;
+  const contenu = valeurChamp(ligne, champ);
+
+  if (operateur === 'regex') {
+    try {
+      return new RegExp(String(valeur), 'i').test(String(contenu));
+    } catch {
+      return false; // expression invalide : la regle ne matche pas
+    }
+  }
+
+  const c = norm(contenu);
+  const v = norm(valeur);
+  if (operateur === 'egal') return c === v;
+  if (operateur === 'commence_par') return c.startsWith(v);
+  if (operateur === 'contient') return c.includes(v);
+  if (operateur === 'finit_par') return c.endsWith(v);
   return false;
 }
 
