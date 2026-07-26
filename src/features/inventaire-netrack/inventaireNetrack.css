@@ -2,7 +2,13 @@
    translateZ(0) systematique sur les fonds semi-transparents / degrades :
    contourne le bug de repaint du compositeur GPU de Chrome. */
 
-:root { --nr-col0: 74px; }
+:root {
+  --nr-col0: 74px;
+  --nr-expire: #c84646;
+  --nr-critique: #d67a38;
+  --nr-proche: #d6a838;
+  --nr-surveille: #6d8fb0;
+}
 
 .nr-chips {
   display: flex;
@@ -73,6 +79,35 @@
   color: #eda875;
 }
 
+/* Legende des degres d'expiration */
+.nr-legende {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  margin: 0 0 8px;
+  font-size: .7rem;
+  color: var(--text-muted);
+}
+
+.nr-legende span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nr-pastille {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  transform: translateZ(0);
+}
+
+.nr-pastille[data-n='expire'] { background: var(--nr-expire); }
+.nr-pastille[data-n='critique'] { background: var(--nr-critique); }
+.nr-pastille[data-n='proche'] { background: var(--nr-proche); }
+.nr-pastille[data-n='surveille'] { background: var(--nr-surveille); }
+
 /* Tableau large : defilement horizontal, 2 premieres colonnes figees */
 .nr-scroll { overflow-x: auto; }
 
@@ -101,6 +136,47 @@
 }
 
 .nr-large thead .nr-collante { z-index: 4; }
+
+/* Code couleur par degre de gravite.
+   Les cellules collantes recoivent une teinte opaque : une couleur
+   semi-transparente laisserait voir les lignes qui defilent dessous. */
+.nr-large tr[data-exp] td {
+  border-left-color: transparent;
+}
+
+.nr-large tr[data-exp='expire'] td {
+  background: rgba(200, 70, 70, .13);
+}
+.nr-large tr[data-exp='expire'] td.nr-collante {
+  background: color-mix(in srgb, var(--bg-raised) 86%, var(--nr-expire));
+}
+.nr-large tr[data-exp='expire'] td:first-child {
+  box-shadow: inset 3px 0 0 var(--nr-expire);
+}
+
+.nr-large tr[data-exp='critique'] td {
+  background: rgba(214, 122, 56, .12);
+}
+.nr-large tr[data-exp='critique'] td.nr-collante {
+  background: color-mix(in srgb, var(--bg-raised) 88%, var(--nr-critique));
+}
+.nr-large tr[data-exp='critique'] td:first-child {
+  box-shadow: inset 3px 0 0 var(--nr-critique);
+}
+
+.nr-large tr[data-exp='proche'] td {
+  background: rgba(214, 168, 56, .09);
+}
+.nr-large tr[data-exp='proche'] td.nr-collante {
+  background: color-mix(in srgb, var(--bg-raised) 91%, var(--nr-proche));
+}
+.nr-large tr[data-exp='proche'] td:first-child {
+  box-shadow: inset 3px 0 0 var(--nr-proche);
+}
+
+.nr-large tr[data-exp='surveille'] td:first-child {
+  box-shadow: inset 3px 0 0 var(--nr-surveille);
+}
 
 .nr-th {
   cursor: pointer;
@@ -131,7 +207,10 @@
   white-space: nowrap;
 }
 
-.nr-expire { color: var(--ruby); font-weight: 600; }
+/* Texte des colonnes de date, accorde au degre de gravite */
+.nr-jours[data-n='expire'] { color: var(--nr-expire); font-weight: 700; }
+.nr-jours[data-n='critique'] { color: var(--nr-critique); font-weight: 600; }
+.nr-jours[data-n='proche'] { color: var(--nr-proche); font-weight: 600; }
 
 /* Valeur absente d'un referentiel : signale une regle ou un poids a completer */
 .nr-manquant { color: var(--text-faint); }
