@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { usePlanningStore } from '../../store/usePlanningStore';
 import { useInventaireNetrackQuery, usePoidsQuery, useReglesCategorieQuery } from './queries';
 import {
-  CLIENTS, LIBELLES, COLONNES_NUM,
+  CLIENTS, LIBELLES, COLONNES_NUM, SEUILS_EXPIRATION,
   colonnesDe, analyserColonnes,
   indexerPoids, trierRegles, enrichir, filtrerEtTrier, exporterCsv,
 } from './logic';
@@ -55,15 +55,18 @@ export default function InventaireNetrackPage() {
     [analyseVisible, filtrees, colonnes],
   );
 
-  const kpis = useMemo(() => ({
-    total: filtrees.length,
-    eo: filtrees.filter((l) => l.client === 'EO').length,
-    pbc: filtrees.filter((l) => l.client === 'PBC').length,
-    poids: Math.round(filtrees.reduce((s, l) => s + (l.poids_total || 0), 0)),
-    expires: filtrees.filter((l) => l.jours_expiration !== null && l.jours_expiration < 0).length,
-    bientot: filtrees.filter((l) => l.jours_expiration !== null
-      && l.jours_expiration >= 0 && l.jours_expiration <= 30).length,
-  }), [filtrees]);
+  const kpis = useMemo(() => {
+    const parNiveau = (n) => filtrees.filter((l) => l.niveau_expiration === n).length;
+    return {
+      total: filtrees.length,
+      eo: filtrees.filter((l) => l.client === 'EO').length,
+      pbc: filtrees.filter((l) => l.client === 'PBC').length,
+      poids: Math.round(filtrees.reduce((s, l) => s + (l.poids_total || 0), 0)),
+      expire: parNiveau('expire'),
+      critique: parNiveau('critique'),
+      proche: parNiveau('proche'),
+    };
+  }, [filtrees]);
 
   function changerFiltre(setter, valeur) {
     setter(valeur);
@@ -147,9 +150,9 @@ export default function InventaireNetrackPage() {
           <div className="kpi-sub">sélection courante</div>
         </div>
         <div className="kpi-card kpi-usine">
-          <div className="kpi-lbl">Expiration</div>
-          <div className="kpi-val">{kpis.expires}</div>
-          <div className="kpi-sub">déjà expirés · {kpis.bientot} sous 30 j</div>
+          <div className="kpi-lbl">Expirés</div>
+          <div className="kpi-val">{kpis.expire}</div>
+          <div className="kpi-sub">{kpis.critique} sous 7 j · {kpis.proche} sous 30 j</div>
         </div>
       </div>
 
@@ -225,6 +228,7 @@ export default function InventaireNetrackPage() {
           <select className="fsel" value={expiration} onChange={(e) => changerFiltre(setExpiration, e.target.value)}>
             <option value="">Toutes les dates</option>
             <option value="expire">Déjà expiré</option>
+            <option value="critique">Expire sous 7 jours</option>
             <option value="j30">Expire sous 30 jours</option>
             <option value="j90">Expire sous 90 jours</option>
             <option value="expire_ou_j30">Expiré ou sous 30 jours</option>
@@ -240,6 +244,15 @@ export default function InventaireNetrackPage() {
 
           <button className="btn btn-secondary" onClick={reinitialiser}>Réinitialiser</button>
         </div>
+      </div>
+
+      <div className="nr-legende">
+        {SEUILS_EXPIRATION.map((s) => (
+          <span key={s.cle}>
+            <i className="nr-pastille" data-n={s.cle} />
+            {s.libelle}
+          </span>
+        ))}
       </div>
 
       <div className="table-shell dt-glow nr-scroll">
@@ -275,9 +288,9 @@ export default function InventaireNetrackPage() {
             <tbody>
               {visibles.map((l) => {
                 const j = l.jours_expiration;
-                const proche = j !== null && j <= 30;
+                const niveau = l.niveau_expiration;
                 return (
-                  <tr key={l.id}>
+                  <tr key={l.id} data-exp={niveau || undefined}>
                     {colonnes.map((c, i) => {
                       if (c === 'client') {
                         return (
@@ -288,13 +301,12 @@ export default function InventaireNetrackPage() {
                       }
                       const v = l[c];
                       const vide = v === null || v === undefined || v === '';
+                      const estDate = c === 'date_expiration' || c === 'jours_expiration';
                       const manquant = vide
                         && (c === 'poids_unitaire' || c === 'poids_total' || c === 'categorie');
-                      const alerte = proche
-                        && (c === 'date_expiration' || c === 'jours_expiration');
                       const classes = [
                         COLONNES_NUM.has(c) ? 'nr-num' : 'nr-mono',
-                        alerte ? 'nr-expire' : '',
+                        estDate ? 'nr-jours' : '',
                         manquant ? 'nr-manquant' : '',
                         i < COLLANTES ? 'nr-collante' : '',
                         c === 'description' ? 'nr-desc' : '',
@@ -303,6 +315,7 @@ export default function InventaireNetrackPage() {
                         <td
                           key={c}
                           className={classes}
+                          data-n={estDate ? (niveau || undefined) : undefined}
                           style={i === 1 ? { left: 'var(--nr-col0)' } : undefined}
                           title={c === 'jours_expiration' && j !== null && j < 0
                             ? 'Expiré depuis ' + Math.abs(j) + ' jour(s)'
