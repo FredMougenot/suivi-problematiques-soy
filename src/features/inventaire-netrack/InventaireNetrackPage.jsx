@@ -3,7 +3,7 @@ import { usePlanningStore } from '../../store/usePlanningStore';
 import { useInventaireNetrackQuery, usePoidsQuery, useReglesCategorieQuery } from './queries';
 import {
   CLIENTS, LIBELLES, COLONNES_NUM,
-  joursAvantExpiration, colonnesDe, analyserColonnes,
+  colonnesDe, analyserColonnes,
   indexerPoids, trierRegles, enrichir, filtrerEtTrier, exporterCsv,
 } from './logic';
 import LoadingOverlay from '../../design-system/LoadingOverlay';
@@ -24,18 +24,13 @@ export default function InventaireNetrackPage() {
   const [recherche, setRecherche] = useState('');
   const [categorie, setCategorie] = useState('');
   const [stock, setStock] = useState('');
+  const [expiration, setExpiration] = useState('');
   const [tri, setTri] = useState({ colonne: 'no_produit', sens: 1 });
   const [affichees, setAffichees] = useState(PAR_PAGE);
   const [analyseVisible, setAnalyseVisible] = useState(false);
 
-  const indexPoids = useMemo(
-    () => indexerPoids(poidsQ.data || []),
-    [poidsQ.data],
-  );
-  const reglesTriees = useMemo(
-    () => trierRegles(reglesQ.data || []),
-    [reglesQ.data],
-  );
+  const indexPoids = useMemo(() => indexerPoids(poidsQ.data || []), [poidsQ.data]);
+  const reglesTriees = useMemo(() => trierRegles(reglesQ.data || []), [reglesQ.data]);
 
   /** Enrichissement a l'affichage : rien n'est recopie en base. */
   const lignes = useMemo(
@@ -51,8 +46,8 @@ export default function InventaireNetrackPage() {
   );
 
   const filtrees = useMemo(
-    () => filtrerEtTrier(lignes, { client, recherche, categorie, stock }, tri),
-    [lignes, client, recherche, categorie, stock, tri],
+    () => filtrerEtTrier(lignes, { client, recherche, categorie, stock, expiration }, tri),
+    [lignes, client, recherche, categorie, stock, expiration, tri],
   );
 
   const analyse = useMemo(
@@ -65,8 +60,9 @@ export default function InventaireNetrackPage() {
     eo: filtrees.filter((l) => l.client === 'EO').length,
     pbc: filtrees.filter((l) => l.client === 'PBC').length,
     poids: Math.round(filtrees.reduce((s, l) => s + (l.poids_total || 0), 0)),
-    sansPoids: filtrees.filter((l) => l.poids_unitaire === null).length,
-    sansCat: filtrees.filter((l) => !l.categorie).length,
+    expires: filtrees.filter((l) => l.jours_expiration !== null && l.jours_expiration < 0).length,
+    bientot: filtrees.filter((l) => l.jours_expiration !== null
+      && l.jours_expiration >= 0 && l.jours_expiration <= 30).length,
   }), [filtrees]);
 
   function changerFiltre(setter, valeur) {
@@ -80,7 +76,7 @@ export default function InventaireNetrackPage() {
   }
 
   function reinitialiser() {
-    setClient(''); setRecherche(''); setCategorie(''); setStock('');
+    setClient(''); setRecherche(''); setCategorie(''); setStock(''); setExpiration('');
     setAffichees(PAR_PAGE);
   }
 
@@ -151,9 +147,9 @@ export default function InventaireNetrackPage() {
           <div className="kpi-sub">sélection courante</div>
         </div>
         <div className="kpi-card kpi-usine">
-          <div className="kpi-lbl">Référentiels incomplets</div>
-          <div className="kpi-val">{kpis.sansPoids}</div>
-          <div className="kpi-sub">sans poids · {kpis.sansCat} sans catégorie</div>
+          <div className="kpi-lbl">Expiration</div>
+          <div className="kpi-val">{kpis.expires}</div>
+          <div className="kpi-sub">déjà expirés · {kpis.bientot} sous 30 j</div>
         </div>
       </div>
 
@@ -213,7 +209,8 @@ export default function InventaireNetrackPage() {
             <span className="search-icon">⌕</span>
             <input
               type="text"
-              placeholder="Rechercher produit, description, lot, catégorie…"
+              placeholder="Plusieurs items : séparer par des virgules — ex. 4021, 3855, palette bleue"
+              title="Espace = critères cumulés. Virgule = items alternés."
               value={recherche}
               onChange={(e) => changerFiltre(setRecherche, e.target.value)}
             />
@@ -225,13 +222,20 @@ export default function InventaireNetrackPage() {
             <option value="(sans)">— sans catégorie —</option>
           </select>
 
+          <select className="fsel" value={expiration} onChange={(e) => changerFiltre(setExpiration, e.target.value)}>
+            <option value="">Toutes les dates</option>
+            <option value="expire">Déjà expiré</option>
+            <option value="j30">Expire sous 30 jours</option>
+            <option value="j90">Expire sous 90 jours</option>
+            <option value="expire_ou_j30">Expiré ou sous 30 jours</option>
+            <option value="sans_date">Sans date d'expiration</option>
+          </select>
+
           <select className="fsel" value={stock} onChange={(e) => changerFiltre(setStock, e.target.value)}>
             <option value="">Tout le stock</option>
             <option value="dispo">Quantité positive</option>
             <option value="zero">Quantité nulle</option>
             <option value="sans_poids">Sans poids connu</option>
-            <option value="expire">Expire sous 30 jours</option>
-            <option value="expire90">Expire sous 90 jours</option>
           </select>
 
           <button className="btn btn-secondary" onClick={reinitialiser}>Réinitialiser</button>
@@ -270,8 +274,8 @@ export default function InventaireNetrackPage() {
             </thead>
             <tbody>
               {visibles.map((l) => {
-                const jours = joursAvantExpiration(l);
-                const proche = jours !== null && jours <= 30;
+                const j = l.jours_expiration;
+                const proche = j !== null && j <= 30;
                 return (
                   <tr key={l.id}>
                     {colonnes.map((c, i) => {
@@ -286,9 +290,11 @@ export default function InventaireNetrackPage() {
                       const vide = v === null || v === undefined || v === '';
                       const manquant = vide
                         && (c === 'poids_unitaire' || c === 'poids_total' || c === 'categorie');
+                      const alerte = proche
+                        && (c === 'date_expiration' || c === 'jours_expiration');
                       const classes = [
                         COLONNES_NUM.has(c) ? 'nr-num' : 'nr-mono',
-                        c === 'date_expiration' && proche ? 'nr-expire' : '',
+                        alerte ? 'nr-expire' : '',
                         manquant ? 'nr-manquant' : '',
                         i < COLLANTES ? 'nr-collante' : '',
                         c === 'description' ? 'nr-desc' : '',
@@ -298,6 +304,9 @@ export default function InventaireNetrackPage() {
                           key={c}
                           className={classes}
                           style={i === 1 ? { left: 'var(--nr-col0)' } : undefined}
+                          title={c === 'jours_expiration' && j !== null && j < 0
+                            ? 'Expiré depuis ' + Math.abs(j) + ' jour(s)'
+                            : undefined}
                         >
                           {vide
                             ? '—'
