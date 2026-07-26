@@ -189,6 +189,142 @@ export function enrichir(lignes, regles) {
   });
 }
 
+// ───── Edition des regles ─────
+
+/** Champs sur lesquels une condition peut porter. */
+export const CHAMPS_REGLE = [
+  { cle: 'no_produit', libelle: 'N\u00b0 produit' },
+  { cle: 'description', libelle: 'Description' },
+];
+
+export const OPERATEURS = [
+  { cle: 'egal', libelle: 'est exactement' },
+  { cle: 'commence_par', libelle: 'commence par' },
+  { cle: 'finit_par', libelle: 'finit par' },
+  { cle: 'contient', libelle: 'contient' },
+  { cle: 'regex', libelle: 'expression reguliere' },
+];
+
+/** Attributs qu'une 2e condition peut arbitrer. */
+export const SORTIES_REGLE = [
+  { cle: 'client', libelle: 'Client' },
+  { cle: 'categorie', libelle: 'Categorie' },
+  { cle: 'sous_categorie', libelle: 'Sous-categorie' },
+  { cle: 'poids_unitaire', libelle: 'Poids unitaire' },
+  { cle: 'trax_code', libelle: 'TRAXcode' },
+];
+
+/** Resume lisible d'une condition, pour la liste des regles. */
+export function libelleCondition(r) {
+  const champ = (CHAMPS_REGLE.find((c) => c.cle === r.champ) || {}).libelle || r.champ;
+  const op = (OPERATEURS.find((o) => o.cle === r.operateur) || {}).libelle || r.operateur;
+  return champ + ' ' + op + ' \u00ab ' + (r.valeur ?? '') + ' \u00bb';
+}
+
+export const regleVierge = {
+  priorite: 1,
+  champ: 'no_produit',
+  operateur: 'commence_par',
+  valeur: '',
+  champ2: '',
+  operateur2: '',
+  valeur2: '',
+  colonne_sortie: '',
+  valeur_si_vrai: '',
+  valeur_si_faux: '',
+  categorie: '',
+  sous_categorie: '',
+  poids_unitaire: '',
+  client: '',
+  trax_code: '',
+  actif: true,
+  notes: '',
+};
+
+const ATTRIBUTS = ['categorie', 'sous_categorie', 'poids_unitaire', 'client', 'trax_code'];
+
+/** Messages bloquants. Une liste vide signifie que la regle est enregistrable. */
+export function validerRegle(r) {
+  const e = [];
+  if (vide(r.valeur)) e.push('La valeur de la condition 1 est obligatoire.');
+  if (r.operateur === 'regex' && !vide(r.valeur)) {
+    try { new RegExp(r.valeur); } catch { e.push('Expression reguliere invalide (condition 1).'); }
+  }
+
+  const amorces = [r.champ2, r.operateur2, r.valeur2].filter((v) => !vide(v)).length;
+  if (amorces > 0 && amorces < 3) {
+    e.push('Condition 2 incomplete : renseignez champ, operateur et valeur, ou laissez les trois vides.');
+  }
+  if (amorces === 3) {
+    if (r.operateur2 === 'regex') {
+      try { new RegExp(r.valeur2); } catch { e.push('Expression reguliere invalide (condition 2).'); }
+    }
+    if (vide(r.colonne_sortie)) e.push('Choisissez la valeur que la condition 2 arbitre.');
+    if (vide(r.valeur_si_vrai) && vide(r.valeur_si_faux)) {
+      e.push('Renseignez au moins « si vrai » ou « si faux ».');
+    }
+  }
+
+  const aUnAttribut = ATTRIBUTS.some((c) => !vide(r[c])) || amorces === 3;
+  if (!aUnAttribut) e.push('La regle n\'attribue aucune valeur.');
+
+  if (!vide(r.poids_unitaire) && Number.isNaN(Number(r.poids_unitaire))) {
+    e.push('Le poids unitaire doit etre un nombre.');
+  }
+  return e;
+}
+
+/**
+ * Effet d'une regle sur l'inventaire courant, avant enregistrement.
+ *
+ * `reprises` compte les lignes actuellement gouvernees par une AUTRE regle
+ * et que celle-ci prendrait ; `perdues` compte l'inverse, quand on modifie
+ * une regle existante et que sa portee se retrecit. Ce sont les deux
+ * surprises classiques d'un referentiel a priorites.
+ */
+export function apercuRegle(brouillon, regles, lignes) {
+  if (!lignes || !lignes.length) return null;
+  if (validerRegle(brouillon).length > 0) return null;
+
+  const autres = (regles || []).filter((r) => r.id !== brouillon.id);
+  const candidate = { ...brouillon, id: brouillon.id ?? -1 };
+  const futur = preparerRegles([...autres, candidate]);
+  const actuel = preparerRegles(regles || []);
+
+  let touchees = 0;
+  let reprises = 0;
+  let perdues = 0;
+  const produits = new Set();
+  const exemples = [];
+
+  for (const l of lignes) {
+    const avant = regleDe(l, actuel);
+    const apres = regleDe(l, futur);
+    const prise = apres && apres.id === candidate.id;
+
+    if (prise) {
+      touchees += 1;
+      produits.add(l.no_produit);
+      if (avant && avant.id !== candidate.id) reprises += 1;
+      if (exemples.length < 30) {
+        exemples.push({
+          id: l.id,
+          no_produit: l.no_produit,
+          description: l.description,
+          categorie: attribut(l, apres, 'categorie'),
+          client: attribut(l, apres, 'client'),
+          poids_unitaire: attribut(l, apres, 'poids_unitaire'),
+          regle_actuelle: avant ? avant.id : null,
+        });
+      }
+    } else if (avant && avant.id === candidate.id && !apres) {
+      perdues += 1;
+    }
+  }
+
+  return { touchees, produits: produits.size, reprises, perdues, exemples };
+}
+
 // ───── Recherche ─────
 
 /** Prefixes de champ acceptes dans la barre de recherche. */
