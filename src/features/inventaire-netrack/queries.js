@@ -6,9 +6,8 @@ const TAILLE_PAGE = 1000;
 /**
  * Inventaire NetRack alimente par le workflow n8n
  * « GH Logistics - Connexion NetRack ».
- * La table contient les deux clients (EO et PBC), distingues
- * par la colonne `client`. Lecture par tranches de 1000 lignes
- * car PostgREST plafonne chaque reponse.
+ * La colonne `client` de cette table est le COMPTE NetRack (EO / PBC),
+ * a ne pas confondre avec le client final, qui vient des regles.
  */
 export function useInventaireNetrackQuery() {
   return useQuery({
@@ -34,9 +33,9 @@ export function useInventaireNetrackQuery() {
 }
 
 /**
- * Referentiel unique : chaque regle porte a la fois la categorie,
- * la sous-categorie et le poids unitaire. La regle qui matche donne
- * donc les trois d'un coup. Rien n'est recopie dans l'inventaire,
+ * Referentiel unique : chaque regle porte la categorie, la sous-categorie,
+ * le poids unitaire, le client final et le code TRAX. La regle qui matche
+ * fournit le tout d'un coup. Rien n'est recopie dans l'inventaire,
  * l'appariement se fait a l'affichage.
  */
 export function useReglesCategorieQuery() {
@@ -46,7 +45,7 @@ export function useReglesCategorieQuery() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('gh_regles_categorie')
-        .select('priorite, champ, operateur, valeur, categorie, sous_categorie, poids_unitaire, actif')
+        .select('priorite, champ, operateur, valeur, categorie, sous_categorie, poids_unitaire, client, trax_code, actif')
         .eq('actif', true);
       if (error) throw error;
       return data || [];
