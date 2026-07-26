@@ -2,9 +2,12 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { usePlanningStore } from '../../store/usePlanningStore';
 import { useInventaireNetrackQuery, useReglesCategorieQuery } from './queries';
+import { useCreerRegle, useModifierRegle, useSupprimerRegle } from './mutations';
+import EditeurRegle from './components/EditeurRegle';
 import {
   LIBELLES, COLONNES_NUM, COLONNES_GROUPE, SEUILS_EXPIRATION,
-  colonnesDe, analyserColonnes, preparerRegles, enrichir, filtrerEtTrier,
+  colonnesDe, analyserColonnes, preparerRegles, regleDe, enrichir, filtrerEtTrier,
+  libelleCondition,
   grouperParProduit, totauxParCategorie, couvertureRegles,
   exporterCsv, exporterCsvGroupe,
 } from './logic';
@@ -58,6 +61,12 @@ export default function InventaireNetrackPage() {
   const [affichees, setAffichees] = useState(PAR_PAGE);
   const [deplies, setDeplies] = useState(() => new Set());
   const [panneau, setPanneau] = useState('');
+  const [editeur, setEditeur] = useState(null); // { regle } ou { regle: null } pour une creation
+
+  const creer = useCreerRegle();
+  const modifier = useModifierRegle();
+  const supprimer = useSupprimerRegle();
+  const enCoursRegle = creer.isPending || modifier.isPending || supprimer.isPending;
 
   useEffect(() => { setAffichees(PAR_PAGE); },
     [client, categorie, expiration, stock, recherche, vue]);
@@ -104,6 +113,21 @@ export default function InventaireNetrackPage() {
   const analyse = useMemo(
     () => (panneau === 'analyse' ? analyserColonnes(filtrees, colonnes) : []),
     [panneau, filtrees, colonnes],
+  );
+
+  /** Nombre de lignes reellement gouvernees par chaque regle. */
+  const comptesParRegle = useMemo(() => {
+    const m = new Map();
+    for (const l of lignes) {
+      const r = regleDe(l, reglesPretes);
+      if (r) m.set(r.id, (m.get(r.id) || 0) + 1);
+    }
+    return m;
+  }, [lignes, reglesPretes]);
+
+  const reglesTriees = useMemo(
+    () => [...(reglesQ.data || [])].sort((a, b) => (a.priorite - b.priorite) || (a.id - b.id)),
+    [reglesQ.data],
   );
 
   const kpis = useMemo(() => {
@@ -163,6 +187,27 @@ export default function InventaireNetrackPage() {
     addToast('Inventaire actualisé ✓', 'success');
   }
 
+  async function enregistrerRegle(brouillon) {
+    try {
+      if (brouillon.id) await modifier.mutateAsync(brouillon);
+      else await creer.mutateAsync(brouillon);
+      addToast(brouillon.id ? 'Règle modifiée ✓' : 'Règle créée ✓', 'success');
+      setEditeur(null);
+    } catch (e) {
+      addToast('Enregistrement impossible : ' + e.message, 'error');
+    }
+  }
+
+  async function supprimerRegle(id) {
+    try {
+      await supprimer.mutateAsync(id);
+      addToast('Règle supprimée ✓', 'success');
+      setEditeur(null);
+    } catch (e) {
+      addToast('Suppression impossible : ' + e.message, 'error');
+    }
+  }
+
   function copierLien() {
     navigator.clipboard.writeText(window.location.href)
       .then(() => addToast('Lien de la vue copié ✓', 'success'))
@@ -192,6 +237,7 @@ export default function InventaireNetrackPage() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          {boutonPanneau('regles', 'Règles')}
           {boutonPanneau('totaux', 'Totaux par catégorie')}
           {boutonPanneau('couverture', 'Couverture des règles')}
           {boutonPanneau('analyse', 'Analyse des colonnes')}
@@ -236,6 +282,66 @@ export default function InventaireNetrackPage() {
           <div className="kpi-sub">{kpis.critique} sous 7 j · {kpis.proche} sous 30 j</div>
         </div>
       </div>
+
+      {panneau === 'regles' && (
+        <div className="nr-analyse">
+          <div className="nr-ed-entete">
+            <div className="nr-analyse-t" style={{ marginBottom: 0 }}>
+              {(reglesQ.data || []).length} règles. Elles sont évaluées par priorité, puis de
+              l'opérateur le plus précis au plus large : la première qui correspond l'emporte.
+            </div>
+            <button className="btn btn-primary" onClick={() => setEditeur({ regle: null })}>
+              Nouvelle règle
+            </button>
+          </div>
+          <table className="data-table nr-analyse-table">
+            <thead>
+              <tr>
+                <th style={{ textAlign: 'right' }}>N°</th>
+                <th style={{ textAlign: 'right' }}>Prio</th>
+                <th>Condition</th>
+                <th>Catégorie</th>
+                <th>Sous-catégorie</th>
+                <th>Client</th>
+                <th style={{ textAlign: 'right' }}>Poids u.</th>
+                <th>TRAXcode</th>
+                <th style={{ textAlign: 'right' }}>Lignes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reglesTriees.map((r) => (
+                <tr
+                  key={r.id}
+                  className="nr-ligne-groupe"
+                  onClick={() => setEditeur({ regle: r })}
+                  style={r.actif === false ? { opacity: .45 } : undefined}
+                >
+                  <td className="nr-num nr-faible">{r.id}</td>
+                  <td className="nr-num">{r.priorite}</td>
+                  <td className="nr-mono">
+                    {libelleCondition(r)}
+                    {r.champ2 && r.operateur2 && r.valeur2 && (
+                      <span className="nr-ed-badge">+ 2e condition</span>
+                    )}
+                  </td>
+                  <td className={r.categorie ? '' : 'nr-manquant'}>{r.categorie || '—'}</td>
+                  <td className={r.sous_categorie ? '' : 'nr-manquant'}>{r.sous_categorie || '—'}</td>
+                  <td className={r.client || r.colonne_sortie === 'client' ? '' : 'nr-manquant'}>
+                    {r.colonne_sortie === 'client'
+                      ? (r.valeur_si_vrai || '?') + ' / ' + (r.valeur_si_faux || '?')
+                      : (r.client || '—')}
+                  </td>
+                  <td className={'nr-num' + (r.poids_unitaire === null ? ' nr-manquant' : '')}>
+                    {r.poids_unitaire ?? '—'}
+                  </td>
+                  <td className={'nr-mono' + (r.trax_code ? '' : ' nr-manquant')}>{r.trax_code || '—'}</td>
+                  <td className="nr-num">{comptesParRegle.get(r.id) ?? 0}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {panneau === 'totaux' && (
         <div className="nr-analyse">
@@ -619,6 +725,17 @@ export default function InventaireNetrackPage() {
           </button>
         )}
       </div>
+
+      <EditeurRegle
+        open={Boolean(editeur)}
+        regle={editeur?.regle}
+        regles={reglesQ.data || []}
+        lignes={inventaireQ.data || []}
+        onFermer={() => setEditeur(null)}
+        onEnregistrer={enregistrerRegle}
+        onSupprimer={supprimerRegle}
+        enCours={enCoursRegle}
+      />
     </div>
   );
 }
