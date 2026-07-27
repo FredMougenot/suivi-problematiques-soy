@@ -1,17 +1,23 @@
 /* ═══════════════════════════════════════════════════════════════════
    IDENTITÉ DANS L'ŒIL — message d'accueil + déconnexion, au centre du noyau.
 
-   Ces éléments sont en HTML par-dessus le SVG plutôt que dans JarvisCore :
-   ils sont interactifs (bouton, focus clavier, état au survol) et le HTML
-   fait ça nativement, là où il faudrait tout réinventer en SVG. Surtout,
-   ça laisse JarvisCore.jsx et jarvisHub.css strictement intacts.
+   ══ CHORÉGRAPHIE — --core-anim ═══════════════════════════════
+   Le noyau met 1 s à se déployer (transition de .jarvis-core dans
+   jarvisHub.css). L'accueil ne doit apparaître qu'APRÈS : il attend donc
+   --core-anim avant de se révéler. La sortie, elle, est immédiate
+   (delay 0) — quand le cercle part, tout doit dégager devant lui.
+
+   Asymétrie volontaire : entrée retardée, sortie instantanée. Une sortie
+   retardée donnerait l'impression que l'interface traîne.
 
    POSITIONNEMENT — --hub-core doit rester identique à --core-size de
-   .jarvis-core (dans jarvisHub.css). C'est le seul couplage : si tu changes
-   la taille du noyau là-bas, reporte-la ici, sinon l'accueil sort du cercle.
+   .jarvis-core, sinon l'accueil sort du cercle.
    ═══════════════════════════════════════════════════════════════════ */
 
-.jarvis-page { --hub-core: min(88vh, 900px); }
+.jarvis-page {
+  --hub-core: min(88vh, 900px);
+  --core-anim: .92s; /* durée utile de la transition du noyau */
+}
 
 .hub-identity {
   position: absolute;
@@ -23,19 +29,25 @@
   align-items: center;
   gap: 14px;
   z-index: 3;
-  animation: identityIn .8s var(--ease-out) 1.6s backwards;
-  transition: opacity .35s var(--ease), transform .45s var(--ease);
+  opacity: 1;
+  animation: identityIn .8s var(--ease-out) 1.7s backwards;
+  transition:
+    opacity .5s var(--ease-out) var(--core-anim),
+    transform .55s var(--ease-out) var(--core-anim);
 }
 @keyframes identityIn {
-  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  from { opacity: 0; transform: translateX(-50%) translateY(12px) scale(.92); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
 }
 
-/* Le noyau part en haut à gauche → l'accueil s'efface avec lui */
+/* Sortie immédiate : quand le noyau part, l'accueil dégage devant lui */
 .hub-identity.is-hidden {
   opacity: 0;
   pointer-events: none;
-  transform: translateX(-50%) scale(.85);
+  transform: translateX(-50%) scale(.8);
+  transition:
+    opacity .28s var(--ease) 0s,
+    transform .32s var(--ease) 0s;
 }
 
 .hub-greeting {
@@ -98,10 +110,9 @@
 .hub-power:hover ~ .hub-power-label { color: var(--ruby); }
 
 @media (max-width: 1100px) {
-  .jarvis-page { --hub-core: min(66vh, 520px); }
   .hub-greeting { font-size: .76rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hub-identity { animation: none; }
+  .hub-identity { animation: none; transition-delay: 0s; }
 }

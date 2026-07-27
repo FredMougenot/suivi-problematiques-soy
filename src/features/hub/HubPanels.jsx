@@ -5,21 +5,18 @@ import './hubPanels.css';
  * HubPanels — les deux rails latéraux : raccourcis + fenêtres KPI.
  *
  * ══ STRUCTURE EN TROIS NIVEAUX — NE PAS APLATIR ════════════════════
- *   .hud-slot   conteneur NON rogné — porte la trace de jonction
+ *   .hud-slot   conteneur NON rogné — porte la trace et l'entrée/sortie
  *     .hud-panel  cadre biseauté (clip-path) — fait office de bordure
  *       .hud-in     intérieur sombre, même biseau réduit d'1px
  *     .hud-trace  segment + coude + pastille, vers le noyau
  *
  * La trace est SŒUR du panneau, pas enfant : un clip-path rogne tous les
- * descendants, y compris ce qui dépasse volontairement. C'est pour ça
- * qu'elle était invisible — elle existait, elle était coupée.
+ * descendants, y compris ce qui dépasse volontairement.
  *
- * Le double biseau (.hud-panel coloré + .hud-in sombre à 1px) reconstitue
- * une bordure qui suit la forme : clip-path supprime les bordures CSS, donc
- * on empile deux formes identiques décalées d'un pixel.
- *
- * Composants purement présentationnels : aucune requête, aucun état. Les
- * valeurs arrivent par `kpis`, la navigation par `onSelect`.
+ * ══ CHORÉGRAPHIE ══════════════════════════════════════════
+ * Chaque slot reçoit --i (son rang dans le rail) : le CSS s'en sert pour
+ * échelonner l'apparition après le déploiement du noyau. Le rang vient du
+ * JS parce que CSS ne sait pas compter ses frères dans un calc().
  */
 
 function Trace({ delay }) {
@@ -32,9 +29,9 @@ function Trace({ delay }) {
   );
 }
 
-function Shortcut({ branch, num, value, active, onSelect, delay }) {
+function Shortcut({ branch, num, value, active, onSelect, delay, rank }) {
   return (
-    <div className="hud-slot">
+    <div className="hud-slot" style={{ '--i': rank }}>
       <button
         type="button"
         className={`hud-panel hud-shortcut${active ? ' is-active' : ''}`}
@@ -68,9 +65,9 @@ function Shortcut({ branch, num, value, active, onSelect, delay }) {
   );
 }
 
-function KpiWindow({ kpi, num, value, delay }) {
+function KpiWindow({ kpi, num, value, delay, rank }) {
   return (
-    <div className="hud-slot">
+    <div className="hud-slot" style={{ '--i': rank }}>
       <div className="hud-panel hud-kpi" style={{ animationDelay: `${delay}s` }}>
         <span className="hud-in">
           <span className="hud-head">
@@ -111,31 +108,38 @@ function KpiWindow({ kpi, num, value, delay }) {
 export default function HubPanels({ kpis = {}, activeId = null, hidden = false, onSelect }) {
   return (
     <>
-      {['left', 'right'].map((side) => (
-        <div key={side} className={`hub-rail is-${side}${hidden ? ' is-hidden' : ''}`}>
-          {HUB_BRANCHES.filter((b) => b.side === side).map((b, i) => (
-            <Shortcut
-              key={b.id}
-              branch={b}
-              num={String(HUB_BRANCHES.indexOf(b) + 1).padStart(2, '0')}
-              value={kpis[b.id]}
-              active={activeId === b.id}
-              onSelect={onSelect}
-              delay={1.35 + i * 0.1}
-            />
-          ))}
+      {['left', 'right'].map((side) => {
+        const shortcuts = HUB_BRANCHES.filter((b) => b.side === side);
+        const windows = HUB_KPIS.filter((k) => k.side === side);
 
-          {HUB_KPIS.filter((k) => k.side === side).map((k, i) => (
-            <KpiWindow
-              key={k.id}
-              kpi={k}
-              num={String(HUB_KPIS.indexOf(k) + 5).padStart(2, '0')}
-              value={kpis[k.id]}
-              delay={1.6 + i * 0.1}
-            />
-          ))}
-        </div>
-      ))}
+        return (
+          <div key={side} className={`hub-rail is-${side}${hidden ? ' is-hidden' : ''}`}>
+            {shortcuts.map((b, i) => (
+              <Shortcut
+                key={b.id}
+                branch={b}
+                num={String(HUB_BRANCHES.indexOf(b) + 1).padStart(2, '0')}
+                value={kpis[b.id]}
+                active={activeId === b.id}
+                onSelect={onSelect}
+                rank={i}
+                delay={1.7 + i * 0.1}
+              />
+            ))}
+
+            {windows.map((k, i) => (
+              <KpiWindow
+                key={k.id}
+                kpi={k}
+                num={String(HUB_KPIS.indexOf(k) + 5).padStart(2, '0')}
+                value={kpis[k.id]}
+                rank={shortcuts.length + i}
+                delay={1.7 + (shortcuts.length + i) * 0.1}
+              />
+            ))}
+          </div>
+        );
+      })}
     </>
   );
 }
