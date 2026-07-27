@@ -1,5 +1,5 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import JarvisCore from './JarvisCore';
 import HubPanels from './HubPanels';
 import { findBranch } from './hubConfig';
@@ -11,30 +11,34 @@ import './hubIdentity.css';
 /**
  * JarvisHubPage — la page unique qui évolue.
  *
- * Un seul état (`vue`) décide si le noyau occupe le centre (hub) ou s'il est
- * réduit en haut à gauche pour libérer la surface d'affichage (focus). Le
- * module correspondant est monté dans cette surface, quel que soit son type.
+ * Un seul état décide si le noyau occupe le centre (hub) ou s'il est réduit
+ * en haut à gauche pour libérer la surface d'affichage (focus). Le module
+ * correspondant est monté dans cette surface, quel que soit son type.
  *
- * L'état est synchronisé avec l'URL (?vue=netrack) : F5, bouton Précédent et
- * partage de lien continuent de fonctionner sans changement de page.
+ * ══ L'ÉTAT EST DANS LE CHEMIN, PAS DANS LES PARAMÈTRES ══════════════
+ * #/hub/problematiques et non #/hub?vue=problematiques.
+ * Raison concrète : ProblematiquesPage appelle setSearchParams({}) dans un
+ * useEffect de montage pour nettoyer ses propres paramètres (pilier, statut,
+ * incomplet). Avec l'état en paramètre, la page effaçait donc, en s'ouvrant,
+ * la clé qui la maintenait ouverte — le noyau amorçait sa réduction puis
+ * tout revenait en arrière. Le chemin, lui, n'est touché par personne.
+ * Ne pas rebasculer sur useSearchParams sans régler ce point.
  *
  * RÉPARTITION DES RÔLES
- *   JarvisCore  — purement décoratif. On lui passe branches={[]} : les
- *                 raccourcis vivent désormais dans les rails latéraux, plus
- *                 sur le cercle. Le composant graphique reste intact.
- *   HubPanels   — raccourcis + fenêtres KPI, ancrés aux bords.
- *   cette page  — état, navigation, identité, déconnexion.
+ *   JarvisCore  — purement décoratif (branches={[]} : les raccourcis vivent
+ *                 dans les rails latéraux, plus sur le cercle)
+ *   HubPanels   — raccourcis + fenêtres KPI, ancrés aux bords
+ *   cette page  — état, navigation, identité, déconnexion
  */
 
 const NO_BRANCHES = [];
 
 export default function JarvisHubPage() {
-  const [params, setParams] = useSearchParams();
+  const { vue } = useParams();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
 
-  const requested = params.get('vue');
-  const active = useMemo(() => findBranch(requested), [requested]);
+  const active = useMemo(() => findBranch(vue), [vue]);
   const focused = Boolean(active);
 
   const kpis = useHubKpis({ enabled: !focused });
@@ -68,11 +72,14 @@ export default function JarvisHubPage() {
     return () => clearInterval(id);
   }, [focused]);
 
-  const select = useCallback(
-    (id) => setParams({ vue: id }, { replace: false }),
-    [setParams]
-  );
-  const reset = useCallback(() => setParams({}, { replace: false }), [setParams]);
+  const select = useCallback((id) => navigate(`/hub/${id}`), [navigate]);
+  const reset = useCallback(() => navigate('/hub'), [navigate]);
+
+  // Un identifiant inconnu dans l'URL ramène au hub plutôt que d'afficher
+  // une page vide (lien périmé, raccourci renommé, faute de frappe).
+  useEffect(() => {
+    if (vue && !active) navigate('/hub', { replace: true });
+  }, [vue, active, navigate]);
 
   // Échap ramène au hub.
   useEffect(() => {

@@ -36,10 +36,17 @@ export const router = createHashRouter([
       </ProtectedRoute>
     ),
     children: [
-      // Le hub Jarvis est désormais l'écran d'accueil. Pour revenir à
-      // l'ancien comportement : remettre to="/dashboard" ci-dessous.
+      // Le hub Jarvis est l'écran d'accueil. Pour revenir à l'ancien
+      // comportement : remettre to="/dashboard" ci-dessous.
       { index: true, element: <Navigate to="/hub" replace /> },
+
+      // L'état du hub est dans le CHEMIN, pas dans les paramètres d'URL :
+      // certains modules (ProblematiquesPage) appellent setSearchParams({})
+      // au montage pour nettoyer leurs propres paramètres, ce qui effacerait
+      // l'état du hub et refermerait la vue à l'instant même où elle s'ouvre.
       { path: 'hub', element: <JarvisHubPage /> },
+      { path: 'hub/:vue', element: <JarvisHubPage /> },
+
       { path: 'planning-auto', element: <PlanningAutoPage /> },
       { path: 'intentions-production', element: <IntentionsProductionPage /> },
       { path: 'planning-camions', element: <PlanningCamionsPage /> },
