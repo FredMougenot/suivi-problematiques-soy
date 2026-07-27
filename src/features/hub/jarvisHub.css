@@ -1,0 +1,314 @@
+/* ═══════════════════════════════════════════════════════════════════
+   HUB JARVIS — noyau central, branches KPI, surface d'affichage.
+
+   Principe : une seule page qui évolue. Deux états seulement,
+   pilotés par la classe .is-focused sur .jarvis-core :
+     • hub    → noyau plein écran centré, branches visibles
+     • focus  → noyau réduit en haut à gauche, centre libéré
+
+   Toutes les couches animées portent translateZ(0) — bug connu du
+   compositeur Chrome (éléments invisibles jusqu'au survol) sur les
+   fonds semi-transparents et dégradés.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.jarvis-page {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 2; /* sous le FloatingMenu (z-index 300) */
+  transform: translateZ(0);
+}
+
+/* ── Le noyau ─────────────────────────────────────────────────────
+   Un SEUL transform interpole position + échelle : le glissement et
+   le rétrécissement sont donc rigoureusement synchronisés.
+   Géométrie : le conteneur est ancré à 50%/50% ; translate(-w/2,-h/2)
+   le centre, puis on décale le centre vers (--focus-x, --focus-y).
+───────────────────────────────────────────────────────────────────*/
+.jarvis-core {
+  --core-size: min(74vh, 680px);
+  --focus-x: 132px;
+  --focus-y: 104px;
+  --focus-scale: .18;
+
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--core-size);
+  height: var(--core-size);
+  transform-origin: 50% 50%;
+  transform: translate(calc(var(--core-size) / -2), calc(var(--core-size) / -2)) scale(1);
+  transition: transform 1s cubic-bezier(.66, 0, .16, 1);
+  will-change: transform;
+}
+
+.jarvis-core.is-focused {
+  transform:
+    translate(
+      calc(var(--focus-x) - 50vw - var(--core-size) / 2),
+      calc(var(--focus-y) - 50vh - var(--core-size) / 2)
+    )
+    scale(var(--focus-scale));
+  cursor: pointer;
+}
+
+.jarvis-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* ── Anneaux rotatifs ──────────────────────────────────────────── */
+.ring-a, .ring-b, .ring-c {
+  transform-box: view-box;
+  transform-origin: 500px 500px;
+}
+.ring-a { animation: jspin 46s linear infinite; }
+.ring-b { animation: jspin 30s linear infinite reverse; }
+.ring-c { animation: jspin 90s linear infinite; }
+@keyframes jspin { to { transform: rotate(360deg); } }
+
+.j-stroke      { fill: none; stroke: var(--copper);   stroke-width: 1.4; opacity: .55; }
+.j-stroke-dim  { fill: none; stroke: var(--copper);   stroke-width: 1;   opacity: .22; }
+.j-stroke-blue { fill: none; stroke: var(--sapphire); stroke-width: 1;   opacity: .35; }
+.j-tick        { stroke: var(--copper); stroke-width: 2; opacity: .4; }
+
+.j-core-fill { fill: var(--copper); opacity: .06; }
+.j-pulse {
+  fill: none;
+  stroke: var(--copper);
+  stroke-width: 2;
+  transform-box: view-box;
+  transform-origin: 500px 500px;
+  animation: jpulse 3.6s var(--ease-out) infinite;
+}
+@keyframes jpulse {
+  0%   { transform: scale(.88); opacity: .55; }
+  70%  { transform: scale(1.14); opacity: 0; }
+  100% { transform: scale(1.14); opacity: 0; }
+}
+
+.j-label {
+  fill: var(--copper-pale);
+  font-family: var(--font-heading);
+  font-size: 64px;
+  font-weight: 300;
+  letter-spacing: 14px;
+  text-anchor: middle;
+}
+.j-sublabel {
+  fill: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 20px;
+  letter-spacing: 5px;
+  text-anchor: middle;
+}
+.j-clock {
+  fill: var(--copper-light);
+  font-family: var(--font-mono);
+  font-size: 26px;
+  letter-spacing: 3px;
+  text-anchor: middle;
+  opacity: .75;
+}
+
+/* ── Connecteurs noyau → branches ──────────────────────────────── */
+.j-link {
+  stroke: var(--copper);
+  stroke-width: 1.2;
+  opacity: .3;
+  stroke-dasharray: 5 7;
+  animation: jflow 2.4s linear infinite;
+  transition: opacity var(--t-base) var(--ease), stroke-width var(--t-base) var(--ease);
+}
+@keyframes jflow { to { stroke-dashoffset: -24; } }
+.j-link.is-hot { opacity: .95; stroke-width: 2; }
+
+.j-node-dot { fill: var(--bg-base); stroke: var(--copper); stroke-width: 2; }
+.j-node-dot.is-hot { fill: var(--copper); }
+
+/* ── Branches (HTML au-dessus du SVG) ──────────────────────────── */
+.jbranch {
+  position: absolute;
+  transform: translate(-50%, -50%) scale(1);
+  width: 172px;
+  padding: 12px 14px;
+  background: var(--bg-float);
+  backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid var(--copper-dim);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  transition:
+    transform var(--t-base) var(--ease),
+    border-color var(--t-base) var(--ease),
+    box-shadow var(--t-base) var(--ease),
+    opacity .45s var(--ease);
+  will-change: transform;
+}
+.jbranch:hover,
+.jbranch:focus-visible {
+  transform: translate(-50%, -50%) scale(1.06);
+  border-color: var(--copper);
+  box-shadow: var(--shadow-lg), 0 0 26px var(--copper-glow);
+  outline: none;
+}
+
+.jbranch-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.jbranch-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--copper);
+  box-shadow: 0 0 8px var(--copper);
+  flex: none;
+  transform: translateZ(0);
+}
+.jbranch-icon { font-size: .82rem; opacity: .8; flex: none; }
+.jbranch-title { font-size: .78rem; font-weight: 600; letter-spacing: .3px; line-height: 1.15; }
+.jbranch-kpi {
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--copper-light);
+  line-height: 1;
+}
+.jbranch-kpi.is-idle { color: var(--text-muted); }
+.jbranch-unit {
+  font-size: .66rem;
+  color: var(--text-muted);
+  margin-top: 5px;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+}
+
+/* Sortie des branches quand le noyau part en haut à gauche */
+.jarvis-core.is-focused .jbranch {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(.5);
+  transition: transform .45s var(--ease), opacity .35s var(--ease);
+}
+.jarvis-core.is-focused .j-link,
+.jarvis-core.is-focused .j-node-dot {
+  opacity: 0;
+  transition: opacity .35s var(--ease);
+}
+
+/* ── Surface d'affichage centrale ──────────────────────────────── */
+.view-surface {
+  position: absolute;
+  left: 214px;
+  right: 26px;
+  top: 24px;
+  bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateY(26px) translateZ(0);
+  pointer-events: none;
+  transition:
+    opacity .5s var(--ease-out) .34s,
+    transform .6s var(--ease-out) .34s;
+}
+.view-surface.is-open {
+  opacity: 1;
+  transform: translateY(0) translateZ(0);
+  pointer-events: auto;
+}
+
+.view-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+  flex: none;
+}
+.view-title {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: .4px;
+  color: var(--text-primary);
+}
+.view-spacer { flex: 1; }
+.view-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  background: var(--bg-float);
+  border: 1px solid var(--copper-dim);
+  border-radius: var(--r-sm);
+  color: var(--copper-light);
+  font-family: var(--font-body);
+  font-size: .76rem;
+  cursor: pointer;
+  transform: translateZ(0);
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.view-back:hover { border-color: var(--copper); background: var(--bg-active); }
+
+.view-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-top: 1px solid var(--text-faint);
+  padding-top: 4px;
+  scrollbar-gutter: stable;
+  transform: translateZ(0);
+}
+.view-body > * { animation: viewIn .45s var(--ease-out); }
+@keyframes viewIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Neutralise les layouts plein écran des modules montés dans la surface :
+   ils sont conçus pour occuper 100vh, ici ils doivent remplir leur conteneur. */
+.view-body .tool-wrap,
+.view-body .app-layout { height: auto; min-height: 0; background: transparent; }
+.view-body .tool-main,
+.view-body .main { height: auto; overflow: visible; padding: 0; }
+
+.view-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 55vh;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  letter-spacing: 2px;
+}
+
+/* ── Repères secondaires ───────────────────────────────────────── */
+.hub-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%) translateZ(0);
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+  opacity: .55;
+  transition: opacity .35s var(--ease);
+  pointer-events: none;
+}
+.hub-hint.is-hidden { opacity: 0; }
+
+@media (max-width: 1100px) {
+  .jarvis-core { --core-size: min(66vh, 520px); }
+  .jbranch { width: 148px; padding: 10px 12px; }
+  .view-surface { left: 180px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring-a, .ring-b, .ring-c, .j-pulse, .j-link { animation: none; }
+  .jarvis-core, .view-surface, .view-body > * { transition-duration: .01ms; animation: none; }
+}

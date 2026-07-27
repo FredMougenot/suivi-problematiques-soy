@@ -2,6 +2,7 @@ import { createHashRouter, Navigate } from 'react-router-dom';
 import AppShell from './layout/AppShell';
 import ProtectedRoute from './layout/ProtectedRoute';
 import LoginPage from './features/auth/LoginPage';
+import JarvisHubPage from './features/hub/JarvisHubPage';
 import PlanningAutoPage from './features/planning/PlanningAutoPage';
 import IntentionsProductionPage from './features/production/IntentionsProductionPage';
 import PlanningCamionsPage from './features/camions/PlanningCamionsPage';
@@ -35,7 +36,10 @@ export const router = createHashRouter([
       </ProtectedRoute>
     ),
     children: [
-      { index: true, element: <Navigate to="/dashboard" replace /> },
+      // Le hub Jarvis est désormais l'écran d'accueil. Pour revenir à
+      // l'ancien comportement : remettre to="/dashboard" ci-dessous.
+      { index: true, element: <Navigate to="/hub" replace /> },
+      { path: 'hub', element: <JarvisHubPage /> },
       { path: 'planning-auto', element: <PlanningAutoPage /> },
       { path: 'intentions-production', element: <IntentionsProductionPage /> },
       { path: 'planning-camions', element: <PlanningCamionsPage /> },
