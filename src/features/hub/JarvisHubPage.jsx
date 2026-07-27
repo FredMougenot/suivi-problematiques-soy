@@ -33,8 +33,6 @@ export default function JarvisHubPage() {
 
   const kpis = useHubKpis({ enabled: !focused });
 
-  const [confirmingLogout, setConfirmingLogout] = useState(false);
-
   // Prénom seul : « Bonjour, Frédéric » sonne juste, le nom complet fait
   // administratif. Repli sur la partie locale de l'e-mail si les métadonnées
   // ne sont pas encore chargées.
@@ -70,21 +68,13 @@ export default function JarvisHubPage() {
   );
   const reset = useCallback(() => setParams({}, { replace: false }), [setParams]);
 
-  // Échap ramène au hub, ou annule la confirmation de déconnexion.
+  // Échap ramène au hub.
   useEffect(() => {
-    const onKey = (e) => {
-      if (e.key !== 'Escape') return;
-      if (confirmingLogout) setConfirmingLogout(false);
-      else if (focused) reset();
-    };
+    if (!focused) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') reset(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [focused, confirmingLogout, reset]);
-
-  // Le panneau de confirmation n'a pas de sens quand le noyau est réduit.
-  useEffect(() => {
-    if (focused) setConfirmingLogout(false);
-  }, [focused]);
+  }, [focused, reset]);
 
   async function handleLogout() {
     await logout();
@@ -113,46 +103,28 @@ export default function JarvisHubPage() {
           </div>
         ) : null}
 
-        {confirmingLogout ? (
-          <div className="hub-confirm">
-            <span className="hub-confirm-text">Se déconnecter&nbsp;?</span>
-            <button type="button" className="hub-confirm-yes" onClick={handleLogout}>
-              Oui
-            </button>
-            <button
-              type="button"
-              className="hub-confirm-no"
-              onClick={() => setConfirmingLogout(false)}
-            >
-              Annuler
-            </button>
-          </div>
-        ) : (
-          <>
-            <button
-              type="button"
-              className="hub-power"
-              onClick={() => setConfirmingLogout(true)}
-              title="Se déconnecter"
-              aria-label="Se déconnecter"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                width="18"
-                height="18"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                aria-hidden="true"
-              >
-                <path d="M12 3.6 v7.6" />
-                <path d="M7.4 6.6 a6.6 6.6 0 1 0 9.2 0" />
-              </svg>
-            </button>
-            <span className="hub-power-label">Déconnexion</span>
-          </>
-        )}
+        <button
+          type="button"
+          className="hub-power"
+          onClick={handleLogout}
+          title="Se déconnecter"
+          aria-label="Se déconnecter"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            <path d="M12 3.6 v7.6" />
+            <path d="M7.4 6.6 a6.6 6.6 0 1 0 9.2 0" />
+          </svg>
+        </button>
+        <span className="hub-power-label">Déconnexion</span>
       </div>
 
       <div className={`view-surface${focused ? ' is-open' : ''}`}>

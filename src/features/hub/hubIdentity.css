@@ -52,8 +52,8 @@
 }
 
 /* ── Bouton de déconnexion ────────────────────────────────────
-   Discret au repos, rouge à l'approche : une déconnexion accidentelle en
-   plein quart coûte cher, l'intention doit être explicite.
+   Discret au repos, rouge à l'approche : le changement de couleur est le
+   seul avertissement avant une action immédiate et sans retour.
 ───────────────────────────────────────────────────────────────── */
 .hub-power {
   display: flex;
@@ -97,46 +97,11 @@
 .hub-power:focus-visible ~ .hub-power-label { opacity: .85; }
 .hub-power:hover ~ .hub-power-label { color: var(--ruby); }
 
-/* ── Confirmation ─────────────────────────────────────────── */
-.hub-confirm {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  animation: identityIn .3s var(--ease-out);
-}
-.hub-confirm-text {
-  font-family: var(--font-body);
-  font-size: .74rem;
-  color: var(--text-secondary);
-  white-space: nowrap;
-}
-.hub-confirm-yes,
-.hub-confirm-no {
-  padding: 5px 12px;
-  border-radius: var(--r-sm);
-  font-family: var(--font-body);
-  font-size: .72rem;
-  cursor: pointer;
-  background: rgba(10, 20, 32, .6);
-  transform: translateZ(0);
-  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
-}
-.hub-confirm-yes {
-  border: 1px solid rgba(224, 85, 85, .45);
-  color: var(--ruby);
-}
-.hub-confirm-yes:hover { border-color: var(--ruby); background: var(--ruby-bg); }
-.hub-confirm-no {
-  border: 1px solid var(--text-faint);
-  color: var(--text-secondary);
-}
-.hub-confirm-no:hover { border-color: var(--copper); color: var(--copper-pale); }
-
 @media (max-width: 1100px) {
   .jarvis-page { --hub-core: min(66vh, 520px); }
   .hub-greeting { font-size: .76rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hub-identity, .hub-confirm { animation: none; }
+  .hub-identity { animation: none; }
 }
