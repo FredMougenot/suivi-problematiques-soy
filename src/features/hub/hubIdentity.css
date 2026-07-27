@@ -1,0 +1,142 @@
+/* ═══════════════════════════════════════════════════════════════════
+   IDENTITÉ DANS L'ŒIL — message d'accueil + déconnexion, au centre du noyau.
+
+   Ces éléments sont en HTML par-dessus le SVG plutôt que dans JarvisCore :
+   ils sont interactifs (bouton, focus clavier, état au survol) et le HTML
+   fait ça nativement, là où il faudrait tout réinventer en SVG. Surtout,
+   ça laisse JarvisCore.jsx et jarvisHub.css strictement intacts.
+
+   POSITIONNEMENT — --hub-core doit rester identique à --core-size de
+   .jarvis-core (dans jarvisHub.css). C'est le seul couplage : si tu changes
+   la taille du noyau là-bas, reporte-la ici, sinon l'accueil sort du cercle.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.jarvis-page { --hub-core: min(88vh, 900px); }
+
+.hub-identity {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + var(--hub-core) * .105);
+  transform: translateX(-50%) translateZ(0);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  z-index: 3;
+  animation: identityIn .8s var(--ease-out) 1.6s backwards;
+  transition: opacity .35s var(--ease), transform .45s var(--ease);
+}
+@keyframes identityIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Le noyau part en haut à gauche → l'accueil s'efface avec lui */
+.hub-identity.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) scale(.85);
+}
+
+.hub-greeting {
+  font-family: var(--font-body);
+  font-size: .82rem;
+  font-weight: 500;
+  letter-spacing: .5px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.hub-greeting strong {
+  font-weight: 600;
+  color: var(--copper-pale);
+}
+
+/* ── Bouton de déconnexion ────────────────────────────────────
+   Discret au repos, rouge à l'approche : une déconnexion accidentelle en
+   plein quart coûte cher, l'intention doit être explicite.
+───────────────────────────────────────────────────────────────── */
+.hub-power {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(10, 20, 32, .55);
+  border: 1px solid var(--copper-dim);
+  color: var(--text-muted);
+  cursor: pointer;
+  transform: translateZ(0);
+  transition:
+    border-color var(--t-base) var(--ease),
+    color var(--t-base) var(--ease),
+    box-shadow var(--t-base) var(--ease),
+    background var(--t-base) var(--ease);
+}
+.hub-power:hover,
+.hub-power:focus-visible {
+  border-color: var(--ruby);
+  color: var(--ruby);
+  background: var(--ruby-bg);
+  box-shadow: 0 0 22px rgba(224, 85, 85, .3);
+  outline: none;
+}
+
+.hub-power-label {
+  font-family: var(--font-mono);
+  font-size: .58rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity var(--t-base) var(--ease), color var(--t-base) var(--ease);
+  pointer-events: none;
+  margin-top: -6px;
+}
+.hub-identity:hover .hub-power-label,
+.hub-power:focus-visible ~ .hub-power-label { opacity: .85; }
+.hub-power:hover ~ .hub-power-label { color: var(--ruby); }
+
+/* ── Confirmation ─────────────────────────────────────────── */
+.hub-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: identityIn .3s var(--ease-out);
+}
+.hub-confirm-text {
+  font-family: var(--font-body);
+  font-size: .74rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.hub-confirm-yes,
+.hub-confirm-no {
+  padding: 5px 12px;
+  border-radius: var(--r-sm);
+  font-family: var(--font-body);
+  font-size: .72rem;
+  cursor: pointer;
+  background: rgba(10, 20, 32, .6);
+  transform: translateZ(0);
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.hub-confirm-yes {
+  border: 1px solid rgba(224, 85, 85, .45);
+  color: var(--ruby);
+}
+.hub-confirm-yes:hover { border-color: var(--ruby); background: var(--ruby-bg); }
+.hub-confirm-no {
+  border: 1px solid var(--text-faint);
+  color: var(--text-secondary);
+}
+.hub-confirm-no:hover { border-color: var(--copper); color: var(--copper-pale); }
+
+@media (max-width: 1100px) {
+  .jarvis-page { --hub-core: min(66vh, 520px); }
+  .hub-greeting { font-size: .76rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hub-identity, .hub-confirm { animation: none; }
+}
