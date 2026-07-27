@@ -1,9 +1,11 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import JarvisCore from './JarvisCore';
 import { HUB_BRANCHES, findBranch } from './hubConfig';
 import { useHubKpis } from './useHubKpis';
+import { useAuthStore } from '../../store/useAuthStore';
 import './jarvisHub.css';
+import './hubIdentity.css';
 
 /**
  * JarvisHubPage — la page unique qui évolue.
@@ -15,14 +17,35 @@ import './jarvisHub.css';
  *
  * L'état est synchronisé avec l'URL (?vue=netrack) pour que F5, le bouton
  * Précédent du navigateur et le partage de lien continuent de fonctionner.
+ *
+ * L'accueil et la déconnexion sont rendus ici, en HTML par-dessus le SVG :
+ * ce sont des éléments interactifs, et JarvisCore reste ainsi purement
+ * décoratif — aucune logique métier dans le composant graphique.
  */
 export default function JarvisHubPage() {
   const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { user, logout } = useAuthStore();
+
   const requested = params.get('vue');
   const active = useMemo(() => findBranch(requested), [requested]);
   const focused = Boolean(active);
 
   const kpis = useHubKpis({ enabled: !focused });
+
+  const [confirmingLogout, setConfirmingLogout] = useState(false);
+
+  // Prénom seul : « Bonjour, Frédéric » sonne juste, le nom complet fait
+  // administratif. Repli sur la partie locale de l'e-mail si les métadonnées
+  // ne sont pas encore chargées.
+  const firstName = useMemo(() => {
+    const meta = user?.user_metadata || {};
+    if (meta.prenom) return meta.prenom;
+    const local = (user?.email ?? '').split('@')[0];
+    if (!local) return null;
+    const head = local.split(/[._-]/)[0];
+    return head ? head.charAt(0).toUpperCase() + head.slice(1) : null;
+  }, [user]);
 
   // Horloge du noyau — présente uniquement en mode hub.
   const [clock, setClock] = useState('');
@@ -47,13 +70,26 @@ export default function JarvisHubPage() {
   );
   const reset = useCallback(() => setParams({}, { replace: false }), [setParams]);
 
-  // Échap ramène au hub.
+  // Échap ramène au hub, ou annule la confirmation de déconnexion.
   useEffect(() => {
-    if (!focused) return undefined;
-    const onKey = (e) => { if (e.key === 'Escape') reset(); };
+    const onKey = (e) => {
+      if (e.key !== 'Escape') return;
+      if (confirmingLogout) setConfirmingLogout(false);
+      else if (focused) reset();
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [focused, reset]);
+  }, [focused, confirmingLogout, reset]);
+
+  // Le panneau de confirmation n'a pas de sens quand le noyau est réduit.
+  useEffect(() => {
+    if (focused) setConfirmingLogout(false);
+  }, [focused]);
+
+  async function handleLogout() {
+    await logout();
+    navigate('/login', { replace: true });
+  }
 
   const ActiveComponent = active?.Component ?? null;
 
@@ -68,6 +104,56 @@ export default function JarvisHubPage() {
         onSelect={select}
         onReset={reset}
       />
+
+      {/* Accueil + déconnexion, dans le cercle central du noyau */}
+      <div className={`hub-identity${focused ? ' is-hidden' : ''}`}>
+        {firstName ? (
+          <div className="hub-greeting">
+            Bonjour, <strong>{firstName}</strong>
+          </div>
+        ) : null}
+
+        {confirmingLogout ? (
+          <div className="hub-confirm">
+            <span className="hub-confirm-text">Se déconnecter&nbsp;?</span>
+            <button type="button" className="hub-confirm-yes" onClick={handleLogout}>
+              Oui
+            </button>
+            <button
+              type="button"
+              className="hub-confirm-no"
+              onClick={() => setConfirmingLogout(false)}
+            >
+              Annuler
+            </button>
+          </div>
+        ) : (
+          <>
+            <button
+              type="button"
+              className="hub-power"
+              onClick={() => setConfirmingLogout(true)}
+              title="Se déconnecter"
+              aria-label="Se déconnecter"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <path d="M12 3.6 v7.6" />
+                <path d="M7.4 6.6 a6.6 6.6 0 1 0 9.2 0" />
+              </svg>
+            </button>
+            <span className="hub-power-label">Déconnexion</span>
+          </>
+        )}
+      </div>
 
       <div className={`view-surface${focused ? ' is-open' : ''}`}>
         {active ? (
