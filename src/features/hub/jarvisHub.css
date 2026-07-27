@@ -1,21 +1,25 @@
 /* ═══════════════════════════════════════════════════════════════════
    HUB JARVIS — noyau HUD, branches KPI, surface d'affichage.
 
-   ══ RÈGLE DE BLOOM ═══════════════════════════════════════════
-   Chaque élément lumineux existe en DEUX classes :
-     .x-halo  → stroke très épais, opacité très basse, linecap round
-     .x       → le trait net par-dessus
-   Ne jamais modifier l'une sans l'autre : c'est le rapport entre les deux
-   (facteur 6 à 10 sur l'épaisseur, .06 à .12 d'opacité) qui produit la
-   lueur. Un feGaussianBlur donnerait le même rendu mais serait recalculé à
-   chaque image sur 24 groupes en rotation — injouable.
+   ══ 1 · MÉLANGE ADDITIF ══════════════════════════════════════
+   mix-blend-mode: screen sur tout ce qui est lumineux. Deux halos qui se
+   croisent s'ADDITIONNENT au lieu de se masquer — d'où les blancs
+   incandescents aux intersections. C'est LA différence entre une image
+   lumineuse et une image simplement colorée. .jarvis-svg porte
+   isolation:isolate pour confiner le mélange au noyau.
 
-   ══ HIÉRARCHIE ═══════════════════════════════════════════════
-   structure .12–.25 · détail .3–.5 · accent .7–1. Si tout monte, tout
-   s'aplatit : la profondeur vient du contraste, pas de la luminosité.
+   ══ 2 · DÉGRADÉ FIXE, GÉOMÉTRIE MOBILE ══════════════════════════
+   stroke: url(#jSplit) — dégradé cyan→blanc→orange ancré à l'écran. Les
+   anneaux tournent dessous et changent de couleur en le traversant.
 
-   translateZ(0) sur toute couche animée ou semi-transparente : bug connu
-   du compositeur Chrome (éléments invisibles jusqu'au survol).
+   ══ 3 · BLOOM PAR DOUBLAGE ═══════════════════════════════════
+   .x-halo (épais, très transparent) + .x (net). Jamais l'un sans l'autre.
+   Un feGaussianBlur serait recalculé à chaque image sur 30 groupes en
+   rotation — injouable.
+
+   Hiérarchie : structure .12–.25 · détail .3–.5 · accent .7–1 · cœur blanc.
+   translateZ(0) sur toute couche animée ou semi-transparente (bug connu du
+   compositeur Chrome : éléments invisibles jusqu'au survol).
    ═══════════════════════════════════════════════════════════════════ */
 
 .jarvis-page {
@@ -23,6 +27,17 @@
   inset: 0;
   overflow: hidden;
   z-index: 2; /* sous le FloatingMenu (z-index 300) */
+  transform: translateZ(0);
+}
+
+/* Vignette : assombrit les bords pour que le noyau ressorte. Sans elle,
+   le fond concurrence les halos et tout paraît délavé. */
+.jarvis-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, transparent 34%, rgba(3, 7, 14, .78) 88%);
   transform: translateZ(0);
 }
 
@@ -60,12 +75,26 @@
   width: 100%;
   height: 100%;
   overflow: visible;
+  isolation: isolate; /* confine le mix-blend-mode au noyau */
 }
 
-/* ── Apparition échelonnée des couches ────────────────────────────
-   Le noyau se construit de l'extérieur vers le centre en ~1,6 s.
-   backwards : l'état initial s'applique dès le délai, pas d'affichage brut.
-────────────────────────────────────────────────────────────────── */
+/* Tout ce qui est lumineux s'additionne */
+.j-add,
+.j-arc-major, .j-arc-major-halo,
+.j-arc-bright, .j-arc-bright-halo,
+.j-arc-amber, .j-arc-amber-halo,
+.j-arc-thin, .j-arc-thin-halo,
+.j-band, .j-band-halo,
+.j-band-thin, .j-band-thin-halo,
+.j-bracket, .j-bracket-halo,
+.j-ring-bright, .j-ring-halo,
+.j-bloom, .j-flare, .j-heart,
+.j-bar, .j-dust, .j-sweep, .j-sweep-tail, .j-sweep-edge,
+.j-block.is-hot {
+  mix-blend-mode: screen;
+}
+
+/* ── Apparition échelonnée des couches ─────────────────────────── */
 .layer {
   transform-box: view-box;
   transform-origin: 500px 500px;
@@ -77,8 +106,8 @@
 }
 
 /* ── Moteur de rotation ─────────────────────────────────────────
-   L'écart entre 140 s et 9 s crée la parallaxe mécanique. Accélérer tout
-   uniformément détruit la profondeur — c'est le réglage le plus fragile.
+   L'écart entre 140 s et 9 s crée la parallaxe. Accélérer tout uniformément
+   détruit la profondeur — c'est le réglage le plus fragile du noyau.
 ────────────────────────────────────────────────────────────────── */
 .rot { transform-box: view-box; transform-origin: 500px 500px; }
 @keyframes jspin { to { transform: rotate(360deg); } }
@@ -88,15 +117,20 @@
 .rot-s18   { animation: jspin  18s linear infinite; }
 .rot-s20   { animation: jspin  20s linear infinite; }
 .rot-s24r  { animation: jspin  24s linear infinite reverse; }
+.rot-s26r  { animation: jspin  26s linear infinite reverse; }
 .rot-s27r  { animation: jspin  27s linear infinite reverse; }
 .rot-s30   { animation: jspin  30s linear infinite; }
 .rot-s34   { animation: jspin  34s linear infinite; }
+.rot-s34r  { animation: jspin  34s linear infinite reverse; }
 .rot-s36r  { animation: jspin  36s linear infinite reverse; }
+.rot-s38r  { animation: jspin  38s linear infinite reverse; }
 .rot-s40r  { animation: jspin  40s linear infinite reverse; }
 .rot-s44r  { animation: jspin  44s linear infinite reverse; }
 .rot-s46r  { animation: jspin  46s linear infinite reverse; }
+.rot-s48   { animation: jspin  48s linear infinite; }
 .rot-s52r  { animation: jspin  52s linear infinite reverse; }
 .rot-s58   { animation: jspin  58s linear infinite; }
+.rot-s62   { animation: jspin  62s linear infinite; }
 .rot-s64   { animation: jspin  64s linear infinite; }
 .rot-s64r  { animation: jspin  64s linear infinite reverse; }
 .rot-s72   { animation: jspin  72s linear infinite; }
@@ -110,114 +144,124 @@
 .rot-dust  { animation: jspin 220s linear infinite; }
 
 /* ── Structure (niveau bas) ─────────────────────────────────── */
-.j-hair      { fill: none; stroke: var(--copper);   stroke-width: 1;   opacity: .18; }
-.j-hair-blue { fill: none; stroke: var(--sapphire); stroke-width: 1;   opacity: .3; }
-.j-poly      { fill: none; stroke: var(--copper);   stroke-width: 1;   opacity: .2; }
-.j-tick      { stroke: var(--copper); stroke-width: 2.6; opacity: .3; }
-.j-tick-fine { stroke: var(--copper); stroke-width: 1.3; opacity: .22; }
-.j-tick-long { opacity: .6; }
-.j-blade     { fill: var(--copper); opacity: .045; stroke: var(--copper); stroke-width: .8; }
+.j-hair      { fill: none; stroke: #2BE8FF; stroke-width: 1; opacity: .16; }
+.j-hair-blue { fill: none; stroke: var(--sapphire); stroke-width: 1; opacity: .3; }
+.j-poly      { fill: none; stroke: #2BE8FF; stroke-width: 1; opacity: .2; }
+.j-tick      { stroke: #2BE8FF; stroke-width: 2.6; opacity: .3; }
+.j-tick-fine { stroke: #2BE8FF; stroke-width: 1.3; opacity: .22; }
+.j-tick-long { opacity: .62; }
+.j-comb      { stroke: url(#jSplit); stroke-width: 1.6; opacity: .34; }
+.j-blade     { fill: #2BE8FF; opacity: .05; stroke: #2BE8FF; stroke-width: .8; }
 
 /* ── Détail (niveau moyen) ──────────────────────────────────── */
-.j-ring       { fill: none; stroke: var(--copper); stroke-width: 1.8; opacity: .5; }
-.j-ring-halo  { fill: none; stroke: var(--copper); stroke-width: 12;  opacity: .07; }
-.j-spoke      { stroke: var(--copper); stroke-width: 1.6; opacity: .3; }
-.j-spoke-dot  { fill: var(--copper); opacity: .55; }
-.j-trace      { fill: none; stroke: var(--copper); stroke-width: 1.4; opacity: .34;
-                stroke-linejoin: round; stroke-linecap: round; }
-.j-trace-dot  { fill: var(--copper); opacity: .6; }
+.j-ring        { fill: none; stroke: url(#jSplit); stroke-width: 1.8; opacity: .55; }
+.j-ring-bright { fill: none; stroke: url(#jSplit); stroke-width: 2.4; opacity: .95; }
+.j-ring-halo   { fill: none; stroke: url(#jSplit); stroke-width: 18;  opacity: .12; }
+.j-spoke       { stroke: #2BE8FF; stroke-width: 1.6; opacity: .32; }
+.j-spoke-dot   { fill: #BFF9FF; opacity: .6; }
+.j-trace       { fill: none; stroke: #2BE8FF; stroke-width: 1.4; opacity: .36;
+                 stroke-linejoin: round; stroke-linecap: round; }
+.j-trace-dot   { fill: #BFF9FF; opacity: .65; }
 
 .j-flow {
   fill: none;
-  stroke: var(--copper);
-  stroke-width: 1.6;
-  opacity: .35;
+  stroke: url(#jSplit);
+  stroke-width: 1.8;
+  opacity: .45;
   stroke-dasharray: 14 10;
   animation: jdash 2.8s linear infinite;
 }
 @keyframes jdash { to { stroke-dashoffset: -24; } }
 
-/* Blocs de données — clignotement décalé, jamais synchrone */
-.j-block { fill: var(--copper); opacity: .3; }
-.j-block.is-amber { fill: var(--amber); opacity: .42; }
+.j-block { fill: #2BE8FF; opacity: .34; }
+.j-block.is-amber { fill: #FF8A2B; opacity: .5; }
 .j-block.is-hot { animation: jblink 4.6s var(--ease) infinite; }
 @keyframes jblink {
-  0%, 60%, 100% { opacity: .28; }
+  0%, 60%, 100% { opacity: .3; }
   66%, 74%      { opacity: 1; }
 }
 
-/* Égaliseur radial — pathLength=1, on révèle la barre par dashoffset */
 .j-bar {
-  stroke: var(--copper-light);
-  stroke-width: 2.2;
-  opacity: .45;
+  stroke: url(#jSplit);
+  stroke-width: 2.4;
+  opacity: .55;
   stroke-dasharray: 1;
   animation: jbar 2.9s var(--ease) infinite alternate;
 }
 @keyframes jbar {
-  from { stroke-dashoffset: .82; opacity: .28; }
-  to   { stroke-dashoffset: .08; opacity: .7; }
+  from { stroke-dashoffset: .82; opacity: .3; }
+  to   { stroke-dashoffset: .08; opacity: .85; }
 }
 
-/* Poussière scintillante */
-.j-dust { fill: var(--copper-light); opacity: .18; animation: jtwinkle 5.5s var(--ease) infinite; }
+.j-dust { fill: #BFF9FF; opacity: .2; animation: jtwinkle 5.5s var(--ease) infinite; }
 @keyframes jtwinkle {
   0%, 100% { opacity: .08; }
-  50%      { opacity: .5; }
+  50%      { opacity: .6; }
 }
 
-/* ── Accents lumineux (niveau haut) — toujours par paire halo + net ── */
-.j-arc-major-halo  { fill: none; stroke: var(--copper); stroke-width: 26; opacity: .07; stroke-linecap: round; }
-.j-arc-major       { fill: none; stroke: var(--copper); stroke-width: 5;  opacity: .62; stroke-linecap: round; }
+/* ── Accents — toujours par paire halo + net ────────────────────── */
+.j-arc-major-halo  { fill: none; stroke: url(#jSplit); stroke-width: 30; opacity: .1; stroke-linecap: round; }
+.j-arc-major       { fill: none; stroke: url(#jSplit); stroke-width: 5.5; opacity: .85; stroke-linecap: round; }
 
-.j-arc-bright-halo { fill: none; stroke: var(--copper-light); stroke-width: 18; opacity: .1; stroke-linecap: round; }
-.j-arc-bright      { fill: none; stroke: var(--copper-pale);  stroke-width: 2.6; opacity: .9; stroke-linecap: round; }
+.j-arc-bright-halo { fill: none; stroke: #DFFCFF; stroke-width: 22; opacity: .14; stroke-linecap: round; }
+.j-arc-bright      { fill: none; stroke: #FFFFFF; stroke-width: 2.8; opacity: 1; stroke-linecap: round; }
 
-.j-arc-amber-halo  { fill: none; stroke: var(--amber); stroke-width: 20; opacity: .09; stroke-linecap: round; }
-.j-arc-amber       { fill: none; stroke: var(--amber); stroke-width: 3.2; opacity: .62; stroke-linecap: round; }
+.j-arc-amber-halo  { fill: none; stroke: #FF8A2B; stroke-width: 26; opacity: .13; stroke-linecap: round; }
+.j-arc-amber       { fill: none; stroke: #FFB25E; stroke-width: 3.4; opacity: .9; stroke-linecap: round; }
 
-.j-arc-thin-halo   { fill: none; stroke: var(--copper); stroke-width: 10; opacity: .05; stroke-linecap: round; }
-.j-arc-thin        { fill: none; stroke: var(--copper); stroke-width: 1.4; opacity: .4; stroke-linecap: round; }
+.j-arc-thin-halo   { fill: none; stroke: url(#jSplit); stroke-width: 12; opacity: .07; stroke-linecap: round; }
+.j-arc-thin        { fill: none; stroke: url(#jSplit); stroke-width: 1.6; opacity: .55; stroke-linecap: round; }
 
-.j-bracket-halo    { fill: none; stroke: var(--copper-light); stroke-width: 14; opacity: .08; stroke-linecap: round; }
-.j-bracket         { fill: none; stroke: var(--copper-light); stroke-width: 2.2; opacity: .75; stroke-linecap: round; }
+/* Rubans larges — les bandes lumineuses épaisses */
+.j-band-halo       { fill: none; stroke: url(#jSplit); stroke-width: 46; opacity: .1; stroke-linecap: round; }
+.j-band            { fill: none; stroke: url(#jSplit); stroke-width: 13; opacity: .5; stroke-linecap: round; }
+.j-band-thin-halo  { fill: none; stroke: url(#jSplit); stroke-width: 30; opacity: .1; stroke-linecap: round; }
+.j-band-thin       { fill: none; stroke: url(#jSplit); stroke-width: 7;  opacity: .55; stroke-linecap: round; }
 
-.j-poly-bright     { fill: none; stroke: var(--copper-pale); stroke-width: 1.4; opacity: .45; }
+.j-bracket-halo    { fill: none; stroke: #DFFCFF; stroke-width: 18; opacity: .1; stroke-linecap: round; }
+.j-bracket         { fill: none; stroke: #DFFCFF; stroke-width: 2.4; opacity: .85; stroke-linecap: round; }
+
+.j-poly-bright     { fill: none; stroke: #BFF9FF; stroke-width: 1.4; opacity: .5; }
 
 /* Balayage radar */
-.j-sweep      { opacity: .6; }
-.j-sweep-tail { opacity: .5; }
-.j-sweep-edge { stroke: var(--copper-pale); stroke-width: 1.6; opacity: .55; }
+.j-sweep      { opacity: .7; }
+.j-sweep-tail { opacity: .55; }
+.j-sweep-edge { stroke: #DFFCFF; stroke-width: 1.8; opacity: .7; }
 
-/* Points de bloom en orbite */
-.j-bloom { opacity: .9; animation: jbreathe 6s var(--ease) infinite; }
+/* Points de bloom + éclats anamorphiques */
+.j-bloom { opacity: .95; animation: jbreathe 6s var(--ease) infinite; }
+.j-flare { animation: jflicker 3.4s var(--ease) infinite; }
+.j-flare.is-slow { animation-duration: 5.2s; }
 @keyframes jbreathe {
-  0%, 100% { opacity: .62; }
+  0%, 100% { opacity: .6; }
   50%      { opacity: 1; }
 }
-.j-bloom-core { fill: #FFFFFF; opacity: .9; }
-.j-bloom-core.is-amber { fill: #FFF1DC; }
+@keyframes jflicker {
+  0%, 100% { opacity: .55; }
+  46%      { opacity: 1; }
+  52%      { opacity: .78; }
+}
 
 /* Cœur du noyau */
 .j-heart { animation: jbreathe 4.4s var(--ease) infinite; }
 .j-pulse {
   fill: none;
-  stroke: var(--copper);
-  stroke-width: 2;
+  stroke: #2BE8FF;
+  stroke-width: 2.2;
   transform-box: view-box;
   transform-origin: 500px 500px;
   animation: jpulse 5s var(--ease-out) infinite;
 }
 .j-pulse-2 { animation-delay: 2.5s; }
 @keyframes jpulse {
-  0%   { transform: scale(.92); opacity: .55; }
-  75%  { transform: scale(1.2);  opacity: 0; }
-  100% { transform: scale(1.2);  opacity: 0; }
+  0%   { transform: scale(.92); opacity: .7; }
+  75%  { transform: scale(1.22); opacity: 0; }
+  100% { transform: scale(1.22); opacity: 0; }
 }
 
 /* ── Typographie du noyau ────────────────────────────────────── */
 .j-label {
-  fill: var(--copper-pale);
+  fill: #EAFEFF;
   font-family: var(--font-heading);
   font-size: 62px;
   font-weight: 300;
@@ -225,19 +269,20 @@
   text-anchor: middle;
 }
 .j-sublabel {
-  fill: var(--text-muted);
+  fill: var(--text-secondary);
   font-family: var(--font-mono);
   font-size: 19px;
   letter-spacing: 6px;
   text-anchor: middle;
+  opacity: .8;
 }
 .j-clock {
-  fill: var(--copper-light);
+  fill: #BFF9FF;
   font-family: var(--font-mono);
   font-size: 25px;
   letter-spacing: 3px;
   text-anchor: middle;
-  opacity: .75;
+  opacity: .8;
 }
 .j-micro {
   fill: var(--text-muted);
@@ -245,39 +290,39 @@
   font-size: 13px;
   letter-spacing: 3px;
   text-anchor: middle;
-  opacity: .4;
+  opacity: .45;
 }
 .j-tag {
-  fill: var(--copper);
+  fill: #2BE8FF;
   font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 2.5px;
   text-anchor: middle;
-  opacity: .38;
+  opacity: .42;
 }
 
-/* ── Connecteurs noyau → branches ──────────────────────────────── */
+/* ── Connecteurs noyau → branches ─────────────────────────────── */
 .j-link-halo {
-  stroke: var(--copper);
-  stroke-width: 10;
-  opacity: .05;
+  stroke: url(#jSplit);
+  stroke-width: 12;
+  opacity: .07;
   stroke-linecap: round;
   transition: opacity var(--t-base) var(--ease);
 }
-.j-link-halo.is-hot { opacity: .16; }
+.j-link-halo.is-hot { opacity: .2; }
 .j-link {
-  stroke: var(--copper);
-  stroke-width: 1.4;
-  opacity: .38;
+  stroke: url(#jSplit);
+  stroke-width: 1.6;
+  opacity: .5;
   stroke-dasharray: 5 7;
   animation: jdash 2.4s linear infinite;
   transition: opacity var(--t-base) var(--ease), stroke-width var(--t-base) var(--ease);
 }
-.j-link.is-hot { opacity: 1; stroke-width: 2.2; }
+.j-link.is-hot { opacity: 1; stroke-width: 2.4; }
 
-.j-node-dot { fill: var(--bg-base); stroke: var(--copper); stroke-width: 2; }
-.j-node-dot.is-hot { fill: var(--copper); }
-.j-node-pip { fill: var(--copper-light); opacity: .5; }
+.j-node-dot { fill: var(--bg-base); stroke: #2BE8FF; stroke-width: 2; }
+.j-node-dot.is-hot { fill: #2BE8FF; }
+.j-node-pip { fill: #BFF9FF; opacity: .55; }
 .j-node-pip.is-hot { opacity: 1; }
 
 /* ── Branches (HTML au-dessus du SVG) ──────────────────────────── */
@@ -308,16 +353,16 @@
   position: absolute;
   left: 0; top: 12px; bottom: 12px;
   width: 2px;
-  background: var(--copper);
-  opacity: .35;
+  background: #2BE8FF;
+  opacity: .4;
   transition: opacity var(--t-base) var(--ease);
   transform: translateZ(0);
 }
 .jbranch:hover,
 .jbranch:focus-visible {
   transform: translate(-50%, -50%) scale(1.06);
-  border-color: var(--copper);
-  box-shadow: var(--shadow-lg), 0 0 34px var(--copper-glow);
+  border-color: #2BE8FF;
+  box-shadow: var(--shadow-lg), 0 0 38px rgba(43, 232, 255, .35);
   outline: none;
 }
 .jbranch:hover::before { opacity: 1; }
@@ -325,8 +370,8 @@
 .jbranch-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .jbranch-dot {
   width: 7px; height: 7px; border-radius: 50%;
-  background: var(--copper);
-  box-shadow: 0 0 8px var(--copper);
+  background: #2BE8FF;
+  box-shadow: 0 0 10px #2BE8FF;
   flex: none;
   transform: translateZ(0);
 }
@@ -336,7 +381,7 @@
   font-family: var(--font-mono);
   font-size: 1.45rem;
   font-weight: 600;
-  color: var(--copper-light);
+  color: #7FF3FF;
   line-height: 1;
 }
 .jbranch-kpi.is-idle { color: var(--text-muted); }
@@ -413,14 +458,14 @@
   background: var(--bg-float);
   border: 1px solid var(--copper-dim);
   border-radius: var(--r-sm);
-  color: var(--copper-light);
+  color: #7FF3FF;
   font-family: var(--font-body);
   font-size: .76rem;
   cursor: pointer;
   transform: translateZ(0);
   transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
 }
-.view-back:hover { border-color: var(--copper); background: var(--bg-active); }
+.view-back:hover { border-color: #2BE8FF; background: var(--bg-active); }
 
 .view-body {
   flex: 1;
@@ -480,6 +525,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .rot, .layer, .j-pulse, .j-link, .j-flow, .j-bar, .j-dust,
-  .j-bloom, .j-heart, .j-block.is-hot, .jbranch { animation: none; }
+  .j-bloom, .j-flare, .j-heart, .j-block.is-hot, .jbranch { animation: none; }
   .jarvis-core, .view-surface, .view-body > * { transition-duration: .01ms; animation: none; }
 }
