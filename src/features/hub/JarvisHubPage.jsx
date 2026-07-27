@@ -1,7 +1,8 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import JarvisCore from './JarvisCore';
-import { HUB_BRANCHES, findBranch } from './hubConfig';
+import HubPanels from './HubPanels';
+import { findBranch } from './hubConfig';
 import { useHubKpis } from './useHubKpis';
 import { useAuthStore } from '../../store/useAuthStore';
 import './jarvisHub.css';
@@ -10,18 +11,23 @@ import './hubIdentity.css';
 /**
  * JarvisHubPage — la page unique qui évolue.
  *
- * Il n'y a pas de changement de page : un seul état (`vue`) décide si le
- * noyau occupe le centre (hub) ou s'il est réduit en haut à gauche pour
- * libérer la surface d'affichage (focus). Le module correspondant est monté
- * dans cette surface, quel que soit son contenu (tableau, graphique, formulaire).
+ * Un seul état (`vue`) décide si le noyau occupe le centre (hub) ou s'il est
+ * réduit en haut à gauche pour libérer la surface d'affichage (focus). Le
+ * module correspondant est monté dans cette surface, quel que soit son type.
  *
- * L'état est synchronisé avec l'URL (?vue=netrack) pour que F5, le bouton
- * Précédent du navigateur et le partage de lien continuent de fonctionner.
+ * L'état est synchronisé avec l'URL (?vue=netrack) : F5, bouton Précédent et
+ * partage de lien continuent de fonctionner sans changement de page.
  *
- * L'accueil et la déconnexion sont rendus ici, en HTML par-dessus le SVG :
- * ce sont des éléments interactifs, et JarvisCore reste ainsi purement
- * décoratif — aucune logique métier dans le composant graphique.
+ * RÉPARTITION DES RÔLES
+ *   JarvisCore  — purement décoratif. On lui passe branches={[]} : les
+ *                 raccourcis vivent désormais dans les rails latéraux, plus
+ *                 sur le cercle. Le composant graphique reste intact.
+ *   HubPanels   — raccourcis + fenêtres KPI, ancrés aux bords.
+ *   cette page  — état, navigation, identité, déconnexion.
  */
+
+const NO_BRANCHES = [];
+
 export default function JarvisHubPage() {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
@@ -86,13 +92,20 @@ export default function JarvisHubPage() {
   return (
     <div className="jarvis-page">
       <JarvisCore
-        branches={HUB_BRANCHES}
+        branches={NO_BRANCHES}
         kpis={kpis}
         activeId={active?.id ?? null}
         focused={focused}
         clock={focused ? '' : clock}
         onSelect={select}
         onReset={reset}
+      />
+
+      <HubPanels
+        kpis={kpis}
+        activeId={active?.id ?? null}
+        hidden={focused}
+        onSelect={select}
       />
 
       {/* Accueil + déconnexion, dans le cercle central du noyau */}

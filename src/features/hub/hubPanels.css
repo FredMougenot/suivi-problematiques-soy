@@ -1,0 +1,281 @@
+/* ═══════════════════════════════════════════════════════════════════
+   RAILS LATÉRAUX — raccourcis et fenêtres KPI, ancrés aux deux bords.
+
+   ══ RÈGLE D'OR ══════════════════════════════════════════════
+   Aucun panneau ne recouvre le noyau. Le noyau est réduit ici même
+   (--core-size) pour libérer les deux colonnes : si tu élargis les rails,
+   réduis le noyau d'autant, sinon ça se chevauche sur les écrans étroits.
+   --hub-core (hubIdentity.css) doit suivre la même valeur.
+
+   ══ ANATOMIE D'UN PANNEAU ══════════════════════════════════
+   coin biseauté (clip-path) · numéro d'index · titre · valeur mono ·
+   ligne de balayage au survol · trace de jonction vers le cercle.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.jarvis-page {
+  --rail-w: clamp(190px, 17vw, 264px);
+  --rail-pad: clamp(18px, 2.2vw, 44px);
+  --trace-len: clamp(40px, 6vw, 132px);
+  --hud-edge: rgba(20, 201, 183, .22);
+}
+
+/* Le noyau cède la place aux rails */
+.jarvis-page .jarvis-core { --core-size: min(72vh, 720px); }
+.jarvis-page { --hub-core: min(72vh, 720px); }
+
+.hub-rail {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%) translateZ(0);
+  width: var(--rail-w);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 4;
+  transition: opacity .35s var(--ease), transform .45s var(--ease);
+}
+.hub-rail.is-left  { left: var(--rail-pad); }
+.hub-rail.is-right { right: var(--rail-pad); }
+
+/* Le noyau part en haut à gauche → les rails s'écartent vers l'extérieur */
+.hub-rail.is-hidden { opacity: 0; pointer-events: none; }
+.hub-rail.is-left.is-hidden  { transform: translateY(-50%) translateX(-24px); }
+.hub-rail.is-right.is-hidden { transform: translateY(-50%) translateX(24px); }
+
+/* ── Panneau ───────────────────────────────────────────────── */
+.hud-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  width: 100%;
+  padding: 11px 13px 12px;
+  text-align: left;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  background:
+    linear-gradient(180deg, rgba(16, 32, 48, .78), rgba(10, 20, 32, .86));
+  border: 1px solid var(--hud-edge);
+  transform: translateZ(0);
+  animation: hudIn .7s cubic-bezier(.2, .8, .3, 1) backwards;
+  transition:
+    border-color var(--t-base) var(--ease),
+    box-shadow var(--t-base) var(--ease),
+    transform var(--t-base) var(--ease);
+}
+@keyframes hudIn {
+  from { opacity: 0; transform: translateY(8px) scale(.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Coin biseauté — côté intérieur, celui qui regarde le noyau */
+.is-left .hud-panel {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%);
+}
+.is-right .hud-panel {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+}
+
+/* Arête lumineuse du côté du noyau */
+.hud-panel::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: var(--copper);
+  opacity: .5;
+  transition: opacity var(--t-base) var(--ease);
+}
+.is-left .hud-panel::before  { right: 0; }
+.is-right .hud-panel::before { left: 0; }
+
+.hud-shortcut { cursor: pointer; }
+.hud-shortcut:hover,
+.hud-shortcut:focus-visible {
+  border-color: var(--copper);
+  box-shadow: 0 0 26px rgba(20, 201, 183, .18), var(--shadow-md);
+  outline: none;
+}
+.is-left .hud-shortcut:hover  { transform: translateX(5px); }
+.is-right .hud-shortcut:hover { transform: translateX(-5px); }
+.hud-shortcut:hover::before { opacity: 1; }
+
+.hud-shortcut.is-active {
+  border-color: var(--copper);
+  box-shadow: 0 0 30px rgba(20, 201, 183, .22);
+}
+
+/* ── En-tête ──────────────────────────────────────────────── */
+.hud-head { display: flex; align-items: center; gap: 9px; }
+
+.hud-num {
+  flex: none;
+  padding: 2px 6px;
+  font-family: var(--font-mono);
+  font-size: .64rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--bg-void);
+  background: var(--copper);
+  transform: translateZ(0);
+}
+.hud-num.is-dim {
+  color: var(--copper-light);
+  background: transparent;
+  border: 1px solid var(--hud-edge);
+}
+
+.hud-title {
+  flex: 1;
+  min-width: 0;
+  font-size: .76rem;
+  font-weight: 600;
+  letter-spacing: .3px;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hud-title.is-small { font-size: .7rem; font-weight: 500; color: var(--text-secondary); }
+.hud-icon { flex: none; font-size: .78rem; opacity: .7; }
+
+.hud-trend { flex: none; font-size: .6rem; }
+.hud-trend.is-up { color: var(--emerald); }
+.hud-trend.is-down { color: var(--amber); }
+
+/* ── Valeurs ──────────────────────────────────────────────── */
+.hud-value-row { display: flex; align-items: baseline; gap: 8px; }
+.hud-value {
+  font-family: var(--font-mono);
+  font-size: 1.32rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--copper-light);
+}
+.hud-value.is-compact { font-size: 1.05rem; }
+.hud-value.is-idle { color: var(--text-muted); }
+.hud-unit {
+  font-size: .6rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  line-height: 1.2;
+}
+
+/* ── Fenêtre KPI ─────────────────────────────────────────── */
+.hud-kpi { padding-bottom: 10px; }
+.hud-kpi-body { display: flex; align-items: flex-end; gap: 11px; }
+
+.hud-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 30px;
+  flex: none;
+}
+.hud-bar {
+  width: 5px;
+  background: linear-gradient(180deg, var(--copper-light), var(--copper-dim));
+  transform-origin: bottom;
+  transform: translateZ(0);
+  animation: hudBar 3.4s var(--ease) infinite alternate;
+}
+@keyframes hudBar {
+  from { transform: scaleY(.55); opacity: .55; }
+  to   { transform: scaleY(1); opacity: 1; }
+}
+
+.hud-kpi-figures { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+
+/* ── Ligne de balayage au survol ────────────────────────────── */
+.hud-scan {
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  top: 0;
+  background: linear-gradient(90deg, transparent, var(--copper-light), transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+.hud-shortcut:hover .hud-scan { animation: hudScan 1.1s var(--ease) infinite; }
+@keyframes hudScan {
+  0%   { top: 0;    opacity: 0; }
+  20%  { opacity: .8; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* ── Trace de jonction vers le noyau ──────────────────────────
+   Segment horizontal + coude à 45° + pastille. En CSS positionné plutôt
+   qu'en SVG : la trace doit s'étirer avec la largeur de fenêtre, ce qu'un
+   viewBox fixe ne sait pas faire sans se déformer.
+──────────────────────────────────────────────────────────────── */
+.hud-trace {
+  position: absolute;
+  top: 50%;
+  width: var(--trace-len);
+  height: 1px;
+  pointer-events: none;
+  animation: traceIn .6s var(--ease-out) backwards;
+}
+.is-left .hud-trace  { left: 100%; }
+.is-right .hud-trace { right: 100%; }
+@keyframes traceIn {
+  from { opacity: 0; transform: scaleX(.2); }
+  to   { opacity: 1; transform: scaleX(1); }
+}
+.is-left .hud-trace  { transform-origin: left center; }
+.is-right .hud-trace { transform-origin: right center; }
+
+.hud-trace-line {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--copper), rgba(20, 201, 183, .18));
+  opacity: .7;
+}
+.is-right .hud-trace-line {
+  background: linear-gradient(270deg, var(--copper), rgba(20, 201, 183, .18));
+}
+
+/* Coude à 45° — une simple barre pivotée, ancrée à l'extrémité */
+.hud-trace-elbow {
+  position: absolute;
+  top: 50%;
+  width: 15px;
+  height: 1px;
+  background: var(--copper);
+  opacity: .5;
+}
+.is-left .hud-trace-elbow  { right: -9px; transform: rotate(38deg); transform-origin: left center; }
+.is-right .hud-trace-elbow { left: -9px; transform: rotate(-38deg); transform-origin: right center; }
+
+.hud-trace-node {
+  position: absolute;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--copper-pale);
+  box-shadow: 0 0 9px var(--copper);
+  animation: nodePulse 2.6s var(--ease) infinite;
+}
+.is-left .hud-trace-node  { right: -13px; transform: translateY(-50%) translate(0, 6px); }
+.is-right .hud-trace-node { left: -13px; transform: translateY(-50%) translate(0, 6px); }
+@keyframes nodePulse {
+  0%, 100% { opacity: .45; }
+  50%      { opacity: 1; }
+}
+
+.hud-shortcut:hover .hud-trace-line { opacity: 1; }
+.hud-shortcut.is-active .hud-trace-line { opacity: 1; }
+
+/* ── Adaptations ─────────────────────────────────────────── */
+@media (max-width: 1280px) {
+  .jarvis-page .jarvis-core { --core-size: min(58vh, 520px); }
+  .jarvis-page { --hub-core: min(58vh, 520px); }
+  .hud-value { font-size: 1.15rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-panel, .hud-trace, .hud-bar, .hud-trace-node { animation: none; }
+  .hud-shortcut:hover .hud-scan { animation: none; }
+}
