@@ -8,15 +8,18 @@ import './hubPanels.css';
  *   .hud-slot   conteneur NON rogné — porte la trace et l'entrée/sortie
  *     .hud-panel  cadre biseauté (clip-path) — fait office de bordure
  *       .hud-in     intérieur sombre, même biseau réduit d'1px
- *     .hud-trace  segment + coude + pastille, vers le noyau
+ *     .hud-trace  segment + coude à 30° + pastille, vers le noyau
  *
- * La trace est SŒUR du panneau, pas enfant : un clip-path rogne tous les
- * descendants, y compris ce qui dépasse volontairement.
+ * La trace est SŒUR du panneau : un clip-path rogne tous les descendants,
+ * y compris ce qui dépasse volontairement.
  *
- * ══ CHORÉGRAPHIE ══════════════════════════════════════════
- * Chaque slot reçoit --i (son rang dans le rail) : le CSS s'en sert pour
- * échelonner l'apparition après le déploiement du noyau. Le rang vient du
- * JS parce que CSS ne sait pas compter ses frères dans un calc().
+ * ══ DEUX VARIABLES VENUES DU JS ═══════════════════════════════
+ *   --i    rang du slot → échelonne l'apparition après le noyau
+ *   --dir  +1 / −1 → sens du coude. Les panneaux du haut cassent vers le
+ *          BAS, ceux du bas vers le HAUT : la trace converge toujours vers
+ *          le centre du cercle. Sans ça, les traces divergeraient et le
+ *          faisceau perdrait son point de fuite.
+ * CSS ne sait ni compter ses frères ni connaître sa position dans un calc().
  */
 
 function Trace({ delay }) {
@@ -29,9 +32,21 @@ function Trace({ delay }) {
   );
 }
 
-function Shortcut({ branch, num, value, active, onSelect, delay, rank }) {
+/** Bloc chiffré, plaqué contre le bord intérieur — côté noyau. */
+function Metric({ value, unit, compact = false }) {
   return (
-    <div className="hud-slot" style={{ '--i': rank }}>
+    <span className="hud-metric">
+      <span className={`hud-value${compact ? ' is-compact' : ''}${value == null ? ' is-idle' : ''}`}>
+        {value == null ? '—' : value}
+      </span>
+      <span className="hud-unit">{unit}</span>
+    </span>
+  );
+}
+
+function Shortcut({ branch, num, value, active, onSelect, delay, rank, dir }) {
+  return (
+    <div className="hud-slot" style={{ '--i': rank, '--dir': dir }}>
       <button
         type="button"
         className={`hud-panel hud-shortcut${active ? ' is-active' : ''}`}
@@ -45,12 +60,7 @@ function Shortcut({ branch, num, value, active, onSelect, delay, rank }) {
             <span className="hud-icon" aria-hidden="true">{branch.icon}</span>
           </span>
 
-          <span className="hud-value-row">
-            <span className={`hud-value${value == null ? ' is-idle' : ''}`}>
-              {value == null ? '—' : value}
-            </span>
-            <span className="hud-unit">{branch.unit}</span>
-          </span>
+          <Metric value={value} unit={branch.unit} />
 
           <span className="hud-rule" aria-hidden="true">
             <span className="hud-rule-fill" />
@@ -65,9 +75,9 @@ function Shortcut({ branch, num, value, active, onSelect, delay, rank }) {
   );
 }
 
-function KpiWindow({ kpi, num, value, delay, rank }) {
+function KpiWindow({ kpi, num, value, delay, rank, dir }) {
   return (
-    <div className="hud-slot" style={{ '--i': rank }}>
+    <div className="hud-slot" style={{ '--i': rank, '--dir': dir }}>
       <div className="hud-panel hud-kpi" style={{ animationDelay: `${delay}s` }}>
         <span className="hud-in">
           <span className="hud-head">
@@ -90,12 +100,7 @@ function KpiWindow({ kpi, num, value, delay, rank }) {
                 />
               ))}
             </span>
-            <span className="hud-kpi-figures">
-              <span className={`hud-value is-compact${value == null ? ' is-idle' : ''}`}>
-                {value == null ? '—' : value}
-              </span>
-              <span className="hud-unit">{kpi.unit}</span>
-            </span>
+            <Metric value={value ?? kpi.fake} unit={kpi.unit} compact />
           </span>
         </span>
       </div>
@@ -111,6 +116,10 @@ export default function HubPanels({ kpis = {}, activeId = null, hidden = false, 
       {['left', 'right'].map((side) => {
         const shortcuts = HUB_BRANCHES.filter((b) => b.side === side);
         const windows = HUB_KPIS.filter((k) => k.side === side);
+        const total = shortcuts.length + windows.length;
+
+        // Moitié haute : le coude descend. Moitié basse : il monte.
+        const sens = (rang) => (rang < total / 2 ? 1 : -1);
 
         return (
           <div key={side} className={`hub-rail is-${side}${hidden ? ' is-hidden' : ''}`}>
@@ -123,20 +132,25 @@ export default function HubPanels({ kpis = {}, activeId = null, hidden = false, 
                 active={activeId === b.id}
                 onSelect={onSelect}
                 rank={i}
+                dir={sens(i)}
                 delay={1.7 + i * 0.1}
               />
             ))}
 
-            {windows.map((k, i) => (
-              <KpiWindow
-                key={k.id}
-                kpi={k}
-                num={String(HUB_KPIS.indexOf(k) + 5).padStart(2, '0')}
-                value={kpis[k.id]}
-                rank={shortcuts.length + i}
-                delay={1.7 + (shortcuts.length + i) * 0.1}
-              />
-            ))}
+            {windows.map((k, i) => {
+              const rang = shortcuts.length + i;
+              return (
+                <KpiWindow
+                  key={k.id}
+                  kpi={k}
+                  num={String(HUB_KPIS.indexOf(k) + 5).padStart(2, '0')}
+                  value={kpis[k.id]}
+                  rank={rang}
+                  dir={sens(rang)}
+                  delay={1.7 + rang * 0.1}
+                />
+              );
+            })}
           </div>
         );
       })}
