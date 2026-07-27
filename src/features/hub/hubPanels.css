@@ -2,21 +2,24 @@
    RAILS LATÉRAUX — raccourcis et fenêtres KPI, ancrés aux deux bords.
 
    ══ LE NOYAU GARDE SA TAILLE ═══════════════════════════════
-   --core-d = min(88vh, 900px). Ce sont les RAILS qui s'adaptent à la place
-   restante, jamais le cercle. Trop étroit sur un petit écran ? Réduire
-   --rail-w, pas le noyau.
+   --core-d = min(88vh, 900px). Ce sont les RAILS qui s'adaptent, jamais le
+   cercle. Trop étroit sur un petit écran ? Réduire --rail-w.
 
-   ══ LA TRACE EST CALCULÉE, PAS DEVINÉE ═════════════════════════
-   --gap = (100vw − diamètre) / 2 − marge − largeur du rail, plus 9 % du
-   diamètre de pénétration dans la couronne : les panneaux hauts et bas sont
-   plus loin du cercle que ceux à hauteur d'équateur, sans cette marge seuls
-   les panneaux centraux toucheraient.
+   ══ GÉOMÉTRIE DE LA TRACE ══════════════════════════════════
+   Segment horizontal, puis coude à 30°, puis pastille. Les trois cotes
+   sont liées et doivent le rester :
 
-   ══ CHORÉGRAPHIE — --core-anim ═══════════════════════════════
-   Les panneaux n'apparaissent qu'APRÈS le déploiement du noyau, échelonnés
-   par --i (rang du slot, fourni par le JS). À la sortie, aucun délai : ils
-   dégagent devant le cercle qui part. Entrée retardée, sortie instantanée —
-   l'inverse donnerait une interface qui traîne.
+     --diag    = longueur du segment incliné (58px)
+     --diag-x  = sa projection horizontale = --diag × cos30 ≈ 50px
+     --diag-y  = sa projection verticale   = --diag × sin30 = 29px
+
+   Le segment horizontal vaut donc --trace-len − --diag-x, et la pastille
+   se pose à (--trace-len, ±--diag-y). Changer l'angle impose de recalculer
+   les deux projections, sinon le trait se détache de sa pastille.
+
+   --dir (fourni par le JS) donne le sens : les panneaux du haut cassent
+   vers le bas, ceux du bas vers le haut. Le faisceau converge ainsi vers
+   le centre du cercle.
 
    ══ DEUX PIÈGES DÉJÀ PAYÉS ══════════════════════════════════
    1. clip-path rogne TOUS les descendants → la trace est sœur du panneau.
@@ -29,12 +32,14 @@
   --rail-w: clamp(215px, 18vw, 330px);
   --rail-pad: clamp(14px, 1.5vw, 32px);
   --gap: calc((100vw - var(--core-d)) / 2 - var(--rail-pad) - var(--rail-w));
-  --trace-len: calc(var(--gap) + var(--core-d) * .09);
+  --trace-len: max(calc(var(--gap) + var(--core-d) * .09), 96px);
+  --diag: 58px;
+  --diag-x: 50px;
+  --diag-y: 29px;
   --hud-edge: rgba(20, 201, 183, .34);
   --hud-bevel: 20px;
 }
 
-/* Le noyau conserve sa taille d'origine ; --hub-core (accueil) la suit. */
 .jarvis-page .jarvis-core { --core-size: var(--core-d); }
 .jarvis-page { --hub-core: var(--core-d); }
 
@@ -71,11 +76,7 @@
 .is-left.is-hidden .hud-slot  { transform: translateX(-26px); }
 .is-right.is-hidden .hud-slot { transform: translateX(26px); }
 
-/* ── Forme du panneau ──────────────────────────────────────
-   Grand biseau au coin supérieur extérieur, biseau court au coin inférieur
-   intérieur : l'asymétrie donne une direction, le panneau « pointe » vers
-   le noyau.
-──────────────────────────────────────────────────────────────── */
+/* ── Forme du panneau ────────────────────────────────────── */
 .is-left .hud-panel,
 .is-left .hud-in {
   clip-path: polygon(
@@ -99,7 +100,6 @@
   );
 }
 
-/* Cadre coloré : sert de bordure une fois recouvert par .hud-in */
 .hud-panel {
   position: relative;
   display: block;
@@ -122,7 +122,6 @@
   to   { opacity: 1; transform: none; }
 }
 
-/* Intérieur sombre */
 .hud-in {
   position: relative;
   display: flex;
@@ -200,23 +199,48 @@
 .hud-trend.is-up { color: var(--emerald); }
 .hud-trend.is-down { color: var(--amber); }
 
-/* ── Valeurs ─────────────────────────────────────────────── */
-.hud-value-row { display: flex; align-items: baseline; gap: 10px; }
+/* ── Bloc chiffré — plaqué contre le bord intérieur, côté noyau ─────
+   Le chiffre regarde le cercle : le regard part du noyau, rencontre la
+   trace, puis la valeur, et seulement ensuite le titre.
+──────────────────────────────────────────────────────────────── */
+.hud-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 7px 11px 8px;
+  background: rgba(20, 201, 183, .07);
+  min-width: 0;
+}
+.is-left .hud-metric {
+  align-self: flex-end;
+  align-items: flex-end;
+  text-align: right;
+  border-right: 2px solid var(--copper);
+}
+.is-right .hud-metric {
+  align-self: flex-start;
+  align-items: flex-start;
+  text-align: left;
+  border-left: 2px solid var(--copper);
+}
+
 .hud-value {
   font-family: var(--font-mono);
-  font-size: 1.65rem;
+  font-size: 1.7rem;
   font-weight: 600;
   line-height: 1;
   color: var(--copper-light);
+  white-space: nowrap;
 }
-.hud-value.is-compact { font-size: 1.25rem; }
+.hud-value.is-compact { font-size: 1.2rem; }
 .hud-value.is-idle { color: var(--text-muted); }
 .hud-unit {
-  font-size: .62rem;
+  font-size: .6rem;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: .8px;
   line-height: 1.25;
+  white-space: nowrap;
 }
 
 /* Jauge décorative en pied de raccourci */
@@ -237,7 +261,11 @@
 .hud-shortcut.is-active .hud-rule-fill { width: 100%; }
 
 /* ── Fenêtre KPI ─────────────────────────────────────────── */
-.hud-kpi-body { display: flex; align-items: flex-end; gap: 13px; }
+.hud-kpi-body { display: flex; align-items: flex-end; gap: 12px; }
+.is-left .hud-kpi-body  { flex-direction: row; }
+.is-right .hud-kpi-body { flex-direction: row-reverse; }
+
+.hud-kpi-body .hud-metric { flex: 1; }
 
 .hud-bars {
   display: flex;
@@ -258,8 +286,6 @@
   to   { transform: scaleY(1); opacity: 1; }
 }
 
-.hud-kpi-figures { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-
 /* ── Ligne de balayage au survol ────────────────────────────── */
 .hud-scan {
   position: absolute;
@@ -277,15 +303,15 @@
   100% { top: 100%; opacity: 0; }
 }
 
-/* ── Trace de jonction vers le noyau ──────────────────────────
-   En CSS positionné plutôt qu'en SVG : la trace doit s'étirer avec la
-   largeur de fenêtre, ce qu'un viewBox fixe ne sait pas faire sans se
-   déformer.
+/* ── Trace de jonction — segment, coude à 30°, pastille ───────────
+   Voir la géométrie en tête de fichier. En CSS positionné plutôt qu'en
+   SVG : la trace doit s'étirer avec la largeur de fenêtre, ce qu'un viewBox
+   fixe ne sait pas faire sans se déformer.
 ──────────────────────────────────────────────────────────────── */
 .hud-trace {
   position: absolute;
   top: 50%;
-  width: max(var(--trace-len), 40px);
+  width: var(--trace-len);
   height: 2px;
   pointer-events: none;
   animation: traceIn .6s var(--ease-out) backwards;
@@ -297,20 +323,47 @@
   to   { opacity: 1; transform: scaleX(1); }
 }
 
+/* 1 · segment horizontal */
 .hud-trace-line {
   position: absolute;
-  inset: 0;
+  top: 0;
+  height: 2px;
+  width: calc(100% - var(--diag-x));
   opacity: .8;
-  background: linear-gradient(90deg, var(--copper), var(--copper-light) 70%, var(--copper-pale));
+}
+.is-left .hud-trace-line {
+  left: 0;
+  background: linear-gradient(90deg, var(--copper), var(--copper-light));
 }
 .is-right .hud-trace-line {
-  background: linear-gradient(270deg, var(--copper), var(--copper-light) 70%, var(--copper-pale));
+  right: 0;
+  background: linear-gradient(270deg, var(--copper), var(--copper-light));
 }
 
-/* Pastille à la jonction avec l'anneau */
+/* 2 · coude à 30°, ancré à la fin du segment */
+.hud-trace-elbow {
+  position: absolute;
+  top: 0;
+  width: var(--diag);
+  height: 2px;
+  background: linear-gradient(90deg, var(--copper-light), var(--copper-pale));
+  opacity: .85;
+}
+.is-left .hud-trace-elbow {
+  left: calc(100% - var(--diag-x));
+  transform-origin: left center;
+  transform: rotate(calc(30deg * var(--dir, 1)));
+}
+.is-right .hud-trace-elbow {
+  right: calc(100% - var(--diag-x));
+  transform-origin: right center;
+  transform: rotate(calc(-30deg * var(--dir, 1)));
+}
+
+/* 3 · pastille, au bout du coude — contre l'anneau */
 .hud-trace-node {
   position: absolute;
-  top: 50%;
+  top: calc(var(--diag-y) * var(--dir, 1));
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -318,26 +371,15 @@
   box-shadow: 0 0 14px var(--copper);
   animation: nodePulse 2.6s var(--ease) infinite;
 }
-.is-left .hud-trace-node  { left: 100%; transform: translate(-4px, -50%); }
-.is-right .hud-trace-node { right: 100%; transform: translate(4px, -50%); }
+.is-left .hud-trace-node  { left: 100%;  transform: translate(-4px, -3px); }
+.is-right .hud-trace-node { right: 100%; transform: translate(4px, -3px); }
 @keyframes nodePulse {
   0%, 100% { opacity: .5; }
   50%      { opacity: 1; }
 }
 
-/* Coude à 45°, au départ du panneau */
-.hud-trace-elbow {
-  position: absolute;
-  top: 0;
-  width: 20px;
-  height: 2px;
-  background: var(--copper);
-  opacity: .5;
-}
-.is-left .hud-trace-elbow  { left: 0; transform: rotate(-32deg); transform-origin: left center; }
-.is-right .hud-trace-elbow { right: 0; transform: rotate(32deg); transform-origin: right center; }
-
-.hud-slot:hover .hud-trace-line { opacity: 1; }
+.hud-slot:hover .hud-trace-line,
+.hud-slot:hover .hud-trace-elbow { opacity: 1; }
 
 /* ── Adaptations — on rétrécit les RAILS, jamais le noyau ─────────── */
 @media (max-width: 1500px) {
