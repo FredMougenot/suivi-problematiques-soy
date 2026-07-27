@@ -23,6 +23,7 @@ import { useAuthStore } from '../store/useAuthStore';
 //  Pour ajouter une page : ajouter { label, path, icon } dans le tableau.
 // ─────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
+  { label: 'Hub SOY',                path: '/hub',                    icon: '◉' },
   { label: 'Tableau de bord',        path: '/dashboard',             icon: '◈' },
   { label: 'Planning auto',          path: '/planning-auto',          icon: '▤' },
   { label: 'Intentions production',  path: '/intentions-production',  icon: '🏭' },
