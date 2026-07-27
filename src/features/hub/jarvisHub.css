@@ -1,21 +1,30 @@
 /* ═══════════════════════════════════════════════════════════════════
    HUB JARVIS — noyau HUD, branches KPI, surface d'affichage.
 
-   ══ 1 · MÉLANGE ADDITIF ══════════════════════════════════════
-   mix-blend-mode: screen sur tout ce qui est lumineux. Deux halos qui se
-   croisent s'ADDITIONNENT au lieu de se masquer — d'où les blancs
-   incandescents aux intersections. C'est LA différence entre une image
-   lumineuse et une image simplement colorée. .jarvis-svg porte
-   isolation:isolate pour confiner le mélange au noyau.
+   ══ PIPELINE DE RENDU — SIX PASSES ════════════════════════════
+   L'ensemble lumineux (#jBright, défini dans <defs>) est rendu six fois
+   par <use>, chacune avec son propre flou, toutes en screen :
 
-   ══ 2 · DÉGRADÉ FIXE, GÉOMÉTRIE MOBILE ══════════════════════════
-   stroke: url(#jSplit) — dégradé cyan→blanc→orange ancré à l'écran. Les
-   anneaux tournent dessous et changent de couleur en le traversant.
+     .pass-atmo     flou 48px  → brume colorée, la lumière qui remplit l'air
+     .pass-wide     flou 22px  → halo
+     .pass-tight    flou  7px  → fusion des traits voisins
+     .pass-ca-cool  flou 3px, décalée −3px → frange chromatique froide
+     .pass-ca-warm  flou 3px, décalée +3px → frange chromatique chaude
+     .pass-sharp    net       → le dessin
 
-   ══ 3 · BLOOM PAR DOUBLAGE ═══════════════════════════════════
-   .x-halo (épais, très transparent) + .x (net). Jamais l'un sans l'autre.
-   Un feGaussianBlur serait recalculé à chaque image sur 30 groupes en
-   rotation — injouable.
+   C'est le pipeline d'un moteur 3D. Le flou réel ne peut pas être simulé
+   par des traits épais : un trait épais reste net sur ses bords, un flou
+   étale l'énergie lumineuse. C'est toute la différence.
+
+   ══ SOUPAPE DE PERFORMANCE ═════════════════════════════════
+   Six rendus et trois flous par image, ça coûte. Sur machine faible :
+   ajouter la classe is-lite sur .jarvis-page — les passes floutées
+   disparaissent, la géométrie reste identique. Les passes lourdes sont
+   déjà coupées automatiquement quand le noyau est réduit (état focus).
+
+   ══ DÉGRADÉ FIXE, GÉOMÉTRIE MOBILE ═══════════════════════════
+   stroke: url(#jSplit) — cyan → blanc → orange ancré à l'écran. Les anneaux
+   tournent dessous et changent de température en le traversant.
 
    Hiérarchie : structure .12–.25 · détail .3–.5 · accent .7–1 · cœur blanc.
    translateZ(0) sur toute couche animée ou semi-transparente (bug connu du
@@ -30,14 +39,14 @@
   transform: translateZ(0);
 }
 
-/* Vignette : assombrit les bords pour que le noyau ressorte. Sans elle,
-   le fond concurrence les halos et tout paraît délavé. */
+/* Vignette : assombrit les bords. Contre-intuitif mais indispensable —
+   la luminosité perçue vient du contraste, pas de la valeur absolue. */
 .jarvis-page::before {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(circle at 50% 50%, transparent 34%, rgba(3, 7, 14, .78) 88%);
+  background: radial-gradient(circle at 50% 50%, transparent 30%, rgba(2, 5, 11, .82) 86%);
   transform: translateZ(0);
 }
 
@@ -78,21 +87,34 @@
   isolation: isolate; /* confine le mix-blend-mode au noyau */
 }
 
-/* Tout ce qui est lumineux s'additionne */
-.j-add,
-.j-arc-major, .j-arc-major-halo,
-.j-arc-bright, .j-arc-bright-halo,
-.j-arc-amber, .j-arc-amber-halo,
-.j-arc-thin, .j-arc-thin-halo,
-.j-band, .j-band-halo,
-.j-band-thin, .j-band-thin-halo,
-.j-bracket, .j-bracket-halo,
-.j-ring-bright, .j-ring-halo,
-.j-bloom, .j-flare, .j-heart,
-.j-bar, .j-dust, .j-sweep, .j-sweep-tail, .j-sweep-edge,
-.j-block.is-hot {
+/* ── Les six passes ─────────────────────────────────────────── */
+.pass {
   mix-blend-mode: screen;
+  transform-box: view-box;
+  transform-origin: 500px 500px;
 }
+.pass-atmo    { filter: blur(48px); opacity: .5; }
+.pass-wide    { filter: blur(22px); opacity: .62; }
+.pass-tight   { filter: blur(7px);  opacity: .8; }
+.pass-ca-cool { filter: blur(3px);  opacity: .34; transform: translate(-3px, 1px); }
+.pass-ca-warm { filter: blur(3px);  opacity: .34; transform: translate(3px, -1px); }
+.pass-sharp   { opacity: 1; }
+
+/* Soupape : noyau réduit → les passes lourdes ne servent plus à rien */
+.jarvis-core.is-focused .pass-atmo,
+.jarvis-core.is-focused .pass-wide,
+.jarvis-core.is-focused .pass-ca-cool,
+.jarvis-core.is-focused .pass-ca-warm { display: none; }
+
+/* Soupape manuelle */
+.jarvis-page.is-lite .pass-atmo,
+.jarvis-page.is-lite .pass-wide,
+.jarvis-page.is-lite .pass-tight,
+.jarvis-page.is-lite .pass-ca-cool,
+.jarvis-page.is-lite .pass-ca-warm { display: none; }
+
+/* Le fond additif reste hors passes */
+.j-add { mix-blend-mode: screen; }
 
 /* ── Apparition échelonnée des couches ─────────────────────────── */
 .layer {
@@ -143,92 +165,87 @@
 .rot-s140  { animation: jspin 140s linear infinite; }
 .rot-dust  { animation: jspin 220s linear infinite; }
 
-/* ── Structure (niveau bas) ─────────────────────────────────── */
-.j-hair      { fill: none; stroke: #2BE8FF; stroke-width: 1; opacity: .16; }
-.j-hair-blue { fill: none; stroke: var(--sapphire); stroke-width: 1; opacity: .3; }
-.j-poly      { fill: none; stroke: #2BE8FF; stroke-width: 1; opacity: .2; }
-.j-tick      { stroke: #2BE8FF; stroke-width: 2.6; opacity: .3; }
-.j-tick-fine { stroke: #2BE8FF; stroke-width: 1.3; opacity: .22; }
+/* ── Structure (niveau bas, hors passes) ──────────────────────── */
+.j-hair      { fill: none; stroke: #00D9FF; stroke-width: 1; opacity: .16; }
+.j-hair-blue { fill: none; stroke: #0060A8; stroke-width: 1; opacity: .38; }
+.j-poly      { fill: none; stroke: #00D9FF; stroke-width: 1; opacity: .2; }
+.j-tick      { stroke: #00D9FF; stroke-width: 2.6; opacity: .3; }
+.j-tick-fine { stroke: #00D9FF; stroke-width: 1.3; opacity: .22; }
 .j-tick-long { opacity: .62; }
-.j-comb      { stroke: url(#jSplit); stroke-width: 1.6; opacity: .34; }
-.j-blade     { fill: #2BE8FF; opacity: .05; stroke: #2BE8FF; stroke-width: .8; }
+.j-blade     { fill: #00D9FF; opacity: .05; stroke: #00D9FF; stroke-width: .8; }
+.j-spoke     { stroke: #00D9FF; stroke-width: 1.6; opacity: .32; }
+.j-spoke-dot { fill: #D6FBFF; opacity: .6; }
+.j-trace     { fill: none; stroke: #00D9FF; stroke-width: 1.4; opacity: .36;
+               stroke-linejoin: round; stroke-linecap: round; }
+.j-trace-dot { fill: #D6FBFF; opacity: .65; }
+.j-dust      { fill: #D6FBFF; opacity: .2; animation: jtwinkle 5.5s var(--ease) infinite; }
+@keyframes jtwinkle {
+  0%, 100% { opacity: .08; }
+  50%      { opacity: .6; }
+}
 
-/* ── Détail (niveau moyen) ──────────────────────────────────── */
-.j-ring        { fill: none; stroke: url(#jSplit); stroke-width: 1.8; opacity: .55; }
-.j-ring-bright { fill: none; stroke: url(#jSplit); stroke-width: 2.4; opacity: .95; }
-.j-ring-halo   { fill: none; stroke: url(#jSplit); stroke-width: 18;  opacity: .12; }
-.j-spoke       { stroke: #2BE8FF; stroke-width: 1.6; opacity: .32; }
-.j-spoke-dot   { fill: #BFF9FF; opacity: .6; }
-.j-trace       { fill: none; stroke: #2BE8FF; stroke-width: 1.4; opacity: .36;
-                 stroke-linejoin: round; stroke-linecap: round; }
-.j-trace-dot   { fill: #BFF9FF; opacity: .65; }
+/* ── Ensemble lumineux — tout ce qui passe dans le pipeline ──────── */
+.j-comb        { stroke: url(#jSplit); stroke-width: 1.6; opacity: .38; }
+.j-ring        { fill: none; stroke: url(#jSplit); stroke-width: 1.8; opacity: .6; }
+.j-ring-bright { fill: none; stroke: url(#jSplit); stroke-width: 2.6; opacity: 1; }
+.j-ring-halo   { fill: none; stroke: url(#jSplit); stroke-width: 18; opacity: .14; }
 
 .j-flow {
   fill: none;
   stroke: url(#jSplit);
   stroke-width: 1.8;
-  opacity: .45;
+  opacity: .5;
   stroke-dasharray: 14 10;
   animation: jdash 2.8s linear infinite;
 }
 @keyframes jdash { to { stroke-dashoffset: -24; } }
 
-.j-block { fill: #2BE8FF; opacity: .34; }
-.j-block.is-amber { fill: #FF8A2B; opacity: .5; }
+.j-block { fill: #00E5FF; opacity: .38; }
+.j-block.is-amber { fill: #FF8A18; opacity: .55; }
 .j-block.is-hot { animation: jblink 4.6s var(--ease) infinite; }
 @keyframes jblink {
-  0%, 60%, 100% { opacity: .3; }
+  0%, 60%, 100% { opacity: .32; }
   66%, 74%      { opacity: 1; }
 }
 
 .j-bar {
   stroke: url(#jSplit);
   stroke-width: 2.4;
-  opacity: .55;
+  opacity: .6;
   stroke-dasharray: 1;
   animation: jbar 2.9s var(--ease) infinite alternate;
 }
 @keyframes jbar {
-  from { stroke-dashoffset: .82; opacity: .3; }
-  to   { stroke-dashoffset: .08; opacity: .85; }
+  from { stroke-dashoffset: .82; opacity: .32; }
+  to   { stroke-dashoffset: .08; opacity: .9; }
 }
 
-.j-dust { fill: #BFF9FF; opacity: .2; animation: jtwinkle 5.5s var(--ease) infinite; }
-@keyframes jtwinkle {
-  0%, 100% { opacity: .08; }
-  50%      { opacity: .6; }
-}
+/* Accents — halo + net (le flou réel des passes s'ajoute par-dessus) */
+.j-arc-major-halo  { fill: none; stroke: url(#jSplit); stroke-width: 30; opacity: .12; stroke-linecap: round; }
+.j-arc-major       { fill: none; stroke: url(#jSplit); stroke-width: 5.5; opacity: .9; stroke-linecap: round; }
 
-/* ── Accents — toujours par paire halo + net ────────────────────── */
-.j-arc-major-halo  { fill: none; stroke: url(#jSplit); stroke-width: 30; opacity: .1; stroke-linecap: round; }
-.j-arc-major       { fill: none; stroke: url(#jSplit); stroke-width: 5.5; opacity: .85; stroke-linecap: round; }
-
-.j-arc-bright-halo { fill: none; stroke: #DFFCFF; stroke-width: 22; opacity: .14; stroke-linecap: round; }
+.j-arc-bright-halo { fill: none; stroke: #D6FBFF; stroke-width: 22; opacity: .16; stroke-linecap: round; }
 .j-arc-bright      { fill: none; stroke: #FFFFFF; stroke-width: 2.8; opacity: 1; stroke-linecap: round; }
 
-.j-arc-amber-halo  { fill: none; stroke: #FF8A2B; stroke-width: 26; opacity: .13; stroke-linecap: round; }
-.j-arc-amber       { fill: none; stroke: #FFB25E; stroke-width: 3.4; opacity: .9; stroke-linecap: round; }
+.j-arc-amber-halo  { fill: none; stroke: #FF8A18; stroke-width: 26; opacity: .16; stroke-linecap: round; }
+.j-arc-amber       { fill: none; stroke: #FFB25E; stroke-width: 3.4; opacity: .95; stroke-linecap: round; }
 
-.j-arc-thin-halo   { fill: none; stroke: url(#jSplit); stroke-width: 12; opacity: .07; stroke-linecap: round; }
-.j-arc-thin        { fill: none; stroke: url(#jSplit); stroke-width: 1.6; opacity: .55; stroke-linecap: round; }
+.j-arc-thin-halo   { fill: none; stroke: url(#jSplit); stroke-width: 12; opacity: .08; stroke-linecap: round; }
+.j-arc-thin        { fill: none; stroke: url(#jSplit); stroke-width: 1.6; opacity: .6; stroke-linecap: round; }
 
-/* Rubans larges — les bandes lumineuses épaisses */
-.j-band-halo       { fill: none; stroke: url(#jSplit); stroke-width: 46; opacity: .1; stroke-linecap: round; }
-.j-band            { fill: none; stroke: url(#jSplit); stroke-width: 13; opacity: .5; stroke-linecap: round; }
-.j-band-thin-halo  { fill: none; stroke: url(#jSplit); stroke-width: 30; opacity: .1; stroke-linecap: round; }
-.j-band-thin       { fill: none; stroke: url(#jSplit); stroke-width: 7;  opacity: .55; stroke-linecap: round; }
+.j-band-halo       { fill: none; stroke: url(#jSplit); stroke-width: 46; opacity: .12; stroke-linecap: round; }
+.j-band            { fill: none; stroke: url(#jSplit); stroke-width: 13; opacity: .58; stroke-linecap: round; }
+.j-band-thin-halo  { fill: none; stroke: url(#jSplit); stroke-width: 30; opacity: .12; stroke-linecap: round; }
+.j-band-thin       { fill: none; stroke: url(#jSplit); stroke-width: 7; opacity: .62; stroke-linecap: round; }
 
-.j-bracket-halo    { fill: none; stroke: #DFFCFF; stroke-width: 18; opacity: .1; stroke-linecap: round; }
-.j-bracket         { fill: none; stroke: #DFFCFF; stroke-width: 2.4; opacity: .85; stroke-linecap: round; }
+.j-bracket-halo    { fill: none; stroke: #D6FBFF; stroke-width: 18; opacity: .12; stroke-linecap: round; }
+.j-bracket         { fill: none; stroke: #D6FBFF; stroke-width: 2.4; opacity: .9; stroke-linecap: round; }
 
-.j-poly-bright     { fill: none; stroke: #BFF9FF; stroke-width: 1.4; opacity: .5; }
+.j-poly-bright     { fill: none; stroke: #D6FBFF; stroke-width: 1.4; opacity: .55; }
 
-/* Balayage radar */
-.j-sweep      { opacity: .7; }
-.j-sweep-tail { opacity: .55; }
-.j-sweep-edge { stroke: #DFFCFF; stroke-width: 1.8; opacity: .7; }
+.j-sweep      { opacity: .75; }
+.j-sweep-edge { stroke: #EAFDFF; stroke-width: 1.8; opacity: .8; }
 
-/* Points de bloom + éclats anamorphiques */
 .j-bloom { opacity: .95; animation: jbreathe 6s var(--ease) infinite; }
 .j-flare { animation: jflicker 3.4s var(--ease) infinite; }
 .j-flare.is-slow { animation-duration: 5.2s; }
@@ -242,11 +259,10 @@
   52%      { opacity: .78; }
 }
 
-/* Cœur du noyau */
 .j-heart { animation: jbreathe 4.4s var(--ease) infinite; }
 .j-pulse {
   fill: none;
-  stroke: #2BE8FF;
+  stroke: #00E5FF;
   stroke-width: 2.2;
   transform-box: view-box;
   transform-origin: 500px 500px;
@@ -254,14 +270,14 @@
 }
 .j-pulse-2 { animation-delay: 2.5s; }
 @keyframes jpulse {
-  0%   { transform: scale(.92); opacity: .7; }
+  0%   { transform: scale(.92); opacity: .75; }
   75%  { transform: scale(1.22); opacity: 0; }
   100% { transform: scale(1.22); opacity: 0; }
 }
 
 /* ── Typographie du noyau ────────────────────────────────────── */
 .j-label {
-  fill: #EAFEFF;
+  fill: #EAFDFF;
   font-family: var(--font-heading);
   font-size: 62px;
   font-weight: 300;
@@ -274,15 +290,15 @@
   font-size: 19px;
   letter-spacing: 6px;
   text-anchor: middle;
-  opacity: .8;
+  opacity: .85;
 }
 .j-clock {
-  fill: #BFF9FF;
+  fill: #D6FBFF;
   font-family: var(--font-mono);
   font-size: 25px;
   letter-spacing: 3px;
   text-anchor: middle;
-  opacity: .8;
+  opacity: .85;
 }
 .j-micro {
   fill: var(--text-muted);
@@ -293,7 +309,7 @@
   opacity: .45;
 }
 .j-tag {
-  fill: #2BE8FF;
+  fill: #00D9FF;
   font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 2.5px;
@@ -305,24 +321,24 @@
 .j-link-halo {
   stroke: url(#jSplit);
   stroke-width: 12;
-  opacity: .07;
+  opacity: .08;
   stroke-linecap: round;
   transition: opacity var(--t-base) var(--ease);
 }
-.j-link-halo.is-hot { opacity: .2; }
+.j-link-halo.is-hot { opacity: .22; }
 .j-link {
   stroke: url(#jSplit);
   stroke-width: 1.6;
-  opacity: .5;
+  opacity: .55;
   stroke-dasharray: 5 7;
   animation: jdash 2.4s linear infinite;
   transition: opacity var(--t-base) var(--ease), stroke-width var(--t-base) var(--ease);
 }
 .j-link.is-hot { opacity: 1; stroke-width: 2.4; }
 
-.j-node-dot { fill: var(--bg-base); stroke: #2BE8FF; stroke-width: 2; }
-.j-node-dot.is-hot { fill: #2BE8FF; }
-.j-node-pip { fill: #BFF9FF; opacity: .55; }
+.j-node-dot { fill: var(--bg-base); stroke: #00E5FF; stroke-width: 2; }
+.j-node-dot.is-hot { fill: #00E5FF; }
+.j-node-pip { fill: #D6FBFF; opacity: .55; }
 .j-node-pip.is-hot { opacity: 1; }
 
 /* ── Branches (HTML au-dessus du SVG) ──────────────────────────── */
@@ -333,7 +349,7 @@
   padding: 13px 15px;
   background: var(--bg-float);
   backdrop-filter: blur(16px) saturate(150%);
-  border: 1px solid var(--copper-dim);
+  border: 1px solid rgba(0, 217, 255, .18);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-md);
   cursor: pointer;
@@ -353,16 +369,16 @@
   position: absolute;
   left: 0; top: 12px; bottom: 12px;
   width: 2px;
-  background: #2BE8FF;
-  opacity: .4;
+  background: #00E5FF;
+  opacity: .45;
   transition: opacity var(--t-base) var(--ease);
   transform: translateZ(0);
 }
 .jbranch:hover,
 .jbranch:focus-visible {
   transform: translate(-50%, -50%) scale(1.06);
-  border-color: #2BE8FF;
-  box-shadow: var(--shadow-lg), 0 0 38px rgba(43, 232, 255, .35);
+  border-color: #00E5FF;
+  box-shadow: var(--shadow-lg), 0 0 42px rgba(0, 229, 255, .38);
   outline: none;
 }
 .jbranch:hover::before { opacity: 1; }
@@ -370,8 +386,8 @@
 .jbranch-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .jbranch-dot {
   width: 7px; height: 7px; border-radius: 50%;
-  background: #2BE8FF;
-  box-shadow: 0 0 10px #2BE8FF;
+  background: #00E5FF;
+  box-shadow: 0 0 12px #00E5FF;
   flex: none;
   transform: translateZ(0);
 }
@@ -405,10 +421,7 @@
 .jarvis-core.is-focused .j-node-dot,
 .jarvis-core.is-focused .j-node-pip,
 .jarvis-core.is-focused .j-micro,
-.jarvis-core.is-focused .j-tag,
-.jarvis-core.is-focused .j-sweep,
-.jarvis-core.is-focused .j-sweep-tail,
-.jarvis-core.is-focused .j-sweep-edge {
+.jarvis-core.is-focused .j-tag {
   opacity: 0;
   transition: opacity .35s var(--ease);
 }
@@ -456,7 +469,7 @@
   gap: 7px;
   padding: 6px 13px;
   background: var(--bg-float);
-  border: 1px solid var(--copper-dim);
+  border: 1px solid rgba(0, 217, 255, .2);
   border-radius: var(--r-sm);
   color: #7FF3FF;
   font-family: var(--font-body);
@@ -465,7 +478,7 @@
   transform: translateZ(0);
   transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
 }
-.view-back:hover { border-color: #2BE8FF; background: var(--bg-active); }
+.view-back:hover { border-color: #00E5FF; background: var(--bg-active); }
 
 .view-body {
   flex: 1;
