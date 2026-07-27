@@ -3,36 +3,33 @@ import { useMemo } from 'react';
 /**
  * JarvisCore — noyau HUD holographique.
  *
- * ══ ARCHITECTURE DE RENDU : BLOOM MULTI-PASSES ════════════════════
+ * ══ POURQUOI C'EST FLUIDE ════════════════════════════════════
+ * Règle absolue : UN FLOU NE DOIT JAMAIS FLOUTER QUELQUE CHOSE QUI BOUGE.
+ * Un filtre CSS sur du contenu animé est recalculé à chaque image — c'est
+ * exactement ce qui provoquait les saccades.
  *
- * Le SVG est scindé en deux ensembles :
- *   • ensemble SOMBRE   — graduations, structure : rendu une seule fois
- *   • ensemble LUMINEUX — défini dans <defs id=jBright>, donc invisible,
- *     puis rendu SIX FOIS par <use> :
+ * D'où la séparation en TROIS ensembles :
  *
- *       1. passe atmosphérique  flou 48px, opacité .5   → la brume colorée
- *       2. passe large          flou 22px, opacité .7   → le halo
- *       3. passe serrée         flou  7px, opacité .85  → la fusion des traits
- *       4. frange froide        flou 3px, décalée -3px  → aberration chromatique
- *       5. frange chaude        flou 3px, décalée +3px  → aberration chromatique
- *       6. passe nette          sans flou               → le dessin
+ *   #jGlowSrc  — STATIQUE, ~20 formes larges (anneaux épais + noyau).
+ *                Rendu 4 fois avec des flous de 40/18/6 px et deux
+ *                décalages chromatiques. Aucune animation → le navigateur
+ *                le rasterise UNE FOIS et réutilise le bitmap indéfiniment.
+ *                Coût par image : nul.
  *
- * Toutes en mix-blend-mode: screen : elles s ADDITIONNENT. C est le
- * pipeline exact d un moteur de rendu 3D, et c est ce qui distingue une
- * image lumineuse d une image simplement colorée. Les six copies partagent
- * les mêmes animations CSS — elles restent synchrones sans code en plus.
+ *   #jBright   — ANIMÉ, le dessin net. Aucun filtre, donc simple
+ *                composition GPU.
  *
- * COÛT : six rendus et trois flous par image. Si ça rame sur une machine
- * faible, ajouter la classe is-lite sur .jarvis-page — seule la passe nette
- * subsiste, la géométrie reste identique.
+ *   ensemble sombre — structure, animé, sans filtre.
+ *
+ * Le flou d'un halo diffus n'a pas besoin de suivre la rotation : l'œil ne
+ * perçoit pas qu'un halo large est fixe sous des traits qui tournent. On
+ * garde donc 100 % de l'effet lumineux pour ~5 % du coût.
  *
  * ══ DÉGRADÉ FIXE, GÉOMÉTRIE MOBILE ═════════════════════════════
- * Le dégradé cyan → blanc → orange est ancré à l écran (userSpaceOnUse).
- * Les anneaux tournent DESSOUS : un arc s embrase en passant en haut à
- * droite, refroidit en cyan en bas à gauche.
+ * Le dégradé cyan → blanc → orange est ancré à l'écran (userSpaceOnUse).
+ * Les anneaux tournent dessous et changent de température en le traversant.
  *
- * Repère : viewBox 0 0 1000 1000, centre (500,500), y vers le bas,
- * 0 deg = droite, -90 deg = haut.
+ * Repère : viewBox 0 0 1000 1000, centre (500,500), y vers le bas.
  */
 
 const C = 500;
@@ -71,8 +68,8 @@ function ticks(n, rOut, rIn, longEvery = 0, rInLong = rIn) {
 /* ── Géométries précalculées ────────────────────────────────── */
 
 const T_RIM = ticks(30, 494, 484, 5, 476);
-const T_FINE = ticks(120, 466, 460, 10, 450);
-const T_COMB = ticks(180, 358, 352);
+const T_FINE = ticks(96, 466, 460, 8, 450);
+const T_COMB = ticks(120, 358, 352);
 const T_MID = ticks(72, 336, 328, 6, 318);
 const T_CORE = ticks(36, 126, 120, 3, 112);
 
@@ -88,8 +85,8 @@ const BLOCKS_IN = Array.from({ length: 18 }, (_, i) => ({
   hot: i % 5 === 2, d: (i % 5) * 0.8,
 }));
 
-const BARS = Array.from({ length: 72 }, (_, i) => {
-  const a = i * 5;
+const BARS = Array.from({ length: 60 }, (_, i) => {
+  const a = i * 6;
   const len = 10 + ((i * 13) % 30);
   return {
     key: i,
@@ -130,7 +127,7 @@ const LABELS = [
   return { key: i, t, x: px(414, a), y: py(414, a), a: a + 90 };
 });
 
-const DUST = Array.from({ length: 64 }, (_, i) => {
+const DUST = Array.from({ length: 48 }, (_, i) => {
   const a = (i * 137.5) % 360;
   const r = 150 + ((i * 47) % 350);
   return { key: i, cx: px(r, a), cy: py(r, a), r: i % 5 === 0 ? 2.8 : 1.6, d: ((i * 19) % 40) * 0.14 };
@@ -148,6 +145,18 @@ const ARCS_MAJOR = [arc(396, -86, -18), arc(396, 6, 72), arc(396, 104, 166), arc
 const ARCS_AMBER = [arc(410, -56, 22), arc(384, 44, 88), arc(424, 100, 128)];
 const ARCS_BRIGHT = [arc(348, -72, -24), arc(348, 128, 176), arc(348, 46, 68)];
 const ARCS_THIN = [arc(452, -140, -40), arc(452, 20, 130)];
+
+/** Source de lumière STATIQUE — ce que les passes floues rasterisent une fois. */
+const GLOW_RINGS = [
+  { r: 452, w: 3 }, { r: 424, w: 5 }, { r: 396, w: 9 },
+  { r: 348, w: 6 }, { r: 322, w: 12 }, { r: 276, w: 11 },
+  { r: 236, w: 7 }, { r: 186, w: 8 },
+];
+const GLOW_ARCS = [
+  { d: arc(410, -60, 30), w: 16 },
+  { d: arc(300, 120, 220), w: 14 },
+  { d: arc(368, 20, 90), w: 10 },
+];
 
 function Glow({ d, cls }) {
   return (
@@ -210,7 +219,6 @@ export default function JarvisCore({
     >
       <svg className="jarvis-svg" viewBox="0 0 1000 1000" aria-hidden="true">
         <defs>
-          {/* Température ancrée à l ecran : glacial en bas-gauche, brasier en haut-droite */}
           <linearGradient id="jSplit" gradientUnits="userSpaceOnUse" x1="120" y1="800" x2="900" y2="220">
             <stop offset="0%" style={{ stopColor: '#0060A8' }} />
             <stop offset="18%" style={{ stopColor: '#00A6E8' }} />
@@ -267,116 +275,16 @@ export default function JarvisCore({
             <stop offset="100%" style={{ stopColor: '#FF8A18', stopOpacity: 0 }} />
           </linearGradient>
 
-          {/* ══ ENSEMBLE LUMINEUX — invisible ici, rendu 6 fois par <use> ══ */}
-          <g id="jBright">
-            <Layer i={3} spin="rot-s72">
-              {ARCS_THIN.map((d, i) => <Glow key={i} d={d} cls="j-arc-thin" />)}
-            </Layer>
-
-            <Layer i={4} spin="rot-s64">
-              {BLOCKS_OUT.map((b) => (
-                <rect
-                  key={b.key}
-                  className={`j-block${b.hot ? ' is-hot' : ''}${b.amber ? ' is-amber' : ''}`}
-                  transform={`translate(${C} ${C}) rotate(${b.a})`}
-                  x={b.r} y={-b.h / 2} width={b.w} height={b.h} rx="1"
-                  style={{ animationDelay: `${b.d}s` }}
-                />
-              ))}
-            </Layer>
-
-            <Layer i={5} spin="rot-s52r">
-              {ARCS_AMBER.map((d, i) => <Glow key={i} d={d} cls="j-arc-amber" />)}
-            </Layer>
-
-            <Layer i={7} spin="rot-s88">
-              <circle className="j-flow" cx={C} cy={C} r="424" />
-            </Layer>
-
-            <Layer i={8} spin="rot-s44r">
-              {ARCS_MAJOR.map((d, i) => <Glow key={i} d={d} cls="j-arc-major" />)}
-            </Layer>
-
-            <Layer i={9} spin="rot-s58">
-              {BARS.map((b) => (
-                <line key={b.key} className="j-bar" x1={b.x1} y1={b.y1} x2={b.x2} y2={b.y2}
-                  pathLength="1" style={{ animationDelay: `${b.d}s` }} />
-              ))}
-            </Layer>
-
-            <Layer i={11} spin="rot-s26r">
-              {T_COMB.map((t) => (
-                <line key={t.key} className="j-comb" x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} />
-              ))}
-            </Layer>
-
-            <Layer i={12} spin="rot-s30">
-              <circle className="j-ring" cx={C} cy={C} r="348" strokeDasharray="196 30 62 30" />
-              {ARCS_BRIGHT.map((d, i) => <Glow key={i} d={d} cls="j-arc-bright" />)}
-            </Layer>
-
-            <Layer i={14} spin="rot-s34r">
-              {BANDS_OUT.map((d, i) => <Glow key={i} d={d} cls="j-band" />)}
-            </Layer>
-
-            <Layer i={16} spin="rot-s9">
-              <path className="j-sweep" d={SWEEP} fill="url(#jSweep)" />
-              <line className="j-sweep-edge" x1={C} y1={C} x2={px(310, 30)} y2={py(310, 30)} />
-            </Layer>
-
-            <Layer i={17} spin="rot-s48">
-              {BANDS_MID.map((d, i) => <Glow key={i} d={d} cls="j-band" />)}
-            </Layer>
-
-            <Layer i={18} spin="rot-s34">
-              {BLOCKS_IN.map((b) => (
-                <rect
-                  key={b.key}
-                  className={`j-block${b.hot ? ' is-hot' : ''}`}
-                  transform={`translate(${C} ${C}) rotate(${b.a})`}
-                  x={b.r} y={-b.h / 2} width={b.w} height={b.h} rx="1"
-                  style={{ animationDelay: `${b.d}s` }}
-                />
-              ))}
-            </Layer>
-
-            <Layer i={20} spin="rot-s38r">
-              {BANDS_IN.map((d, i) => <Glow key={i} d={d} cls="j-band-thin" />)}
-            </Layer>
-
-            <Layer i={23} spin="rot-s46r">
-              {BRACKETS.map((b) => <Glow key={b.key} d={b.d} cls="j-bracket" />)}
-            </Layer>
-
-            <Layer i={24} spin="rot-s18">
-              <circle className="j-bloom" cx={C + 396} cy={C} r="86" fill="url(#jBloomTeal)" />
-              <Flare cx={C + 396} cy={C} w={210} grad="jFlareCool" />
-            </Layer>
-            <Layer i={24} spin="rot-s27r">
-              <circle className="j-bloom" cx={C - 348} cy={C} r="70" fill="url(#jBloomAmber)" />
-              <Flare cx={C - 348} cy={C} w={165} grad="jFlareWarm" className="is-slow" />
-            </Layer>
-            <Layer i={24} spin="rot-s15r">
-              <circle className="j-bloom" cx={C} cy={C - 452} r="46" fill="url(#jBloomTeal)" />
-              <Flare cx={C} cy={C - 452} w={104} grad="jFlareCool" />
-            </Layer>
-            <Layer i={24} spin="rot-s62">
-              <circle className="j-bloom" cx={C} cy={C + 276} r="58" fill="url(#jBloomAmber)" />
-              <Flare cx={C} cy={C + 276} w={130} grad="jFlareWarm" />
-            </Layer>
-
-            <g className="layer" style={{ animationDelay: '1.4s' }}>
-              <circle cx={C} cy={C} r="186" fill="url(#jCoreFill)" />
-              <circle className="j-ring-halo" cx={C} cy={C} r="186" />
-              <circle className="j-ring-bright" cx={C} cy={C} r="186" />
-              <circle className="j-pulse" cx={C} cy={C} r="186" />
-              <circle className="j-pulse j-pulse-2" cx={C} cy={C} r="186" />
-              <circle className="j-heart" cx={C} cy={C} r="82" fill="url(#jHeart)" />
-            </g>
-
-            <Layer i={25} spin="rot-s20">
-              <path className="j-poly-bright" d={poly(104, 3, -90)} />
-            </Layer>
+          {/* ══ SOURCE LUMINEUSE STATIQUE — rasterisée une fois, jamais recalculée ══ */}
+          <g id="jGlowSrc">
+            {GLOW_RINGS.map((g) => (
+              <circle key={g.r} className="g-ring" cx={C} cy={C} r={g.r} strokeWidth={g.w} />
+            ))}
+            {GLOW_ARCS.map((g, i) => (
+              <path key={i} className="g-arc" d={g.d} strokeWidth={g.w} />
+            ))}
+            <circle cx={C} cy={C} r="150" fill="url(#jCoreFill)" />
+            <circle cx={C} cy={C} r="70" fill="url(#jHeart)" />
           </g>
         </defs>
 
@@ -386,7 +294,14 @@ export default function JarvisCore({
           <circle cx={C} cy={C} r="500" fill="url(#jHaloWarm)" />
         </g>
 
-        {/* ══ ENSEMBLE SOMBRE — structure, rendu une seule fois ════════ */}
+        {/* ══ LES PASSES FLOUES — coût nul, la source ne bouge pas ═════ */}
+        <use href="#jGlowSrc" className="pass pass-atmo" />
+        <use href="#jGlowSrc" className="pass pass-wide" />
+        <use href="#jGlowSrc" className="pass pass-ca-cool" />
+        <use href="#jGlowSrc" className="pass pass-ca-warm" />
+        <use href="#jGlowSrc" className="pass pass-tight" />
+
+        {/* ══ STRUCTURE — animée, sans filtre ══════════════════════ */}
         <Layer i={0} spin="rot-dust">
           {DUST.map((p) => (
             <circle key={p.key} className="j-dust" cx={p.cx} cy={p.cy} r={p.r} style={{ animationDelay: `${p.d}s` }} />
@@ -460,15 +375,118 @@ export default function JarvisCore({
           ))}
         </Layer>
 
-        {/* ══ LES SIX PASSES DE RENDU ════════════════════════════ */}
-        <use href="#jBright" className="pass pass-atmo" />
-        <use href="#jBright" className="pass pass-wide" />
-        <use href="#jBright" className="pass pass-tight" />
-        <use href="#jBright" className="pass pass-ca-cool" />
-        <use href="#jBright" className="pass pass-ca-warm" />
-        <use href="#jBright" className="pass pass-sharp" />
+        {/* ══ DESSIN NET — animé, sans filtre, en mélange additif ══════ */}
+        <g className="sharp">
+          <Layer i={3} spin="rot-s72">
+            {ARCS_THIN.map((d, i) => <Glow key={i} d={d} cls="j-arc-thin" />)}
+          </Layer>
 
-        {/* ══ Connecteurs et typographie, au-dessus du bloom ══════════ */}
+          <Layer i={4} spin="rot-s64">
+            {BLOCKS_OUT.map((b) => (
+              <rect
+                key={b.key}
+                className={`j-block${b.hot ? ' is-hot' : ''}${b.amber ? ' is-amber' : ''}`}
+                transform={`translate(${C} ${C}) rotate(${b.a})`}
+                x={b.r} y={-b.h / 2} width={b.w} height={b.h} rx="1"
+                style={{ animationDelay: `${b.d}s` }}
+              />
+            ))}
+          </Layer>
+
+          <Layer i={5} spin="rot-s52r">
+            {ARCS_AMBER.map((d, i) => <Glow key={i} d={d} cls="j-arc-amber" />)}
+          </Layer>
+
+          <Layer i={7} spin="rot-s88">
+            <circle className="j-flow" cx={C} cy={C} r="424" />
+          </Layer>
+
+          <Layer i={8} spin="rot-s44r">
+            {ARCS_MAJOR.map((d, i) => <Glow key={i} d={d} cls="j-arc-major" />)}
+          </Layer>
+
+          <Layer i={9} spin="rot-s58">
+            {BARS.map((b) => (
+              <line key={b.key} className="j-bar" x1={b.x1} y1={b.y1} x2={b.x2} y2={b.y2}
+                pathLength="1" style={{ animationDelay: `${b.d}s` }} />
+            ))}
+          </Layer>
+
+          <Layer i={11} spin="rot-s26r">
+            {T_COMB.map((t) => (
+              <line key={t.key} className="j-comb" x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} />
+            ))}
+          </Layer>
+
+          <Layer i={12} spin="rot-s30">
+            <circle className="j-ring" cx={C} cy={C} r="348" strokeDasharray="196 30 62 30" />
+            {ARCS_BRIGHT.map((d, i) => <Glow key={i} d={d} cls="j-arc-bright" />)}
+          </Layer>
+
+          <Layer i={14} spin="rot-s34r">
+            {BANDS_OUT.map((d, i) => <Glow key={i} d={d} cls="j-band" />)}
+          </Layer>
+
+          <Layer i={16} spin="rot-s9">
+            <path className="j-sweep" d={SWEEP} fill="url(#jSweep)" />
+            <line className="j-sweep-edge" x1={C} y1={C} x2={px(310, 30)} y2={py(310, 30)} />
+          </Layer>
+
+          <Layer i={17} spin="rot-s48">
+            {BANDS_MID.map((d, i) => <Glow key={i} d={d} cls="j-band" />)}
+          </Layer>
+
+          <Layer i={18} spin="rot-s34">
+            {BLOCKS_IN.map((b) => (
+              <rect
+                key={b.key}
+                className={`j-block${b.hot ? ' is-hot' : ''}`}
+                transform={`translate(${C} ${C}) rotate(${b.a})`}
+                x={b.r} y={-b.h / 2} width={b.w} height={b.h} rx="1"
+                style={{ animationDelay: `${b.d}s` }}
+              />
+            ))}
+          </Layer>
+
+          <Layer i={20} spin="rot-s38r">
+            {BANDS_IN.map((d, i) => <Glow key={i} d={d} cls="j-band-thin" />)}
+          </Layer>
+
+          <Layer i={23} spin="rot-s46r">
+            {BRACKETS.map((b) => <Glow key={b.key} d={b.d} cls="j-bracket" />)}
+          </Layer>
+
+          <Layer i={24} spin="rot-s18">
+            <circle className="j-bloom" cx={C + 396} cy={C} r="86" fill="url(#jBloomTeal)" />
+            <Flare cx={C + 396} cy={C} w={210} grad="jFlareCool" />
+          </Layer>
+          <Layer i={24} spin="rot-s27r">
+            <circle className="j-bloom" cx={C - 348} cy={C} r="70" fill="url(#jBloomAmber)" />
+            <Flare cx={C - 348} cy={C} w={165} grad="jFlareWarm" className="is-slow" />
+          </Layer>
+          <Layer i={24} spin="rot-s15r">
+            <circle className="j-bloom" cx={C} cy={C - 452} r="46" fill="url(#jBloomTeal)" />
+            <Flare cx={C} cy={C - 452} w={104} grad="jFlareCool" />
+          </Layer>
+          <Layer i={24} spin="rot-s62">
+            <circle className="j-bloom" cx={C} cy={C + 276} r="58" fill="url(#jBloomAmber)" />
+            <Flare cx={C} cy={C + 276} w={130} grad="jFlareWarm" />
+          </Layer>
+
+          <g className="layer" style={{ animationDelay: '1.4s' }}>
+            <circle className="j-ring-halo" cx={C} cy={C} r="186" />
+            <circle className="j-ring-bright" cx={C} cy={C} r="186" />
+            <circle className="j-pulse" cx={C} cy={C} r="186" />
+            <circle className="j-pulse j-pulse-2" cx={C} cy={C} r="186" />
+            <circle className="j-heart" cx={C} cy={C} r="82" fill="url(#jHeart)" />
+          </g>
+
+          <Layer i={25} spin="rot-s20">
+            <path className="j-poly-bright" d={poly(104, 3, -90)} />
+          </Layer>
+        </g>
+
+        {/* ══ Connecteurs et typographie ══════════════════════════ */}
         <g className="layer" style={{ animationDelay: '1.3s' }}>
           {geo.map((b) => (
             <g key={`link-${b.id}`}>
