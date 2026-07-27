@@ -1,30 +1,40 @@
 /* ═══════════════════════════════════════════════════════════════════
    RAILS LATÉRAUX — raccourcis et fenêtres KPI, ancrés aux deux bords.
 
-   ══ DEUX PIÈGES DÉJÀ PAYÉS ══════════════════════════════════
-   1. clip-path rogne TOUS les descendants. La trace de jonction doit donc
-      être sœur du panneau (dans .hud-slot), jamais enfant — sinon elle
-      existe mais reste invisible.
-   2. clip-path supprime aussi les bordures CSS. La bordure est reconstituée
-      en empilant deux formes identiques : .hud-panel coloré en dessous,
-      .hud-in sombre 1px au-dessus.
+   ══ LE NOYAU GARDE SA TAILLE ═══════════════════════════════
+   --core-d = min(88vh, 900px) : la valeur d'origine. Ce sont les RAILS qui
+   s'adaptent à la place restante, jamais le cercle. Si ça devient trop
+   étroit sur un petit écran, réduire --rail-w — pas le noyau.
 
-   ══ RÈGLE D'OR ══════════════════════════════════════════════
-   Aucun panneau ne recouvre le noyau. Si tu élargis les rails, réduis
-   --core-size d'autant (et --hub-core, qui doit suivre la même valeur).
+   ══ LA TRACE EST CALCULÉE, PAS DEVINÉE ═════════════════════════
+   --gap = distance réelle entre le bord intérieur du rail et le bord du
+   cercle :  (100vw − diamètre) / 2 − marge − largeur du rail.
+   La trace vaut ce gap PLUS une pénétration de 9 % du diamètre, pour deux
+   raisons : elle entre dans la couronne de graduations (le trait touche
+   visiblement l'anneau, comme sur les vraies planches HUD), et les panneaux
+   hauts ou bas sont plus loin du cercle que ceux à hauteur d'équateur —
+   sans cette marge, seuls les panneaux centraux toucheraient.
+
+   ══ DEUX PIÈGES DÉJÀ PAYÉS ══════════════════════════════════
+   1. clip-path rogne TOUS les descendants → la trace est sœur du panneau
+      (dans .hud-slot), jamais enfant.
+   2. clip-path supprime les bordures CSS → bordure reconstituée en empilant
+      deux formes : .hud-panel coloré dessous, .hud-in sombre à 1px dessus.
    ═══════════════════════════════════════════════════════════════════ */
 
 .jarvis-page {
-  --rail-w: clamp(250px, 22vw, 350px);
-  --rail-pad: clamp(16px, 1.8vw, 38px);
-  --trace-len: clamp(56px, 8vw, 190px);
+  --core-d: min(88vh, 900px);
+  --rail-w: clamp(215px, 18vw, 330px);
+  --rail-pad: clamp(14px, 1.5vw, 32px);
+  --gap: calc((100vw - var(--core-d)) / 2 - var(--rail-pad) - var(--rail-w));
+  --trace-len: calc(var(--gap) + var(--core-d) * .09);
   --hud-edge: rgba(20, 201, 183, .34);
   --hud-bevel: 20px;
 }
 
-/* Le noyau cède la place aux rails */
-.jarvis-page .jarvis-core { --core-size: min(66vh, 660px); }
-.jarvis-page { --hub-core: min(66vh, 660px); }
+/* Le noyau conserve sa taille d'origine ; --hub-core (accueil) la suit. */
+.jarvis-page .jarvis-core { --core-size: var(--core-d); }
+.jarvis-page { --hub-core: var(--core-d); }
 
 .hub-rail {
   position: absolute;
@@ -48,9 +58,9 @@
 .hud-slot { position: relative; width: 100%; }
 
 /* ── Forme du panneau ──────────────────────────────────────
-   Grand biseau sur le coin supérieur extérieur, biseau plus court sur le
-   coin inférieur intérieur. L'asymétrie donne une direction au panneau :
-   il « pointe » vers le noyau.
+   Grand biseau sur le coin supérieur extérieur, biseau court sur le coin
+   inférieur intérieur : l'asymétrie donne une direction au panneau, qui
+   « pointe » vers le noyau.
 ──────────────────────────────────────────────────────────────── */
 .is-left .hud-panel,
 .is-left .hud-in {
@@ -103,8 +113,8 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 11px;
-  padding: 15px 17px 16px;
+  gap: 10px;
+  padding: 14px 16px 15px;
   background: linear-gradient(160deg, rgba(17, 34, 51, .94), rgba(9, 18, 30, .96));
   overflow: hidden;
 }
@@ -161,7 +171,7 @@
 .hud-title {
   flex: 1;
   min-width: 0;
-  font-size: .88rem;
+  font-size: .86rem;
   font-weight: 600;
   letter-spacing: .3px;
   line-height: 1.15;
@@ -169,8 +179,8 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.hud-title.is-small { font-size: .78rem; font-weight: 500; color: var(--text-secondary); }
-.hud-icon { flex: none; font-size: .9rem; opacity: .7; }
+.hud-title.is-small { font-size: .76rem; font-weight: 500; color: var(--text-secondary); }
+.hud-icon { flex: none; font-size: .88rem; opacity: .7; }
 
 .hud-trend { flex: none; font-size: .64rem; }
 .hud-trend.is-up { color: var(--emerald); }
@@ -180,15 +190,15 @@
 .hud-value-row { display: flex; align-items: baseline; gap: 10px; }
 .hud-value {
   font-family: var(--font-mono);
-  font-size: 1.75rem;
+  font-size: 1.65rem;
   font-weight: 600;
   line-height: 1;
   color: var(--copper-light);
 }
-.hud-value.is-compact { font-size: 1.3rem; }
+.hud-value.is-compact { font-size: 1.25rem; }
 .hud-value.is-idle { color: var(--text-muted); }
 .hud-unit {
-  font-size: .64rem;
+  font-size: .62rem;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: .8px;
@@ -213,13 +223,13 @@
 .hud-shortcut.is-active .hud-rule-fill { width: 100%; }
 
 /* ── Fenêtre KPI ─────────────────────────────────────────── */
-.hud-kpi-body { display: flex; align-items: flex-end; gap: 14px; }
+.hud-kpi-body { display: flex; align-items: flex-end; gap: 13px; }
 
 .hud-bars {
   display: flex;
   align-items: flex-end;
   gap: 4px;
-  height: 38px;
+  height: 34px;
   flex: none;
 }
 .hud-bar {
@@ -254,15 +264,15 @@
 }
 
 /* ── Trace de jonction vers le noyau ──────────────────────────
-   SŒUR du panneau, jamais enfant (voir en-tête). Segment horizontal +
-   coude à 45° + pastille pulsante. En CSS positionné plutôt qu'en SVG :
+   Longueur calculée (voir --trace-len en tête) : elle traverse le gap et
+   pénètre dans la couronne du noyau. En CSS positionné plutôt qu'en SVG :
    la trace doit s'étirer avec la largeur de fenêtre, ce qu'un viewBox fixe
    ne sait pas faire sans se déformer.
 ──────────────────────────────────────────────────────────────── */
 .hud-trace {
   position: absolute;
   top: 50%;
-  width: var(--trace-len);
+  width: max(var(--trace-len), 40px);
   height: 2px;
   pointer-events: none;
   animation: traceIn .6s var(--ease-out) backwards;
@@ -277,51 +287,53 @@
 .hud-trace-line {
   position: absolute;
   inset: 0;
-  opacity: .75;
-  background: linear-gradient(90deg, var(--copper), rgba(20, 201, 183, .15));
+  opacity: .8;
+  background: linear-gradient(90deg, var(--copper), var(--copper-light) 70%, var(--copper-pale));
 }
 .is-right .hud-trace-line {
-  background: linear-gradient(270deg, var(--copper), rgba(20, 201, 183, .15));
+  background: linear-gradient(270deg, var(--copper), var(--copper-light) 70%, var(--copper-pale));
 }
 
-/* Coude à 45° — barre pivotée, ancrée à l'extrémité de la trace */
+/* Pastille à la jonction avec l'anneau */
+.hud-trace-node {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--copper-pale);
+  box-shadow: 0 0 14px var(--copper);
+  animation: nodePulse 2.6s var(--ease) infinite;
+}
+.is-left .hud-trace-node  { left: 100%; transform: translate(-4px, -50%); }
+.is-right .hud-trace-node { right: 100%; transform: translate(4px, -50%); }
+@keyframes nodePulse {
+  0%, 100% { opacity: .5; }
+  50%      { opacity: 1; }
+}
+
+/* Coude à 45°, au départ du panneau */
 .hud-trace-elbow {
   position: absolute;
   top: 0;
-  width: 22px;
+  width: 20px;
   height: 2px;
   background: var(--copper);
-  opacity: .55;
+  opacity: .5;
 }
-.is-left .hud-trace-elbow  { left: 100%; transform: rotate(34deg); transform-origin: left center; }
-.is-right .hud-trace-elbow { right: 100%; transform: rotate(-34deg); transform-origin: right center; }
+.is-left .hud-trace-elbow  { left: 0; transform: rotate(-32deg); transform-origin: left center; }
+.is-right .hud-trace-elbow { right: 0; transform: rotate(32deg); transform-origin: right center; }
 
-.hud-trace-node {
-  position: absolute;
-  top: 12px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--copper-pale);
-  box-shadow: 0 0 12px var(--copper);
-  animation: nodePulse 2.6s var(--ease) infinite;
-}
-.is-left .hud-trace-node  { left: calc(100% + 16px); }
-.is-right .hud-trace-node { right: calc(100% + 16px); }
-@keyframes nodePulse {
-  0%, 100% { opacity: .45; transform: scale(.85); }
-  50%      { opacity: 1; transform: scale(1); }
-}
+.hud-slot:hover .hud-trace-line { opacity: 1; }
 
-.hud-slot:hover .hud-trace-line,
-.hud-slot:has(.is-active) .hud-trace-line { opacity: 1; }
-
-/* ── Adaptations ─────────────────────────────────────────── */
-@media (max-width: 1440px) {
-  .jarvis-page .jarvis-core { --core-size: min(56vh, 500px); }
-  .jarvis-page { --hub-core: min(56vh, 500px); }
-  .hud-value { font-size: 1.5rem; }
-  .hud-in { padding: 12px 14px 13px; }
+/* ── Adaptations ───────────────────────────────────────────
+   On rétrécit les RAILS, jamais le noyau.
+──────────────────────────────────────────────────────────────── */
+@media (max-width: 1500px) {
+  .jarvis-page { --rail-w: clamp(190px, 15vw, 250px); }
+  .hud-value { font-size: 1.4rem; }
+  .hud-in { padding: 11px 13px 12px; }
+  .hud-title { font-size: .8rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
