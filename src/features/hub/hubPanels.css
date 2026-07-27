@@ -2,22 +2,24 @@
    RAILS LATÉRAUX — raccourcis et fenêtres KPI, ancrés aux deux bords.
 
    ══ LE NOYAU GARDE SA TAILLE ═══════════════════════════════
-   --core-d = min(88vh, 900px) : la valeur d'origine. Ce sont les RAILS qui
-   s'adaptent à la place restante, jamais le cercle. Si ça devient trop
-   étroit sur un petit écran, réduire --rail-w — pas le noyau.
+   --core-d = min(88vh, 900px). Ce sont les RAILS qui s'adaptent à la place
+   restante, jamais le cercle. Trop étroit sur un petit écran ? Réduire
+   --rail-w, pas le noyau.
 
    ══ LA TRACE EST CALCULÉE, PAS DEVINÉE ═════════════════════════
-   --gap = distance réelle entre le bord intérieur du rail et le bord du
-   cercle :  (100vw − diamètre) / 2 − marge − largeur du rail.
-   La trace vaut ce gap PLUS une pénétration de 9 % du diamètre, pour deux
-   raisons : elle entre dans la couronne de graduations (le trait touche
-   visiblement l'anneau, comme sur les vraies planches HUD), et les panneaux
-   hauts ou bas sont plus loin du cercle que ceux à hauteur d'équateur —
-   sans cette marge, seuls les panneaux centraux toucheraient.
+   --gap = (100vw − diamètre) / 2 − marge − largeur du rail, plus 9 % du
+   diamètre de pénétration dans la couronne : les panneaux hauts et bas sont
+   plus loin du cercle que ceux à hauteur d'équateur, sans cette marge seuls
+   les panneaux centraux toucheraient.
+
+   ══ CHORÉGRAPHIE — --core-anim ═══════════════════════════════
+   Les panneaux n'apparaissent qu'APRÈS le déploiement du noyau, échelonnés
+   par --i (rang du slot, fourni par le JS). À la sortie, aucun délai : ils
+   dégagent devant le cercle qui part. Entrée retardée, sortie instantanée —
+   l'inverse donnerait une interface qui traîne.
 
    ══ DEUX PIÈGES DÉJÀ PAYÉS ══════════════════════════════════
-   1. clip-path rogne TOUS les descendants → la trace est sœur du panneau
-      (dans .hud-slot), jamais enfant.
+   1. clip-path rogne TOUS les descendants → la trace est sœur du panneau.
    2. clip-path supprime les bordures CSS → bordure reconstituée en empilant
       deux formes : .hud-panel coloré dessous, .hud-in sombre à 1px dessus.
    ═══════════════════════════════════════════════════════════════════ */
@@ -45,22 +47,34 @@
   flex-direction: column;
   gap: 16px;
   z-index: 4;
-  transition: opacity .35s var(--ease), transform .45s var(--ease);
 }
 .hub-rail.is-left  { left: var(--rail-pad); }
 .hub-rail.is-right { right: var(--rail-pad); }
+.hub-rail.is-hidden { pointer-events: none; }
 
-.hub-rail.is-hidden { opacity: 0; pointer-events: none; }
-.hub-rail.is-left.is-hidden  { transform: translateY(-50%) translateX(-26px); }
-.hub-rail.is-right.is-hidden { transform: translateY(-50%) translateX(26px); }
-
-/* Conteneur non rogné : c'est lui qui laisse déborder la trace */
-.hud-slot { position: relative; width: 100%; }
+/* ── Slot : conteneur non rogné, porte l'entrée et la sortie ──────── */
+.hud-slot {
+  position: relative;
+  width: 100%;
+  opacity: 1;
+  transform: translateX(0);
+  transition:
+    opacity .45s var(--ease-out) calc(var(--core-anim) + var(--i, 0) * .09s),
+    transform .5s var(--ease-out) calc(var(--core-anim) + var(--i, 0) * .09s);
+}
+.is-hidden .hud-slot {
+  opacity: 0;
+  transition:
+    opacity .26s var(--ease) 0s,
+    transform .3s var(--ease) 0s;
+}
+.is-left.is-hidden .hud-slot  { transform: translateX(-26px); }
+.is-right.is-hidden .hud-slot { transform: translateX(26px); }
 
 /* ── Forme du panneau ──────────────────────────────────────
-   Grand biseau sur le coin supérieur extérieur, biseau court sur le coin
-   inférieur intérieur : l'asymétrie donne une direction au panneau, qui
-   « pointe » vers le noyau.
+   Grand biseau au coin supérieur extérieur, biseau court au coin inférieur
+   intérieur : l'asymétrie donne une direction, le panneau « pointe » vers
+   le noyau.
 ──────────────────────────────────────────────────────────────── */
 .is-left .hud-panel,
 .is-left .hud-in {
@@ -186,7 +200,7 @@
 .hud-trend.is-up { color: var(--emerald); }
 .hud-trend.is-down { color: var(--amber); }
 
-/* ── Valeurs ──────────────────────────────────────────────── */
+/* ── Valeurs ─────────────────────────────────────────────── */
 .hud-value-row { display: flex; align-items: baseline; gap: 10px; }
 .hud-value {
   font-family: var(--font-mono);
@@ -264,10 +278,9 @@
 }
 
 /* ── Trace de jonction vers le noyau ──────────────────────────
-   Longueur calculée (voir --trace-len en tête) : elle traverse le gap et
-   pénètre dans la couronne du noyau. En CSS positionné plutôt qu'en SVG :
-   la trace doit s'étirer avec la largeur de fenêtre, ce qu'un viewBox fixe
-   ne sait pas faire sans se déformer.
+   En CSS positionné plutôt qu'en SVG : la trace doit s'étirer avec la
+   largeur de fenêtre, ce qu'un viewBox fixe ne sait pas faire sans se
+   déformer.
 ──────────────────────────────────────────────────────────────── */
 .hud-trace {
   position: absolute;
@@ -326,9 +339,7 @@
 
 .hud-slot:hover .hud-trace-line { opacity: 1; }
 
-/* ── Adaptations ───────────────────────────────────────────
-   On rétrécit les RAILS, jamais le noyau.
-──────────────────────────────────────────────────────────────── */
+/* ── Adaptations — on rétrécit les RAILS, jamais le noyau ─────────── */
 @media (max-width: 1500px) {
   .jarvis-page { --rail-w: clamp(190px, 15vw, 250px); }
   .hud-value { font-size: 1.4rem; }
@@ -338,5 +349,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .hud-panel, .hud-trace, .hud-bar, .hud-trace-node { animation: none; }
+  .hud-slot { transition-delay: 0s; }
   .hud-shortcut:hover .hud-scan { animation: none; }
 }
