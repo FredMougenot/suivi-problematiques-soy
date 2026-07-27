@@ -1,32 +1,24 @@
 /* ═══════════════════════════════════════════════════════════════════
    HUB JARVIS — noyau HUD, branches KPI, surface d'affichage.
 
-   ══ PIPELINE DE RENDU — SIX PASSES ════════════════════════════
-   L'ensemble lumineux (#jBright, défini dans <defs>) est rendu six fois
-   par <use>, chacune avec son propre flou, toutes en screen :
+   ══ RÈGLE DE PERFORMANCE ═══════════════════════════════════
+   UN FLOU NE FLOUTE JAMAIS QUELQUE CHOSE QUI BOUGE.
+   Les passes .pass-* pointent sur #jGlowSrc, qui ne contient AUCUNE
+   animation : le navigateur le rasterise une fois et réutilise le bitmap.
+   Le dessin animé (.sharp) n'a aucun filtre — simple composition GPU.
+   Ne jamais brancher une passe floue sur du contenu animé, sous peine de
+   retomber dans les saccades.
 
-     .pass-atmo     flou 48px  → brume colorée, la lumière qui remplit l'air
-     .pass-wide     flou 22px  → halo
-     .pass-tight    flou  7px  → fusion des traits voisins
-     .pass-ca-cool  flou 3px, décalée −3px → frange chromatique froide
-     .pass-ca-warm  flou 3px, décalée +3px → frange chromatique chaude
-     .pass-sharp    net       → le dessin
-
-   C'est le pipeline d'un moteur 3D. Le flou réel ne peut pas être simulé
-   par des traits épais : un trait épais reste net sur ses bords, un flou
-   étale l'énergie lumineuse. C'est toute la différence.
-
-   ══ SOUPAPE DE PERFORMANCE ═════════════════════════════════
-   Six rendus et trois flous par image, ça coûte. Sur machine faible :
-   ajouter la classe is-lite sur .jarvis-page — les passes floutées
-   disparaissent, la géométrie reste identique. Les passes lourdes sont
-   déjà coupées automatiquement quand le noyau est réduit (état focus).
+   ══ UN SEUL GROUPE DE MÉLANGE ═══════════════════════════════
+   mix-blend-mode est posé sur .sharp et sur chaque passe — pas sur des
+   dizaines d'éléments individuels. Chaque élément en mode mélange crée
+   son propre groupe de composition ; en regrouper 200 en 6 divise le
+   travail du compositeur d'autant.
 
    ══ DÉGRADÉ FIXE, GÉOMÉTRIE MOBILE ═══════════════════════════
    stroke: url(#jSplit) — cyan → blanc → orange ancré à l'écran. Les anneaux
    tournent dessous et changent de température en le traversant.
 
-   Hiérarchie : structure .12–.25 · détail .3–.5 · accent .7–1 · cœur blanc.
    translateZ(0) sur toute couche animée ou semi-transparente (bug connu du
    compositeur Chrome : éléments invisibles jusqu'au survol).
    ═══════════════════════════════════════════════════════════════════ */
@@ -39,8 +31,7 @@
   transform: translateZ(0);
 }
 
-/* Vignette : assombrit les bords. Contre-intuitif mais indispensable —
-   la luminosité perçue vient du contraste, pas de la valeur absolue. */
+/* Vignette : la luminosité perçue vient du contraste, pas de la valeur absolue. */
 .jarvis-page::before {
   content: '';
   position: absolute;
@@ -84,36 +75,36 @@
   width: 100%;
   height: 100%;
   overflow: visible;
-  isolation: isolate; /* confine le mix-blend-mode au noyau */
+  isolation: isolate; /* confine le mélange additif au noyau */
 }
 
-/* ── Les six passes ─────────────────────────────────────────── */
+/* ── Source lumineuse statique ───────────────────────────────── */
+.g-ring { fill: none; stroke: url(#jSplit); opacity: .85; }
+.g-arc  { fill: none; stroke: url(#jSplit); opacity: .8; stroke-linecap: round; }
+
+/* ── Les passes floues ─────────────────────────────────────── */
 .pass {
   mix-blend-mode: screen;
   transform-box: view-box;
   transform-origin: 500px 500px;
+  pointer-events: none;
 }
-.pass-atmo    { filter: blur(48px); opacity: .5; }
-.pass-wide    { filter: blur(22px); opacity: .62; }
-.pass-tight   { filter: blur(7px);  opacity: .8; }
-.pass-ca-cool { filter: blur(3px);  opacity: .34; transform: translate(-3px, 1px); }
-.pass-ca-warm { filter: blur(3px);  opacity: .34; transform: translate(3px, -1px); }
-.pass-sharp   { opacity: 1; }
+.pass-atmo    { filter: blur(44px); opacity: .55; }
+.pass-wide    { filter: blur(17px); opacity: .5; }
+.pass-tight   { filter: blur(5px);  opacity: .45; }
+.pass-ca-cool { filter: blur(4px);  opacity: .3; transform: translate(-4px, 1.5px); }
+.pass-ca-warm { filter: blur(4px);  opacity: .3; transform: translate(4px, -1.5px); }
 
-/* Soupape : noyau réduit → les passes lourdes ne servent plus à rien */
+/* Noyau réduit → les passes larges ne servent plus à rien */
 .jarvis-core.is-focused .pass-atmo,
-.jarvis-core.is-focused .pass-wide,
 .jarvis-core.is-focused .pass-ca-cool,
 .jarvis-core.is-focused .pass-ca-warm { display: none; }
 
-/* Soupape manuelle */
-.jarvis-page.is-lite .pass-atmo,
-.jarvis-page.is-lite .pass-wide,
-.jarvis-page.is-lite .pass-tight,
-.jarvis-page.is-lite .pass-ca-cool,
-.jarvis-page.is-lite .pass-ca-warm { display: none; }
+/* Soupape manuelle : rendu strictement net */
+.jarvis-page.is-lite .pass { display: none; }
 
-/* Le fond additif reste hors passes */
+/* Un seul groupe de mélange pour tout le dessin net */
+.sharp { mix-blend-mode: screen; }
 .j-add { mix-blend-mode: screen; }
 
 /* ── Apparition échelonnée des couches ─────────────────────────── */
@@ -165,7 +156,7 @@
 .rot-s140  { animation: jspin 140s linear infinite; }
 .rot-dust  { animation: jspin 220s linear infinite; }
 
-/* ── Structure (niveau bas, hors passes) ──────────────────────── */
+/* ── Structure ────────────────────────────────────────────── */
 .j-hair      { fill: none; stroke: #00D9FF; stroke-width: 1; opacity: .16; }
 .j-hair-blue { fill: none; stroke: #0060A8; stroke-width: 1; opacity: .38; }
 .j-poly      { fill: none; stroke: #00D9FF; stroke-width: 1; opacity: .2; }
@@ -184,7 +175,7 @@
   50%      { opacity: .6; }
 }
 
-/* ── Ensemble lumineux — tout ce qui passe dans le pipeline ──────── */
+/* ── Dessin net ──────────────────────────────────────────── */
 .j-comb        { stroke: url(#jSplit); stroke-width: 1.6; opacity: .38; }
 .j-ring        { fill: none; stroke: url(#jSplit); stroke-width: 1.8; opacity: .6; }
 .j-ring-bright { fill: none; stroke: url(#jSplit); stroke-width: 2.6; opacity: 1; }
@@ -220,7 +211,6 @@
   to   { stroke-dashoffset: .08; opacity: .9; }
 }
 
-/* Accents — halo + net (le flou réel des passes s'ajoute par-dessus) */
 .j-arc-major-halo  { fill: none; stroke: url(#jSplit); stroke-width: 30; opacity: .12; stroke-linecap: round; }
 .j-arc-major       { fill: none; stroke: url(#jSplit); stroke-width: 5.5; opacity: .9; stroke-linecap: round; }
 
@@ -341,15 +331,18 @@
 .j-node-pip { fill: #D6FBFF; opacity: .55; }
 .j-node-pip.is-hot { opacity: 1; }
 
-/* ── Branches (HTML au-dessus du SVG) ──────────────────────────── */
+/* ── Branches ──────────────────────────────────────────────
+   Fond opaque et non backdrop-filter : un flou d'arrière-plan posé sur une
+   zone qui se repeint en permanence est recalculé à chaque image. C'était
+   l'un des deux gros postes de saccade.
+───────────────────────────────────────────────────────────────── */
 .jbranch {
   position: absolute;
   transform: translate(-50%, -50%) scale(1);
   width: 178px;
   padding: 13px 15px;
-  background: var(--bg-float);
-  backdrop-filter: blur(16px) saturate(150%);
-  border: 1px solid rgba(0, 217, 255, .18);
+  background: rgba(9, 20, 34, .88);
+  border: 1px solid rgba(0, 217, 255, .2);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-md);
   cursor: pointer;
@@ -468,7 +461,7 @@
   align-items: center;
   gap: 7px;
   padding: 6px 13px;
-  background: var(--bg-float);
+  background: rgba(9, 20, 34, .88);
   border: 1px solid rgba(0, 217, 255, .2);
   border-radius: var(--r-sm);
   color: #7FF3FF;
@@ -496,8 +489,7 @@
   to   { opacity: 1; transform: none; }
 }
 
-/* Neutralise les layouts plein écran des modules montés dans la surface :
-   ils sont conçus pour occuper 100vh, ici ils doivent remplir leur conteneur. */
+/* Neutralise les layouts plein écran des modules montés dans la surface. */
 .view-body .tool-wrap,
 .view-body .app-layout { height: auto; min-height: 0; background: transparent; }
 .view-body .tool-main,
