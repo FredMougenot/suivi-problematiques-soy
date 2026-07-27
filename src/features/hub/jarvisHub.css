@@ -1,14 +1,16 @@
 /* ═══════════════════════════════════════════════════════════════════
-   HUB JARVIS — noyau central, branches KPI, surface d'affichage.
+   HUB JARVIS — noyau HUD, branches KPI, surface d'affichage.
 
-   Principe : une seule page qui évolue. Deux états seulement,
-   pilotés par la classe .is-focused sur .jarvis-core :
+   Deux états seulement, pilotés par .is-focused sur .jarvis-core :
      • hub    → noyau plein écran centré, branches visibles
      • focus  → noyau réduit en haut à gauche, centre libéré
 
-   Toutes les couches animées portent translateZ(0) — bug connu du
-   compositeur Chrome (éléments invisibles jusqu'au survol) sur les
-   fonds semi-transparents et dégradés.
+   Vitesses de rotation : chaque couronne a la sienne, alternant les sens.
+   C'est l'écart entre 140 s et 9 s qui crée la profondeur — augmenter
+   toutes les vitesses ensemble détruit l'effet.
+
+   translateZ(0) sur toute couche animée ou semi-transparente : bug connu
+   du compositeur Chrome (éléments invisibles jusqu'au survol).
    ═══════════════════════════════════════════════════════════════════ */
 
 .jarvis-page {
@@ -20,13 +22,11 @@
 }
 
 /* ── Le noyau ─────────────────────────────────────────────────────
-   Un SEUL transform interpole position + échelle : le glissement et
-   le rétrécissement sont donc rigoureusement synchronisés.
-   Géométrie : le conteneur est ancré à 50%/50% ; translate(-w/2,-h/2)
-   le centre, puis on décale le centre vers (--focus-x, --focus-y).
-───────────────────────────────────────────────────────────────────*/
+   Un SEUL transform interpole position + échelle : glissement et
+   rétrécissement ne peuvent pas se désynchroniser.
+─────────────────────────────────────────────────────────────────── */
 .jarvis-core {
-  --core-size: min(74vh, 680px);
+  --core-size: min(78vh, 760px);
   --focus-x: 132px;
   --focus-y: 104px;
   --focus-scale: .18;
@@ -60,36 +60,91 @@
   overflow: visible;
 }
 
-/* ── Anneaux rotatifs ──────────────────────────────────────────── */
-.ring-a, .ring-b, .ring-c {
-  transform-box: view-box;
-  transform-origin: 500px 500px;
-}
-.ring-a { animation: jspin 46s linear infinite; }
-.ring-b { animation: jspin 30s linear infinite reverse; }
-.ring-c { animation: jspin 90s linear infinite; }
+/* ── Moteur de rotation ───────────────────────────────────────── */
+.rot { transform-box: view-box; transform-origin: 500px 500px; }
 @keyframes jspin { to { transform: rotate(360deg); } }
 
-.j-stroke      { fill: none; stroke: var(--copper);   stroke-width: 1.4; opacity: .55; }
-.j-stroke-dim  { fill: none; stroke: var(--copper);   stroke-width: 1;   opacity: .22; }
-.j-stroke-blue { fill: none; stroke: var(--sapphire); stroke-width: 1;   opacity: .35; }
-.j-tick        { stroke: var(--copper); stroke-width: 2; opacity: .4; }
+.rot-outer  { animation: jspin 140s linear infinite; }
+.rot-grad   { animation: jspin  96s linear infinite reverse; }
+.rot-blocks { animation: jspin  64s linear infinite; }
+.rot-heavy  { animation: jspin  44s linear infinite reverse; }
+.rot-mid    { animation: jspin  30s linear infinite; }
+.rot-inner  { animation: jspin  24s linear infinite reverse; }
+.rot-iris   { animation: jspin  80s linear infinite; }
+.rot-sweep  { animation: jspin   9s linear infinite; }
+.rot-orbit-a{ animation: jspin  18s linear infinite; }
+.rot-orbit-b{ animation: jspin  27s linear infinite reverse; }
+.rot-corein { animation: jspin  36s linear infinite reverse; }
 
-.j-core-fill { fill: var(--copper); opacity: .06; }
+/* ── Traits ──────────────────────────────────────────────────── */
+.j-halo { pointer-events: none; }
+
+.j-hair      { fill: none; stroke: var(--copper);   stroke-width: 1;   opacity: .2; }
+.j-hair-blue { fill: none; stroke: var(--sapphire); stroke-width: 1;   opacity: .32; }
+.j-ring      { fill: none; stroke: var(--copper);   stroke-width: 1.6; opacity: .5; }
+
+.j-tick      { stroke: var(--copper); stroke-width: 2.4; opacity: .34; }
+.j-tick-fine { stroke: var(--copper); stroke-width: 1.4; opacity: .24; }
+.j-tick-long { opacity: .6; }
+
+.j-arc-major {
+  fill: none;
+  stroke: var(--copper);
+  stroke-width: 5;
+  stroke-linecap: round;
+  opacity: .55;
+}
+.j-arc-amber {
+  fill: none;
+  stroke: var(--amber);
+  stroke-width: 3;
+  stroke-linecap: round;
+  opacity: .5;
+}
+.j-arc-bright {
+  fill: none;
+  stroke: var(--copper-light);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  opacity: .8;
+}
+
+/* Blocs de données orbitaux — quelques-uns clignotent en décalé */
+.j-block { fill: var(--copper); opacity: .32; }
+.j-block.is-amber { fill: var(--amber); opacity: .42; }
+.j-block.is-hot { animation: jblink 4.2s var(--ease) infinite; }
+@keyframes jblink {
+  0%, 62%, 100% { opacity: .3; }
+  68%, 76%      { opacity: .95; }
+}
+
+/* Balayage radar */
+.j-sweep { opacity: .55; }
+.j-sweep-edge { stroke: var(--copper-light); stroke-width: 1.4; opacity: .5; }
+
+.j-spoke { stroke: var(--copper); stroke-width: 1.6; opacity: .3; }
+.j-spoke-dot { fill: var(--copper); opacity: .55; }
+
+.j-blade { fill: var(--copper); opacity: .05; stroke: var(--copper); stroke-width: .8; }
+
+.j-bloom { opacity: .85; }
+
+/* Respiration du noyau */
 .j-pulse {
   fill: none;
   stroke: var(--copper);
   stroke-width: 2;
   transform-box: view-box;
   transform-origin: 500px 500px;
-  animation: jpulse 3.6s var(--ease-out) infinite;
+  animation: jpulse 4.2s var(--ease-out) infinite;
 }
 @keyframes jpulse {
-  0%   { transform: scale(.88); opacity: .55; }
-  70%  { transform: scale(1.14); opacity: 0; }
-  100% { transform: scale(1.14); opacity: 0; }
+  0%   { transform: scale(.9);  opacity: .6; }
+  70%  { transform: scale(1.16); opacity: 0; }
+  100% { transform: scale(1.16); opacity: 0; }
 }
 
+/* ── Typographie du noyau ────────────────────────────────────── */
 .j-label {
   fill: var(--copper-pale);
   font-family: var(--font-heading);
@@ -113,18 +168,26 @@
   text-anchor: middle;
   opacity: .75;
 }
+.j-micro {
+  fill: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-anchor: middle;
+  opacity: .4;
+}
 
 /* ── Connecteurs noyau → branches ──────────────────────────────── */
 .j-link {
   stroke: var(--copper);
-  stroke-width: 1.2;
-  opacity: .3;
+  stroke-width: 1.4;
+  opacity: .35;
   stroke-dasharray: 5 7;
   animation: jflow 2.4s linear infinite;
   transition: opacity var(--t-base) var(--ease), stroke-width var(--t-base) var(--ease);
 }
 @keyframes jflow { to { stroke-dashoffset: -24; } }
-.j-link.is-hot { opacity: .95; stroke-width: 2; }
+.j-link.is-hot { opacity: .95; stroke-width: 2.2; }
 
 .j-node-dot { fill: var(--bg-base); stroke: var(--copper); stroke-width: 2; }
 .j-node-dot.is-hot { fill: var(--copper); }
@@ -133,10 +196,10 @@
 .jbranch {
   position: absolute;
   transform: translate(-50%, -50%) scale(1);
-  width: 172px;
-  padding: 12px 14px;
+  width: 178px;
+  padding: 13px 15px;
   background: var(--bg-float);
-  backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(150%);
   border: 1px solid var(--copper-dim);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-md);
@@ -151,13 +214,24 @@
     opacity .45s var(--ease);
   will-change: transform;
 }
+.jbranch::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 12px; bottom: 12px;
+  width: 2px;
+  background: var(--copper);
+  opacity: .35;
+  transition: opacity var(--t-base) var(--ease);
+  transform: translateZ(0);
+}
 .jbranch:hover,
 .jbranch:focus-visible {
   transform: translate(-50%, -50%) scale(1.06);
   border-color: var(--copper);
-  box-shadow: var(--shadow-lg), 0 0 26px var(--copper-glow);
+  box-shadow: var(--shadow-lg), 0 0 30px var(--copper-glow);
   outline: none;
 }
+.jbranch:hover::before { opacity: 1; }
 
 .jbranch-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .jbranch-dot {
@@ -171,7 +245,7 @@
 .jbranch-title { font-size: .78rem; font-weight: 600; letter-spacing: .3px; line-height: 1.15; }
 .jbranch-kpi {
   font-family: var(--font-mono);
-  font-size: 1.4rem;
+  font-size: 1.45rem;
   font-weight: 600;
   color: var(--copper-light);
   line-height: 1;
@@ -193,7 +267,10 @@
   transition: transform .45s var(--ease), opacity .35s var(--ease);
 }
 .jarvis-core.is-focused .j-link,
-.jarvis-core.is-focused .j-node-dot {
+.jarvis-core.is-focused .j-node-dot,
+.jarvis-core.is-focused .j-micro,
+.jarvis-core.is-focused .j-sweep,
+.jarvis-core.is-focused .j-sweep-edge {
   opacity: 0;
   transition: opacity .35s var(--ease);
 }
@@ -303,12 +380,12 @@
 .hub-hint.is-hidden { opacity: 0; }
 
 @media (max-width: 1100px) {
-  .jarvis-core { --core-size: min(66vh, 520px); }
-  .jbranch { width: 148px; padding: 10px 12px; }
+  .jarvis-core { --core-size: min(68vh, 560px); }
+  .jbranch { width: 150px; padding: 10px 12px; }
   .view-surface { left: 180px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ring-a, .ring-b, .ring-c, .j-pulse, .j-link { animation: none; }
+  .rot, .j-pulse, .j-link, .j-block.is-hot { animation: none; }
   .jarvis-core, .view-surface, .view-body > * { transition-duration: .01ms; animation: none; }
 }
