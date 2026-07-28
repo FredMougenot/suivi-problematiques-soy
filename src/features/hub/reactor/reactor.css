@@ -1,16 +1,21 @@
 /* ═══════════════════════════════════════════════════════════════════
    RÉACTEUR — keyframes de l'export Claude Design + mise en page du hub.
 
-   Les keyframes jv* viennent du zip et sont utilisées par les cartes.
-   Le reste (colonnes, boîte du réacteur, état focus) fait le lien avec le
-   fonctionnement du hub : rétrécissement vers le coin, sortie des cartes,
-   surface d'affichage.
+   ══ DEUX PIÈGES DÉJÀ PAYÉS ══════════════════════════════════
 
-   Le réacteur est un CANVAS : il se redimensionne via ResizeObserver, donc
-   il suit la boîte sans qu'on ait à le prévenir. En revanche une transform
-   CSS sur la boîte ne déclenche PAS le ResizeObserver — c'est voulu : le
-   canvas garde sa résolution et se contente d'être mis à l'échelle, ce qui
-   évite de tout redessiner pendant l'animation de focus.
+   1. UNE COLONNE TRANSPARENTE CAPTURE QUAND MÊME LES CLICS.
+      .rx-col couvre une large bande de l'écran ; sans pointer-events:none
+      elle interceptait le clic sur le réacteur réduit en haut à gauche, qui
+      tombe pile dans sa zone. La transparence visuelle n'a rien à voir avec
+      la transparence aux événements : seules les cartes reçoivent les clics.
+
+   2. .rx-anchor EST LA RÉFÉRENCE DE MESURE, PAS .rx-box.
+      Les liaisons se calculent à partir d'un rectangle DOM. Or .rx-box porte
+      la transform de l'état focus : la mesurer pendant que le réacteur est
+      réduit donne un cercle minuscule en haut à gauche, et les traits partent
+      n'importe où. .rx-anchor a exactement la même géométrie mais AUCUNE
+      transform — elle reste donc valable dans les deux états.
+      Ne jamais mesurer un élément animé par transform.
    ═══════════════════════════════════════════════════════════════════ */
 
 @keyframes jvBlink { 0%, 100% { opacity: 1 } 50% { opacity: .25 } }
@@ -41,7 +46,6 @@
   transform: translateZ(0);
 }
 
-/* Ligne de balayage plein écran */
 .rx-scan {
   position: absolute;
   left: 0; right: 0;
@@ -66,6 +70,7 @@
   transition: transform 1s cubic-bezier(.66, 0, .16, 1);
   will-change: transform;
   pointer-events: none;
+  z-index: 5;
 }
 .rx-stage.is-focused .rx-box {
   transform:
@@ -76,6 +81,18 @@
     scale(var(--rx-focus-scale));
   cursor: pointer;
   pointer-events: auto;
+}
+
+/* Référence de mesure : même géométrie que .rx-box, jamais transformée. */
+.rx-anchor {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--rx-size);
+  height: var(--rx-size);
+  transform: translate(-50%, -50%);
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* ── Colonnes de cartes ───────────────────────────────────── */
@@ -89,6 +106,7 @@
   flex-direction: column;
   justify-content: center;
   gap: clamp(10px, 2.6vh, 34px);
+  pointer-events: none; /* voir piège 1 en tête de fichier */
 }
 .rx-col.is-l { left: 30px; }
 .rx-col.is-r { right: 30px; }
@@ -100,6 +118,7 @@
   min-height: 0;
   opacity: 1;
   transform: translateX(0);
+  pointer-events: auto;
   transition:
     opacity .45s var(--ease-out) calc(var(--rx-anim) + var(--i, 0) * .09s),
     transform .5s var(--ease-out) calc(var(--rx-anim) + var(--i, 0) * .09s);
@@ -125,10 +144,8 @@
 }
 .rx-stage.is-focused .rx-links { opacity: 0; }
 
-/* Coins d'encadrement */
 .rx-corner { position: absolute; width: 44px; height: 44px; pointer-events: none; }
 
-/* Vignette */
 .rx-vignette {
   position: absolute;
   inset: 0;
