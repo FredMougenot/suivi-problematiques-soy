@@ -13,11 +13,17 @@
 
    À la sortie, tout part sans délai : entrée retardée, sortie instantanée.
 
-   ══ DEUX PIÈGES DÉJÀ PAYÉS ══════════════════════════════════
-   1. Une colonne transparente capture quand même les clics : .rx-col est en
+   ══ TROIS PIÈGES DÉJÀ PAYÉS ══════════════════════════════════
+   1. FILL-MODE : ces animations d'entrée sont en `backwards`, JAMAIS en
+      `both`. Une animation l'emporte sur une déclaration normale dans la
+      cascade : avec `both`, l'image finale (opacity:1) reste appliquée après
+      la fin et écrase `.is-focused .rx-slot { opacity: 0 }` — les cartes ne
+      disparaissent plus et se superposent à la vue ouverte. `backwards`
+      applique l'état initial AVANT le délai, puis rend la main à la classe.
+   2. Une colonne transparente capture quand même les clics : .rx-col est en
       pointer-events:none, sinon elle intercepte le clic sur le réacteur
       réduit, qui tombe pile dans sa zone.
-   2. .rx-anchor est la référence de mesure, pas .rx-box : cette dernière
+   3. .rx-anchor est la référence de mesure, pas .rx-box : cette dernière
       porte la transform du focus. Ne jamais mesurer un élément animé par
       transform.
    ═══════════════════════════════════════════════════════════════════ */
@@ -77,7 +83,7 @@
   will-change: transform;
   pointer-events: none;
   z-index: 5;
-  animation: rxReveal .7s var(--ease-out) both;
+  animation: rxReveal .7s var(--ease-out) backwards;
 }
 .rx-stage.is-focused .rx-box {
   transform:
@@ -113,7 +119,7 @@
   flex-direction: column;
   justify-content: center;
   gap: clamp(10px, 2.6vh, 34px);
-  pointer-events: none; /* voir piège 1 en tête de fichier */
+  pointer-events: none; /* voir piège 2 en tête de fichier */
 }
 .rx-col.is-l { left: 30px; }
 .rx-col.is-r { right: 30px; }
@@ -125,7 +131,7 @@
   opacity: 1;
   transform: translateX(0);
   pointer-events: auto;
-  animation: rxReveal .5s var(--ease-out) both;
+  animation: rxReveal .5s var(--ease-out) backwards; /* jamais `both` — piège 1 */
   animation-delay: calc(var(--rx-anim) + var(--i, 0) * .09s);
   transition:
     opacity .45s var(--ease-out) calc(var(--rx-anim) + var(--i, 0) * .09s),
@@ -162,13 +168,13 @@
 /* Le trait pousse de la carte vers le cœur */
 .rx-draw {
   stroke-dasharray: 100;
-  animation: rxDraw .75s cubic-bezier(.32, 0, .2, 1) both;
+  animation: rxDraw .75s cubic-bezier(.32, 0, .2, 1) backwards;
   animation-delay: var(--d);
 }
 
 /* Pastille, crochet et impulsions : seulement une fois le trait arrivé */
 .rx-late {
-  animation: rxReveal .45s var(--ease-out) both;
+  animation: rxReveal .45s var(--ease-out) backwards;
   animation-delay: calc(var(--d) + .6s);
 }
 
