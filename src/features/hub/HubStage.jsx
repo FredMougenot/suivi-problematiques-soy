@@ -5,12 +5,12 @@ import { REACTEUR } from './hubVariant';
 import './reactor/reactor.css';
 
 /**
- * HubStage — scène du hub, version réacteur.
+ * HubStage — scène du hub, version réacteur (3e export Claude Design).
  *
- * Reprend la mise en page de l'export Claude Design (JarvisHud) et la branche
- * sur les données réelles : 4 raccourcis cliquables + 4 fenêtres KPI, soit
- * les 8 cartes de l'export. La télémétrie factice a été remplacée par les
- * valeurs de useHubKpis — l'habillage graphique, lui, est conservé.
+ * Reprend la mise en page de l'export (JarvisHud) et la branche sur les
+ * données réelles : 4 raccourcis cliquables + 4 fenêtres KPI, soit les 8
+ * cartes de l'export. La télémétrie factice a été remplacée par les valeurs
+ * de useHubKpis — l'habillage graphique, lui, est conservé.
  *
  * ══ CARTE EN DEUX COUCHES — NE PAS APLATIR ════════════════════════
  * La plaque extérieure ne sert qu'à peindre la bordure : elle porte la
@@ -19,19 +19,21 @@ import './reactor/reactor.css';
  * les bordures CSS, donc `border` sur un élément biseauté laisse les coupes
  * à nu. L'état actif/survol change la couleur de cette plaque.
  *
- * ══ LES LIAISONS SONT MESURÉES, ET SUR LE BON ÉLÉMENT ═══════════════
+ * ══ LIAISONS — MESURÉES, ET SUR LE BON ÉLÉMENT ════════════════════
  * Chaque trait part du bord réel de la carte (getBoundingClientRect) et
  * rejoint le cercle par une cassure à 45° stricte, avec recalcul via
- * ResizeObserver : un trait touche toujours l'anneau, quelle que soit la
- * fenêtre.
+ * ResizeObserver.
+ *
+ * Le rayon d'arrivée est celui de l'ANNEAU DESSINÉ : R × 0.78 × 0.955. Le
+ * 0.955 correspond au segRing le plus externe du canvas — sans lui, les
+ * traits s'arrêtent dans le vide, un peu au-delà du dernier anneau visible.
  *
  * Le cercle est mesuré sur .rx-anchor, PAS sur .rx-box : cette dernière porte
- * la transform de l'état focus, et la mesurer pendant que le réacteur est
- * réduit renvoie un cercle minuscule en haut à gauche. Règle générale : ne
- * jamais mesurer un élément animé par transform.
+ * la transform de l'état focus. Ne jamais mesurer un élément animé par
+ * transform.
  *
  * ══ AUCUNE ANIMATION D'ENTRÉE EN INLINE ═════════════════════════
- * L'export pose `animation: jvIn ... both` sur la carte. Retiré volontairement :
+ * L'export pose `animation: jvIn … both` sur la carte. Retiré volontairement :
  * une animation en fill-mode `both` fige opacity:1 et écrase la règle
  * `.is-focused .rx-slot { opacity: 0 }` — les cartes ne disparaîtraient plus
  * et se superposeraient à la vue ouverte. L'entrée échelonnée est gérée par
@@ -43,6 +45,9 @@ import './reactor/reactor.css';
 const MONO = 'var(--font-mono)';
 const SANS = 'var(--font-body)';
 const EDGE = 'rgba(120,190,225,.26)';
+
+/* Rayon de l'anneau le plus externe réellement dessiné par le canvas. */
+const RING = 0.78 * 0.955;
 
 /* ── Géométrie : amorce horizontale → cassure à 45° → arrivée sur l'anneau ── */
 function route(x0, y0, x1, y1, dir) {
@@ -212,7 +217,7 @@ export default function HubStage({ kpis = {}, activeId = null, focused = false, 
       const br = anchor.getBoundingClientRect(); // jamais transformée : voir en-tête
       const cx = br.left - wr.left + br.width / 2;
       const cy = br.top - wr.top + br.height / 2;
-      const R = Math.min(br.width, br.height) * 0.5 * 0.78;
+      const R = Math.min(br.width, br.height) * 0.5 * RING; // anneau réellement dessiné
       const n = (v) => v.toFixed(1);
       const out = [];
 
@@ -239,12 +244,14 @@ export default function HubStage({ kpis = {}, activeId = null, focused = false, 
           cap: `M${n(x0)} ${n(y0 - 5.5)} L${n(x0)} ${n(y0 + 5.5)}`,
           tip: `M${n(ex)} ${n(ey - 3.4)} L${n(ex)} ${n(ey + 3.4)} L${n(ex - dir * 8.5)} ${n(ey)} Z`,
           sx: x0, sy: y0,
-          breaks: pts.slice(1, -1).map((pt) => ({ x: pt[0] - 1.5, y: pt[1] - 1.5, cx: pt[0], cy: pt[1] })),
           c: i % 3 === 2 ? amber : cyan,
           ex, ey,
           origin: `${n(ex)}px ${n(ey)}px`,
+          // Deux comètes désynchronisées par liaison
           pulseDur: (2.8 + i * 0.31).toFixed(2) + 's',
           delay: (-i * 0.44).toFixed(2) + 's',
+          pulseDur2: (4.3 + i * 0.23).toFixed(2) + 's',
+          delay2: (-1.4 - i * 0.61).toFixed(2) + 's',
         });
       };
 
@@ -312,24 +319,52 @@ export default function HubStage({ kpis = {}, activeId = null, focused = false, 
       </div>
 
       <svg className="rx-links">
+        {/* Trois niveaux de flou pour le halo des liaisons */}
+        <defs>
+          <filter id="jvBloomWide" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="5.5" /></filter>
+          <filter id="jvBloomMid" x="-90%" y="-90%" width="280%" height="280%"><feGaussianBlur stdDeviation="2" /></filter>
+          <filter id="jvBloomTight" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="0.8" /></filter>
+        </defs>
+
         {links.map((l, i) => (
           <g key={i} className="rx-link" style={{ '--i': i }} shapeRendering="geometricPrecision">
+            {/* Dégradés ancrés sur le trajet : la liaison s'éteint vers le cœur */}
+            <linearGradient id={`jvg${i}`} gradientUnits="userSpaceOnUse" x1={l.sx} y1={l.sy} x2={l.ex} y2={l.ey}>
+              <stop offset="0" stopColor={l.c} stopOpacity="0.95" />
+              <stop offset="0.55" stopColor={l.c} stopOpacity="0.6" />
+              <stop offset="1" stopColor={l.c} stopOpacity="0.22" />
+            </linearGradient>
+            <linearGradient id={`jvw${i}`} gradientUnits="userSpaceOnUse" x1={l.sx} y1={l.sy} x2={l.ex} y2={l.ey}>
+              <stop offset="0" stopColor="#ffffff" stopOpacity="0.95" />
+              <stop offset="0.5" stopColor="#ffffff" stopOpacity="0.5" />
+              <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+            </linearGradient>
+
             {/* Le trait se pousse de la carte vers le coeur (rxDraw sur .rx-draw) */}
-            <path className="rx-draw" pathLength="100" d={l.d} fill="none" stroke={l.c} strokeWidth="6" opacity="0.05" strokeLinejoin="miter" />
-            <path className="rx-draw" pathLength="100" d={l.d} fill="none" stroke={l.c} strokeWidth="0.7" opacity="0.45" strokeLinejoin="miter" />
+            <path className="rx-draw" pathLength="100" d={l.d} fill="none" stroke={`url(#jvg${i})`} strokeWidth="11" opacity="0.16" strokeLinejoin="round" strokeLinecap="round" filter="url(#jvBloomWide)" />
+            <path className="rx-draw" pathLength="100" d={l.d} fill="none" stroke={`url(#jvg${i})`} strokeWidth="4.2" opacity="0.42" strokeLinejoin="round" strokeLinecap="round" filter="url(#jvBloomMid)" />
+            <path className="rx-draw" pathLength="100" d={l.d} fill="none" stroke={`url(#jvg${i})`} strokeWidth="2.6" opacity="0.9" strokeLinejoin="round" strokeLinecap="round" />
+            <path className="rx-draw" pathLength="100" d={l.d} fill="none" stroke={`url(#jvw${i})`} strokeWidth="1" strokeLinejoin="round" strokeLinecap="round" filter="url(#jvBloomTight)" />
+
             {/* Details : seulement une fois le trait arrive */}
             <g className="rx-late">
-              {l.rail && <path d={l.rail} fill="none" stroke={l.c} strokeWidth="0.55" opacity="0.18" strokeDasharray="1 4" />}
-              <path d={l.d} pathLength="100" fill="none" stroke={l.c} strokeWidth="1.5" strokeLinecap="round" strokeDasharray="10 90" opacity="0.28" style={{ animation: `jvPulse ${l.pulseDur} cubic-bezier(.45,0,.55,1) infinite`, animationDelay: l.delay }} />
-              <path d={l.d} pathLength="100" fill="none" stroke="#ffffff" strokeWidth="1.4" strokeLinecap="round" strokeDasharray="1.4 98.6" opacity="0.95" style={{ filter: `drop-shadow(0 0 5px ${l.c})`, animation: `jvPulse ${l.pulseDur} cubic-bezier(.45,0,.55,1) infinite`, animationDelay: l.delay }} />
-              {l.breaks.map((bk, k) => (
-                <rect key={k} x={bk.x} y={bk.y} width="3" height="3" fill="none" stroke={l.c} strokeWidth="0.6" opacity="0.8" transform={`rotate(45 ${bk.cx} ${bk.cy})`} />
-              ))}
-              <path d={l.cap} fill="none" stroke={l.c} strokeWidth="1" strokeLinecap="round" opacity="0.75" />
+              {l.rail && <path d={l.rail} fill="none" stroke={l.c} strokeWidth="0.55" opacity="0.14" strokeDasharray="1 4" />}
+
+              <g style={{ animation: `jvComet ${l.pulseDur} linear infinite`, animationDelay: l.delay }}>
+                <path d={l.d} pathLength="100" fill="none" stroke={l.c} strokeWidth="7" strokeLinecap="round" strokeDasharray="16 84" opacity="0.3" filter="url(#jvBloomMid)" style={{ animation: `jvPulse ${l.pulseDur} linear infinite`, animationDelay: l.delay }} />
+                <path d={l.d} pathLength="100" fill="none" stroke="#ffffff" strokeWidth="2.4" strokeLinecap="round" strokeDasharray="2.4 97.6" filter="url(#jvBloomTight)" style={{ animation: `jvPulse ${l.pulseDur} linear infinite`, animationDelay: l.delay }} />
+                <path d={l.d} pathLength="100" fill="none" stroke="#ffffff" strokeWidth="1.1" strokeLinecap="round" strokeDasharray="1 99" opacity="0.95" style={{ animation: `jvPulse ${l.pulseDur} linear infinite`, animationDelay: l.delay }} />
+              </g>
+
+              <g style={{ animation: `jvComet ${l.pulseDur2} linear infinite`, animationDelay: l.delay2 }}>
+                <path d={l.d} pathLength="100" fill="none" stroke="#ffffff" strokeWidth="1.6" strokeLinecap="round" strokeDasharray="1.4 98.6" opacity="0.7" filter="url(#jvBloomTight)" style={{ animation: `jvPulse ${l.pulseDur2} linear infinite`, animationDelay: l.delay2 }} />
+              </g>
+
+              <path d={l.cap} fill="none" stroke={l.c} strokeWidth="1.4" strokeLinecap="round" opacity="0.75" />
               <circle cx={l.sx} cy={l.sy} r="1.5" fill={l.c} opacity="0.9" />
-              <path d={l.tip} fill={l.c} opacity="0.85" />
-              <circle cx={l.ex} cy={l.ey} r="2" fill="#ffffff" opacity="0.9" style={{ filter: `drop-shadow(0 0 7px ${l.c})` }} />
-              <circle cx={l.ex} cy={l.ey} r="5.4" fill="none" stroke={l.c} strokeWidth="0.65" style={{ transformOrigin: l.origin, animation: 'jvNode 2.8s cubic-bezier(.2,.7,.3,1) infinite', animationDelay: l.delay }} />
+              <path d={l.tip} fill={l.c} opacity="0.55" />
+              <circle cx={l.ex} cy={l.ey} r="1.9" fill="#ffffff" opacity="0.75" style={{ filter: `drop-shadow(0 0 8px ${l.c})` }} />
+              <circle cx={l.ex} cy={l.ey} r="5.4" fill="none" stroke={l.c} strokeWidth="0.65" opacity="0.7" style={{ transformOrigin: l.origin, animation: 'jvNode 2.8s cubic-bezier(.2,.7,.3,1) infinite', animationDelay: l.delay }} />
             </g>
           </g>
         ))}
