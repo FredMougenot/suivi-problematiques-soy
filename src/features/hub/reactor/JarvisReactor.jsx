@@ -1,16 +1,16 @@
 /* JarvisReactor — cœur du réacteur HUD. Canvas 2D, une seule boucle rAF,
    sensible au devicePixelRatio, sans dépendance.
 
-   Origine : export « Animation Jarvis pour React » (Claude Design). Le code
-   de rendu est repris tel quel — seul le nom du composant a changé, pour ne
-   pas entrer en collision avec l'ancien JarvisCore.jsx (noyau SVG), conservé
-   comme solution de repli. Ne pas retoucher la boucle de dessin sans raison :
-   elle est écrite en temps réel (indépendante du framerate) et se met en
-   pause quand l'onglet est masqué.
+   Origine : export « Animation Jarvis pour React » (Claude Design), 3e version.
+   Le code de rendu est repris tel quel — seul le nom du composant a changé,
+   pour ne pas entrer en collision avec l'ancien JarvisCore.jsx (noyau SVG),
+   conservé comme solution de repli. Ne pas retoucher la boucle de dessin sans
+   raison : elle est écrite en temps réel (indépendante du framerate) et se met
+   en pause quand l'onglet est masqué.
 
    SEULE MODIFICATION DE FOND : la mesure de taille (voir resize ci-dessous).
 
-   <JarvisReactor speed={1} intensity={1} cyan="#38d6ff" amber="#ff7a18"
+   <JarvisReactor speed={1} intensity={1} cyan="#7f8cff" amber="#ffc542"
                   density={1} surgeEvery={7} surgePower={1.4} />
    Remplit son parent : c'est au parent d'avoir une taille. */
 
@@ -109,7 +109,7 @@ function JarvisReactor(props) {
 
     const glyphRows = [];
     for (let i = 0; i < 26; i++) {
-      const r = 0.34 + rnd() * 0.62;
+      const r = 0.34 + rnd() * 0.55;
       const count = 8 + Math.floor(rnd() * 22);
       const glyphs = [];
       for (let g = 0; g < count; g++) glyphs.push(0.2 + rnd() * 1.0);
@@ -120,23 +120,27 @@ function JarvisReactor(props) {
       });
     }
 
+    /* Traces schematiques : course radiale -> coude -> noeud terminal.
+       RIM plafonne chaque element pour que rien ne depasse l'anneau exterieur. */
+    const RIM = 0.945;
     const traces = [];
     for (let i = 0; i < 26; i++) {
       const a = rnd() * TAU;
-      const r0 = 0.62 + rnd() * 0.30;
-      const r1 = r0 + 0.10 + rnd() * 0.30;
+      const stub = rnd() < 0.45 ? 0.03 + rnd() * 0.05 : 0;
+      const r0 = 0.50 + rnd() * 0.20;
+      const r1 = Math.min(r0 + 0.08 + rnd() * 0.24, RIM - 0.04 - stub);
       const bend = (rnd() < 0.5 ? -1 : 1) * (0.05 + rnd() * 0.22);
       traces.push({
         a, r0, r1, bend, col: pick(['c', 'a', 'a', 'w']), ph: rnd() * TAU,
         spd: 0.14 + rnd() * 0.35, node: rnd() < 0.4 ? 'ring' : 'dot',
-        stub: rnd() < 0.45 ? 0.03 + rnd() * 0.05 : 0, drift: (rnd() - 0.5) * 0.012,
+        stub, drift: (rnd() - 0.5) * 0.012,
       });
     }
 
     const chips = [];
     for (let i = 0; i < 22; i++) {
       chips.push({
-        r: 0.66 + rnd() * 0.30, a: rnd() * TAU, spd: (rnd() - 0.5) * 0.06,
+        r: 0.62 + rnd() * 0.26, a: rnd() * TAU, spd: (rnd() - 0.5) * 0.06,
         w: 0.010 + rnd() * 0.022, h: 0.008 + rnd() * 0.016,
         col: rnd() < 0.72 ? 'a' : 'c', ph: rnd() * TAU, fr: 0.3 + rnd() * 1.4, tilt: rnd() < 0.5,
       });
@@ -144,7 +148,7 @@ function JarvisReactor(props) {
 
     const sparks = [];
     for (let i = 0; i < 90; i++) {
-      sparks.push({ a: rnd() * TAU, r: 0.2 + rnd() * 0.95, v: 0.008 + rnd() * 0.05,
+      sparks.push({ a: rnd() * TAU, r: 0.2 + rnd() * 0.50, v: 0.008 + rnd() * 0.05,
         s: 0.0012 + rnd() * 0.0035, col: rnd() < 0.5 ? 'a' : 'c', ph: rnd() * TAU, ang: (rnd() - 0.5) * 0.06 });
     }
 
@@ -190,6 +194,8 @@ function JarvisReactor(props) {
       ctx.scale(scale, scale);
       ctx.globalCompositeOperation = 'lighter';
       ctx.lineCap = 'butt';
+      // filet de securite : rien ne peint au-dela de l'anneau exterieur
+      ctx.beginPath(); ctx.arc(0, 0, R * 0.985, 0, TAU); ctx.clip();
 
       const rr = v => v * R;
 
@@ -392,6 +398,16 @@ function JarvisReactor(props) {
         sgd.addColorStop(0, rgba(sp.col, al * 0.35)); sgd.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = sgd; ctx.beginPath(); ctx.arc(x, y, rr(sp.s) * 8, 0, TAU); ctx.fill();
       });
+
+      // adoucit le bord : la bande exterieure est effacee progressivement pour
+      // que la limite du clip ne soit jamais une coupe franche visible
+      ctx.globalCompositeOperation = 'destination-out';
+      const fade = ctx.createRadialGradient(0, 0, R * 0.963, 0, 0, R * 0.985);
+      fade.addColorStop(0, 'rgba(0,0,0,0)');
+      fade.addColorStop(0.5, 'rgba(0,0,0,0.5)');
+      fade.addColorStop(1, 'rgba(0,0,0,1)');
+      ctx.fillStyle = fade;
+      ctx.beginPath(); ctx.arc(0, 0, R * 0.985, 0, TAU); ctx.fill();
 
       ctx.restore();
     };
