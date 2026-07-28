@@ -1,21 +1,25 @@
 /* ═══════════════════════════════════════════════════════════════════
    RÉACTEUR — keyframes de l'export Claude Design + mise en page du hub.
 
+   ══ CHORÉGRAPHIE — TROIS TEMPS, DANS CET ORDRE ═══════════════════
+     1. le réacteur se déploie            0 → --rx-anim (.92 s)
+     2. les cartes entrent, échelonnées    --rx-anim + rang × 90 ms
+     3. les liaisons se tracent            --rx-links, de la carte vers le cœur
+
+   Les liaisons se dessinent par stroke-dashoffset : le tracé `d` part de la
+   carte et finit sur l'anneau, donc révéler du début vers la fin fait
+   littéralement pousser le trait vers le centre. Les détails (pastille,
+   crochet, impulsions) n'apparaissent qu'une fois le trait arrivé.
+
+   À la sortie, tout part sans délai : entrée retardée, sortie instantanée.
+
    ══ DEUX PIÈGES DÉJÀ PAYÉS ══════════════════════════════════
-
-   1. UNE COLONNE TRANSPARENTE CAPTURE QUAND MÊME LES CLICS.
-      .rx-col couvre une large bande de l'écran ; sans pointer-events:none
-      elle interceptait le clic sur le réacteur réduit en haut à gauche, qui
-      tombe pile dans sa zone. La transparence visuelle n'a rien à voir avec
-      la transparence aux événements : seules les cartes reçoivent les clics.
-
-   2. .rx-anchor EST LA RÉFÉRENCE DE MESURE, PAS .rx-box.
-      Les liaisons se calculent à partir d'un rectangle DOM. Or .rx-box porte
-      la transform de l'état focus : la mesurer pendant que le réacteur est
-      réduit donne un cercle minuscule en haut à gauche, et les traits partent
-      n'importe où. .rx-anchor a exactement la même géométrie mais AUCUNE
-      transform — elle reste donc valable dans les deux états.
-      Ne jamais mesurer un élément animé par transform.
+   1. Une colonne transparente capture quand même les clics : .rx-col est en
+      pointer-events:none, sinon elle intercepte le clic sur le réacteur
+      réduit, qui tombe pile dans sa zone.
+   2. .rx-anchor est la référence de mesure, pas .rx-box : cette dernière
+      porte la transform du focus. Ne jamais mesurer un élément animé par
+      transform.
    ═══════════════════════════════════════════════════════════════════ */
 
 @keyframes jvBlink { 0%, 100% { opacity: 1 } 50% { opacity: .25 } }
@@ -30,10 +34,15 @@
 @keyframes jvRail { 0%, 100% { opacity: .35 } 50% { opacity: 1 } }
 @keyframes jvFill { 0% { transform: translateX(-100%) } 100% { transform: translateX(100%) } }
 
+/* Tracé progressif de la carte vers le cœur */
+@keyframes rxDraw { from { stroke-dashoffset: 100 } to { stroke-dashoffset: 0 } }
+@keyframes rxReveal { from { opacity: 0 } to { opacity: 1 } }
+
 .rx-stage {
   --rx-col: clamp(228px, 22.8vw, 360px);
   --rx-size: min(92vh, calc(100vw - 2 * (var(--rx-col) + 84px)), 1200px);
-  --rx-anim: .92s;
+  --rx-anim: .92s;   /* durée utile du déploiement du réacteur */
+  --rx-links: 1.8s;  /* début du traçage, après l'entrée des cartes */
   --rx-focus-x: 132px;
   --rx-focus-y: 104px;
   --rx-focus-scale: .17;
@@ -55,10 +64,7 @@
   pointer-events: none;
 }
 
-/* ── Boîte du réacteur ───────────────────────────────────────
-   Un seul transform interpole position et échelle : glissement et
-   rétrécissement ne peuvent pas se désynchroniser.
-──────────────────────────────────────────────────────────────── */
+/* ── Boîte du réacteur ─────────────────────────────────────── */
 .rx-box {
   position: absolute;
   left: 50%;
@@ -71,6 +77,7 @@
   will-change: transform;
   pointer-events: none;
   z-index: 5;
+  animation: rxReveal .7s var(--ease-out) both;
 }
 .rx-stage.is-focused .rx-box {
   transform:
@@ -111,7 +118,6 @@
 .rx-col.is-l { left: 30px; }
 .rx-col.is-r { right: 30px; }
 
-/* Entrée retardée (après le déploiement du réacteur), sortie immédiate */
 .rx-slot {
   display: flex;
   flex: 1 1 0;
@@ -119,6 +125,8 @@
   opacity: 1;
   transform: translateX(0);
   pointer-events: auto;
+  animation: rxReveal .5s var(--ease-out) both;
+  animation-delay: calc(var(--rx-anim) + var(--i, 0) * .09s);
   transition:
     opacity .45s var(--ease-out) calc(var(--rx-anim) + var(--i, 0) * .09s),
     transform .5s var(--ease-out) calc(var(--rx-anim) + var(--i, 0) * .09s);
@@ -131,7 +139,7 @@
 .rx-stage.is-focused .is-l .rx-slot { transform: translateX(-26px); }
 .rx-stage.is-focused .is-r .rx-slot { transform: translateX(26px); }
 
-/* Liaisons carte → réacteur */
+/* ── Liaisons ───────────────────────────────────────────── */
 .rx-links {
   position: absolute;
   inset: 0;
@@ -140,9 +148,29 @@
   pointer-events: none;
   overflow: visible;
   z-index: 2;
-  transition: opacity .3s var(--ease);
+  opacity: 1;
+  /* Au retour depuis une vue, les liaisons repassent après les cartes. */
+  transition: opacity .5s var(--ease-out) var(--rx-links);
 }
-.rx-stage.is-focused .rx-links { opacity: 0; }
+.rx-stage.is-focused .rx-links {
+  opacity: 0;
+  transition: opacity .25s var(--ease) 0s;
+}
+
+.rx-link { --d: calc(var(--rx-links) + var(--i, 0) * .1s); }
+
+/* Le trait pousse de la carte vers le cœur */
+.rx-draw {
+  stroke-dasharray: 100;
+  animation: rxDraw .75s cubic-bezier(.32, 0, .2, 1) both;
+  animation-delay: var(--d);
+}
+
+/* Pastille, crochet et impulsions : seulement une fois le trait arrivé */
+.rx-late {
+  animation: rxReveal .45s var(--ease-out) both;
+  animation-delay: calc(var(--d) + .6s);
+}
 
 .rx-corner { position: absolute; width: 44px; height: 44px; pointer-events: none; }
 
@@ -154,6 +182,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rx-scan, .rx-slot { animation: none; transition-delay: 0s; }
+  .rx-scan, .rx-slot, .rx-box, .rx-draw, .rx-late { animation: none; }
+  .rx-slot, .rx-links { transition-delay: 0s; }
   .rx-box { transition-duration: .01ms; }
 }
