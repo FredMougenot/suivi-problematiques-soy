@@ -9,7 +9,7 @@
    Les liaisons se dessinent par stroke-dashoffset : le tracé `d` part de la
    carte et finit sur l'anneau, donc révéler du début vers la fin fait
    littéralement pousser le trait vers le centre. Les détails (capuchon,
-   pointe, impulsions) n'apparaissent qu'une fois le trait arrivé.
+   pointe, comètes) n'apparaissent qu'une fois le trait arrivé.
 
    À la sortie, tout part sans délai : entrée retardée, sortie instantanée.
 
@@ -42,6 +42,12 @@
 @keyframes jvIn { 0% { opacity: 0; transform: translateY(6px) } 100% { opacity: 1; transform: none } }
 @keyframes jvRail { 0%, 100% { opacity: .35 } 50% { opacity: 1 } }
 @keyframes jvFill { 0% { transform: translateX(-100%) } 100% { transform: translateX(100%) } }
+
+/* Enveloppe d'opacité des comètes : elles s'allument, tiennent, puis
+   s'éteignent avant de reboucler. Sans elle, le point réapparaîtrait sec au
+   départ du trajet à chaque tour. jvPulse déplace, jvComet fait fondre —
+   les deux tournent sur la même durée, sur des éléments imbriqués. */
+@keyframes jvComet { 0% { opacity: 0 } 12% { opacity: 1 } 62% { opacity: .85 } 88% { opacity: .18 } 100% { opacity: 0 } }
 
 /* Tracé progressif de la carte vers le cœur */
 @keyframes rxDraw { from { stroke-dashoffset: 100 } to { stroke-dashoffset: 0 } }
@@ -178,7 +184,7 @@
   animation-delay: var(--d);
 }
 
-/* Capuchon, pointe et impulsions : seulement une fois le trait arrivé */
+/* Capuchon, pointe et comètes : seulement une fois le trait arrivé */
 .rx-late {
   animation: rxReveal .45s var(--ease-out) backwards;
   animation-delay: calc(var(--d) + .6s);
