@@ -8,8 +8,8 @@
 
    Les liaisons se dessinent par stroke-dashoffset : le tracé `d` part de la
    carte et finit sur l'anneau, donc révéler du début vers la fin fait
-   littéralement pousser le trait vers le centre. Les détails (pastille,
-   crochet, impulsions) n'apparaissent qu'une fois le trait arrivé.
+   littéralement pousser le trait vers le centre. Les détails (capuchon,
+   pointe, impulsions) n'apparaissent qu'une fois le trait arrivé.
 
    À la sortie, tout part sans délai : entrée retardée, sortie instantanée.
 
@@ -20,12 +20,15 @@
       la fin et écrase `.is-focused .rx-slot { opacity: 0 }` — les cartes ne
       disparaissent plus et se superposent à la vue ouverte. `backwards`
       applique l'état initial AVANT le délai, puis rend la main à la classe.
+      Même raison pour laquelle le `animation: jvIn … both` que pose l'export
+      sur ses cartes est retiré dans HubStage.
    2. Une colonne transparente capture quand même les clics : .rx-col est en
       pointer-events:none, sinon elle intercepte le clic sur le réacteur
       réduit, qui tombe pile dans sa zone.
    3. .rx-anchor est la référence de mesure, pas .rx-box : cette dernière
       porte la transform du focus. Ne jamais mesurer un élément animé par
-      transform.
+      transform — c'est aussi pour ça que JarvisReactor mesure son canvas
+      avec clientWidth et non getBoundingClientRect.
    ═══════════════════════════════════════════════════════════════════ */
 
 @keyframes jvBlink { 0%, 100% { opacity: 1 } 50% { opacity: .25 } }
@@ -65,7 +68,10 @@
   position: absolute;
   left: 0; right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(56, 214, 255, .2), transparent);
+  /* Teinte alignée sur REACTEUR.cyan (hubVariant.js). Le canvas exige du
+     hexadécimal réel, ces deux valeurs ne peuvent donc pas partager un
+     token : changer la couleur du réacteur impose de reporter ici. */
+  background: linear-gradient(90deg, transparent, rgba(127, 140, 255, .22), transparent);
   animation: jvScan 9s linear infinite;
   pointer-events: none;
 }
@@ -172,13 +178,11 @@
   animation-delay: var(--d);
 }
 
-/* Pastille, crochet et impulsions : seulement une fois le trait arrivé */
+/* Capuchon, pointe et impulsions : seulement une fois le trait arrivé */
 .rx-late {
   animation: rxReveal .45s var(--ease-out) backwards;
   animation-delay: calc(var(--d) + .6s);
 }
-
-.rx-corner { position: absolute; width: 44px; height: 44px; pointer-events: none; }
 
 .rx-vignette {
   position: absolute;
