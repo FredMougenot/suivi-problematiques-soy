@@ -1,0 +1,142 @@
+/* ═══════════════════════════════════════════════════════════════════
+   RÉACTEUR — keyframes de l'export Claude Design + mise en page du hub.
+
+   Les keyframes jv* viennent du zip et sont utilisées par les cartes.
+   Le reste (colonnes, boîte du réacteur, état focus) fait le lien avec le
+   fonctionnement du hub : rétrécissement vers le coin, sortie des cartes,
+   surface d'affichage.
+
+   Le réacteur est un CANVAS : il se redimensionne via ResizeObserver, donc
+   il suit la boîte sans qu'on ait à le prévenir. En revanche une transform
+   CSS sur la boîte ne déclenche PAS le ResizeObserver — c'est voulu : le
+   canvas garde sa résolution et se contente d'être mis à l'échelle, ce qui
+   évite de tout redessiner pendant l'animation de focus.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@keyframes jvBlink { 0%, 100% { opacity: 1 } 50% { opacity: .25 } }
+@keyframes jvScan { 0% { transform: translateY(-10vh) } 100% { transform: translateY(110vh) } }
+@keyframes jvBar { 0%, 100% { transform: scaleY(.16) } 45% { transform: scaleY(1) } 70% { transform: scaleY(.48) } }
+@keyframes jvSlide { 0% { transform: translateX(0) } 100% { transform: translateX(-50%) } }
+@keyframes jvPulse { 0% { stroke-dashoffset: 100 } 100% { stroke-dashoffset: 0 } }
+@keyframes jvNode { 0%, 100% { transform: scale(1); opacity: .5 } 50% { transform: scale(2); opacity: 0 } }
+@keyframes jvSweepCard { 0% { transform: translateX(-120%) } 55%, 100% { transform: translateX(420%) } }
+@keyframes jvFlicker { 0%, 100% { opacity: .9 } 42% { opacity: .35 } 47% { opacity: 1 } 61% { opacity: .55 } }
+@keyframes jvIn { 0% { opacity: 0; transform: translateY(6px) } 100% { opacity: 1; transform: none } }
+@keyframes jvRail { 0%, 100% { opacity: .35 } 50% { opacity: 1 } }
+@keyframes jvFill { 0% { transform: translateX(-100%) } 100% { transform: translateX(100%) } }
+
+.rx-stage {
+  --rx-col: clamp(228px, 22.8vw, 360px);
+  --rx-size: min(92vh, calc(100vw - 2 * (var(--rx-col) + 84px)), 1200px);
+  --rx-anim: .92s;
+  --rx-focus-x: 132px;
+  --rx-focus-y: 104px;
+  --rx-focus-scale: .17;
+
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 2;
+  background: radial-gradient(120% 90% at 50% 45%, #04090f 0%, #010305 55%, #000 100%);
+  transform: translateZ(0);
+}
+
+/* Ligne de balayage plein écran */
+.rx-scan {
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(56, 214, 255, .2), transparent);
+  animation: jvScan 9s linear infinite;
+  pointer-events: none;
+}
+
+/* ── Boîte du réacteur ───────────────────────────────────────
+   Un seul transform interpole position et échelle : glissement et
+   rétrécissement ne peuvent pas se désynchroniser.
+──────────────────────────────────────────────────────────────── */
+.rx-box {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--rx-size);
+  height: var(--rx-size);
+  transform: translate(-50%, -50%);
+  transform-origin: 50% 50%;
+  transition: transform 1s cubic-bezier(.66, 0, .16, 1);
+  will-change: transform;
+  pointer-events: none;
+}
+.rx-stage.is-focused .rx-box {
+  transform:
+    translate(
+      calc(-50% + var(--rx-focus-x) - 50vw),
+      calc(-50% + var(--rx-focus-y) - 50vh)
+    )
+    scale(var(--rx-focus-scale));
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+/* ── Colonnes de cartes ───────────────────────────────────── */
+.rx-col {
+  position: absolute;
+  top: 88px;
+  bottom: 16px;
+  width: var(--rx-col);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(10px, 2.6vh, 34px);
+}
+.rx-col.is-l { left: 30px; }
+.rx-col.is-r { right: 30px; }
+
+/* Entrée retardée (après le déploiement du réacteur), sortie immédiate */
+.rx-slot {
+  display: flex;
+  flex: 1 1 0;
+  min-height: 0;
+  opacity: 1;
+  transform: translateX(0);
+  transition:
+    opacity .45s var(--ease-out) calc(var(--rx-anim) + var(--i, 0) * .09s),
+    transform .5s var(--ease-out) calc(var(--rx-anim) + var(--i, 0) * .09s);
+}
+.rx-stage.is-focused .rx-slot {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .26s var(--ease) 0s, transform .3s var(--ease) 0s;
+}
+.rx-stage.is-focused .is-l .rx-slot { transform: translateX(-26px); }
+.rx-stage.is-focused .is-r .rx-slot { transform: translateX(26px); }
+
+/* Liaisons carte → réacteur */
+.rx-links {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 2;
+  transition: opacity .3s var(--ease);
+}
+.rx-stage.is-focused .rx-links { opacity: 0; }
+
+/* Coins d'encadrement */
+.rx-corner { position: absolute; width: 44px; height: 44px; pointer-events: none; }
+
+/* Vignette */
+.rx-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(100% 100% at 50% 50%, transparent 60%, rgba(0, 0, 0, .7) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rx-scan, .rx-slot { animation: none; transition-delay: 0s; }
+  .rx-box { transition-duration: .01ms; }
+}
