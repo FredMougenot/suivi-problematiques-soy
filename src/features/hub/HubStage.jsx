@@ -12,6 +12,13 @@ import './reactor/reactor.css';
  * les 8 cartes de l'export. La télémétrie factice a été remplacée par les
  * valeurs de useHubKpis — l'habillage graphique, lui, est conservé.
  *
+ * ══ CARTE EN DEUX COUCHES — NE PAS APLATIR ════════════════════════
+ * La plaque extérieure ne sert qu'à peindre la bordure : elle porte la
+ * couleur en fond, 1px de padding, et le même clip-path que l'intérieur.
+ * C'est le seul moyen d'avoir un liseré sur les BISEAUX — clip-path découpe
+ * les bordures CSS, donc `border` sur un élément biseauté laisse les coupes
+ * à nu. L'état actif/survol change la couleur de cette plaque.
+ *
  * ══ LES LIAISONS SONT MESURÉES, ET SUR LE BON ÉLÉMENT ═══════════════
  * Chaque trait part du bord réel de la carte (getBoundingClientRect) et
  * rejoint le cercle par une cassure à 45° stricte, avec recalcul via
@@ -20,21 +27,22 @@ import './reactor/reactor.css';
  *
  * Le cercle est mesuré sur .rx-anchor, PAS sur .rx-box : cette dernière porte
  * la transform de l'état focus, et la mesurer pendant que le réacteur est
- * réduit renvoie un cercle minuscule en haut à gauche — les traits partaient
- * alors n'importe où au retour. Règle générale : ne jamais mesurer un élément
- * animé par transform.
+ * réduit renvoie un cercle minuscule en haut à gauche. Règle générale : ne
+ * jamais mesurer un élément animé par transform.
  *
- * ══ CHORÉGRAPHIE ════════════════════════════════════════════════════
- * Ordre imposé : réacteur, puis cartes, puis liaisons. Les classes .rx-link,
- * .rx-draw et .rx-late portent les délais (définis dans reactor.css) ; le
- * tracé `d` part de la carte et finit sur l'anneau, donc révéler du début
- * vers la fin pousse le trait vers le centre.
+ * ══ AUCUNE ANIMATION D'ENTRÉE EN INLINE ═════════════════════════
+ * L'export pose `animation: jvIn ... both` sur la carte. Retiré volontairement :
+ * une animation en fill-mode `both` fige opacity:1 et écrase la règle
+ * `.is-focused .rx-slot { opacity: 0 }` — les cartes ne disparaîtraient plus
+ * et se superposeraient à la vue ouverte. L'entrée échelonnée est gérée par
+ * .rx-slot dans reactor.css, en `backwards`.
  *
  * Composant purement présentationnel : aucune requête, aucun état métier.
  */
 
 const MONO = 'var(--font-mono)';
 const SANS = 'var(--font-body)';
+const EDGE = 'rgba(120,190,225,.26)';
 
 /* ── Géométrie : amorce horizontale → cassure à 45° → arrivée sur l'anneau ── */
 function route(x0, y0, x1, y1, dir) {
@@ -86,7 +94,12 @@ const Card = React.forwardRef(function Card(
   const rev = side === 'r';
   const cliquable = Boolean(onClick);
 
+  const clip = rev
+    ? 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)'
+    : 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))';
+
   return (
+    /* Plaque extérieure : peint la bordure, biseaux compris (voir en-tête) */
     <div
       ref={ref}
       role={cliquable ? 'button' : undefined}
@@ -95,56 +108,60 @@ const Card = React.forwardRef(function Card(
       onKeyDown={cliquable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } } : undefined}
       style={{
         position: 'relative', flex: '1 1 0', minHeight: 96, maxHeight: 132, width: '100%',
-        padding: rev ? '12px 18px 14px 16px' : '12px 16px 14px 18px',
-        border: `1px solid ${active ? color : 'rgba(120,190,225,.15)'}`,
-        background: `linear-gradient(${rev ? 225 : 135}deg, rgba(11,27,39,.88), rgba(3,9,14,.7))`,
-        boxShadow: active
-          ? `inset 0 0 30px ${color}22, 0 0 34px ${color}33, 0 14px 34px rgba(0,0,0,.55)`
-          : 'inset 0 1px 0 rgba(210,240,255,.07), inset 0 0 30px rgba(56,214,255,.04), 0 14px 34px rgba(0,0,0,.55)',
-        clipPath: rev
-          ? 'polygon(11px 0, 100% 0, 100% calc(100% - 11px), calc(100% - 11px) 100%, 0 100%, 0 11px)'
-          : 'polygon(0 0, calc(100% - 11px) 0, 100% 11px, 100% 100%, 11px 100%, 0 calc(100% - 11px))',
-        display: 'flex', flexDirection: 'column', gap: 5, overflow: 'hidden',
+        padding: 1,
+        background: active ? color : EDGE,
+        boxShadow: active ? `0 0 34px ${color}44, 0 14px 34px rgba(0,0,0,.55)` : '0 14px 34px rgba(0,0,0,.55)',
+        clipPath: clip,
+        display: 'flex',
         cursor: cliquable ? 'pointer' : 'default',
-        transition: 'border-color .25s, box-shadow .25s, transform .25s',
+        transition: 'background .25s, box-shadow .25s, transform .25s',
         color: '#cfe9f5', fontFamily: SANS, textAlign: 'left',
       }}
-      onMouseEnter={cliquable ? (e) => { e.currentTarget.style.transform = `translateX(${rev ? -5 : 5}px)`; e.currentTarget.style.borderColor = color; } : undefined}
-      onMouseLeave={cliquable ? (e) => { e.currentTarget.style.transform = 'none'; if (!active) e.currentTarget.style.borderColor = 'rgba(120,190,225,.15)'; } : undefined}
+      onMouseEnter={cliquable ? (e) => { e.currentTarget.style.transform = `translateX(${rev ? -5 : 5}px)`; e.currentTarget.style.background = color; } : undefined}
+      onMouseLeave={cliquable ? (e) => { e.currentTarget.style.transform = 'none'; if (!active) e.currentTarget.style.background = EDGE; } : undefined}
     >
-      <div style={{ position: 'absolute', top: 0, [rev ? 'right' : 'left']: 0, width: '26%', height: 1, background: `linear-gradient(90deg, transparent, ${color}, transparent)`, animation: `jvSweepCard ${sweep} ease-in-out infinite` }} />
-      <div style={{ position: 'absolute', [rev ? 'right' : 'left']: 0, top: 8, bottom: 8, width: 2, background: `linear-gradient(180deg, transparent, ${color}, transparent)`, animation: `jvRail ${sweep} ease-in-out infinite` }} />
-      <div style={{ position: 'absolute', [rev ? 'right' : 'left']: 5, top: '50%', width: 4, height: 1, background: color, opacity: .5 }} />
-      <div style={{ position: 'absolute', [rev ? 'left' : 'right']: 0, bottom: 0, width: 34, height: 18, background: `repeating-linear-gradient(${rev ? 45 : -45}deg, rgba(120,190,225,.10) 0 1px, transparent 1px 5px)` }} />
+      {/* Couche intérieure : le contenu */}
+      <div style={{
+        position: 'relative', flex: 1, minWidth: 0,
+        padding: rev ? '12px 18px 14px 16px' : '12px 16px 14px 18px',
+        background: `linear-gradient(${rev ? 225 : 135}deg, rgba(11,27,39,.9), rgba(3,9,14,.74))`,
+        boxShadow: 'inset 0 1px 0 rgba(210,240,255,.06), inset 0 0 30px rgba(56,214,255,.04)',
+        clipPath: clip,
+        display: 'flex', flexDirection: 'column', gap: 5, overflow: 'hidden',
+      }}>
+        <div style={{ position: 'absolute', top: 0, [rev ? 'right' : 'left']: 0, width: '26%', height: 1, background: `linear-gradient(90deg, transparent, ${color}, transparent)`, animation: `jvSweepCard ${sweep} ease-in-out infinite` }} />
+        <div style={{ position: 'absolute', [rev ? 'right' : 'left']: 0, top: 8, bottom: 8, width: 2, background: `linear-gradient(180deg, transparent, ${color}, transparent)`, animation: `jvRail ${sweep} ease-in-out infinite` }} />
+        <div style={{ position: 'absolute', [rev ? 'right' : 'left']: 5, top: '50%', width: 4, height: 1, background: color, opacity: .5 }} />
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexDirection: rev ? 'row-reverse' : 'row' }}>
-        <div style={{ flex: 'none', padding: '1px 4px', border: `1px solid ${color}`, fontFamily: MONO, fontSize: 12.5, lineHeight: 1.25, color, letterSpacing: '.06em' }}>{num}</div>
-        <div style={{ flex: 1, minWidth: 0, fontSize: 13, letterSpacing: '.14em', textTransform: 'uppercase', color: '#e4f4fc', textAlign: rev ? 'right' : 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</div>
-        <div style={{ flex: 'none', width: 6, height: 6, background: color, boxShadow: `0 0 9px ${color}`, animation: `jvBlink ${sweep} ease-in-out infinite` }} />
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexDirection: rev ? 'row-reverse' : 'row' }}>
-        <div style={{ fontFamily: MONO, fontSize: 24, lineHeight: 1, color: value == null ? 'rgba(150,195,220,.45)' : '#f2fbff', textShadow: value == null ? 'none' : `0 0 16px ${color}` }}>
-          {value == null ? '\u2014' : value}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexDirection: rev ? 'row-reverse' : 'row' }}>
+          <div style={{ flex: 'none', padding: '1px 4px', border: `1px solid ${color}`, fontFamily: MONO, fontSize: 12.5, lineHeight: 1.25, color, letterSpacing: '.06em' }}>{num}</div>
+          <div style={{ flex: 1, minWidth: 0, fontSize: 13, letterSpacing: '.14em', textTransform: 'uppercase', color: '#e4f4fc', textAlign: rev ? 'right' : 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</div>
+          <div style={{ flex: 'none', width: 6, height: 6, background: color, boxShadow: `0 0 9px ${color}`, animation: `jvBlink ${sweep} ease-in-out infinite` }} />
         </div>
-        <div style={{ flex: 1 }} />
-        <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '.14em', color: 'rgba(150,195,220,.42)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{unit}</div>
-      </div>
 
-      {bars ? <Bars bars={bars} color={color} amber={amber} rev={rev} /> : (
-        <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'flex-end' }}>
-          <div style={{ width: '100%', height: 3, background: 'rgba(120,190,225,.12)', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: active ? '100%' : '38%', background: color, boxShadow: `0 0 7px ${color}`, transition: 'width .5s' }} />
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexDirection: rev ? 'row-reverse' : 'row' }}>
+          <div style={{ fontFamily: MONO, fontSize: 24, lineHeight: 1, color: value == null ? 'rgba(150,195,220,.45)' : '#f2fbff', textShadow: value == null ? 'none' : `0 0 16px ${color}` }}>
+            {value == null ? '\u2014' : value}
           </div>
+          <div style={{ flex: 1 }} />
+          <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '.14em', color: 'rgba(150,195,220,.42)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{unit}</div>
         </div>
-      )}
 
-      {sub ? (
-        <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '.16em', color: 'rgba(150,195,220,.3)', textTransform: 'uppercase', textAlign: rev ? 'right' : 'left' }}>{sub}</div>
-      ) : null}
+        {bars ? <Bars bars={bars} color={color} amber={amber} rev={rev} /> : (
+          <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'flex-end' }}>
+            <div style={{ width: '100%', height: 3, background: 'rgba(120,190,225,.12)', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: active ? '100%' : '38%', background: color, boxShadow: `0 0 7px ${color}`, transition: 'width .5s' }} />
+            </div>
+          </div>
+        )}
 
-      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 2, background: 'rgba(120,190,225,.10)', overflow: 'hidden' }}>
-        <div style={{ height: '100%', width: '40%', background: `linear-gradient(90deg, transparent, ${color}, transparent)`, animation: `jvFill ${sweep} linear infinite` }} />
+        {sub ? (
+          <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '.16em', color: 'rgba(150,195,220,.3)', textTransform: 'uppercase', textAlign: rev ? 'right' : 'left' }}>{sub}</div>
+        ) : null}
+
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 2, background: 'rgba(120,190,225,.10)', overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: '40%', background: `linear-gradient(90deg, transparent, ${color}, transparent)`, animation: `jvFill ${sweep} linear infinite` }} />
+        </div>
       </div>
     </div>
   );
@@ -218,7 +235,10 @@ export default function HubStage({ kpis = {}, activeId = null, focused = false, 
           d: pts.map((pt, k) => (k ? 'L' : 'M') + n(pt[0]) + ' ' + n(pt[1])).join(' '),
           rail: pts.length > 1 && Math.abs(pts[1][1] - y0) < 0.6
             ? `M${n(x0 + dir * 5)} ${n(railY)} L${n(pts[1][0])} ${n(railY)}` : '',
-          bracket: `M${n(x0 + dir * 5)} ${n(y0 - 4)} L${n(x0)} ${n(y0 - 4)} L${n(x0)} ${n(y0 + 4)} L${n(x0 + dir * 5)} ${n(y0 + 4)}`,
+          // Capuchon au départ (côté carte) et pointe de flèche à l'arrivée
+          cap: `M${n(x0)} ${n(y0 - 5.5)} L${n(x0)} ${n(y0 + 5.5)}`,
+          tip: `M${n(ex)} ${n(ey - 3.4)} L${n(ex)} ${n(ey + 3.4)} L${n(ex - dir * 8.5)} ${n(ey)} Z`,
+          sx: x0, sy: y0,
           breaks: pts.slice(1, -1).map((pt) => ({ x: pt[0] - 1.5, y: pt[1] - 1.5, cx: pt[0], cy: pt[1] })),
           c: i % 3 === 2 ? amber : cyan,
           ex, ey,
@@ -241,12 +261,6 @@ export default function HubStage({ kpis = {}, activeId = null, focused = false, 
     const raf = requestAnimationFrame(() => requestAnimationFrame(build));
     return () => { ro.disconnect(); window.removeEventListener('resize', build); cancelAnimationFrame(raf); };
   }, [cyan, amber, cartes]);
-
-  const corner = (v, h, c) => ({
-    [v]: 22, [h]: 22,
-    [`border${v === 'top' ? 'Top' : 'Bottom'}`]: `1px solid ${c}`,
-    [`border${h === 'left' ? 'Left' : 'Right'}`]: `1px solid ${c}`,
-  });
 
   const colonne = (side) => (
     <div className={`rx-col is-${side}`} key={side}>
@@ -305,16 +319,17 @@ export default function HubStage({ kpis = {}, activeId = null, focused = false, 
             <path className="rx-draw" pathLength="100" d={l.d} fill="none" stroke={l.c} strokeWidth="0.7" opacity="0.45" strokeLinejoin="miter" />
             {/* Details : seulement une fois le trait arrive */}
             <g className="rx-late">
-            {l.rail && <path d={l.rail} fill="none" stroke={l.c} strokeWidth="0.55" opacity="0.18" strokeDasharray="1 4" />}
-            <path d={l.d} pathLength="100" fill="none" stroke={l.c} strokeWidth="1.5" strokeLinecap="round" strokeDasharray="10 90" opacity="0.28" style={{ animation: `jvPulse ${l.pulseDur} cubic-bezier(.45,0,.55,1) infinite`, animationDelay: l.delay }} />
-            <path d={l.d} pathLength="100" fill="none" stroke="#ffffff" strokeWidth="1.4" strokeLinecap="round" strokeDasharray="1.4 98.6" opacity="0.95" style={{ filter: `drop-shadow(0 0 5px ${l.c})`, animation: `jvPulse ${l.pulseDur} cubic-bezier(.45,0,.55,1) infinite`, animationDelay: l.delay }} />
-            {l.breaks.map((bk, k) => (
-              <rect key={k} x={bk.x} y={bk.y} width="3" height="3" fill="none" stroke={l.c} strokeWidth="0.6" opacity="0.8" transform={`rotate(45 ${bk.cx} ${bk.cy})`} />
-            ))}
-            <path d={l.bracket} fill="none" stroke={l.c} strokeWidth="0.9" opacity="0.65" />
-            <circle cx={l.ex} cy={l.ey} r="3" fill="none" stroke={l.c} strokeWidth="0.7" opacity="0.9" />
-            <circle cx={l.ex} cy={l.ey} r="1.2" fill="#ffffff" opacity="0.95" style={{ filter: `drop-shadow(0 0 6px ${l.c})` }} />
-            <circle cx={l.ex} cy={l.ey} r="4.6" fill="none" stroke={l.c} strokeWidth="0.7" style={{ transformOrigin: l.origin, animation: 'jvNode 2.8s cubic-bezier(.2,.7,.3,1) infinite', animationDelay: l.delay }} />
+              {l.rail && <path d={l.rail} fill="none" stroke={l.c} strokeWidth="0.55" opacity="0.18" strokeDasharray="1 4" />}
+              <path d={l.d} pathLength="100" fill="none" stroke={l.c} strokeWidth="1.5" strokeLinecap="round" strokeDasharray="10 90" opacity="0.28" style={{ animation: `jvPulse ${l.pulseDur} cubic-bezier(.45,0,.55,1) infinite`, animationDelay: l.delay }} />
+              <path d={l.d} pathLength="100" fill="none" stroke="#ffffff" strokeWidth="1.4" strokeLinecap="round" strokeDasharray="1.4 98.6" opacity="0.95" style={{ filter: `drop-shadow(0 0 5px ${l.c})`, animation: `jvPulse ${l.pulseDur} cubic-bezier(.45,0,.55,1) infinite`, animationDelay: l.delay }} />
+              {l.breaks.map((bk, k) => (
+                <rect key={k} x={bk.x} y={bk.y} width="3" height="3" fill="none" stroke={l.c} strokeWidth="0.6" opacity="0.8" transform={`rotate(45 ${bk.cx} ${bk.cy})`} />
+              ))}
+              <path d={l.cap} fill="none" stroke={l.c} strokeWidth="1" strokeLinecap="round" opacity="0.75" />
+              <circle cx={l.sx} cy={l.sy} r="1.5" fill={l.c} opacity="0.9" />
+              <path d={l.tip} fill={l.c} opacity="0.85" />
+              <circle cx={l.ex} cy={l.ey} r="2" fill="#ffffff" opacity="0.9" style={{ filter: `drop-shadow(0 0 7px ${l.c})` }} />
+              <circle cx={l.ex} cy={l.ey} r="5.4" fill="none" stroke={l.c} strokeWidth="0.65" style={{ transformOrigin: l.origin, animation: 'jvNode 2.8s cubic-bezier(.2,.7,.3,1) infinite', animationDelay: l.delay }} />
             </g>
           </g>
         ))}
@@ -322,11 +337,6 @@ export default function HubStage({ kpis = {}, activeId = null, focused = false, 
 
       {colonne('l')}
       {colonne('r')}
-
-      <div className="rx-corner" style={corner('top', 'left', 'rgba(56,214,255,.45)')} />
-      <div className="rx-corner" style={corner('top', 'right', 'rgba(255,122,24,.4)')} />
-      <div className="rx-corner" style={corner('bottom', 'left', 'rgba(255,122,24,.4)')} />
-      <div className="rx-corner" style={corner('bottom', 'right', 'rgba(56,214,255,.45)')} />
 
       <div className="rx-vignette" />
 
