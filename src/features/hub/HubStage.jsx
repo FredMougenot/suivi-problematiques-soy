@@ -24,6 +24,12 @@ import './reactor/reactor.css';
  * alors n'importe où au retour. Règle générale : ne jamais mesurer un élément
  * animé par transform.
  *
+ * ══ CHORÉGRAPHIE ════════════════════════════════════════════════════
+ * Ordre imposé : réacteur, puis cartes, puis liaisons. Les classes .rx-link,
+ * .rx-draw et .rx-late portent les délais (définis dans reactor.css) ; le
+ * tracé `d` part de la carte et finit sur l'anneau, donc révéler du début
+ * vers la fin pousse le trait vers le centre.
+ *
  * Composant purement présentationnel : aucune requête, aucun état métier.
  */
 
@@ -293,9 +299,12 @@ export default function HubStage({ kpis = {}, activeId = null, focused = false, 
 
       <svg className="rx-links">
         {links.map((l, i) => (
-          <g key={i} shapeRendering="geometricPrecision">
-            <path d={l.d} fill="none" stroke={l.c} strokeWidth="6" opacity="0.05" strokeLinejoin="miter" />
-            <path d={l.d} fill="none" stroke={l.c} strokeWidth="0.7" opacity="0.45" strokeLinejoin="miter" />
+          <g key={i} className="rx-link" style={{ '--i': i }} shapeRendering="geometricPrecision">
+            {/* Le trait se pousse de la carte vers le coeur (rxDraw sur .rx-draw) */}
+            <path className="rx-draw" pathLength="100" d={l.d} fill="none" stroke={l.c} strokeWidth="6" opacity="0.05" strokeLinejoin="miter" />
+            <path className="rx-draw" pathLength="100" d={l.d} fill="none" stroke={l.c} strokeWidth="0.7" opacity="0.45" strokeLinejoin="miter" />
+            {/* Details : seulement une fois le trait arrive */}
+            <g className="rx-late">
             {l.rail && <path d={l.rail} fill="none" stroke={l.c} strokeWidth="0.55" opacity="0.18" strokeDasharray="1 4" />}
             <path d={l.d} pathLength="100" fill="none" stroke={l.c} strokeWidth="1.5" strokeLinecap="round" strokeDasharray="10 90" opacity="0.28" style={{ animation: `jvPulse ${l.pulseDur} cubic-bezier(.45,0,.55,1) infinite`, animationDelay: l.delay }} />
             <path d={l.d} pathLength="100" fill="none" stroke="#ffffff" strokeWidth="1.4" strokeLinecap="round" strokeDasharray="1.4 98.6" opacity="0.95" style={{ filter: `drop-shadow(0 0 5px ${l.c})`, animation: `jvPulse ${l.pulseDur} cubic-bezier(.45,0,.55,1) infinite`, animationDelay: l.delay }} />
@@ -306,6 +315,7 @@ export default function HubStage({ kpis = {}, activeId = null, focused = false, 
             <circle cx={l.ex} cy={l.ey} r="3" fill="none" stroke={l.c} strokeWidth="0.7" opacity="0.9" />
             <circle cx={l.ex} cy={l.ey} r="1.2" fill="#ffffff" opacity="0.95" style={{ filter: `drop-shadow(0 0 6px ${l.c})` }} />
             <circle cx={l.ex} cy={l.ey} r="4.6" fill="none" stroke={l.c} strokeWidth="0.7" style={{ transformOrigin: l.origin, animation: 'jvNode 2.8s cubic-bezier(.2,.7,.3,1) infinite', animationDelay: l.delay }} />
+            </g>
           </g>
         ))}
       </svg>
