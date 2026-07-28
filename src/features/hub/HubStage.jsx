@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import JarvisReactor from './reactor/JarvisReactor';
 import { HUB_BRANCHES, HUB_KPIS } from './hubConfig';
 import { REACTEUR } from './hubVariant';
@@ -12,19 +12,23 @@ import './reactor/reactor.css';
  * les 8 cartes de l'export. La télémétrie factice a été remplacée par les
  * valeurs de useHubKpis — l'habillage graphique, lui, est conservé.
  *
- * ══ LES LIAISONS SONT MESURÉES, PAS DEVINÉES ══════════════════════
+ * ══ LES LIAISONS SONT MESURÉES, ET SUR LE BON ÉLÉMENT ═══════════════
  * Chaque trait part du bord réel de la carte (getBoundingClientRect) et
- * rejoint le cercle du réacteur par une cassure à 45° stricte. Un
- * ResizeObserver recalcule tout à chaque changement de taille : c'est ce qui
- * garantit qu'un trait touche toujours l'anneau, quelle que soit la fenêtre.
- * D'où le passage par le DOM plutôt que par des valeurs en dur.
+ * rejoint le cercle par une cassure à 45° stricte, avec recalcul via
+ * ResizeObserver : un trait touche toujours l'anneau, quelle que soit la
+ * fenêtre.
  *
- * Le composant est purement présentationnel : aucune requête, aucun état
- * métier. Tout arrive par les props.
+ * Le cercle est mesuré sur .rx-anchor, PAS sur .rx-box : cette dernière porte
+ * la transform de l'état focus, et la mesurer pendant que le réacteur est
+ * réduit renvoie un cercle minuscule en haut à gauche — les traits partaient
+ * alors n'importe où au retour. Règle générale : ne jamais mesurer un élément
+ * animé par transform.
+ *
+ * Composant purement présentationnel : aucune requête, aucun état métier.
  */
 
-const MONO = "var(--font-mono)";
-const SANS = "var(--font-body)";
+const MONO = 'var(--font-mono)';
+const SANS = 'var(--font-body)';
 
 /* ── Géométrie : amorce horizontale → cassure à 45° → arrivée sur l'anneau ── */
 function route(x0, y0, x1, y1, dir) {
@@ -48,7 +52,6 @@ function route(x0, y0, x1, y1, dir) {
   return out;
 }
 
-/* ── Silhouette animée des fenêtres KPI ─────────────────────────── */
 function Bars({ bars, color, amber, rev }) {
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'flex-end', gap: 2, flexDirection: rev ? 'row-reverse' : 'row' }}>
@@ -70,7 +73,6 @@ function Bars({ bars, color, amber, rev }) {
   );
 }
 
-/* ── Carte ──────────────────────────────────────────────── */
 const Card = React.forwardRef(function Card(
   { num, label, sub, value, unit, color, amber, side, bars, onClick, active, sweep },
   ref
@@ -145,19 +147,18 @@ const Card = React.forwardRef(function Card(
 export default function HubStage({ kpis = {}, activeId = null, focused = false, onSelect, onReset, children }) {
   const { cyan, amber } = REACTEUR;
   const wrapRef = useRef(null);
-  const boxRef = useRef(null);
+  const anchorRef = useRef(null);
 
-  /* Les 8 cartes : raccourcis puis fenêtres KPI, réparties par côté. */
   const cartes = useMemo(() => {
     const build = (side) => {
       const raccourcis = HUB_BRANCHES.filter((b) => b.side === side).map((b) => ({
         key: b.id,
+        id: b.id,
         num: String(HUB_BRANCHES.indexOf(b) + 1).padStart(2, '0'),
         label: b.title,
         unit: b.unit,
         value: kpis[b.id],
         onSelect: () => onSelect(b.id),
-        id: b.id,
       }));
       const fenetres = HUB_KPIS.filter((k) => k.side === side).map((k) => ({
         key: k.id,
@@ -182,9 +183,10 @@ export default function HubStage({ kpis = {}, activeId = null, focused = false, 
 
   useLayoutEffect(() => {
     const build = () => {
-      const wrap = wrapRef.current, box = boxRef.current;
-      if (!wrap || !box) return;
-      const wr = wrap.getBoundingClientRect(), br = box.getBoundingClientRect();
+      const wrap = wrapRef.current, anchor = anchorRef.current;
+      if (!wrap || !anchor) return;
+      const wr = wrap.getBoundingClientRect();
+      const br = anchor.getBoundingClientRect(); // jamais transformée : voir en-tête
       const cx = br.left - wr.left + br.width / 2;
       const cy = br.top - wr.top + br.height / 2;
       const R = Math.min(br.width, br.height) * 0.5 * 0.78;
@@ -195,6 +197,7 @@ export default function HubStage({ kpis = {}, activeId = null, focused = false, 
         const el = ref.current;
         if (!el) return;
         const r = el.getBoundingClientRect();
+        if (!r.width) return;
         const y0 = r.top - wr.top + r.height / 2;
         const x0 = side === 'l' ? r.right - wr.left : r.left - wr.left;
         const dir = side === 'l' ? 1 : -1;
@@ -227,6 +230,7 @@ export default function HubStage({ kpis = {}, activeId = null, focused = false, 
     build();
     const ro = new ResizeObserver(build);
     if (wrapRef.current) ro.observe(wrapRef.current);
+    if (anchorRef.current) ro.observe(anchorRef.current);
     window.addEventListener('resize', build);
     const raf = requestAnimationFrame(() => requestAnimationFrame(build));
     return () => { ro.disconnect(); window.removeEventListener('resize', build); cancelAnimationFrame(raf); };
@@ -266,11 +270,15 @@ export default function HubStage({ kpis = {}, activeId = null, focused = false, 
     <div ref={wrapRef} className={`rx-stage${focused ? ' is-focused' : ''}`}>
       <div className="rx-scan" />
 
+      {/* Référence de mesure, invisible et sans transform */}
+      <div ref={anchorRef} className="rx-anchor" aria-hidden="true" />
+
       <div
-        ref={boxRef}
         className="rx-box"
         onClick={focused ? onReset : undefined}
+        role={focused ? 'button' : undefined}
         title={focused ? 'Revenir au hub' : undefined}
+        aria-label={focused ? 'Revenir au hub' : undefined}
       >
         <JarvisReactor
           cyan={cyan}
