@@ -8,6 +8,8 @@
    elle est écrite en temps réel (indépendante du framerate) et se met en
    pause quand l'onglet est masqué.
 
+   SEULE MODIFICATION DE FOND : la mesure de taille (voir resize ci-dessous).
+
    <JarvisReactor speed={1} intensity={1} cyan="#38d6ff" amber="#ff7a18"
                   density={1} surgeEvery={7} surgePower={1.4} />
    Remplit son parent : c'est au parent d'avoir une taille. */
@@ -49,10 +51,22 @@ function JarvisReactor(props) {
     const ctx = canvas.getContext('2d', { alpha: true });
     let W = 0, H = 0, dpr = 1, R = 0, raf = 0, T = 0, last = performance.now();
 
+    /* Mesure la taille de MISE EN PAGE, jamais la taille visuelle.
+
+       getBoundingClientRect() inclut les transformations des ancêtres. Quand
+       le hub réduit la boîte (scale .17 en état focus), il renvoyait ~150 px :
+       le canvas se redimensionnait à cette taille et y RESTAIT, puisqu'un
+       ResizeObserver ne se déclenche pas sur une transform — rien ne le
+       ramenait au retour. D'où un réacteur minuscule qui ne reprenait jamais
+       sa taille ni sa position.
+
+       clientWidth/clientHeight donnent la boîte de mise en page, insensible
+       aux transforms. Même règle que partout ailleurs dans le hub : ne jamais
+       mesurer un élément animé par transform. */
     const resize = () => {
-      const r = wrap.getBoundingClientRect();
       dpr = Math.min(window.devicePixelRatio || 1, 2);
-      W = Math.max(1, Math.round(r.width)); H = Math.max(1, Math.round(r.height));
+      W = Math.max(1, Math.round(wrap.clientWidth));
+      H = Math.max(1, Math.round(wrap.clientHeight));
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
       canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
       R = Math.min(W, H) * 0.5 * 0.78;
