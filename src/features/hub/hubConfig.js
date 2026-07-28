@@ -23,7 +23,7 @@ export const HUB_BRANCHES = [
     title: 'Problématiques',
     icon: '◈',
     side: 'left',
-    unit: 'au registre',
+    unit: 'actives',
     Component: lazy(() => import('../problematiques/ProblematiquesPage')),
   },
   {
@@ -31,7 +31,7 @@ export const HUB_BRANCHES = [
     title: 'Planification camions',
     icon: '🚛',
     side: 'left',
-    unit: 'camions aujourd\u2019hui',
+    unit: 'camions actifs aujourd\u2019hui',
     Component: lazy(() => import('../camions/PlanningCamionsPage')),
   },
   {

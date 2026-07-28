@@ -1,24 +1,23 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import { nombre } from '../inventaire-netrack/logic';
+import { isWeekend } from '../camions/rules';
 import { HUB_BRANCHES } from './hubConfig';
 
 /**
  * useHubKpis — alimente le chiffre affiché sur chaque panneau.
  *
  * ══ CONCEPTION DÉFENSIVE ═══════════════════════════════════
- * Chaque KPI est calculé indépendamment et enveloppé dans un try/catch.
- * Une requête qui échoue (table absente, RLS, réseau) affiche « — » et
- * laisse le hub parfaitement fonctionnel. Aucun KPI ne peut faire tomber
- * l'écran d'accueil — c'est la première chose que voit l'équipe le matin.
+ * Chaque KPI est calculé indépendamment, enveloppé dans un try/catch. Une
+ * requête qui échoue affiche « — » et laisse le hub fonctionnel : c'est le
+ * premier écran que voit l'équipe le matin, il ne doit jamais tomber.
  *
- * ══ COÛT ══════════════════════════════════════════════════
- * Trois des quatre requêtes sont des COUNT côté serveur (head: true) :
- * aucune ligne ne transite. Seul le total de palettes doit lire une
- * colonne, faute d'agrégat SUM dans le client JS — d'où la pagination
- * bornée ci-dessous. Si l'inventaire dépasse un jour ce plafond, la bonne
- * réponse est une vue SQL qui renvoie le total déjà calculé, pas plus de
- * pages.
+ * ══ LES DÉFINITIONS VIENNENT DU CODE MÉTIER, PAS D'UNE INTERPRÉTATION ══
+ * Chaque chiffre reprend la règle déjà écrite ailleurs dans l'app, pour
+ * qu'un panneau et sa page affichent toujours la même chose :
+ *   • problématiques → STATUTS_TERMINES de problematiques/logic.js
+ *   • camions        → règle de statut effectif de camions/rules.js
+ *   • palettes       → une ligne d'inventaire = une palette
+ * Si l'une de ces règles change là-bas, la reporter ici.
  */
 
 /** Date du jour au format AAAA-MM-JJ, en heure locale (pas UTC). */
@@ -29,6 +28,7 @@ function aujourdhui() {
     + '-' + String(d.getDate()).padStart(2, '0');
 }
 
+/** COUNT côté serveur : aucune ligne ne transite. */
 async function compter(table, appliquer) {
   let q = supabase.from(table).select('*', { count: 'exact', head: true });
   if (appliquer) q = appliquer(q);
@@ -37,40 +37,67 @@ async function compter(table, appliquer) {
   return count ?? 0;
 }
 
-const PAGE = 1000;
-const PAGES_MAX = 8; // plafond de sécurité : 8000 lignes
+/**
+ * Problématiques actives.
+ * Même définition que STATUTS_TERMINES dans problematiques/logic.js :
+ * une problématique Résolue, Clôturée ou Annulée ne demande plus de suivi.
+ */
+const STATUTS_TERMINES = ['Résolu', 'Clôturé', 'Annulé'];
+
+function problematiquesActives() {
+  const liste = '(' + STATUTS_TERMINES.map((s) => `"${s}"`).join(',') + ')';
+  return compter('problematiques', (q) => q.not('statut', 'in', liste));
+}
 
 /**
- * Total des palettes NetRack.
- * `unite2_qte_inv` arrive en texte du portail (« 1,418. ») : la virgule est
- * un séparateur de milliers et le point final un artefact d'affichage.
- * On réutilise donc `nombre()` du module NetRack plutôt que parseFloat,
- * sinon « 1,418 » serait lu 1.
+ * Camions actifs du jour.
+ *
+ * Attention : compter les lignes de la table donne un faux total. Un créneau
+ * non touché n'existe pas en base et compte pourtant comme ACTIF — c'est la
+ * règle de buildRowContext (camions/rules.js) :
+ *   statut effectif = valeur en base, sinon INACTIF les week-ends pour les
+ *   créneaux 0,1,7,8,9, sinon ACTIF.
+ * Et comme dans isActifOuNL, toute valeur tierce (NON LIVRÉ) reste active :
+ * seul INACTIF exclut.
+ *
+ * Les 10 créneaux fixes sont donc toujours comptés, plus les extras
+ * (slot_index >= 10) qui, eux, n'existent que s'ils ont été créés.
  */
-async function totalPalettes() {
-  let total = 0;
-  for (let page = 0; page < PAGES_MAX; page += 1) {
-    const debut = page * PAGE;
-    const { data, error } = await supabase
-      .from('n8n_gh_inventaire')
-      .select('unite2_qte_inv')
-      .range(debut, debut + PAGE - 1);
-    if (error) throw error;
-    (data || []).forEach((l) => { total += nombre(l.unite2_qte_inv); });
-    if (!data || data.length < PAGE) break;
-  }
-  return Math.round(total);
+const SLOTS_FIXES = 10;
+const WK_INACTIF_IDX = [0, 1, 7, 8, 9];
+const V_INACTIF = 'INACTIF'; // libellé par défaut de planning_params.statut_ligne
+
+async function camionsActifs() {
+  const jour = aujourdhui();
+  const { data, error } = await supabase
+    .from('planning_camions')
+    .select('slot_index, statut_ligne')
+    .eq('date_jour', jour);
+  if (error) throw error;
+
+  const enBase = new Map((data || []).map((r) => [r.slot_index, r.statut_ligne]));
+  const creneaux = new Set();
+  for (let i = 0; i < SLOTS_FIXES; i += 1) creneaux.add(i);
+  (data || []).forEach((r) => { if (r.slot_index >= SLOTS_FIXES) creneaux.add(r.slot_index); });
+
+  const wk = isWeekend(jour);
+  let actifs = 0;
+  creneaux.forEach((i) => {
+    const defaut = wk && WK_INACTIF_IDX.includes(i) ? V_INACTIF : 'ACTIF';
+    const statut = enBase.get(i) || defaut;
+    if (statut !== V_INACTIF) actifs += 1;
+  });
+  return actifs;
 }
 
 const FETCHERS = {
-  // Registre complet, toutes périodes et tous statuts confondus.
-  problematiques: () => compter('problematiques'),
+  problematiques: () => problematiquesActives(),
 
-  // Camions planifiés pour la journée en cours. Une ligne = un créneau
-  // occupé ; les créneaux vides ne sont pas écrits en base.
-  camions: () => compter('planning_camions', (q) => q.eq('date_jour', aujourdhui())),
+  camions: () => camionsActifs(),
 
-  netrack: () => totalPalettes(),
+  // Une ligne d'inventaire = une palette : un COUNT suffit, inutile de lire
+  // les quantités (l'ancienne somme de unite2_qte_inv comptait des unités).
+  netrack: () => compter('n8n_gh_inventaire'),
 
   'parametres-prob': () => compter('prob_responsables'),
 };
