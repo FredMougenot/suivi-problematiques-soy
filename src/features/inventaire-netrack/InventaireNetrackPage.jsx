@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { usePlanningStore } from '../../store/usePlanningStore';
-import { useInventaireNetrackQuery, useReglesCategorieQuery } from './queries';
-import { useCreerRegle, useModifierRegle, useSupprimerRegle } from './mutations';
+import {
+  useInventaireNetrackQuery, useReglesCategorieQuery, useReferenceProduitsQuery,
+} from './queries';
+import {
+  useCreerRegle, useModifierRegle, useSupprimerRegle, useEnregistrerTraxCode,
+} from './mutations';
 import EditeurRegle from './components/EditeurRegle';
 import {
   LIBELLES, COLONNES_NUM, COLONNES_GROUPE, SEUILS_EXPIRATION,
@@ -21,10 +25,39 @@ const COLLANTES = 2;
 
 const nb = (v) => (typeof v === 'number' ? v.toLocaleString('fr-CA') : v);
 
+/**
+ * Saisie du TRAXcode d'un produit. Seule valeur de base_reference_produits
+ * qui s'ecrit a la main : toutes les autres viennent des regles et seraient
+ * ecrasees au prochain recalcul. Enregistrement a la sortie du champ.
+ */
+function ChampTrax({ code, valeur, onEnregistrer }) {
+  const [saisie, setSaisie] = useState(valeur ?? '');
+  useEffect(() => { setSaisie(valeur ?? ''); }, [valeur]);
+
+  const inchange = (saisie.trim() || null) === (valeur || null);
+
+  return (
+    <input
+      className="nr-trax-input"
+      type="text"
+      value={saisie}
+      placeholder="—"
+      onClick={(e) => e.stopPropagation()}
+      onChange={(e) => setSaisie(e.target.value)}
+      onBlur={() => { if (!inchange) onEnregistrer(code, saisie); }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.currentTarget.blur();
+        if (e.key === 'Escape') { setSaisie(valeur ?? ''); e.currentTarget.blur(); }
+      }}
+    />
+  );
+}
+
 export default function InventaireNetrackPage() {
   const addToast = usePlanningStore((s) => s.addToast);
   const inventaireQ = useInventaireNetrackQuery();
   const reglesQ = useReglesCategorieQuery();
+  const referenceQ = useReferenceProduitsQuery();
 
   // ── Etat porte par l'URL : un lien reproduit exactement l'ecran ──
   const [params, setParams] = useSearchParams();
@@ -66,6 +99,7 @@ export default function InventaireNetrackPage() {
   const creer = useCreerRegle();
   const modifier = useModifierRegle();
   const supprimer = useSupprimerRegle();
+  const enregistrerTrax = useEnregistrerTraxCode();
   const enCoursRegle = creer.isPending || modifier.isPending || supprimer.isPending;
 
   useEffect(() => { setAffichees(PAR_PAGE); },
@@ -73,10 +107,13 @@ export default function InventaireNetrackPage() {
 
   const reglesPretes = useMemo(() => preparerRegles(reglesQ.data || []), [reglesQ.data]);
 
-  /** Enrichissement a l'affichage : rien n'est recopie en base. */
+  /**
+   * Jointure sur le referentiel produits. Les attributs sont calcules en base
+   * par gh_recalculer_reference_produits() : la page ne resout plus les regles.
+   */
   const lignes = useMemo(
-    () => enrichir(inventaireQ.data || [], reglesPretes),
-    [inventaireQ.data, reglesPretes],
+    () => enrichir(inventaireQ.data || [], referenceQ.data || []),
+    [inventaireQ.data, referenceQ.data],
   );
 
   const colonnes = useMemo(() => colonnesDe(lignes), [lignes]);
@@ -86,7 +123,7 @@ export default function InventaireNetrackPage() {
     [lignes],
   );
 
-  /** Clients reellement presents, issus des regles : rien n'est code en dur. */
+  /** Clients reellement presents, issus du referentiel : rien n'est code en dur. */
   const clients = useMemo(
     () => [...new Set(lignes.map((l) => l.client_regle).filter(Boolean))].sort(),
     [lignes],
@@ -115,7 +152,10 @@ export default function InventaireNetrackPage() {
     [panneau, filtrees, colonnes],
   );
 
-  /** Nombre de lignes reellement gouvernees par chaque regle. */
+  /**
+   * Nombre de lignes gouvernees par chaque regle. Simulation locale, a titre
+   * indicatif : l'arbitrage qui fait foi est celui du recalcul SQL.
+   */
   const comptesParRegle = useMemo(() => {
     const m = new Map();
     for (const l of lignes) {
@@ -183,7 +223,7 @@ export default function InventaireNetrackPage() {
   }
 
   async function handleActualiser() {
-    await Promise.all([inventaireQ.refetch(), reglesQ.refetch()]);
+    await Promise.all([inventaireQ.refetch(), reglesQ.refetch(), referenceQ.refetch()]);
     addToast('Inventaire actualisé ✓', 'success');
   }
 
@@ -208,14 +248,23 @@ export default function InventaireNetrackPage() {
     }
   }
 
+  async function sauverTrax(code, valeur) {
+    try {
+      await enregistrerTrax.mutateAsync({ code, trax_code: valeur });
+      addToast('TRAXcode enregistré ✓', 'success');
+    } catch (e) {
+      addToast('Enregistrement impossible : ' + e.message, 'error');
+    }
+  }
+
   function copierLien() {
     navigator.clipboard.writeText(window.location.href)
       .then(() => addToast('Lien de la vue copié ✓', 'success'))
       .catch(() => addToast('Copie impossible', 'error'));
   }
 
-  const enCours = inventaireQ.isLoading || reglesQ.isLoading;
-  const enErreur = inventaireQ.error || reglesQ.error;
+  const enCours = inventaireQ.isLoading || reglesQ.isLoading || referenceQ.isLoading;
+  const enErreur = inventaireQ.error || reglesQ.error || referenceQ.error;
   const visiblesLots = filtrees.slice(0, affichees);
   const visiblesGroupes = groupes.slice(0, affichees);
   const restants = (vue === 'produit' ? groupes.length : filtrees.length) - affichees;
@@ -233,13 +282,14 @@ export default function InventaireNetrackPage() {
         <div>
           <div className="sec-t">Inventaire NetRack</div>
           <div className="sec-s">
-            Inventaire fusionné EO et PBC — client, catégorie, poids et TRAXcode issus des règles
+            Inventaire fusionné EO et PBC — client, catégorie, poids et TRAXcode issus
+            de la référence produits
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           {boutonPanneau('regles', 'Règles')}
           {boutonPanneau('totaux', 'Totaux par catégorie')}
-          {boutonPanneau('couverture', 'Couverture des règles')}
+          {boutonPanneau('couverture', 'Couverture')}
           {boutonPanneau('analyse', 'Analyse des colonnes')}
           <button className="btn btn-secondary" onClick={copierLien}>Copier le lien</button>
           <button className="btn btn-secondary" onClick={handleActualiser} disabled={inventaireQ.isFetching}>
@@ -287,8 +337,9 @@ export default function InventaireNetrackPage() {
         <div className="nr-analyse">
           <div className="nr-ed-entete">
             <div className="nr-analyse-t" style={{ marginBottom: 0 }}>
-              {(reglesQ.data || []).length} règles. Elles sont évaluées par priorité, puis de
-              l'opérateur le plus précis au plus large : la première qui correspond l'emporte.
+              {(reglesQ.data || []).length} règles, évaluées par priorité croissante : la
+              première qui correspond l'emporte. Elles alimentent la référence produits,
+              recalculée automatiquement à chaque enregistrement.
             </div>
             <button className="btn btn-primary" onClick={() => setEditeur({ regle: null })}>
               Nouvelle règle
@@ -304,7 +355,6 @@ export default function InventaireNetrackPage() {
                 <th>Sous-catégorie</th>
                 <th>Client</th>
                 <th style={{ textAlign: 'right' }}>Poids u.</th>
-                <th>TRAXcode</th>
                 <th style={{ textAlign: 'right' }}>Lignes</th>
               </tr>
             </thead>
@@ -334,7 +384,6 @@ export default function InventaireNetrackPage() {
                   <td className={'nr-num' + (r.poids_unitaire === null ? ' nr-manquant' : '')}>
                     {r.poids_unitaire ?? '—'}
                   </td>
-                  <td className={'nr-mono' + (r.trax_code ? '' : ' nr-manquant')}>{r.trax_code || '—'}</td>
                   <td className="nr-num">{comptesParRegle.get(r.id) ?? 0}</td>
                 </tr>
               ))}
@@ -377,9 +426,10 @@ export default function InventaireNetrackPage() {
       {panneau === 'couverture' && (
         <div className="nr-analyse">
           <div className="nr-analyse-t">
-            Produits qu'aucune règle de <code>gh_regles_categorie</code> ne couvre entièrement,
-            triés par nombre de lots concernés. Traiter le haut de la liste est ce qui fait
-            progresser la couverture le plus vite.
+            Produits dont la référence est incomplète, triés par nombre de lots concernés.
+            La <b>catégorie</b> et le <b>poids</b> se corrigent en créant ou modifiant une
+            règle ; le <b>TRAXcode</b> se saisit directement ici, il n'est gouverné par
+            aucune règle.
           </div>
           {couverture.length === 0 ? (
             <div className="nr-vide">Tous les produits de la sélection sont couverts.</div>
@@ -393,6 +443,7 @@ export default function InventaireNetrackPage() {
                   <th style={{ textAlign: 'right' }}>Lots</th>
                   <th style={{ textAlign: 'right' }}>Qté</th>
                   <th>Manque</th>
+                  <th>TRAXcode</th>
                 </tr>
               </thead>
               <tbody>
@@ -404,6 +455,13 @@ export default function InventaireNetrackPage() {
                     <td className="nr-num">{nb(p.lignes)}</td>
                     <td className="nr-num">{nb(p.qte)}</td>
                     <td><span className="nr-verdict" data-v="rare">{p.manque}</span></td>
+                    <td>
+                      <ChampTrax
+                        code={p.no_produit}
+                        valeur={p.sans_trax ? '' : null}
+                        onEnregistrer={sauverTrax}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -434,7 +492,7 @@ export default function InventaireNetrackPage() {
                 <tr key={a.colonne}>
                   <td>{a.libelle}</td>
                   <td className="nr-mono nr-faible">{a.colonne}</td>
-                  <td className="nr-num">{a.pct} %</td>
+                  <td className="nr-num">{a.pct} %</td>
                   <td className="nr-num">{a.distinctes}</td>
                   <td className="nr-mono nr-tronque">{a.exemple ?? '—'}</td>
                   <td><span className="nr-verdict" data-v={a.verdict}>{a.verdict}</span></td>
@@ -479,7 +537,7 @@ export default function InventaireNetrackPage() {
               className="nr-chip"
               aria-pressed={client === '(sans)'}
               onClick={() => majParams({ cli: '(sans)' })}
-              title="Lignes sans client attribué par une règle"
+              title="Lignes sans client attribué"
             >Sans client</button>
           </div>
 
@@ -514,6 +572,7 @@ export default function InventaireNetrackPage() {
             <option value="dispo">Quantité positive</option>
             <option value="zero">Quantité nulle</option>
             <option value="sans_poids">Sans poids connu</option>
+            <option value="sans_trax">Sans TRAXcode</option>
           </select>
 
           <button className="btn btn-secondary" onClick={reinitialiser}>Réinitialiser</button>
@@ -583,11 +642,22 @@ export default function InventaireNetrackPage() {
                           </td>
                         );
                       }
+                      if (c.cle === 'trax_code') {
+                        return (
+                          <td key={c.cle}>
+                            <ChampTrax
+                              code={g.no_produit}
+                              valeur={g.trax_code}
+                              onEnregistrer={sauverTrax}
+                            />
+                          </td>
+                        );
+                      }
                       const v = g[c.cle];
                       const vide = v === null || v === undefined || v === '';
                       const classes = [
                         c.num ? 'nr-num' : '',
-                        c.cle === 'no_produit' || c.cle === 'trax_code' ? 'nr-mono' : '',
+                        c.cle === 'no_produit' ? 'nr-mono' : '',
                         c.cle === 'description' ? 'nr-desc' : '',
                         c.cle === 'jours_min' ? 'nr-jours' : '',
                         vide ? 'nr-manquant' : '',
