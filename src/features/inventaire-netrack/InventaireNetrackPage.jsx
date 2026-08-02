@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { usePlanningStore } from '../../store/usePlanningStore';
 import {
   useInventaireNetrackQuery, useReglesCategorieQuery, useReferenceProduitsQuery,
+  useCategoriesQuery, organiserCategories,
 } from './queries';
 import {
   useCreerRegle, useModifierRegle, useSupprimerRegle, useEnregistrerTraxCode,
@@ -56,6 +57,16 @@ function ChampTrax({ code, valeur, onEnregistrer }) {
 }
 
 /**
+ * Badge du compte NetRack (EO / PBC), en tete de ligne. Rien ne s'affiche
+ * quand une branche melange plusieurs comptes : un badge faux serait pire
+ * qu'un badge absent. La largeur est fixe pour que les libelles restent
+ * alignes, badge ou pas.
+ */
+function BadgeCompte({ compte }) {
+  return <span className="nr-badge-compte" data-compte={compte || undefined}>{compte || ''}</span>;
+}
+
+/**
  * Aplatit l'arbre en lignes de tableau, en ne descendant que dans les
  * branches ouvertes. Un tableau plat se rend bien plus vite qu'un
  * imbriquement de <table>, et le decalage visuel suffit a montrer le niveau.
@@ -79,6 +90,7 @@ export default function InventaireNetrackPage() {
   const inventaireQ = useInventaireNetrackQuery();
   const reglesQ = useReglesCategorieQuery();
   const referenceQ = useReferenceProduitsQuery();
+  const categoriesQ = useCategoriesQuery();
 
   // ── Etat porte par l'URL : un lien reproduit exactement l'ecran ──
   const [params, setParams] = useSearchParams();
@@ -112,6 +124,22 @@ export default function InventaireNetrackPage() {
     const minuteur = setTimeout(() => majParams({ q: saisie }), 220);
     return () => clearTimeout(minuteur);
   }, [saisie, recherche, majParams]);
+
+  /**
+   * Vue par defaut AU CHARGEMENT seulement. Chaque valeur du parametre garde
+   * exactement le sens qu'elle a toujours eu (lot, produit, arbre) : on ecrit
+   * vue=arbre plutot que de redefinir ce que signifie un parametre absent,
+   * pour qu'un lien deja partage reste fidele a ce qu'il montrait.
+   *
+   * La garde ne joue qu'une fois : ensuite l'utilisateur revient a « par lot »
+   * sans etre ramene a l'arborescence au rendu suivant.
+   */
+  const vueInitialisee = useRef(false);
+  useEffect(() => {
+    if (vueInitialisee.current) return;
+    vueInitialisee.current = true;
+    if (!vueBrute) majParams({ vue: 'arbre' });
+  }, [vueBrute, majParams]);
 
   const [deplies, setDeplies] = useState(() => new Set());
   const [panneau, setPanneau] = useState('');
@@ -157,9 +185,24 @@ export default function InventaireNetrackPage() {
     [vue, filtrees, tri],
   );
 
+  /**
+   * Rang de chaque noeud de la nomenclature, dans l'ordre exact qu'affiche
+   * l'ecran Nomenclature (colonne `ordre`, puis alphabetique a egalite).
+   * Les libelles servent de cle : l'inventaire ne porte pas les identifiants
+   * de categorie. Une sous-categorie est identifiee par son couple
+   * (parent, libelle) — un meme libelle peut exister sous deux parents.
+   */
+  const rangsNomenclature = useMemo(() => {
+    const m = new Map();
+    organiserCategories(categoriesQ.data || []).forEach((c, i) => {
+      m.set(c.profondeur === 0 ? c.libelle : c.parent_libelle + '\u0000' + c.libelle, i);
+    });
+    return m;
+  }, [categoriesQ.data]);
+
   const arbre = useMemo(
-    () => (vue === 'arbre' ? construireArbre(filtrees, tri) : []),
-    [vue, filtrees, tri],
+    () => (vue === 'arbre' ? construireArbre(filtrees, tri, rangsNomenclature) : []),
+    [vue, filtrees, tri, rangsNomenclature],
   );
 
   const lignesArbre = useMemo(
@@ -681,17 +724,18 @@ export default function InventaireNetrackPage() {
                       <td />
                       <td
                         className="nr-arbre-cell"
-                        style={{ paddingLeft: 8 + (r.parent.profondeur + 1) * INDENT }}
+                        style={{ paddingLeft: 8 + ((r.parent.niv ?? r.parent.profondeur) + 1) * INDENT }}
                       >
+                        <BadgeCompte compte={l.compte} />
+                        {l.etiquette && <span className="nr-faible">{l.etiquette} </span>}
                         <span className="nr-mono">{l.no_lot || '—'}</span>
                         {l.no_sous_lot && <span className="nr-faible"> / {l.no_sous_lot}</span>}
-                        {l.etiquette && <span className="nr-faible"> · étq {l.etiquette}</span>}
                       </td>
-                      <td className="nr-mono nr-faible">{l.no_comm_client || '—'}</td>
+                      <td className="nr-mono nr-faible">{l.date_lot || '—'}</td>
                       <td className="nr-mono nr-jours" data-n={l.niveau_expiration || undefined}>
                         {l.date_expiration || '—'}
                       </td>
-                      <td />
+                      <td className="nr-mono nr-faible">{l.no_comm_client || '—'}</td>
                       <td />
                       <td className="nr-num">{nb(l.unite2_qte_inv)}</td>
                       <td className="nr-num">{l.poids_total === null ? '—' : nb(l.poids_total)}</td>
@@ -719,8 +763,9 @@ export default function InventaireNetrackPage() {
                     <td className="nr-chevron">{ouvert ? '▾' : '▸'}</td>
                     <td
                       className="nr-arbre-cell"
-                      style={{ paddingLeft: 8 + n.profondeur * INDENT }}
+                      style={{ paddingLeft: 8 + (n.niv ?? n.profondeur) * INDENT }}
                     >
+                      <BadgeCompte compte={n.comptes && n.comptes.size === 1 ? [...n.comptes][0] : null} />
                       <span className={estProduit ? 'nr-mono' : 'nr-arbre-titre'}>{n.libelle}</span>
                     </td>
                     <td>
@@ -735,8 +780,8 @@ export default function InventaireNetrackPage() {
                     <td className={'nr-desc' + (estProduit ? '' : ' nr-faible')}>
                       {estProduit ? (n.description || '—') : ''}
                     </td>
-                    <td className="nr-num">{nb(n.nb_produits)}</td>
-                    <td className="nr-num">{nb(n.nb_lots)}</td>
+                    <td className="nr-num">{n.est_lot ? '' : nb(n.nb_produits)}</td>
+                    <td className="nr-num">{n.est_lot ? '' : nb(n.nb_lots)}</td>
                     <td className="nr-num">{nb(n.qte)}</td>
                     <td className="nr-num">{n.poids === null ? '—' : nb(n.poids)}</td>
                     <td className="nr-num nr-jours" data-n={n.niveau || undefined}>

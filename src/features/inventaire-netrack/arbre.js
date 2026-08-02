@@ -31,12 +31,16 @@ function noeud(cle, libelle, profondeur) {
     jours_min: null,
     enfants: new Map(),
     lignes: [],
+    // Comptes NetRack rencontres sous ce noeud : un badge n'a de sens que si
+    // toute la branche appartient a un seul compte.
+    comptes: new Set(),
   };
 }
 
 /** Cumule une ligne d'inventaire dans un noeud. */
 function cumuler(n, ligne) {
   n.nb_lots += 1;
+  if (ligne.compte) n.comptes.add(ligne.compte);
   n.qte += nombre(ligne.unite2_qte_inv);
   if (ligne.poids_total !== null && ligne.poids_total !== undefined) {
     n.poids += ligne.poids_total;
@@ -64,6 +68,12 @@ const NUM = new Set(['nb_lots', 'nb_produits', 'qte', 'poids', 'jours_min']);
  * Tri applique a chaque niveau. Les sous-categories passent avant les produits
  * rattaches directement a la categorie : sans cela, un groupe se retrouverait
  * noye au milieu d'une liste de produits.
+ *
+ * Categories et sous-categories suivent l'ordre defini dans la NOMENCLATURE
+ * (colonne `ordre` de base_reference_categories) : c'est un ordre metier, il
+ * doit primer sur l'alphabet. Il ne s'applique qu'au tri naturel — des que
+ * l'utilisateur clique une colonne numerique, son choix l'emporte. Les
+ * produits, eux, n'ont pas de rang et restent alphabetiques.
  */
 function trierNoeuds(liste, tri) {
   const colonne = tri && tri.colonne ? tri.colonne : 'libelle';
@@ -71,6 +81,11 @@ function trierNoeuds(liste, tri) {
 
   return liste.sort((a, b) => {
     if (a.est_produit !== b.est_produit) return a.est_produit ? 1 : -1;
+    if (!NUM.has(colonne)
+      && a.rang !== undefined && b.rang !== undefined
+      && a.rang !== b.rang) {
+      return (a.rang - b.rang) * sens;
+    }
     if (NUM.has(colonne)) {
       const A = a[colonne];
       const B = b[colonne];
@@ -115,14 +130,21 @@ function finaliser(n, tri) {
  * 2 produit sous une sous-categorie. Un noeud produit se reconnait a son
  * drapeau `est_produit`, jamais a sa profondeur, qui varie selon le chemin.
  */
-export function construireArbre(lignes, tri) {
+export function construireArbre(lignes, tri, rangs) {
   const racine = noeud('', '', -1);
+  const rangDe = (cle) => (rangs && rangs.has(cle) ? rangs.get(cle) : undefined);
 
   for (const l of lignes || []) {
     const cat = l.categorie || SANS_CATEGORIE;
     const prod = l.no_produit || '(sans n° produit)';
 
     const nCat = enfant(racine, cat, cat, 0);
+    if (nCat.rang === undefined) nCat.rang = rangDe(cat);
+    // `niv` est le niveau d'INDENTATION, fixe par nature de noeud, la ou
+    // `profondeur` suit l'arbre reel. Sans sous-categorie un produit remonte
+    // d'un cran : l'indentation doit rester celle d'un produit, sinon deux
+    // branches voisines ne s'alignent plus.
+    nCat.niv = 0;
 
     // Le parent direct du produit : la sous-categorie si elle existe,
     // la categorie sinon.
@@ -130,10 +152,13 @@ export function construireArbre(lignes, tri) {
     let nSc = null;
     if (l.sous_categorie) {
       nSc = enfant(nCat, l.sous_categorie, l.sous_categorie, 1);
+      if (nSc.rang === undefined) nSc.rang = rangDe(cat + '\u0000' + l.sous_categorie);
+      nSc.niv = 1;
       parent = nSc;
     }
 
     const nProd = enfant(parent, '\u0001' + prod, prod, parent.profondeur + 1);
+    nProd.niv = 2;
 
     if (nProd.nb_lots === 0) {
       // Premiere rencontre du produit : on remonte le compteur de produits.
@@ -149,6 +174,16 @@ export function construireArbre(lignes, tri) {
     }
     if (!nProd.description && l.description) nProd.description = l.description;
 
+    // Niveau LOT : depliable comme les autres, il regroupe les sous-lots
+    // d'un meme numero. Les lignes restent portees par ce noeud, donc un lot
+    // sans sous-lot se deplie sur son unique ligne de detail.
+    const nLot = enfant(nProd, '\u0002' + (l.no_lot || ''), l.no_lot || '(sans n° lot)',
+      nProd.profondeur + 1);
+    nLot.est_lot = true;
+    nLot.niv = 3;
+    nLot.lignes.push(l);
+    cumuler(nLot, l);
+
     nProd.lignes.push(l);
     cumuler(nCat, l);
     if (nSc) cumuler(nSc, l);
@@ -160,7 +195,7 @@ export function construireArbre(lignes, tri) {
 
 /** Colonnes de la vue arborescente. */
 export const COLONNES_ARBRE = [
-  { cle: 'libelle', libelle: 'Catégorie / Sous-catégorie / Produit' },
+  { cle: 'libelle', libelle: 'Catégorie / Sous-catégorie / Produit / Lot' },
   { cle: 'trax_code', libelle: 'TRAXcode' },
   { cle: 'description', libelle: 'Description' },
   { cle: 'nb_produits', libelle: 'Produits', num: true },

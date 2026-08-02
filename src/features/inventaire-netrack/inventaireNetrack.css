@@ -545,3 +545,31 @@
 }
 
 .nr-ed-suppr { margin-right: auto; color: var(--ruby); }
+
+/* Badge du compte NetRack, en tete de chaque ligne de l'arborescence.
+   Largeur fixe meme vide : les libelles doivent rester alignes entre une
+   branche mono-compte et une branche qui en melange plusieurs. */
+.nr-badge-compte {
+  display: inline-block;
+  width: 34px;
+  margin-right: 8px;
+  padding: 1px 0;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 13px;
+  text-align: center;
+  vertical-align: 1px;
+}
+.nr-badge-compte[data-compte="EO"] {
+  color: var(--copper);
+  border-color: var(--copper-dim);
+  background: var(--copper-dim);
+}
+.nr-badge-compte[data-compte="PBC"] {
+  color: var(--sapphire);
+  border-color: var(--sapphire-bg);
+  background: var(--sapphire-bg);
+}
