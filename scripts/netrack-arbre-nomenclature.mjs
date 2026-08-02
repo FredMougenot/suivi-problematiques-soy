@@ -7,13 +7,18 @@
  * Il n'invente rien : il applique des remplacements de texte exacts et
  * s'arrete au premier motif introuvable, sans rien ecrire. Relance sans
  * risque — il detecte le travail deja fait. Supprimable apres coup.
+ *
+ * FINS DE LIGNE : sous Windows les fichiers du disque sont en CRLF alors que
+ * les motifs ci-dessous sont en LF. Tout est donc compare en LF, et chaque
+ * fichier est reecrit avec les fins de ligne qu'il avait avant — sinon la
+ * moindre comparaison multi-lignes echoue et le diff Git explose.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const PAGE = 'src/features/inventaire-netrack/InventaireNetrackPage.jsx';
 const ARBRE = 'src/features/inventaire-netrack/arbre.js';
 
-/** [fichier, motif, remplacement, marqueur deja-applique] */
+/** [fichier, motif, remplacement] */
 const EDITS = [
   [ARBRE,
     ` * noye au milieu d'une liste de produits.
@@ -123,10 +128,16 @@ function trierNoeuds(liste, tri) {`],
   );`],
 ];
 
-const fichiers = new Map();
+const contenus = new Map();
+const avaitCrlf = new Map();
+
 const lire = (f) => {
-  if (!fichiers.has(f)) fichiers.set(f, readFileSync(f, 'utf8'));
-  return fichiers.get(f);
+  if (!contenus.has(f)) {
+    const brut = readFileSync(f, 'utf8');
+    avaitCrlf.set(f, brut.includes('\r\n'));
+    contenus.set(f, brut.split('\r\n').join('\n'));
+  }
+  return contenus.get(f);
 };
 
 let appliques = 0;
@@ -138,14 +149,17 @@ for (const [fichier, motif, remplacement] of EDITS) {
   const n = contenu.split(motif).length - 1;
   if (n !== 1) {
     console.error(`\nECHEC — motif trouve ${n} fois dans ${fichier} :\n${motif}\n`);
-    console.error('Aucun fichier n\'a ete modifie. Le depot est intact.');
+    console.error("Aucun fichier n'a ete modifie. Le depot est intact.");
     process.exit(1);
   }
-  fichiers.set(fichier, contenu.replace(motif, remplacement));
+  contenus.set(fichier, contenu.replace(motif, remplacement));
   appliques += 1;
 }
 
-for (const [f, contenu] of fichiers) writeFileSync(f, contenu, 'utf8');
+for (const [f, contenu] of contenus) {
+  const sortie = avaitCrlf.get(f) ? contenu.split('\n').join('\r\n') : contenu;
+  writeFileSync(f, sortie, 'utf8');
+}
 
 console.log(`${appliques} modification(s) appliquee(s), ${deja} deja en place.`);
 console.log('Verifiez la page NetRack, puis commitez.');
