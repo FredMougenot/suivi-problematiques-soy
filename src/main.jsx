@@ -9,6 +9,7 @@ import { useAuthStore } from './store/useAuthStore';
 import { SessionGuard } from './layout/sessionGuard';
 import './design-system/tokens.css';
 import './design-system/components.css';
+import './design-system/utilitaires.css';
 
 function Root() {
   const init = useAuthStore((s) => s.init);

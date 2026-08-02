@@ -1,0 +1,20 @@
+/* Petits utilitaires partages entre l'inventaire NetRack et la nomenclature.
+   Charges globalement depuis main.jsx : ces classes servent dans plusieurs
+   features, les isoler dans la feuille d'une seule d'entre elles les rendrait
+   dependantes de l'ordre de chargement des pages. */
+
+/* Bouton d'action en fin de ligne de tableau : doit rester plus discret
+   que les boutons de la barre d'outils, sinon le tableau devient bruyant. */
+.nr-mini {
+  padding: 2px 9px !important;
+  margin-left: 6px;
+  font-size: .68rem !important;
+}
+
+/* Aide sous un champ de formulaire : dit ou aller quand la valeur ne se
+   saisit pas ici (ex. les categories, gerees dans leur propre ecran). */
+.nr-ed-sous-aide {
+  margin-top: 4px;
+  font-size: .68rem;
+  color: var(--text-muted);
+}
