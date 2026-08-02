@@ -22,6 +22,9 @@ import './inventaireNetrack.css';
 /** Les deux premieres colonnes restent visibles au defilement horizontal. */
 const COLLANTES = 2;
 
+/** Decalage horizontal d'un niveau d'arborescence, en pixels. */
+const INDENT = 22;
+
 const nb = (v) => (typeof v === 'number' ? v.toLocaleString('fr-CA') : v);
 
 /**
@@ -223,7 +226,7 @@ export default function InventaireNetrackPage() {
     });
   }
 
-  /** Deplie tout l'arbre jusqu'au niveau demande (0 categorie, 1 sous-cat, 2 produit). */
+  /** Deplie tout l'arbre jusqu'au niveau demande (-1 replie tout). */
   function deplierJusqua(niveau) {
     setDeplies(new Set(toutesLesCles(arbre, niveau)));
   }
@@ -619,9 +622,9 @@ export default function InventaireNetrackPage() {
         <div className="nr-arbre-outils">
           <span className="nr-faible">Déplier :</span>
           <button className="btn btn-secondary" onClick={() => deplierJusqua(-1)}>Tout replier</button>
-          <button className="btn btn-secondary" onClick={() => deplierJusqua(0)}>Sous-catégories</button>
-          <button className="btn btn-secondary" onClick={() => deplierJusqua(1)}>Produits</button>
-          <button className="btn btn-secondary" onClick={() => deplierJusqua(2)}>Lots</button>
+          <button className="btn btn-secondary" onClick={() => deplierJusqua(0)}>Un niveau</button>
+          <button className="btn btn-secondary" onClick={() => deplierJusqua(1)}>Deux niveaux</button>
+          <button className="btn btn-secondary" onClick={() => deplierJusqua(2)}>Tout déplier</button>
         </div>
       )}
 
@@ -676,7 +679,10 @@ export default function InventaireNetrackPage() {
                   return (
                     <tr key={r.parent.cle + '\u0000' + l.id} className="nr-arbre-lot" data-exp={l.niveau_expiration || undefined}>
                       <td />
-                      <td className="nr-arbre-cell" style={{ paddingLeft: 78 }}>
+                      <td
+                        className="nr-arbre-cell"
+                        style={{ paddingLeft: 8 + (r.parent.profondeur + 1) * INDENT }}
+                      >
                         <span className="nr-mono">{l.no_lot || '—'}</span>
                         {l.no_sous_lot && <span className="nr-faible"> / {l.no_sous_lot}</span>}
                         {l.etiquette && <span className="nr-faible"> · étq {l.etiquette}</span>}
@@ -698,19 +704,22 @@ export default function InventaireNetrackPage() {
 
                 const n = r.n;
                 const ouvert = deplies.has(n.cle);
-                const estProduit = n.profondeur === 2;
+                // Un produit se reconnait a son drapeau, pas a sa profondeur :
+                // sans sous-categorie il remonte d'un niveau.
+                const estProduit = n.est_produit;
                 return (
                   <tr
                     key={n.cle}
                     className="nr-ligne-groupe"
                     data-niv={n.profondeur}
+                    data-produit={estProduit ? '1' : undefined}
                     data-exp={n.niveau || undefined}
                     onClick={() => basculerGroupe(n.cle)}
                   >
                     <td className="nr-chevron">{ouvert ? '▾' : '▸'}</td>
                     <td
                       className="nr-arbre-cell"
-                      style={{ paddingLeft: 8 + n.profondeur * 22 }}
+                      style={{ paddingLeft: 8 + n.profondeur * INDENT }}
                     >
                       <span className={estProduit ? 'nr-mono' : 'nr-arbre-titre'}>{n.libelle}</span>
                     </td>
