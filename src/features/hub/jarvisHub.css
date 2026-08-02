@@ -483,3 +483,11 @@
   .j-bloom, .j-heart, .j-block.is-hot, .jbranch { animation: none; }
   .jarvis-core, .view-surface, .view-body > * { transition-duration: .01ms; animation: none; }
 }
+
+/* -- Modales : ne pas capturer les position:fixed --------------- */
+/* Un ancetre avec transform devient le referentiel de tout        */
+/* position:fixed descendant : les overlays se calaient en haut de */
+/* .view-body au lieu du viewport. backface-visibility garde la    */
+/* promotion en couche GPU sans creer de containing block.         */
+.view-surface.is-open { transform: none; }
+.view-body { transform: none; backface-visibility: hidden; }
