@@ -72,39 +72,100 @@ export function niveauExpiration(jours) {
   return null;
 }
 
+// ───── Referentiel produits ─────
+
+const vide = (v) => v === null || v === undefined || String(v).trim() === '';
+
+const cleProduit = (v) => String(v ?? '').trim();
+
+/**
+ * Index code -> ligne de base_reference_produits.
+ * Le referentiel tient en quelques centaines de lignes : une Map suffit,
+ * inutile de faire faire la jointure au serveur.
+ */
+export function indexerReference(rows) {
+  const m = new Map();
+  for (const r of rows || []) m.set(cleProduit(r.code), r);
+  return m;
+}
+
+/**
+ * Enrichit chaque ligne d'inventaire par simple JOINTURE sur le referentiel.
+ *
+ * Les attributs ne sont plus resolus ici : categorie, sous_categorie, client
+ * et poids_unitaire sont calcules EN BASE par gh_recalculer_reference_produits()
+ * a partir de gh_regles_categorie, et trax_code y est saisi a la main. La page
+ * se contente donc de lire. Consequence voulue : modifier une regle ne change
+ * l'affichage qu'apres le recalcul, declenche automatiquement a l'enregistrement.
+ *
+ * `client` = compte NetRack (EO / PBC), issu de l'inventaire.
+ * `client_regle` = client final, porte par le referentiel. Deux notions
+ * distinctes, a ne pas confondre.
+ */
+export function enrichir(lignes, reference) {
+  const index = reference instanceof Map ? reference : indexerReference(reference);
+
+  return (lignes || []).map((l) => {
+    const ref = index.get(cleProduit(l.no_produit)) || null;
+    const brut = ref ? ref.poids_unitaire : null;
+    const pu = brut === null || brut === undefined || Number.isNaN(Number(brut))
+      ? null
+      : Number(brut);
+    const qte = nombre(l.unite2_qte_inv);
+    const jours = joursAvantExpiration(l);
+    return {
+      ...l,
+      categorie: ref && !vide(ref.categorie) ? ref.categorie : null,
+      sous_categorie: ref && !vide(ref.sous_categorie) ? ref.sous_categorie : null,
+      client_regle: ref && !vide(ref.client) ? ref.client : null,
+      trax_code: ref && !vide(ref.trax_code) ? ref.trax_code : null,
+      poids_unitaire: pu,
+      poids_total: pu === null ? null : Math.round(pu * qte * 100) / 100,
+      jours_expiration: jours,
+      niveau_expiration: niveauExpiration(jours),
+      dans_referentiel: Boolean(ref),
+    };
+  });
+}
+
 // ───── Appariement par regle ─────
+//
+// Ce bloc ne sert PLUS a l'affichage de l'inventaire : il alimente
+// uniquement l'editeur de regles (comptage des lignes gouvernees et
+// apercu « reprises / perdues » avant enregistrement). L'arbitrage
+// reel, celui qui fait foi, est celui du SQL.
 
 const norm = (v) => String(v ?? '').trim().toUpperCase();
 
-const RANG_OPERATEUR = { egal: 0, commence_par: 1, finit_par: 2, contient: 3, regex: 4 };
-
 /**
- * Tri des regles : priorite, puis operateur du plus specifique au plus
- * large, puis valeur la plus longue. La premiere qui matche l'emporte.
+ * Tri des regles : la PRIORITE seule departage, puis l'id a priorite
+ * egale. C'est exactement l'ordre applique par la fonction SQL
+ * gh_recalculer_reference_produits() ; tout autre critere ferait diverger
+ * l'apercu de l'editeur du resultat reellement enregistre.
  */
 export function preparerRegles(rows) {
   return [...(rows || [])]
     .filter((r) => r.actif !== false)
-    .sort((a, b) => (a.priorite ?? 99) - (b.priorite ?? 99)
-      || (RANG_OPERATEUR[a.operateur] ?? 9) - (RANG_OPERATEUR[b.operateur] ?? 9)
-      || String(b.valeur ?? '').length - String(a.valeur ?? '').length);
+    .sort((a, b) => (a.priorite ?? 99) - (b.priorite ?? 99) || (a.id ?? 0) - (b.id ?? 0));
 }
 
 /**
  * Contenu du champ vise. Seuls `no_produit` et `description` existent ;
- * tout autre nom retombe sur no_produit, comme cote SQL. Une description
- * absente vaut une chaine vide et non le numero de produit, sinon une
- * condition sur la description matcherait le mauvais champ.
+ * tout autre nom ne matche rien, comme cote SQL. Une description absente
+ * vaut une chaine vide et non le numero de produit, sinon une condition
+ * sur la description matcherait le mauvais champ.
  */
 function valeurChamp(ligne, champ) {
   if (champ === 'description') return ligne.description ?? '';
-  return ligne.no_produit ?? '';
+  if (champ === 'no_produit') return ligne.no_produit ?? '';
+  return null;
 }
 
-/** Evalue une condition elementaire. Memes operateurs que les vues SQL. */
+/** Evalue une condition elementaire. Memes operateurs que la fonction SQL gh_match. */
 function conditionVraie(ligne, champ, operateur, valeur) {
   if (valeur === null || valeur === undefined || String(valeur).trim() === '') return false;
   const contenu = valeurChamp(ligne, champ);
+  if (contenu === null) return false;
 
   if (operateur === 'regex') {
     try {
@@ -132,20 +193,13 @@ export function regleDe(ligne, regles) {
   return null;
 }
 
-const vide = (v) => v === null || v === undefined || String(v).trim() === '';
-
 /**
- * Valeur d'un attribut pour une ligne.
+ * Valeur d'un attribut pour une ligne, selon une regle donnee.
  *
- * Par defaut, l'attribut vient de sa colonne (categorie, poids_unitaire,
- * trax_code...). La 2e condition ne concerne qu'UN attribut, celui designe
- * par `colonne_sortie` : pour celui-la seulement, elle arbitre entre
+ * Par defaut, l'attribut vient de sa colonne (categorie, poids_unitaire...).
+ * La 2e condition ne concerne qu'UN attribut, celui designe par
+ * `colonne_sortie` : pour celui-la seulement, elle arbitre entre
  * valeur_si_vrai et valeur_si_faux. Les autres ne sont pas affectes.
- *
- *   no_produit contient DCA, colonne_sortie = client
- *   + description contient EO -> client EO, sinon PBC
- *   ... pendant que categorie, poids et trax_code de la ligne s'appliquent
- *   dans les deux cas.
  */
 function attribut(ligne, regle, cle) {
   if (!regle) return null;
@@ -158,35 +212,6 @@ function attribut(ligne, regle, cle) {
     return vide(v) ? null : v;
   }
   return vide(regle[cle]) ? null : regle[cle];
-}
-
-/**
- * Enrichit chaque ligne. Rien n'est ecrit en base : le referentiel reste
- * la source de verite, une modification de regle prend effet aussitot.
- *
- * `client` = compte NetRack (EO / PBC), issu de l'inventaire.
- * `client_regle` = client final, attribue par une regle. Deux notions
- * distinctes, a ne pas confondre.
- */
-export function enrichir(lignes, regles) {
-  return lignes.map((l) => {
-    const r = regleDe(l, regles);
-    const brut = attribut(l, r, 'poids_unitaire');
-    const pu = brut === null || Number.isNaN(Number(brut)) ? null : Number(brut);
-    const qte = nombre(l.unite2_qte_inv);
-    const jours = joursAvantExpiration(l);
-    return {
-      ...l,
-      categorie: attribut(l, r, 'categorie'),
-      sous_categorie: attribut(l, r, 'sous_categorie'),
-      client_regle: attribut(l, r, 'client'),
-      trax_code: attribut(l, r, 'trax_code'),
-      poids_unitaire: pu,
-      poids_total: pu === null ? null : Math.round(pu * qte * 100) / 100,
-      jours_expiration: jours,
-      niveau_expiration: niveauExpiration(jours),
-    };
-  });
 }
 
 // ───── Edition des regles ─────
@@ -205,13 +230,16 @@ export const OPERATEURS = [
   { cle: 'regex', libelle: 'expression reguliere' },
 ];
 
-/** Attributs qu'une 2e condition peut arbitrer. */
+/**
+ * Attributs qu'une regle peut attribuer, et qu'une 2e condition peut arbitrer.
+ * Le TRAXcode n'en fait plus partie : il appartient au referentiel produits
+ * et se saisit produit par produit.
+ */
 export const SORTIES_REGLE = [
   { cle: 'client', libelle: 'Client' },
   { cle: 'categorie', libelle: 'Categorie' },
   { cle: 'sous_categorie', libelle: 'Sous-categorie' },
   { cle: 'poids_unitaire', libelle: 'Poids unitaire' },
-  { cle: 'trax_code', libelle: 'TRAXcode' },
 ];
 
 /** Resume lisible d'une condition, pour la liste des regles. */
@@ -236,12 +264,11 @@ export const regleVierge = {
   sous_categorie: '',
   poids_unitaire: '',
   client: '',
-  trax_code: '',
   actif: true,
   notes: '',
 };
 
-const ATTRIBUTS = ['categorie', 'sous_categorie', 'poids_unitaire', 'client', 'trax_code'];
+const ATTRIBUTS = ['categorie', 'sous_categorie', 'poids_unitaire', 'client'];
 
 /** Messages bloquants. Une liste vide signifie que la regle est enregistrable. */
 export function validerRegle(r) {
@@ -271,6 +298,9 @@ export function validerRegle(r) {
   if (!vide(r.poids_unitaire) && Number.isNaN(Number(r.poids_unitaire))) {
     e.push('Le poids unitaire doit etre un nombre.');
   }
+  if (!vide(r.priorite) && Number.isNaN(Number(r.priorite))) {
+    e.push('La priorite doit etre un nombre.');
+  }
   return e;
 }
 
@@ -281,6 +311,9 @@ export function validerRegle(r) {
  * et que celle-ci prendrait ; `perdues` compte l'inverse, quand on modifie
  * une regle existante et que sa portee se retrecit. Ce sont les deux
  * surprises classiques d'un referentiel a priorites.
+ *
+ * L'apercu simule ce que produira le recalcul SQL : meme ordre de tri,
+ * meme evaluation des conditions.
  */
 export function apercuRegle(brouillon, regles, lignes) {
   if (!lignes || !lignes.length) return null;
@@ -443,9 +476,9 @@ export const LIBELLES = {
  * Colonnes jamais affichees, meme si elles contiennent des donnees.
  * `id` sert de cle de ligne cote React ; `imported_at` et `unite2_type`
  * restent en base car la vue v_gh_inventaire_complet en depend ;
- * les autres sont des champs retires du parseur, listes ici pour que
- * l'affichage reste stable si une execution tourne sur une version
- * anterieure du workflow.
+ * `dans_referentiel` est un drapeau interne ; les autres sont des champs
+ * retires du parseur, listes ici pour que l'affichage reste stable si une
+ * execution tourne sur une version anterieure du workflow.
  */
 const MASQUEES = new Set([
   'id', 'imported_at', 'unite2_type',
@@ -454,7 +487,7 @@ const MASQUEES = new Set([
   'unite1_type', 'unite1_qte_inv', 'unite1_disponibles',
   'unite1_bloques', 'unite1_exped_att',
   'unite2_bloques', 'unite2_exped_att',
-  'niveau_expiration',
+  'niveau_expiration', 'dans_referentiel',
 ]);
 
 const ORDRE = [
@@ -521,7 +554,7 @@ export function filtrerEtTrier(lignes, criteres, tri) {
   const groupes = analyserRecherche(recherche);
 
   const filtrees = lignes.filter((l) => {
-    // `client` designe ici le client final issu des regles, pas le compte NetRack.
+    // `client` designe ici le client final issu du referentiel, pas le compte NetRack.
     if (client === '(sans)') {
       if (l.client_regle) return false;
     } else if (client && l.client_regle !== client) return false;
@@ -532,6 +565,7 @@ export function filtrerEtTrier(lignes, criteres, tri) {
     if (stock === 'dispo' && nombre(l.unite2_qte_inv) <= 0) return false;
     if (stock === 'zero' && nombre(l.unite2_qte_inv) > 0) return false;
     if (stock === 'sans_poids' && l.poids_unitaire !== null) return false;
+    if (stock === 'sans_trax' && l.trax_code !== null) return false;
 
     if (expiration) {
       const j = l.jours_expiration;
@@ -702,19 +736,23 @@ export function totauxParCategorie(lignes) {
       || a.categorie.localeCompare(b.categorie, 'fr'));
 }
 
-// ───── Couverture des regles ─────
+// ───── Couverture du referentiel ─────
 
 /**
- * Produits dont aucune regle ne fournit la categorie ou le poids.
- * Tries par nombre de lignes concernees : traiter le premier de la
- * liste est ce qui fait progresser la couverture le plus vite.
+ * Produits dont le referentiel ne fournit ni categorie, ni poids, ni TRAXcode.
+ * Tries par nombre de lignes concernees : traiter le premier de la liste est
+ * ce qui fait progresser la couverture le plus vite.
+ *
+ * Categorie et poids se corrigent par une REGLE ; le TRAXcode se saisit
+ * directement sur le produit. La colonne « Manque » dit donc aussi ou aller.
  */
 export function couvertureRegles(lignes) {
   const parCle = new Map();
   for (const l of lignes) {
     const sansCat = !l.categorie;
     const sansPoids = l.poids_unitaire === null;
-    if (!sansCat && !sansPoids) continue;
+    const sansTrax = !l.trax_code;
+    if (!sansCat && !sansPoids && !sansTrax) continue;
     const cle = (l.client || '') + '\u0000' + (l.no_produit || '');
     let p = parCle.get(cle);
     if (!p) {
@@ -727,6 +765,7 @@ export function couvertureRegles(lignes) {
         qte: 0,
         sans_categorie: false,
         sans_poids: false,
+        sans_trax: false,
       };
       parCle.set(cle, p);
     }
@@ -734,15 +773,17 @@ export function couvertureRegles(lignes) {
     p.qte += nombre(l.unite2_qte_inv);
     if (sansCat) p.sans_categorie = true;
     if (sansPoids) p.sans_poids = true;
+    if (sansTrax) p.sans_trax = true;
     if (!p.description && l.description) p.description = l.description;
   }
   return [...parCle.values()]
-    .map((p) => ({
-      ...p,
-      qte: Math.round(p.qte * 100) / 100,
-      manque: p.sans_categorie && p.sans_poids ? 'catégorie et poids'
-        : p.sans_categorie ? 'catégorie' : 'poids',
-    }))
+    .map((p) => {
+      const manques = [];
+      if (p.sans_categorie) manques.push('catégorie');
+      if (p.sans_poids) manques.push('poids');
+      if (p.sans_trax) manques.push('TRAXcode');
+      return { ...p, qte: Math.round(p.qte * 100) / 100, manque: manques.join(', ') };
+    })
     .sort((a, b) => b.lignes - a.lignes || b.qte - a.qte);
 }
 
