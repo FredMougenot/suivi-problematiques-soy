@@ -1,6 +1,11 @@
-/* Nomenclature des categories — feuille propre a la page.
-   Sur le modele de problematiques.css : chaque ecran porte son style et
-   n'emprunte pas celui d'une autre feature. */
+/* Nomenclature des categories.
+
+   La feuille de l'inventaire NetRack est chargee EN PREMIER et s'applique
+   donc integralement a cette page : meme variables :root, memes tableaux,
+   memes panneaux, meme comportement d'affichage que sur NetRack.
+   Les classes nom-* ci-dessous ne font que completer, elles ne remplacent
+   rien. */
+@import '../inventaire-netrack/inventaireNetrack.css';
 
 .nom-bandeau {
   margin: 4px 0 14px;
