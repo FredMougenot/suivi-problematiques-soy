@@ -3,8 +3,19 @@ import {
   CHAMPS_REGLE, OPERATEURS, SORTIES_REGLE,
   regleVierge, validerRegle, apercuRegle,
 } from '../logic';
+import { useCategoriesQuery, organiserCategories } from '../queries';
 
 const LIGNES_APERCU = 8;
+
+/**
+ * Attributs qu'une 2e condition peut arbitrer.
+ * Categorie et sous-categorie en sont exclues : elles viennent desormais
+ * de la nomenclature, et les arbitrer par du texte libre rouvrirait
+ * exactement la porte qu'on vient de fermer.
+ */
+const SORTIES_AUTORISEES = SORTIES_REGLE.filter(
+  (s) => s.cle === 'client' || s.cle === 'poids_unitaire',
+);
 
 /**
  * Editeur d'une regle, avec apercu calcule sur l'inventaire courant.
@@ -15,13 +26,20 @@ const LIGNES_APERCU = 8;
  * A l'enregistrement, base_reference_produits est recalculee en base :
  * c'est ce recalcul qui fait foi, l'apercu n'est qu'une simulation locale.
  *
- * Le TRAXcode ne figure plus ici : il appartient au referentiel produits
+ * La categorie se choisit dans la nomenclature (base_reference_categories).
+ * Le TRAXcode ne figure pas ici : il appartient au referentiel produits
  * et se saisit produit par produit, depuis la page.
  */
 export default function EditeurRegle({
   open, regle, regles, lignes, onFermer, onEnregistrer, onSupprimer, enCours,
 }) {
   const [brouillon, setBrouillon] = useState(regleVierge);
+  const categoriesQ = useCategoriesQuery();
+
+  const categories = useMemo(
+    () => organiserCategories(categoriesQ.data || []).filter((c) => c.actif !== false),
+    [categoriesQ.data],
+  );
 
   useEffect(() => {
     if (open) setBrouillon(regle ? { ...regleVierge, ...regle } : regleVierge);
@@ -39,6 +57,22 @@ export default function EditeurRegle({
   const set = (cle) => (e) => {
     const v = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setBrouillon((b) => ({ ...b, [cle]: v }));
+  };
+
+  /**
+   * Le choix d'un noeud renseigne aussi les libelles dans le brouillon.
+   * Ils ne sont pas envoyes en base (le trigger les derive), mais l'apercu
+   * et la validation en ont besoin pour afficher l'effet de la regle.
+   */
+  const choisirCategorie = (e) => {
+    const id = e.target.value;
+    const n = categories.find((c) => String(c.id) === String(id));
+    setBrouillon((b) => ({
+      ...b,
+      categorie_id: id === '' ? null : Number(id),
+      categorie: n ? (n.profondeur === 1 ? n.parent_libelle : n.libelle) : '',
+      sous_categorie: n && n.profondeur === 1 ? n.libelle : '',
+    }));
   };
 
   const aCondition2 = Boolean(brouillon.champ2 && brouillon.operateur2 && brouillon.valeur2);
@@ -106,14 +140,23 @@ export default function EditeurRegle({
 
           <div className="nr-ed-bloc">
             <div className="nr-ed-titre">Valeurs attribuées</div>
-            <div className="nr-ed-grille">
-              <div className="field">
+            <div className="nr-ed-ligne">
+              <div className="field nr-ed-large">
                 <label className="field-label">Catégorie</label>
-                <input className="field-input" value={brouillon.categorie || ''} onChange={set('categorie')} />
-              </div>
-              <div className="field">
-                <label className="field-label">Sous-catégorie</label>
-                <input className="field-input" value={brouillon.sous_categorie || ''} onChange={set('sous_categorie')} />
+                <select
+                  className="field-select"
+                  value={brouillon.categorie_id ?? ''}
+                  onChange={choisirCategorie}
+                  disabled={categoriesQ.isLoading}
+                >
+                  <option value="">— aucune —</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.chemin}</option>
+                  ))}
+                </select>
+                <div className="nr-ed-sous-aide">
+                  Les catégories se gèrent dans l'écran Nomenclature.
+                </div>
               </div>
               <div className="field">
                 <label className="field-label">Poids unitaire</label>
@@ -138,6 +181,7 @@ export default function EditeurRegle({
               <span className="nr-ed-aide">
                 Évaluée seulement si la condition 1 est vraie. Elle arbitre
                 <strong> une seule valeur</strong> ; les autres restent celles ci-dessus.
+                La catégorie n'est pas arbitrable : elle vient de la nomenclature.
               </span>
             </div>
             <div className="nr-ed-ligne">
@@ -176,7 +220,7 @@ export default function EditeurRegle({
                   <label className="field-label">Valeur arbitrée</label>
                   <select className="field-select" value={brouillon.colonne_sortie || ''} onChange={set('colonne_sortie')}>
                     <option value="">— choisir —</option>
-                    {SORTIES_REGLE.map((s) => (
+                    {SORTIES_AUTORISEES.map((s) => (
                       <option key={s.cle} value={s.cle}>{s.libelle}</option>
                     ))}
                   </select>
