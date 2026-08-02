@@ -1,20 +1,20 @@
 /**
  * Vue arborescente de l'inventaire : Categorie → Sous-categorie → Produit → Lots.
  *
+ * Le niveau sous-categorie est OPTIONNEL et n'apparait que s'il existe : un
+ * produit sans sous-categorie est rattache directement a sa categorie. Un
+ * noeud « (sans sous-categorie) » n'apprendrait rien et ajouterait un clic.
+ * L'absence de CATEGORIE, elle, reste signalee par un noeud explicite : c'est
+ * un trou du referentiel, il doit se voir.
+ *
  * Chaque niveau agrege ses descendants (lots, quantite, poids) et herite du
  * niveau d'expiration de son lot le plus urgent : c'est ce lot qui commande
  * l'action, donc c'est lui qui doit colorer la branche entiere.
- *
- * Les valeurs absentes ne sont pas silencieusement regroupees avec le reste :
- * elles forment des noeuds explicites « (sans categorie) » / « (sans
- * sous-categorie) », pour qu'un trou de referentiel se voie dans la navigation
- * au lieu de disparaitre.
  */
 
 import { nombre, niveauExpiration } from './logic';
 
 export const SANS_CATEGORIE = '(sans catégorie)';
-export const SANS_SOUS_CATEGORIE = '(sans sous-catégorie)';
 
 /** Un noeud vierge, quel que soit son niveau. */
 function noeud(cle, libelle, profondeur) {
@@ -22,6 +22,7 @@ function noeud(cle, libelle, profondeur) {
     cle,
     libelle,
     profondeur,
+    est_produit: false,
     nb_lots: 0,
     nb_produits: 0,
     qte: 0,
@@ -60,15 +61,16 @@ function enfant(parent, cle, libelle, profondeur) {
 const NUM = new Set(['nb_lots', 'nb_produits', 'qte', 'poids', 'jours_min']);
 
 /**
- * Tri applique a chaque niveau. Le tri par defaut suit le libelle ;
- * les colonnes numeriques placent les valeurs inconnues en fin, comme
- * partout ailleurs dans la page.
+ * Tri applique a chaque niveau. Les sous-categories passent avant les produits
+ * rattaches directement a la categorie : sans cela, un groupe se retrouverait
+ * noye au milieu d'une liste de produits.
  */
 function trierNoeuds(liste, tri) {
   const colonne = tri && tri.colonne ? tri.colonne : 'libelle';
   const sens = tri && tri.sens ? tri.sens : 1;
 
   return liste.sort((a, b) => {
+    if (a.est_produit !== b.est_produit) return a.est_produit ? 1 : -1;
     if (NUM.has(colonne)) {
       const A = a[colonne];
       const B = b[colonne];
@@ -108,25 +110,37 @@ function finaliser(n, tri) {
 
 /**
  * Construit l'arbre a partir des lignes deja filtrees et enrichies.
- * Profondeurs : 0 categorie, 1 sous-categorie, 2 produit (porte les lots).
+ *
+ * Profondeurs : 0 categorie, 1 sous-categorie OU produit rattache directement,
+ * 2 produit sous une sous-categorie. Un noeud produit se reconnait a son
+ * drapeau `est_produit`, jamais a sa profondeur, qui varie selon le chemin.
  */
 export function construireArbre(lignes, tri) {
   const racine = noeud('', '', -1);
 
   for (const l of lignes || []) {
     const cat = l.categorie || SANS_CATEGORIE;
-    const sc = l.sous_categorie || SANS_SOUS_CATEGORIE;
     const prod = l.no_produit || '(sans n° produit)';
 
     const nCat = enfant(racine, cat, cat, 0);
-    const nSc = enfant(nCat, sc, sc, 1);
-    const nProd = enfant(nSc, prod, prod, 2);
+
+    // Le parent direct du produit : la sous-categorie si elle existe,
+    // la categorie sinon.
+    let parent = nCat;
+    let nSc = null;
+    if (l.sous_categorie) {
+      nSc = enfant(nCat, l.sous_categorie, l.sous_categorie, 1);
+      parent = nSc;
+    }
+
+    const nProd = enfant(parent, '\u0001' + prod, prod, parent.profondeur + 1);
 
     if (nProd.nb_lots === 0) {
       // Premiere rencontre du produit : on remonte le compteur de produits.
-      nCat.nb_produits += 1;
-      nSc.nb_produits += 1;
+      nProd.est_produit = true;
       nProd.nb_produits = 1;
+      nCat.nb_produits += 1;
+      if (nSc) nSc.nb_produits += 1;
       nProd.description = l.description;
       nProd.trax_code = l.trax_code;
       nProd.client_regle = l.client_regle;
@@ -137,7 +151,7 @@ export function construireArbre(lignes, tri) {
 
     nProd.lignes.push(l);
     cumuler(nCat, l);
-    cumuler(nSc, l);
+    if (nSc) cumuler(nSc, l);
     cumuler(nProd, l);
   }
 
@@ -156,7 +170,11 @@ export const COLONNES_ARBRE = [
   { cle: 'jours_min', libelle: 'Plus proche exp.', num: true },
 ];
 
-/** Cles de tous les noeuds, pour les boutons « Tout déplier ». */
+/**
+ * Cles des noeuds a deplier jusqu'au niveau demande.
+ * `jusqua` compte en profondeur d'affichage : -1 tout replier, 0 ouvrir les
+ * categories, 1 ouvrir aussi les sous-categories, 2 ouvrir les produits.
+ */
 export function toutesLesCles(noeuds, jusqua = 2) {
   const cles = [];
   const parcourir = (liste) => {
