@@ -14,6 +14,7 @@ import InventaireNetrackPage from './features/inventaire-netrack/InventaireNetra
 import InventaireUsinePage from './features/inventaire-usine/InventaireUsinePage';
 import InventaireGlobalPage from './features/inventaire-global/InventaireGlobalPage';
 import InventaireDiffPage from './features/inventaire-diff/InventaireDiffPage';
+import NomenclaturePage from './features/nomenclature/NomenclaturePage';
 import DashboardPage from './features/problematiques/DashboardPage';
 import ProblematiquesPage from './features/problematiques/ProblematiquesPage';
 import ProfilPage from './features/profil/ProfilPage';
@@ -58,6 +59,7 @@ export const router = createHashRouter([
       { path: 'inventaire-usine', element: <InventaireUsinePage /> },
       { path: 'inventaire-global', element: <InventaireGlobalPage /> },
       { path: 'inventaire-diff', element: <InventaireDiffPage /> },
+      { path: 'nomenclature', element: <NomenclaturePage /> },
       { path: 'dashboard', element: <DashboardPage /> },
       { path: 'problematiques', element: <ProblematiquesPage /> },
       { path: 'profil', element: <ProfilPage /> },
