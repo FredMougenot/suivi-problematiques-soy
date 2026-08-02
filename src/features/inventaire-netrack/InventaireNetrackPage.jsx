@@ -15,10 +15,9 @@ import {
   grouperParProduit, totauxParCategorie, couvertureRegles,
   exporterCsv, exporterCsvGroupe,
 } from './logic';
+import { construireArbre, COLONNES_ARBRE, toutesLesCles } from './arbre';
 import LoadingOverlay from '../../design-system/LoadingOverlay';
 import './inventaireNetrack.css';
-
-const PAR_PAGE = 200;
 
 /** Les deux premieres colonnes restent visibles au defilement horizontal. */
 const COLLANTES = 2;
@@ -53,6 +52,24 @@ function ChampTrax({ code, valeur, onEnregistrer }) {
   );
 }
 
+/**
+ * Aplatit l'arbre en lignes de tableau, en ne descendant que dans les
+ * branches ouvertes. Un tableau plat se rend bien plus vite qu'un
+ * imbriquement de <table>, et le decalage visuel suffit a montrer le niveau.
+ */
+function aplatirArbre(noeuds, deplies, sortie = []) {
+  for (const n of noeuds) {
+    sortie.push({ type: 'noeud', n });
+    if (!deplies.has(n.cle)) continue;
+    if (n.enfants.length) {
+      aplatirArbre(n.enfants, deplies, sortie);
+    } else {
+      for (const l of n.lignes) sortie.push({ type: 'lot', l, parent: n });
+    }
+  }
+  return sortie;
+}
+
 export default function InventaireNetrackPage() {
   const addToast = usePlanningStore((s) => s.addToast);
   const inventaireQ = useInventaireNetrackQuery();
@@ -61,7 +78,8 @@ export default function InventaireNetrackPage() {
 
   // ── Etat porte par l'URL : un lien reproduit exactement l'ecran ──
   const [params, setParams] = useSearchParams();
-  const vue = params.get('vue') === 'produit' ? 'produit' : 'lot';
+  const vueBrute = params.get('vue');
+  const vue = vueBrute === 'produit' ? 'produit' : vueBrute === 'arbre' ? 'arbre' : 'lot';
   const client = params.get('cli') || '';
   const categorie = params.get('cat') || '';
   const expiration = params.get('exp') || '';
@@ -91,7 +109,6 @@ export default function InventaireNetrackPage() {
     return () => clearTimeout(minuteur);
   }, [saisie, recherche, majParams]);
 
-  const [affichees, setAffichees] = useState(PAR_PAGE);
   const [deplies, setDeplies] = useState(() => new Set());
   const [panneau, setPanneau] = useState('');
   const [editeur, setEditeur] = useState(null); // { regle } ou { regle: null } pour une creation
@@ -101,9 +118,6 @@ export default function InventaireNetrackPage() {
   const supprimer = useSupprimerRegle();
   const enregistrerTrax = useEnregistrerTraxCode();
   const enCoursRegle = creer.isPending || modifier.isPending || supprimer.isPending;
-
-  useEffect(() => { setAffichees(PAR_PAGE); },
-    [client, categorie, expiration, stock, recherche, vue]);
 
   const reglesPretes = useMemo(() => preparerRegles(reglesQ.data || []), [reglesQ.data]);
 
@@ -137,6 +151,16 @@ export default function InventaireNetrackPage() {
   const groupes = useMemo(
     () => (vue === 'produit' ? grouperParProduit(filtrees, tri) : []),
     [vue, filtrees, tri],
+  );
+
+  const arbre = useMemo(
+    () => (vue === 'arbre' ? construireArbre(filtrees, tri) : []),
+    [vue, filtrees, tri],
+  );
+
+  const lignesArbre = useMemo(
+    () => (vue === 'arbre' ? aplatirArbre(arbre, deplies) : []),
+    [vue, arbre, deplies],
   );
 
   const totaux = useMemo(
@@ -187,7 +211,6 @@ export default function InventaireNetrackPage() {
 
   function trierPar(cle) {
     majParams({ tri: cle, sens: tri.colonne === cle && tri.sens === 1 ? -1 : 1 });
-    setAffichees(PAR_PAGE);
   }
 
   function basculerGroupe(cle) {
@@ -199,10 +222,14 @@ export default function InventaireNetrackPage() {
     });
   }
 
+  /** Deplie tout l'arbre jusqu'au niveau demande (0 categorie, 1 sous-cat, 2 produit). */
+  function deplierJusqua(niveau) {
+    setDeplies(new Set(toutesLesCles(arbre, niveau)));
+  }
+
   function reinitialiser() {
     setSaisie('');
     setParams(new URLSearchParams(), { replace: true });
-    setAffichees(PAR_PAGE);
     setDeplies(new Set());
   }
 
@@ -265,9 +292,6 @@ export default function InventaireNetrackPage() {
 
   const enCours = inventaireQ.isLoading || reglesQ.isLoading || referenceQ.isLoading;
   const enErreur = inventaireQ.error || reglesQ.error || referenceQ.error;
-  const visiblesLots = filtrees.slice(0, affichees);
-  const visiblesGroupes = groupes.slice(0, affichees);
-  const restants = (vue === 'produit' ? groupes.length : filtrees.length) - affichees;
 
   const boutonPanneau = (cle, libelle) => (
     <button
@@ -308,12 +332,12 @@ export default function InventaireNetrackPage() {
 
       <div className="kpi-grid">
         <div className="kpi-card kpi-global">
-          <div className="kpi-lbl">{vue === 'produit' ? 'Produits' : 'Lignes'}</div>
-          <div className="kpi-val">{vue === 'produit' ? kpis.produits : kpis.lignes}</div>
+          <div className="kpi-lbl">{vue === 'lot' ? 'Lignes' : 'Produits'}</div>
+          <div className="kpi-val">{vue === 'lot' ? kpis.lignes : kpis.produits}</div>
           <div className="kpi-sub">
-            {vue === 'produit'
-              ? kpis.lignes + ' lots au total'
-              : 'sur ' + lignes.length + ' au total'}
+            {vue === 'lot'
+              ? 'sur ' + lignes.length + ' au total'
+              : kpis.lignes + ' lots au total'}
           </div>
         </div>
         <div className="kpi-card kpi-gh">
@@ -516,6 +540,12 @@ export default function InventaireNetrackPage() {
               aria-pressed={vue === 'produit'}
               onClick={() => majParams({ vue: 'produit' })}
             >Par produit</button>
+            <button
+              className="nr-chip"
+              aria-pressed={vue === 'arbre'}
+              onClick={() => majParams({ vue: 'arbre' })}
+              title="Catégorie → Sous-catégorie → Produit → Lots"
+            >Arborescence</button>
           </div>
 
           <div className="nr-chips" role="group" aria-label="Filtrer par client">
@@ -579,6 +609,16 @@ export default function InventaireNetrackPage() {
         </div>
       </div>
 
+      {vue === 'arbre' && (
+        <div className="nr-arbre-outils">
+          <span className="nr-faible">Déplier :</span>
+          <button className="btn btn-secondary" onClick={() => deplierJusqua(-1)}>Tout replier</button>
+          <button className="btn btn-secondary" onClick={() => deplierJusqua(0)}>Sous-catégories</button>
+          <button className="btn btn-secondary" onClick={() => deplierJusqua(1)}>Produits</button>
+          <button className="btn btn-secondary" onClick={() => deplierJusqua(2)}>Lots</button>
+        </div>
+      )}
+
       <div className="nr-aide">
         <span><b>espace</b> cumule</span>
         <span><b>,</b> alterne</span>
@@ -603,6 +643,95 @@ export default function InventaireNetrackPage() {
               ? "Aucune donnée. Le relevé est produit chaque matin par le workflow NetRack."
               : "Aucun résultat pour ces filtres."}
           </div>
+        ) : vue === 'arbre' ? (
+          <table className="data-table nr-large">
+            <thead>
+              <tr>
+                <th style={{ width: 28 }} aria-label="Déplier" />
+                {COLONNES_ARBRE.map((c) => (
+                  <th
+                    key={c.cle}
+                    className="nr-th"
+                    style={{ textAlign: c.num ? 'right' : 'left' }}
+                    onClick={() => trierPar(c.cle)}
+                  >
+                    {c.libelle}
+                    {tri.colonne === c.cle && (
+                      <span className="nr-fleche">{tri.sens === 1 ? '▲' : '▼'}</span>
+                    )}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {lignesArbre.map((r) => {
+                if (r.type === 'lot') {
+                  const l = r.l;
+                  return (
+                    <tr key={r.parent.cle + '\u0000' + l.id} className="nr-arbre-lot" data-exp={l.niveau_expiration || undefined}>
+                      <td />
+                      <td className="nr-arbre-cell" style={{ paddingLeft: 78 }}>
+                        <span className="nr-mono">{l.no_lot || '—'}</span>
+                        {l.no_sous_lot && <span className="nr-faible"> / {l.no_sous_lot}</span>}
+                        {l.etiquette && <span className="nr-faible"> · étq {l.etiquette}</span>}
+                      </td>
+                      <td className="nr-mono nr-faible">{l.no_comm_client || '—'}</td>
+                      <td className="nr-mono nr-jours" data-n={l.niveau_expiration || undefined}>
+                        {l.date_expiration || '—'}
+                      </td>
+                      <td />
+                      <td />
+                      <td className="nr-num">{nb(l.unite2_qte_inv)}</td>
+                      <td className="nr-num">{l.poids_total === null ? '—' : nb(l.poids_total)}</td>
+                      <td className="nr-num nr-jours" data-n={l.niveau_expiration || undefined}>
+                        {l.jours_expiration === null ? '—' : nb(l.jours_expiration)}
+                      </td>
+                    </tr>
+                  );
+                }
+
+                const n = r.n;
+                const ouvert = deplies.has(n.cle);
+                const estProduit = n.profondeur === 2;
+                return (
+                  <tr
+                    key={n.cle}
+                    className="nr-ligne-groupe"
+                    data-niv={n.profondeur}
+                    data-exp={n.niveau || undefined}
+                    onClick={() => basculerGroupe(n.cle)}
+                  >
+                    <td className="nr-chevron">{ouvert ? '▾' : '▸'}</td>
+                    <td
+                      className="nr-arbre-cell"
+                      style={{ paddingLeft: 8 + n.profondeur * 22 }}
+                    >
+                      <span className={estProduit ? 'nr-mono' : 'nr-arbre-titre'}>{n.libelle}</span>
+                    </td>
+                    <td>
+                      {estProduit ? (
+                        <ChampTrax
+                          code={n.no_produit}
+                          valeur={n.trax_code}
+                          onEnregistrer={sauverTrax}
+                        />
+                      ) : ''}
+                    </td>
+                    <td className={'nr-desc' + (estProduit ? '' : ' nr-faible')}>
+                      {estProduit ? (n.description || '—') : ''}
+                    </td>
+                    <td className="nr-num">{nb(n.nb_produits)}</td>
+                    <td className="nr-num">{nb(n.nb_lots)}</td>
+                    <td className="nr-num">{nb(n.qte)}</td>
+                    <td className="nr-num">{n.poids === null ? '—' : nb(n.poids)}</td>
+                    <td className="nr-num nr-jours" data-n={n.niveau || undefined}>
+                      {n.jours_min === null ? '—' : nb(n.jours_min)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         ) : vue === 'produit' ? (
           <table className="data-table nr-large">
             <thead>
@@ -624,7 +753,7 @@ export default function InventaireNetrackPage() {
               </tr>
             </thead>
             <tbody>
-              {visiblesGroupes.map((g) => {
+              {groupes.map((g) => {
                 const ouvert = deplies.has(g.cle);
                 return [
                   <tr
@@ -739,7 +868,7 @@ export default function InventaireNetrackPage() {
               </tr>
             </thead>
             <tbody>
-              {visiblesLots.map((l) => {
+              {filtrees.map((l) => {
                 const j = l.jours_expiration;
                 const niveau = l.niveau_expiration;
                 return (
@@ -784,15 +913,6 @@ export default function InventaireNetrackPage() {
               })}
             </tbody>
           </table>
-        )}
-
-        {restants > 0 && (
-          <button
-            className="btn btn-secondary nr-plus"
-            onClick={() => setAffichees((n) => n + PAR_PAGE)}
-          >
-            Afficher {Math.min(PAR_PAGE, restants)} de plus
-          </button>
         )}
       </div>
 
