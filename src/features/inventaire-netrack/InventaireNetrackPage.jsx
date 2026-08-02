@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { usePlanningStore } from '../../store/usePlanningStore';
 import {
   useInventaireNetrackQuery, useReglesCategorieQuery, useReferenceProduitsQuery,
@@ -72,6 +72,7 @@ function aplatirArbre(noeuds, deplies, sortie = []) {
 
 export default function InventaireNetrackPage() {
   const addToast = usePlanningStore((s) => s.addToast);
+  const naviguer = useNavigate();
   const inventaireQ = useInventaireNetrackQuery();
   const reglesQ = useReglesCategorieQuery();
   const referenceQ = useReferenceProduitsQuery();
@@ -312,6 +313,11 @@ export default function InventaireNetrackPage() {
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           {boutonPanneau('regles', 'Règles')}
+          {/* La nomenclature est un ecran a part entiere : elle sert aussi hors
+              de l'inventaire, et sa gestion merite la pleine largeur. */}
+          <button className="btn btn-secondary" onClick={() => naviguer('/nomenclature')}>
+            Nomenclature
+          </button>
           {boutonPanneau('totaux', 'Totaux par catégorie')}
           {boutonPanneau('couverture', 'Couverture')}
           {boutonPanneau('analyse', 'Analyse des colonnes')}
