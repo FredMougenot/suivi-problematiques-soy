@@ -29,10 +29,13 @@ const SORTIES_AUTORISEES = SORTIES_REGLE.filter(
  * c'est ce recalcul qui fait foi, l'apercu n'est qu'une simulation locale.
  *
  * Categorie et sous-categorie sont DEUX champs distincts, tous deux
- * toujours visibles : la sous-categorie ne se devine pas dans une liste
- * de chemins. En base, une seule valeur est enregistree, `categorie_id` :
- * celui de la sous-categorie quand elle est choisie, celui de la categorie
- * sinon — le parent se retrouve toujours a partir de l'enfant.
+ * toujours visibles. En base, une seule valeur est enregistree,
+ * `categorie_id` : celui de la sous-categorie quand elle est choisie,
+ * celui de la categorie sinon — le parent se retrouve depuis l'enfant.
+ *
+ * Aucun de ces champs ne porte de texte d'aide sous la liste : les blocs
+ * du formulaire sont alignes par le bas, une ligne de texte sous un seul
+ * champ decalerait tous les autres.
  *
  * Le TRAXcode ne figure pas ici : il appartient au referentiel produits
  * et se saisit produit par produit, depuis la page.
@@ -114,6 +117,12 @@ export default function EditeurRegle({
   const choisirCategorie = (e) => appliquerChoix(e.target.value, '');
   const choisirSousCategorie = (e) => appliquerChoix(idCategorie, e.target.value);
 
+  const aideSousCategorie = idCategorie === ''
+    ? 'Choisissez d\'abord une catégorie'
+    : sousCategories.length === 0
+      ? 'Cette catégorie n\'a pas de sous-catégorie'
+      : 'Facultative';
+
   const aCondition2 = Boolean(brouillon.champ2 && brouillon.operateur2 && brouillon.valeur2);
 
   return (
@@ -187,6 +196,7 @@ export default function EditeurRegle({
                   value={idCategorie === '' ? '' : String(idCategorie)}
                   onChange={choisirCategorie}
                   disabled={categoriesQ.isLoading}
+                  title="Se gère dans l'écran Nomenclature"
                 >
                   <option value="">— aucune —</option>
                   {racines.map((c) => (
@@ -201,19 +211,13 @@ export default function EditeurRegle({
                   value={idSousCategorie === '' ? '' : String(idSousCategorie)}
                   onChange={choisirSousCategorie}
                   disabled={categoriesQ.isLoading || sousCategories.length === 0}
+                  title={aideSousCategorie}
                 >
                   <option value="">— aucune —</option>
                   {sousCategories.map((c) => (
                     <option key={c.id} value={c.id}>{c.libelle}</option>
                   ))}
                 </select>
-                <div className="nr-ed-sous-aide">
-                  {idCategorie === ''
-                    ? 'Choisissez d\'abord une catégorie.'
-                    : sousCategories.length === 0
-                      ? 'Cette catégorie n\'a pas de sous-catégorie.'
-                      : 'Facultative — se gère dans l\'écran Nomenclature.'}
-                </div>
               </div>
               <div className="field">
                 <label className="field-label">Poids unitaire</label>
