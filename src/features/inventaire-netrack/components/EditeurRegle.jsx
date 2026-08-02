@@ -7,6 +7,8 @@ import { useCategoriesQuery, organiserCategories } from '../queries';
 
 const LIGNES_APERCU = 8;
 
+const memeId = (a, b) => String(a ?? '') === String(b ?? '');
+
 /**
  * Attributs qu'une 2e condition peut arbitrer.
  * Categorie et sous-categorie en sont exclues : elles viennent desormais
@@ -26,7 +28,12 @@ const SORTIES_AUTORISEES = SORTIES_REGLE.filter(
  * A l'enregistrement, base_reference_produits est recalculee en base :
  * c'est ce recalcul qui fait foi, l'apercu n'est qu'une simulation locale.
  *
- * La categorie se choisit dans la nomenclature (base_reference_categories).
+ * Categorie et sous-categorie sont DEUX champs distincts, tous deux
+ * toujours visibles : la sous-categorie ne se devine pas dans une liste
+ * de chemins. En base, une seule valeur est enregistree, `categorie_id` :
+ * celui de la sous-categorie quand elle est choisie, celui de la categorie
+ * sinon — le parent se retrouve toujours a partir de l'enfant.
+ *
  * Le TRAXcode ne figure pas ici : il appartient au referentiel produits
  * et se saisit produit par produit, depuis la page.
  */
@@ -36,14 +43,37 @@ export default function EditeurRegle({
   const [brouillon, setBrouillon] = useState(regleVierge);
   const categoriesQ = useCategoriesQuery();
 
-  const categories = useMemo(
+  const noeuds = useMemo(
     () => organiserCategories(categoriesQ.data || []).filter((c) => c.actif !== false),
     [categoriesQ.data],
   );
 
+  const racines = useMemo(() => noeuds.filter((c) => c.profondeur === 0), [noeuds]);
+
   useEffect(() => {
     if (open) setBrouillon(regle ? { ...regleVierge, ...regle } : regleVierge);
   }, [open, regle]);
+
+  /**
+   * La regle ne stocke qu'un id. Pour reafficher les deux listes, on
+   * remonte au parent quand l'id designe une sous-categorie.
+   */
+  const noeudChoisi = useMemo(
+    () => noeuds.find((c) => memeId(c.id, brouillon.categorie_id)) || null,
+    [noeuds, brouillon.categorie_id],
+  );
+
+  const idCategorie = noeudChoisi
+    ? (noeudChoisi.profondeur === 1 ? noeudChoisi.parent_id : noeudChoisi.id)
+    : '';
+  const idSousCategorie = noeudChoisi && noeudChoisi.profondeur === 1 ? noeudChoisi.id : '';
+
+  const sousCategories = useMemo(
+    () => (idCategorie === ''
+      ? []
+      : noeuds.filter((c) => c.profondeur === 1 && memeId(c.parent_id, idCategorie))),
+    [noeuds, idCategorie],
+  );
 
   const erreurs = useMemo(() => validerRegle(brouillon), [brouillon]);
 
@@ -60,20 +90,29 @@ export default function EditeurRegle({
   };
 
   /**
-   * Le choix d'un noeud renseigne aussi les libelles dans le brouillon.
-   * Ils ne sont pas envoyes en base (le trigger les derive), mais l'apercu
-   * et la validation en ont besoin pour afficher l'effet de la regle.
+   * Renseigne l'id ET les libelles dans le brouillon. Les libelles ne sont
+   * pas envoyes en base (le trigger les derive de categorie_id), mais
+   * l'apercu et la validation en ont besoin pour montrer l'effet reel.
    */
-  const choisirCategorie = (e) => {
-    const id = e.target.value;
-    const n = categories.find((c) => String(c.id) === String(id));
+  function appliquerChoix(idCat, idSousCat) {
+    const cat = racines.find((c) => memeId(c.id, idCat)) || null;
+    const sc = idSousCat === '' || idSousCat === null
+      ? null
+      : noeuds.find((c) => memeId(c.id, idSousCat)) || null;
+
+    const retenu = sc || cat;
     setBrouillon((b) => ({
       ...b,
-      categorie_id: id === '' ? null : Number(id),
-      categorie: n ? (n.profondeur === 1 ? n.parent_libelle : n.libelle) : '',
-      sous_categorie: n && n.profondeur === 1 ? n.libelle : '',
+      categorie_id: retenu ? Number(retenu.id) : null,
+      categorie: cat ? cat.libelle : '',
+      sous_categorie: sc ? sc.libelle : '',
     }));
-  };
+  }
+
+  // Changer de categorie remet la sous-categorie a zero : celle d'avant
+  // appartenait a un autre parent et n'aurait plus aucun sens.
+  const choisirCategorie = (e) => appliquerChoix(e.target.value, '');
+  const choisirSousCategorie = (e) => appliquerChoix(idCategorie, e.target.value);
 
   const aCondition2 = Boolean(brouillon.champ2 && brouillon.operateur2 && brouillon.valeur2);
 
@@ -141,21 +180,39 @@ export default function EditeurRegle({
           <div className="nr-ed-bloc">
             <div className="nr-ed-titre">Valeurs attribuées</div>
             <div className="nr-ed-ligne">
-              <div className="field nr-ed-large">
+              <div className="field">
                 <label className="field-label">Catégorie</label>
                 <select
                   className="field-select"
-                  value={brouillon.categorie_id ?? ''}
+                  value={idCategorie === '' ? '' : String(idCategorie)}
                   onChange={choisirCategorie}
                   disabled={categoriesQ.isLoading}
                 >
                   <option value="">— aucune —</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.chemin}</option>
+                  {racines.map((c) => (
+                    <option key={c.id} value={c.id}>{c.libelle}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label className="field-label">Sous-catégorie</label>
+                <select
+                  className="field-select"
+                  value={idSousCategorie === '' ? '' : String(idSousCategorie)}
+                  onChange={choisirSousCategorie}
+                  disabled={categoriesQ.isLoading || sousCategories.length === 0}
+                >
+                  <option value="">— aucune —</option>
+                  {sousCategories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.libelle}</option>
                   ))}
                 </select>
                 <div className="nr-ed-sous-aide">
-                  Les catégories se gèrent dans l'écran Nomenclature.
+                  {idCategorie === ''
+                    ? 'Choisissez d\'abord une catégorie.'
+                    : sousCategories.length === 0
+                      ? 'Cette catégorie n\'a pas de sous-catégorie.'
+                      : 'Facultative — se gère dans l\'écran Nomenclature.'}
                 </div>
               </div>
               <div className="field">
