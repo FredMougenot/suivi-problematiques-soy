@@ -9,7 +9,7 @@ import {
   useCreerCategorie, useModifierCategorie, useSupprimerCategorie,
 } from '../inventaire-netrack/mutations';
 import LoadingOverlay from '../../design-system/LoadingOverlay';
-import '../inventaire-netrack/inventaireNetrack.css';
+import './nomenclature.css';
 
 const vierge = { parent_id: '', libelle: '', ordre: '', actif: true, notes: '' };
 
@@ -24,6 +24,9 @@ const vierge = { parent_id: '', libelle: '', ordre: '', actif: true, notes: '' }
  * L'ecran affiche pour chaque noeud son usage reel : combien de regles le
  * pointent, combien de produits en heritent. Sans ce chiffre, on ne sait pas
  * ce qu'on casse en renommant ou en supprimant.
+ *
+ * La page porte sa propre feuille de style (nomenclature.css) et n'emprunte
+ * celle d'aucune autre feature.
  */
 export default function NomenclaturePage() {
   const addToast = usePlanningStore((s) => s.addToast);
@@ -54,10 +57,13 @@ export default function NomenclaturePage() {
     const m = new Map();
     for (const r of reglesQ.data || []) {
       if (r.categorie_id === null || r.categorie_id === undefined) continue;
-      m.set(r.categorie_id, (m.get(r.categorie_id) || 0) + 1);
+      const cle = String(r.categorie_id);
+      m.set(cle, (m.get(cle) || 0) + 1);
     }
     return m;
   }, [reglesQ.data]);
+
+  const reglesDe = (c) => reglesParNoeud.get(String(c.id)) || 0;
 
   /**
    * Nombre de produits par noeud. Le referentiel ne stocke que les libelles,
@@ -68,10 +74,9 @@ export default function NomenclaturePage() {
     const m = new Map();
     for (const p of produitsQ.data || []) {
       if (!p.categorie) continue;
-      const cat = p.categorie;
-      m.set(cat, (m.get(cat) || 0) + 1);
+      m.set(p.categorie, (m.get(p.categorie) || 0) + 1);
       if (p.sous_categorie) {
-        const cle = cat + '\u0000' + p.sous_categorie;
+        const cle = p.categorie + '\u0000' + p.sous_categorie;
         m.set(cle, (m.get(cle) || 0) + 1);
       }
     }
@@ -123,14 +128,9 @@ export default function NomenclaturePage() {
     }
   }
 
-  async function supprimerNoeud(c) {
-    const usages = (reglesParNoeud.get(c.id) || 0);
-    if (usages > 0) {
-      addToast(usages + ' règle(s) utilisent cette catégorie — modifiez-les d\'abord', 'error');
-      return;
-    }
+  async function supprimerNoeud(id) {
     try {
-      await supprimer.mutateAsync(c.id);
+      await supprimer.mutateAsync(id);
       addToast('Catégorie supprimée ✓', 'success');
       setBrouillon(null);
     } catch (e) {
@@ -149,6 +149,8 @@ export default function NomenclaturePage() {
 
   const nbRacines = racines.length;
   const nbEnfants = liste.length - nbRacines;
+  const reglesRattachees = (reglesQ.data || []).filter((r) => r.categorie_id).length;
+  const produits = produitsQ.data || [];
 
   return (
     <div className="tool-main">
@@ -159,8 +161,7 @@ export default function NomenclaturePage() {
             Liste fermée des catégories et sous-catégories utilisables par les règles
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          {/* Sans menu lateral, cet ecran serait un cul-de-sac. */}
+        <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn btn-secondary" onClick={() => naviguer('/inventaire-netrack')}>
             ← Inventaire
           </button>
@@ -188,37 +189,33 @@ export default function NomenclaturePage() {
         </div>
         <div className="kpi-card kpi-gh">
           <div className="kpi-lbl">Règles rattachées</div>
-          <div className="kpi-val">{(reglesQ.data || []).filter((r) => r.categorie_id).length}</div>
+          <div className="kpi-val">{reglesRattachees}</div>
           <div className="kpi-sub">sur {(reglesQ.data || []).length} règles actives</div>
         </div>
         <div className="kpi-card kpi-poids">
           <div className="kpi-lbl">Produits catégorisés</div>
-          <div className="kpi-val">
-            {(produitsQ.data || []).filter((p) => p.categorie).length}
-          </div>
+          <div className="kpi-val">{produits.filter((p) => p.categorie).length}</div>
           <div className="kpi-sub">
-            {(produitsQ.data || []).filter((p) => !p.categorie).length} sans catégorie
+            {produits.filter((p) => !p.categorie).length} sans catégorie
           </div>
         </div>
       </div>
 
-      <div className="nr-analyse">
-        <div className="nr-analyse-t">
-          Un même libellé peut exister sous deux parents différents — <b>PAPIER</b> sous
-          <b> LIGNE EH1</b> et sous <b>LIGNE TBA</b> sont deux entrées distinctes, ce qui
-          est correct puisqu'un produit n'appartient qu'à une seule ligne. Renommer une
-          entrée mettra à jour les règles qui la pointent et relancera le recalcul.
-        </div>
+      <div className="nom-bandeau">
+        Un même libellé peut exister sous deux parents différents — <b>PAPIER</b> sous
+        <b> LIGNE EH1</b> et sous <b>LIGNE TBA</b> sont deux entrées distinctes, ce qui
+        est correct puisqu'un produit n'appartient qu'à une seule ligne. Renommer une
+        entrée met à jour les règles qui la pointent et relance le recalcul.
       </div>
 
       <div className="table-shell dt-glow">
         {enCours ? <LoadingOverlay /> : liste.length === 0 ? (
-          <div className="nr-vide">Aucune catégorie. Créez-en une pour commencer.</div>
+          <div className="nom-vide">Aucune catégorie. Créez-en une pour commencer.</div>
         ) : (
-          <table className="data-table nr-large">
+          <table className="data-table nom-table">
             <thead>
               <tr>
-                <th className="nr-th">Catégorie / Sous-catégorie</th>
+                <th className="nom-th">Catégorie / Sous-catégorie</th>
                 <th style={{ textAlign: 'right' }}>Ordre</th>
                 <th style={{ textAlign: 'right' }}>Règles</th>
                 <th style={{ textAlign: 'right' }}>Produits</th>
@@ -229,37 +226,34 @@ export default function NomenclaturePage() {
             </thead>
             <tbody>
               {liste.map((c) => {
-                const nbRegles = reglesParNoeud.get(c.id) || 0;
+                const nbRegles = reglesDe(c);
                 const nbProduits = produitsDe(c);
                 return (
-                  <tr key={c.id} data-niv={c.profondeur} style={c.actif === false ? { opacity: .45 } : undefined}>
-                    <td
-                      className="nr-arbre-cell"
-                      style={{ paddingLeft: 8 + c.profondeur * 22 }}
-                    >
-                      <span className={c.profondeur === 0 ? 'nr-arbre-titre' : ''}>
+                  <tr key={c.id} className={c.actif === false ? 'nom-inactive' : undefined}>
+                    <td className={c.profondeur === 0 ? 'nom-cell-0' : 'nom-cell-1'}>
+                      <span className={c.profondeur === 0 ? 'nom-titre' : 'nom-enfant'}>
                         {c.libelle}
                       </span>
                     </td>
-                    <td className="nr-num nr-faible">{c.ordre ?? '—'}</td>
-                    <td className={'nr-num' + (nbRegles === 0 ? ' nr-manquant' : '')}>{nbRegles}</td>
-                    <td className={'nr-num' + (nbProduits === 0 ? ' nr-manquant' : '')}>{nbProduits}</td>
-                    <td className="nr-tronque nr-faible">{c.notes || '—'}</td>
+                    <td className="nom-num nom-faible">{c.ordre ?? '—'}</td>
+                    <td className={'nom-num' + (nbRegles === 0 ? ' nom-zero' : '')}>{nbRegles}</td>
+                    <td className={'nom-num' + (nbProduits === 0 ? ' nom-zero' : '')}>{nbProduits}</td>
+                    <td className="nom-notes">{c.notes || '—'}</td>
                     <td>
-                      {c.actif === false
-                        ? <span className="nr-verdict" data-v="vide">inactive</span>
-                        : <span className="nr-verdict" data-v="utile">active</span>}
+                      <span className="nom-etat" data-v={c.actif === false ? 'inactive' : 'active'}>
+                        {c.actif === false ? 'inactive' : 'active'}
+                      </span>
                     </td>
-                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    <td className="nom-actions">
                       {c.profondeur === 0 && (
                         <button
-                          className="btn btn-secondary nr-mini"
+                          className="btn btn-secondary nom-mini"
                           onClick={() => ouvrirCreation(c.id)}
                           title="Ajouter une sous-catégorie"
                         >+ sous-cat.</button>
                       )}
                       <button
-                        className="btn btn-secondary nr-mini"
+                        className="btn btn-secondary nom-mini"
                         onClick={() => ouvrirEdition(c)}
                       >Modifier</button>
                     </td>
@@ -288,8 +282,8 @@ export default function NomenclaturePage() {
             </div>
 
             <div className="modal-body">
-              <div className="nr-ed-ligne">
-                <div className="field nr-ed-large">
+              <div className="nom-ligne">
+                <div className="field nom-large">
                   <label className="field-label">Parent</label>
                   <select
                     className="field-select"
@@ -298,11 +292,11 @@ export default function NomenclaturePage() {
                   >
                     <option value="">— aucun (catégorie de premier niveau) —</option>
                     {racines
-                      .filter((r) => r.id !== brouillon.id)
+                      .filter((r) => String(r.id) !== String(brouillon.id ?? ''))
                       .map((r) => <option key={r.id} value={r.id}>{r.libelle}</option>)}
                   </select>
                 </div>
-                <div className="field nr-ed-petit">
+                <div className="field nom-petit">
                   <label className="field-label" title="Laisser vide pour un tri alphabétique">
                     Ordre
                   </label>
@@ -315,8 +309,8 @@ export default function NomenclaturePage() {
                 </div>
               </div>
 
-              <div className="nr-ed-ligne">
-                <div className="field nr-ed-large">
+              <div className="nom-ligne">
+                <div className="field nom-large">
                   <label className="field-label">Libellé</label>
                   <input
                     className="field-input"
@@ -325,7 +319,7 @@ export default function NomenclaturePage() {
                     placeholder="ex. PAPIER"
                   />
                 </div>
-                <label className="nr-ed-case">
+                <label className="nom-case">
                   <input
                     type="checkbox"
                     checked={brouillon.actif !== false}
@@ -335,8 +329,8 @@ export default function NomenclaturePage() {
                 </label>
               </div>
 
-              <div className="nr-ed-ligne">
-                <div className="field nr-ed-large">
+              <div className="nom-ligne">
+                <div className="field nom-large">
                   <label className="field-label">Notes</label>
                   <input
                     className="field-input"
@@ -346,10 +340,10 @@ export default function NomenclaturePage() {
                 </div>
               </div>
 
-              {brouillon.id && (reglesParNoeud.get(brouillon.id) || 0) > 0 && (
-                <div className="nr-ed-erreurs" style={{ color: '#e0c072', borderColor: 'rgba(214,168,56,.4)', background: 'rgba(214,168,56,.1)' }}>
-                  ⚠ {reglesParNoeud.get(brouillon.id)} règle(s) pointent cette entrée.
-                  La renommer mettra à jour la référence produits.
+              {brouillon.id && reglesParNoeud.get(String(brouillon.id)) > 0 && (
+                <div className="nom-avertissement">
+                  ⚠ {reglesParNoeud.get(String(brouillon.id))} règle(s) pointent cette
+                  entrée. La renommer mettra à jour la référence produits.
                 </div>
               )}
             </div>
@@ -357,8 +351,8 @@ export default function NomenclaturePage() {
             <div className="modal-footer">
               {brouillon.id && (
                 <button
-                  className="btn btn-secondary nr-ed-suppr"
-                  onClick={() => supprimerNoeud({ id: brouillon.id })}
+                  className="btn btn-secondary nom-suppr"
+                  onClick={() => supprimerNoeud(brouillon.id)}
                   disabled={enCoursEcriture}
                 >Supprimer</button>
               )}

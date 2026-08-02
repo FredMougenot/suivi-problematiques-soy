@@ -1,0 +1,131 @@
+/* Nomenclature des categories — feuille propre a la page.
+   Sur le modele de problematiques.css : chaque ecran porte son style et
+   n'emprunte pas celui d'une autre feature. */
+
+.nom-bandeau {
+  margin: 4px 0 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--text-faint);
+  border-radius: 12px;
+  background: var(--bg-raised);
+  font-size: .76rem;
+  color: var(--text-secondary);
+  max-width: 90ch;
+  transform: translateZ(0);
+}
+
+.nom-table {
+  font-size: .78rem;
+}
+
+.nom-table th,
+.nom-table td {
+  white-space: nowrap;
+  padding: 6px 10px;
+}
+
+.nom-th {
+  cursor: default;
+  user-select: none;
+}
+
+/* Decalage du niveau 1 : la sous-categorie se lit comme un enfant. */
+.nom-cell-0 { padding-left: 10px !important; }
+.nom-cell-1 { padding-left: 34px !important; }
+
+.nom-titre { font-weight: 600; color: var(--text-primary); }
+.nom-enfant { color: var(--text-secondary); }
+
+.nom-num {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.nom-faible { color: var(--text-muted); }
+.nom-zero { color: var(--text-faint); }
+
+.nom-notes {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-muted);
+}
+
+.nom-etat {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 5px;
+  font-size: .64rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  transform: translateZ(0);
+}
+
+.nom-etat[data-v='active'] {
+  background: rgba(80, 170, 120, .14);
+  border: 1px solid rgba(80, 170, 120, .38);
+  color: #7fce9f;
+}
+
+.nom-etat[data-v='inactive'] {
+  background: rgba(200, 70, 70, .14);
+  border: 1px solid rgba(200, 70, 70, .38);
+  color: #e08a8a;
+}
+
+.nom-inactive { opacity: .45; }
+
+.nom-actions { text-align: right; white-space: nowrap; }
+
+.nom-mini {
+  padding: 2px 9px !important;
+  margin-left: 6px;
+  font-size: .68rem !important;
+}
+
+.nom-vide {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: .84rem;
+}
+
+/* ───── Modale d'edition ───── */
+
+.nom-ligne {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.nom-ligne:last-child { margin-bottom: 0; }
+.nom-ligne .field { flex: 1 1 160px; min-width: 130px; }
+.nom-large { flex: 2 1 240px !important; }
+.nom-petit { flex: 0 0 100px !important; min-width: 100px !important; }
+
+.nom-case {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-bottom: 8px;
+  font-size: .78rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.nom-avertissement {
+  margin-top: 12px;
+  padding: 10px 13px;
+  border: 1px solid rgba(214, 168, 56, .4);
+  border-radius: 9px;
+  background: rgba(214, 168, 56, .1);
+  color: #e0c072;
+  font-size: .76rem;
+  transform: translateZ(0);
+}
+
+.nom-suppr { margin-right: auto; color: var(--ruby); }
