@@ -9,9 +9,11 @@ import {
   useCreerCategorie, useModifierCategorie, useSupprimerCategorie,
 } from '../inventaire-netrack/mutations';
 import LoadingOverlay from '../../design-system/LoadingOverlay';
-import './nomenclature.css';
+import '../inventaire-netrack/inventaireNetrack.css';
 
 const vierge = { parent_id: '', libelle: '', ordre: '', actif: true, notes: '' };
+
+const memeId = (a, b) => String(a ?? '') === String(b ?? '');
 
 /**
  * Gestion de la nomenclature des categories (base_reference_categories).
@@ -25,8 +27,9 @@ const vierge = { parent_id: '', libelle: '', ordre: '', actif: true, notes: '' }
  * pointent, combien de produits en heritent. Sans ce chiffre, on ne sait pas
  * ce qu'on casse en renommant ou en supprimant.
  *
- * La page porte sa propre feuille de style (nomenclature.css) et n'emprunte
- * celle d'aucune autre feature.
+ * STYLE : cette page n'utilise QUE les classes de inventaireNetrack.css.
+ * Aucune classe propre, aucune feuille supplementaire — elle doit se
+ * comporter exactement comme la page NetRack.
  */
 export default function NomenclaturePage() {
   const addToast = usePlanningStore((s) => s.addToast);
@@ -40,17 +43,14 @@ export default function NomenclaturePage() {
   const supprimer = useSupprimerCategorie();
   const enCoursEcriture = creer.isPending || modifier.isPending || supprimer.isPending;
 
-  const [brouillon, setBrouillon] = useState(null); // { id? , ...champs }
+  const [brouillon, setBrouillon] = useState(null);
 
   const liste = useMemo(
     () => organiserCategories(categoriesQ.data || []),
     [categoriesQ.data],
   );
 
-  const racines = useMemo(
-    () => liste.filter((c) => c.profondeur === 0),
-    [liste],
-  );
+  const racines = useMemo(() => liste.filter((c) => c.profondeur === 0), [liste]);
 
   /** Nombre de regles pointant chaque noeud. */
   const reglesParNoeud = useMemo(() => {
@@ -68,7 +68,7 @@ export default function NomenclaturePage() {
   /**
    * Nombre de produits par noeud. Le referentiel ne stocke que les libelles,
    * pas l'id : on compare donc sur le couple (categorie, sous_categorie),
-   * ce qui suffit puisque ce couple identifie le noeud de facon unique.
+   * qui identifie le noeud de facon unique.
    */
   const produitsParChemin = useMemo(() => {
     const m = new Map();
@@ -117,7 +117,6 @@ export default function NomenclaturePage() {
       }
       setBrouillon(null);
     } catch (e) {
-      // Violation d'unicite : le message brut de Postgres n'aide pas.
       const msg = String(e.message || '');
       addToast(
         msg.includes('unique') || msg.includes('duplicate')
@@ -149,7 +148,7 @@ export default function NomenclaturePage() {
 
   const nbRacines = racines.length;
   const nbEnfants = liste.length - nbRacines;
-  const reglesRattachees = (reglesQ.data || []).filter((r) => r.categorie_id).length;
+  const regles = reglesQ.data || [];
   const produits = produitsQ.data || [];
 
   return (
@@ -161,9 +160,9 @@ export default function NomenclaturePage() {
             Liste fermée des catégories et sous-catégories utilisables par les règles
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <button className="btn btn-secondary" onClick={() => naviguer('/inventaire-netrack')}>
-            ← Inventaire
+            Inventaire NetRack
           </button>
           <button className="btn btn-secondary" onClick={() => categoriesQ.refetch()}>
             Actualiser
@@ -189,8 +188,8 @@ export default function NomenclaturePage() {
         </div>
         <div className="kpi-card kpi-gh">
           <div className="kpi-lbl">Règles rattachées</div>
-          <div className="kpi-val">{reglesRattachees}</div>
-          <div className="kpi-sub">sur {(reglesQ.data || []).length} règles actives</div>
+          <div className="kpi-val">{regles.filter((r) => r.categorie_id).length}</div>
+          <div className="kpi-sub">sur {regles.length} règles actives</div>
         </div>
         <div className="kpi-card kpi-poids">
           <div className="kpi-lbl">Produits catégorisés</div>
@@ -201,21 +200,23 @@ export default function NomenclaturePage() {
         </div>
       </div>
 
-      <div className="nom-bandeau">
-        Un même libellé peut exister sous deux parents différents — <b>PAPIER</b> sous
-        <b> LIGNE EH1</b> et sous <b>LIGNE TBA</b> sont deux entrées distinctes, ce qui
-        est correct puisqu'un produit n'appartient qu'à une seule ligne. Renommer une
-        entrée met à jour les règles qui la pointent et relance le recalcul.
+      <div className="nr-analyse">
+        <div className="nr-analyse-t">
+          Un même libellé peut exister sous deux parents différents — <b>PAPIER</b> sous
+          <b> LIGNE EH1</b> et sous <b>LIGNE TBA</b> sont deux entrées distinctes, ce qui
+          est correct puisqu'un produit n'appartient qu'à une seule ligne. Renommer une
+          entrée met à jour les règles qui la pointent et relance le recalcul.
+        </div>
       </div>
 
-      <div className="table-shell dt-glow">
+      <div className="table-shell dt-glow nr-scroll">
         {enCours ? <LoadingOverlay /> : liste.length === 0 ? (
-          <div className="nom-vide">Aucune catégorie. Créez-en une pour commencer.</div>
+          <div className="nr-vide">Aucune catégorie. Créez-en une pour commencer.</div>
         ) : (
-          <table className="data-table nom-table">
+          <table className="data-table nr-large">
             <thead>
               <tr>
-                <th className="nom-th">Catégorie / Sous-catégorie</th>
+                <th>Catégorie / Sous-catégorie</th>
                 <th style={{ textAlign: 'right' }}>Ordre</th>
                 <th style={{ textAlign: 'right' }}>Règles</th>
                 <th style={{ textAlign: 'right' }}>Produits</th>
@@ -229,31 +230,39 @@ export default function NomenclaturePage() {
                 const nbRegles = reglesDe(c);
                 const nbProduits = produitsDe(c);
                 return (
-                  <tr key={c.id} className={c.actif === false ? 'nom-inactive' : undefined}>
-                    <td className={c.profondeur === 0 ? 'nom-cell-0' : 'nom-cell-1'}>
-                      <span className={c.profondeur === 0 ? 'nom-titre' : 'nom-enfant'}>
+                  <tr
+                    key={c.id}
+                    data-niv={c.profondeur}
+                    style={c.actif === false ? { opacity: .45 } : undefined}
+                  >
+                    <td
+                      className="nr-arbre-cell"
+                      style={{ paddingLeft: 8 + c.profondeur * 22 }}
+                    >
+                      <span className={c.profondeur === 0 ? 'nr-arbre-titre' : ''}>
                         {c.libelle}
                       </span>
                     </td>
-                    <td className="nom-num nom-faible">{c.ordre ?? '—'}</td>
-                    <td className={'nom-num' + (nbRegles === 0 ? ' nom-zero' : '')}>{nbRegles}</td>
-                    <td className={'nom-num' + (nbProduits === 0 ? ' nom-zero' : '')}>{nbProduits}</td>
-                    <td className="nom-notes">{c.notes || '—'}</td>
+                    <td className="nr-num nr-faible">{c.ordre ?? '—'}</td>
+                    <td className={'nr-num' + (nbRegles === 0 ? ' nr-manquant' : '')}>{nbRegles}</td>
+                    <td className={'nr-num' + (nbProduits === 0 ? ' nr-manquant' : '')}>{nbProduits}</td>
+                    <td className="nr-tronque nr-faible">{c.notes || '—'}</td>
                     <td>
-                      <span className="nom-etat" data-v={c.actif === false ? 'inactive' : 'active'}>
+                      <span className="nr-verdict" data-v={c.actif === false ? 'vide' : 'utile'}>
                         {c.actif === false ? 'inactive' : 'active'}
                       </span>
                     </td>
-                    <td className="nom-actions">
+                    <td style={{ textAlign: 'right' }}>
                       {c.profondeur === 0 && (
                         <button
-                          className="btn btn-secondary nom-mini"
+                          className="btn btn-secondary"
                           onClick={() => ouvrirCreation(c.id)}
                           title="Ajouter une sous-catégorie"
                         >+ sous-cat.</button>
                       )}
                       <button
-                        className="btn btn-secondary nom-mini"
+                        className="btn btn-secondary"
+                        style={{ marginLeft: 6 }}
                         onClick={() => ouvrirEdition(c)}
                       >Modifier</button>
                     </td>
@@ -270,7 +279,7 @@ export default function NomenclaturePage() {
           className="modal-overlay"
           onClick={(e) => { if (e.target === e.currentTarget) setBrouillon(null); }}
         >
-          <div className="modal-box">
+          <div className="modal-box nr-editeur">
             <div className="modal-header">
               <div className="modal-title">
                 {brouillon.id ? 'Modifier la catégorie' : 'Nouvelle catégorie'}
@@ -282,66 +291,65 @@ export default function NomenclaturePage() {
             </div>
 
             <div className="modal-body">
-              <div className="nom-ligne">
-                <div className="field nom-large">
-                  <label className="field-label">Parent</label>
-                  <select
-                    className="field-select"
-                    value={brouillon.parent_id ?? ''}
-                    onChange={(e) => setBrouillon((b) => ({ ...b, parent_id: e.target.value }))}
-                  >
-                    <option value="">— aucun (catégorie de premier niveau) —</option>
-                    {racines
-                      .filter((r) => String(r.id) !== String(brouillon.id ?? ''))
-                      .map((r) => <option key={r.id} value={r.id}>{r.libelle}</option>)}
-                  </select>
+              <div className="nr-ed-bloc">
+                <div className="nr-ed-ligne">
+                  <div className="field nr-ed-large">
+                    <label className="field-label">Parent</label>
+                    <select
+                      className="field-select"
+                      value={brouillon.parent_id ?? ''}
+                      onChange={(e) => setBrouillon((b) => ({ ...b, parent_id: e.target.value }))}
+                    >
+                      <option value="">— aucun (catégorie de premier niveau) —</option>
+                      {racines
+                        .filter((r) => !memeId(r.id, brouillon.id))
+                        .map((r) => <option key={r.id} value={r.id}>{r.libelle}</option>)}
+                    </select>
+                  </div>
+                  <div className="field nr-ed-large">
+                    <label className="field-label">Libellé</label>
+                    <input
+                      className="field-input"
+                      value={brouillon.libelle}
+                      onChange={(e) => setBrouillon((b) => ({ ...b, libelle: e.target.value }))}
+                      placeholder="ex. PAPIER"
+                    />
+                  </div>
+                  <div className="field nr-ed-petit">
+                    <label className="field-label" title="Laisser vide pour un tri alphabétique">
+                      Ordre
+                    </label>
+                    <input
+                      className="field-input"
+                      type="number"
+                      value={brouillon.ordre ?? ''}
+                      onChange={(e) => setBrouillon((b) => ({ ...b, ordre: e.target.value }))}
+                    />
+                  </div>
                 </div>
-                <div className="field nom-petit">
-                  <label className="field-label" title="Laisser vide pour un tri alphabétique">
-                    Ordre
+
+                <div className="nr-ed-ligne">
+                  <div className="field nr-ed-large">
+                    <label className="field-label">Notes</label>
+                    <input
+                      className="field-input"
+                      value={brouillon.notes ?? ''}
+                      onChange={(e) => setBrouillon((b) => ({ ...b, notes: e.target.value }))}
+                    />
+                  </div>
+                  <label className="nr-ed-case">
+                    <input
+                      type="checkbox"
+                      checked={brouillon.actif !== false}
+                      onChange={(e) => setBrouillon((b) => ({ ...b, actif: e.target.checked }))}
+                    />
+                    Active
                   </label>
-                  <input
-                    className="field-input"
-                    type="number"
-                    value={brouillon.ordre ?? ''}
-                    onChange={(e) => setBrouillon((b) => ({ ...b, ordre: e.target.value }))}
-                  />
-                </div>
-              </div>
-
-              <div className="nom-ligne">
-                <div className="field nom-large">
-                  <label className="field-label">Libellé</label>
-                  <input
-                    className="field-input"
-                    value={brouillon.libelle}
-                    onChange={(e) => setBrouillon((b) => ({ ...b, libelle: e.target.value }))}
-                    placeholder="ex. PAPIER"
-                  />
-                </div>
-                <label className="nom-case">
-                  <input
-                    type="checkbox"
-                    checked={brouillon.actif !== false}
-                    onChange={(e) => setBrouillon((b) => ({ ...b, actif: e.target.checked }))}
-                  />
-                  Active
-                </label>
-              </div>
-
-              <div className="nom-ligne">
-                <div className="field nom-large">
-                  <label className="field-label">Notes</label>
-                  <input
-                    className="field-input"
-                    value={brouillon.notes ?? ''}
-                    onChange={(e) => setBrouillon((b) => ({ ...b, notes: e.target.value }))}
-                  />
                 </div>
               </div>
 
               {brouillon.id && reglesParNoeud.get(String(brouillon.id)) > 0 && (
-                <div className="nom-avertissement">
+                <div className="nr-ed-erreurs">
                   ⚠ {reglesParNoeud.get(String(brouillon.id))} règle(s) pointent cette
                   entrée. La renommer mettra à jour la référence produits.
                 </div>
@@ -351,7 +359,7 @@ export default function NomenclaturePage() {
             <div className="modal-footer">
               {brouillon.id && (
                 <button
-                  className="btn btn-secondary nom-suppr"
+                  className="btn btn-secondary nr-ed-suppr"
                   onClick={() => supprimerNoeud(brouillon.id)}
                   disabled={enCoursEcriture}
                 >Supprimer</button>
