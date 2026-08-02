@@ -11,6 +11,10 @@
  *
  * Le menu est position:fixed et passe par-dessus tout le contenu.
  * Aucune logique de navigation n'existe ailleurs dans le projet.
+ *
+ * TOUTE page ajoutée au routeur doit figurer ici : une page absente de
+ * NAV_ITEMS s'affiche sans jamais être signalée comme active, et se
+ * comporte différemment de toutes les autres.
  * ═══════════════════════════════════════════════════════════════
  */
 
@@ -32,6 +36,7 @@ const NAV_ITEMS = [
   { label: 'Inventaire cyclique',    path: '/inventaire-cyclique',    icon: '📋' },
   { label: 'Inventaire GH',          path: '/inventaire-gh',          icon: '🔗' },
   { label: 'Inventaire NetRack',     path: '/inventaire-netrack',     icon: '📦' },
+  { label: 'Nomenclature',           path: '/nomenclature',           icon: '🗂️' },
   { label: 'Inventaire usine',       path: '/inventaire-usine',       icon: '🏭' },
   { label: 'Inventaire global',      path: '/inventaire-global',      icon: '🌐' },
   { label: 'Inventaire diff',        path: '/inventaire-diff',        icon: '📈' },
