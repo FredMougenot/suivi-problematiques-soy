@@ -10,11 +10,9 @@ import ParametresPlanningPage from './features/camions/ParametresPlanningPage';
 import StatsPonctualitePage from './features/stats/StatsPonctualitePage';
 import InventaireCycliquePage from './features/inventaire-cyclique/InventaireCycliquePage';
 import InventaireGhPage from './features/inventaire-gh/InventaireGhPage';
-import InventaireNetrackPage from './features/inventaire-netrack/InventaireNetrackPage';
 import InventaireUsinePage from './features/inventaire-usine/InventaireUsinePage';
 import InventaireGlobalPage from './features/inventaire-global/InventaireGlobalPage';
 import InventaireDiffPage from './features/inventaire-diff/InventaireDiffPage';
-import NomenclaturePage from './features/nomenclature/NomenclaturePage';
 import DashboardPage from './features/problematiques/DashboardPage';
 import ProblematiquesPage from './features/problematiques/ProblematiquesPage';
 import ProfilPage from './features/profil/ProfilPage';
@@ -48,6 +46,16 @@ export const router = createHashRouter([
       { path: 'hub', element: <JarvisHubPage /> },
       { path: 'hub/:vue', element: <JarvisHubPage /> },
 
+      // ══ MODULES SERVIS PAR LE HUB ═══════════════════════════════════
+      // Le noyau réduit en haut à gauche (seule navigation de retour) est
+      // rendu par JarvisHubPage. Une page servie ici, hors de /hub/*, se
+      // retrouve donc SANS navigation : c'est pourquoi ces deux chemins ne
+      // montent plus la page mais renvoient vers la vue de hub
+      // correspondante. Les anciens liens et les boutons internes aux pages
+      // (« Nomenclature », « Inventaire NetRack ») continuent de marcher.
+      { path: 'inventaire-netrack', element: <Navigate to="/hub/netrack" replace /> },
+      { path: 'nomenclature', element: <Navigate to="/hub/nomenclature" replace /> },
+
       { path: 'planning-auto', element: <PlanningAutoPage /> },
       { path: 'intentions-production', element: <IntentionsProductionPage /> },
       { path: 'planning-camions', element: <PlanningCamionsPage /> },
@@ -55,11 +63,9 @@ export const router = createHashRouter([
       { path: 'stats-ponctualite', element: <StatsPonctualitePage /> },
       { path: 'inventaire-cyclique', element: <InventaireCycliquePage /> },
       { path: 'inventaire-gh', element: <InventaireGhPage /> },
-      { path: 'inventaire-netrack', element: <InventaireNetrackPage /> },
       { path: 'inventaire-usine', element: <InventaireUsinePage /> },
       { path: 'inventaire-global', element: <InventaireGlobalPage /> },
       { path: 'inventaire-diff', element: <InventaireDiffPage /> },
-      { path: 'nomenclature', element: <NomenclaturePage /> },
       { path: 'dashboard', element: <DashboardPage /> },
       { path: 'problematiques', element: <ProblematiquesPage /> },
       { path: 'profil', element: <ProfilPage /> },

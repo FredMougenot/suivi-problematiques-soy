@@ -53,6 +53,28 @@ export const HUB_BRANCHES = [
 ];
 
 /**
+ * ══ VUES SECONDAIRES ══════════════════════════════════════
+ * Modules atteints DEPUIS un autre module, jamais depuis le hub lui-même :
+ * ils s'ouvrent dans la surface centrale exactement comme une branche, mais
+ * n'apparaissent pas dans les rails.
+ *
+ * Le noyau réduit en haut à gauche est rendu par JarvisHubPage : une page
+ * servie par une route hors de /hub/* n'a donc AUCUNE navigation. Toute
+ * page atteignable depuis un module doit vivre ici (ou dans HUB_BRANCHES),
+ * pas comme route autonome.
+ *
+ * Même forme qu'une branche, moins `side` et `unit` (aucun panneau).
+ */
+export const HUB_VUES = [
+  {
+    id: 'nomenclature',
+    title: 'Nomenclature des catégories',
+    icon: '🗂️',
+    Component: lazy(() => import('../nomenclature/NomenclaturePage')),
+  },
+];
+
+/**
  * ══ FENÊTRES KPI ══════════════════════════════════════════
  * Indicateurs en lecture seule, sans navigation.
  *
@@ -101,6 +123,13 @@ export const HUB_KPIS = [
   },
 ];
 
+/**
+ * Résout un segment #/hub/<id> : d'abord les raccourcis, puis les vues
+ * secondaires. Les rails, eux, ne lisent que HUB_BRANCHES — une vue
+ * secondaire s'ouvre donc sans jamais apparaître dans le hub.
+ */
 export function findBranch(id) {
-  return HUB_BRANCHES.find((b) => b.id === id) ?? null;
+  return HUB_BRANCHES.find((b) => b.id === id)
+    ?? HUB_VUES.find((v) => v.id === id)
+    ?? null;
 }
