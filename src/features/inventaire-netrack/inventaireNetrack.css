@@ -233,6 +233,46 @@
 .nr-sous-table tr[data-exp='critique'] td { background: rgba(214, 122, 56, .12); }
 .nr-sous-table tr[data-exp='proche'] td { background: rgba(214, 168, 56, .09); }
 
+/* ───── Vue arborescente ───── */
+
+.nr-arbre-outils {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: .72rem;
+}
+
+.nr-arbre-outils .btn {
+  padding: 4px 11px;
+  font-size: .72rem;
+}
+
+.nr-arbre-cell { white-space: nowrap; }
+
+/* Le poids visuel decroit avec la profondeur : la categorie porte,
+   le produit s'efface, le lot n'est qu'un detail. */
+.nr-arbre-titre { font-weight: 600; }
+
+.nr-large tr[data-niv='0'] .nr-arbre-titre {
+  font-size: .8rem;
+  color: var(--text-primary);
+  letter-spacing: .01em;
+}
+
+.nr-large tr[data-niv='1'] .nr-arbre-titre {
+  font-size: .76rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.nr-large tr[data-niv='0'] td { border-top: 1px solid var(--text-faint); }
+
+.nr-arbre-lot td {
+  font-size: .71rem;
+  color: var(--text-secondary);
+}
+
 .nr-th {
   cursor: pointer;
   user-select: none;
@@ -271,17 +311,20 @@
 .nr-manquant { color: var(--text-faint); }
 
 /* Saisie du TRAXcode.
-   Discret au repos pour ne pas transformer le tableau en formulaire :
-   la bordure n'apparait qu'au survol et au focus. */
+   Police et taille heritees de la cellule : le champ doit se lire comme
+   le reste du tableau. Discret au repos pour ne pas transformer le tableau
+   en formulaire, la bordure n'apparait qu'au survol et au focus. */
 .nr-trax-input {
   width: 108px;
   padding: 2px 6px;
   border: 1px solid transparent;
   border-radius: 5px;
   background: transparent;
-  color: var(--text-primary);
-  font-family: var(--font-mono);
-  font-size: .72rem;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
   transition: border-color .15s, background .15s;
 }
 
