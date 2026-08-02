@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import {
   CHAMPS_REGLE, OPERATEURS, SORTIES_REGLE,
-  regleVierge, validerRegle, apercuRegle, nombre,
+  regleVierge, validerRegle, apercuRegle,
 } from '../logic';
 
 const LIGNES_APERCU = 8;
@@ -11,6 +11,12 @@ const LIGNES_APERCU = 8;
  * L'apercu est le point central : il montre l'effet reel de la regle
  * avant l'enregistrement, y compris les lignes qu'elle prend a une
  * autre regle.
+ *
+ * A l'enregistrement, base_reference_produits est recalculee en base :
+ * c'est ce recalcul qui fait foi, l'apercu n'est qu'une simulation locale.
+ *
+ * Le TRAXcode ne figure plus ici : il appartient au referentiel produits
+ * et se saisit produit par produit, depuis la page.
  */
 export default function EditeurRegle({
   open, regle, regles, lignes, onFermer, onEnregistrer, onSupprimer, enCours,
@@ -49,7 +55,7 @@ export default function EditeurRegle({
           </div>
           <div className="modal-subtitle">
             La condition 1 définit quelles lignes sont concernées. Les valeurs
-            ci-dessous leur sont attribuées.
+            ci-dessous leur sont attribuées, puis écrites dans la référence produits.
           </div>
         </div>
 
@@ -83,11 +89,14 @@ export default function EditeurRegle({
                 />
               </div>
               <div className="field nr-ed-petit">
-                <label className="field-label" title="Plus petit = evalue en premier">Priorité</label>
+                <label
+                  className="field-label"
+                  title="Plus petit = evalue en premier. Seule la priorite departage deux regles concurrentes."
+                >Priorité</label>
                 <input
                   className="field-input"
                   type="number"
-                  min="1"
+                  min="0"
                   value={brouillon.priorite}
                   onChange={set('priorite')}
                 />
@@ -119,10 +128,6 @@ export default function EditeurRegle({
               <div className="field">
                 <label className="field-label">Client</label>
                 <input className="field-input" value={brouillon.client || ''} onChange={set('client')} />
-              </div>
-              <div className="field">
-                <label className="field-label">TRAXcode</label>
-                <input className="field-input" value={brouillon.trax_code || ''} onChange={set('trax_code')} />
               </div>
             </div>
           </div>
