@@ -318,7 +318,7 @@ export default function InventaireNetrackPage() {
           {boutonPanneau('regles', 'Règles')}
           {/* La nomenclature est un ecran a part entiere : elle sert aussi hors
               de l'inventaire, et sa gestion merite la pleine largeur. */}
-          <button className="btn btn-secondary" onClick={() => naviguer('/nomenclature')}>
+          <button className="btn btn-secondary" onClick={() => naviguer('/hub/nomenclature')}>
             Nomenclature
           </button>
           {boutonPanneau('totaux', 'Totaux par catégorie')}

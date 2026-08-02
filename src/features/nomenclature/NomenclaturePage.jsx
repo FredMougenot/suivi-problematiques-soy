@@ -161,7 +161,7 @@ export default function NomenclaturePage() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <button className="btn btn-secondary" onClick={() => naviguer('/inventaire-netrack')}>
+          <button className="btn btn-secondary" onClick={() => naviguer('/hub/netrack')}>
             Inventaire NetRack
           </button>
           <button className="btn btn-secondary" onClick={() => categoriesQ.refetch()}>
