@@ -28,6 +28,9 @@ function noeud(cle, libelle, profondeur) {
     qte: 0,
     poids: 0,
     poids_connu: false,
+    // Combien de lots ont un poids connu : un total agrege sur une branche a
+    // moitie renseignee ne doit pas s'afficher comme un chiffre plein.
+    nb_poids_connus: 0,
     jours_min: null,
     enfants: new Map(),
     lignes: [],
@@ -40,11 +43,12 @@ function noeud(cle, libelle, profondeur) {
 /** Cumule une ligne d'inventaire dans un noeud. */
 function cumuler(n, ligne) {
   n.nb_lots += 1;
-  if (ligne.compte) n.comptes.add(ligne.compte);
+  if (ligne.client_regle) n.comptes.add(ligne.client_regle);
   n.qte += nombre(ligne.unite2_qte_inv);
   if (ligne.poids_total !== null && ligne.poids_total !== undefined) {
     n.poids += ligne.poids_total;
     n.poids_connu = true;
+    n.nb_poids_connus += 1;
   }
   if (ligne.jours_expiration !== null
     && (n.jours_min === null || ligne.jours_expiration < n.jours_min)) {

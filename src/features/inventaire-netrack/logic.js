@@ -63,13 +63,57 @@ export const SEUILS_EXPIRATION = [
   { cle: 'surveille', libelle: '31 à 90 jours' },
 ];
 
-export function niveauExpiration(jours) {
-  if (jours === null || jours === undefined) return null;
+const RANG_NIVEAU = { expire: 3, critique: 2, proche: 1, surveille: 0 };
+
+/** Seuils ABSOLUS, en jours restants. */
+function niveauAbsolu(jours) {
   if (jours < 0) return 'expire';
   if (jours <= 7) return 'critique';
   if (jours <= 30) return 'proche';
   if (jours <= 90) return 'surveille';
   return null;
+}
+
+/**
+ * Seuils RELATIFS, en part de duree de vie restante. Trente jours ne veulent
+ * pas dire la meme chose sur un UHT de 18 mois et sur un produit de 3 mois :
+ * un lot a 5 % de sa vie est court, quelle que soit sa duree totale.
+ */
+function niveauRelatif(pct) {
+  if (pct === null) return null;
+  if (pct < 0) return 'expire';
+  if (pct <= 0.10) return 'critique';
+  if (pct <= 0.25) return 'proche';
+  if (pct <= 0.50) return 'surveille';
+  return null;
+}
+
+/**
+ * Degre de gravite, utilise pour la couleur de ligne : le PLUS GRAVE des deux
+ * lectures, absolue et relative. Aucune ne prime, et aucun signal ne se perd.
+ * Sans date de lot, la duree de vie est inconnue : seul l'absolu s'applique.
+ */
+export function niveauExpiration(jours, pctVieRestante = null) {
+  if (jours === null || jours === undefined) return null;
+  const a = niveauAbsolu(jours);
+  const r = niveauRelatif(pctVieRestante);
+  if (a === null) return r;
+  if (r === null) return a;
+  return RANG_NIVEAU[r] > RANG_NIVEAU[a] ? r : a;
+}
+
+/**
+ * Part de duree de vie restante, entre 0 et 1 (negatif si expire). null quand
+ * la date de lot manque ou que les deux dates sont incoherentes.
+ */
+export function partVieRestante(ligne, joursRestants) {
+  if (joursRestants === null) return null;
+  const debut = versDate(ligne.date_lot);
+  const fin = versDate(ligne.date_expiration);
+  if (!debut || !fin) return null;
+  const duree = Math.round((fin - debut) / 86400000);
+  if (duree <= 0) return null;
+  return joursRestants / duree;
 }
 
 // ───── Referentiel produits ─────
@@ -113,8 +157,10 @@ export function enrichir(lignes, reference) {
       : Number(brut);
     const qte = nombre(l.unite2_qte_inv);
     const jours = joursAvantExpiration(l);
+    const pctVie = partVieRestante(l, jours);
     return {
       ...l,
+      pct_vie_restante: pctVie,
       categorie: ref && !vide(ref.categorie) ? ref.categorie : null,
       sous_categorie: ref && !vide(ref.sous_categorie) ? ref.sous_categorie : null,
       client_regle: ref && !vide(ref.client) ? ref.client : null,
@@ -122,7 +168,7 @@ export function enrichir(lignes, reference) {
       poids_unitaire: pu,
       poids_total: pu === null ? null : Math.round(pu * qte * 100) / 100,
       jours_expiration: jours,
-      niveau_expiration: niveauExpiration(jours),
+      niveau_expiration: niveauExpiration(jours, pctVie),
       dans_referentiel: Boolean(ref),
     };
   });
@@ -487,7 +533,7 @@ const MASQUEES = new Set([
   'unite1_type', 'unite1_qte_inv', 'unite1_disponibles',
   'unite1_bloques', 'unite1_exped_att',
   'unite2_bloques', 'unite2_exped_att',
-  'niveau_expiration', 'dans_referentiel',
+  'niveau_expiration', 'dans_referentiel', 'pct_vie_restante',
 ]);
 
 const ORDRE = [
@@ -566,6 +612,7 @@ export function filtrerEtTrier(lignes, criteres, tri) {
     if (stock === 'zero' && nombre(l.unite2_qte_inv) > 0) return false;
     if (stock === 'sans_poids' && l.poids_unitaire !== null) return false;
     if (stock === 'sans_trax' && l.trax_code !== null) return false;
+    if (stock === 'hors_ref' && l.dans_referentiel) return false;
 
     if (expiration) {
       const j = l.jours_expiration;

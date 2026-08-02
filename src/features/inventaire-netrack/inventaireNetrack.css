@@ -573,3 +573,46 @@
   border-color: var(--sapphire-bg);
   background: var(--sapphire-bg);
 }
+
+/* ── Bandeau d'exceptions ─────────────────────────────────────────
+   Ce qui demande une action, avant le tableau. Compte sur tout le
+   releve : un filtre actif ne doit pas masquer le probleme cherche. */
+.nr-exceptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+.nr-exc {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 7px 12px;
+  border: 1px solid var(--text-faint);
+  border-radius: var(--r-md);
+  background: var(--bg-raised);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.nr-exc:hover { border-color: var(--copper); }
+.nr-exc[aria-pressed="true"] {
+  border-color: var(--copper);
+  background: var(--copper-dim);
+  color: var(--text-primary);
+}
+.nr-exc-n {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.nr-exc-l { font-size: 12px; }
+.nr-exc[data-grave="expire"] .nr-exc-n { color: var(--ruby); }
+.nr-exc[data-grave="critique"] .nr-exc-n { color: var(--amber); }
+
+/* Total de poids calcule sur une partie seulement des lots. */
+.nr-partiel {
+  font-size: 10px;
+  color: var(--text-muted);
+}

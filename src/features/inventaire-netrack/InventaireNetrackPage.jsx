@@ -57,6 +57,52 @@ function ChampTrax({ code, valeur, onEnregistrer }) {
 }
 
 /**
+ * Bandeau d'exceptions : ce qui demande une action, compte sur TOUT le releve
+ * et non sur la vue filtree — sinon un filtre actif masquerait justement le
+ * probleme qu'on cherche. Chaque pastille applique son propre filtre.
+ */
+function BandeauExceptions({ lignes, exp, stk, cat, appliquer }) {
+  const c = useMemo(() => {
+    let expire = 0; let critique = 0; let horsRef = 0; let sansCat = 0; let sansPoids = 0;
+    for (const l of lignes) {
+      if (l.niveau_expiration === 'expire') expire += 1;
+      else if (l.niveau_expiration === 'critique') critique += 1;
+      if (!l.dans_referentiel) horsRef += 1;
+      if (!l.categorie) sansCat += 1;
+      if (l.poids_unitaire === null) sansPoids += 1;
+    }
+    return { expire, critique, horsRef, sansCat, sansPoids };
+  }, [lignes]);
+
+  const items = [
+    { cle: 'expire', n: c.expire, libelle: 'expiré', grave: 'expire', actif: exp === 'expire', f: { exp: exp === 'expire' ? '' : 'expire', stk: '', cat: '' } },
+    { cle: 'critique', n: c.critique, libelle: '7 jours ou moins', grave: 'critique', actif: exp === 'critique', f: { exp: exp === 'critique' ? '' : 'critique', stk: '', cat: '' } },
+    { cle: 'horsRef', n: c.horsRef, libelle: 'hors référentiel', actif: stk === 'hors_ref', f: { stk: stk === 'hors_ref' ? '' : 'hors_ref', exp: '', cat: '' } },
+    { cle: 'sansCat', n: c.sansCat, libelle: 'sans catégorie', actif: cat === '(sans)', f: { cat: cat === '(sans)' ? '' : '(sans)', exp: '', stk: '' } },
+    { cle: 'sansPoids', n: c.sansPoids, libelle: 'sans poids', actif: stk === 'sans_poids', f: { stk: stk === 'sans_poids' ? '' : 'sans_poids', exp: '', cat: '' } },
+  ].filter((i) => i.n > 0 || i.actif);
+
+  if (!items.length) return null;
+
+  return (
+    <div className="nr-exceptions" role="group" aria-label="Exceptions">
+      {items.map((i) => (
+        <button
+          key={i.cle}
+          className="nr-exc"
+          data-grave={i.grave || undefined}
+          aria-pressed={i.actif}
+          onClick={() => appliquer(i.f)}
+        >
+          <span className="nr-exc-n">{nb(i.n)}</span>
+          <span className="nr-exc-l">{i.libelle}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/**
  * Badge du compte NetRack (EO / PBC), en tete de ligne. Rien ne s'affiche
  * quand une branche melange plusieurs comptes : un badge faux serait pire
  * qu'un badge absent. La largeur est fixe pour que les libelles restent
@@ -579,6 +625,14 @@ export default function InventaireNetrackPage() {
         </div>
       )}
 
+      <BandeauExceptions
+        lignes={lignes}
+        exp={expiration}
+        stk={stock}
+        cat={categorie}
+        appliquer={majParams}
+      />
+
       <div className="toolbar">
         <div className="toolbar-left">
           <div className="nr-chips" role="group" aria-label="Mode d'affichage">
@@ -599,6 +653,23 @@ export default function InventaireNetrackPage() {
               title="Catégorie → Sous-catégorie → Produit → Lots"
             >Arborescence</button>
           </div>
+
+          {vue === 'arbre' && (
+            <div className="nr-chips" role="group" aria-label="Ordre de l'arborescence">
+              <button
+                className="nr-chip"
+                aria-pressed={tri.colonne !== 'jours_min'}
+                onClick={() => majParams({ tri: '', sens: '' })}
+                title="Ordre défini dans la nomenclature"
+              >Nomenclature</button>
+              <button
+                className="nr-chip"
+                aria-pressed={tri.colonne === 'jours_min'}
+                onClick={() => majParams({ tri: 'jours_min', sens: '1' })}
+                title="Ce qui périme le plus tôt remonte en premier (FEFO)"
+              >Urgence</button>
+            </div>
+          )}
 
           <div className="nr-chips" role="group" aria-label="Filtrer par client">
             <button
@@ -726,7 +797,7 @@ export default function InventaireNetrackPage() {
                         className="nr-arbre-cell"
                         style={{ paddingLeft: 8 + ((r.parent.niv ?? r.parent.profondeur) + 1) * INDENT }}
                       >
-                        <BadgeCompte compte={l.compte} />
+                        <BadgeCompte compte={l.client_regle} />
                         {l.etiquette && <span className="nr-faible">{l.etiquette} </span>}
                         <span className="nr-mono">{l.no_lot || '—'}</span>
                         {l.no_sous_lot && <span className="nr-faible"> / {l.no_sous_lot}</span>}
@@ -783,7 +854,16 @@ export default function InventaireNetrackPage() {
                     <td className="nr-num">{n.est_lot ? '' : nb(n.nb_produits)}</td>
                     <td className="nr-num">{n.est_lot ? '' : nb(n.nb_lots)}</td>
                     <td className="nr-num">{nb(n.qte)}</td>
-                    <td className="nr-num">{n.poids === null ? '—' : nb(n.poids)}</td>
+                    <td className="nr-num" data-partiel={n.nb_poids_connus > 0 && n.nb_poids_connus < n.nb_lots ? '1' : undefined}
+                      title={n.nb_poids_connus > 0 && n.nb_poids_connus < n.nb_lots
+                        ? `Poids connu sur ${n.nb_poids_connus} lot(s) sur ${n.nb_lots}`
+                        : undefined}
+                    >
+                      {n.poids === null || n.nb_poids_connus === 0 ? '—' : nb(n.poids)}
+                      {n.nb_poids_connus > 0 && n.nb_poids_connus < n.nb_lots && (
+                        <span className="nr-partiel"> ({Math.round(n.nb_poids_connus / n.nb_lots * 100)} %)</span>
+                      )}
+                    </td>
                     <td className="nr-num nr-jours" data-n={n.niveau || undefined}>
                       {n.jours_min === null ? '—' : nb(n.jours_min)}
                     </td>
