@@ -270,6 +270,34 @@
 /* Valeur absente d'un referentiel : signale une regle ou un poids a completer */
 .nr-manquant { color: var(--text-faint); }
 
+/* Saisie du TRAXcode.
+   Discret au repos pour ne pas transformer le tableau en formulaire :
+   la bordure n'apparait qu'au survol et au focus. */
+.nr-trax-input {
+  width: 108px;
+  padding: 2px 6px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  transition: border-color .15s, background .15s;
+}
+
+.nr-trax-input::placeholder { color: var(--text-faint); }
+
+.nr-trax-input:hover {
+  border-color: var(--text-faint);
+  background: var(--bg-void);
+}
+
+.nr-trax-input:focus {
+  outline: none;
+  border-color: rgba(139, 92, 246, .5);
+  background: var(--bg-void);
+}
+
 /* Panneaux depliables : totaux, couverture, analyse */
 .nr-analyse {
   margin: 4px 0 14px;
