@@ -112,6 +112,15 @@ export function useCategoriesQuery() {
 }
 
 /**
+ * `id` et `parent_id` sont des bigint : selon la configuration, PostgREST
+ * peut les renvoyer en nombre ou en chaine. Comparer les deux directement
+ * ferait echouer le rattachement parent/enfant sans lever la moindre erreur
+ * — les sous-categories disparaitraient simplement de la liste. On compare
+ * donc toujours sur une forme normalisee.
+ */
+const cleId = (v) => (v === null || v === undefined || v === '' ? null : String(v));
+
+/**
  * Met la nomenclature a plat pour l'affichage : chaque racine suivie de ses
  * enfants, avec le chemin complet pret pour une liste deroulante
  * (« LIGNE EH1 › PAPIER »). `ordre` prime sur l'alphabetique quand il est
@@ -121,19 +130,20 @@ export function organiserCategories(rows) {
   const noeuds = rows || [];
   const parParent = new Map();
   for (const n of noeuds) {
-    if (n.parent_id === null || n.parent_id === undefined) continue;
-    if (!parParent.has(n.parent_id)) parParent.set(n.parent_id, []);
-    parParent.get(n.parent_id).push(n);
+    const parent = cleId(n.parent_id);
+    if (parent === null) continue;
+    if (!parParent.has(parent)) parParent.set(parent, []);
+    parParent.get(parent).push(n);
   }
 
   const parOrdre = (a, b) => (a.ordre ?? 9999) - (b.ordre ?? 9999)
     || String(a.libelle).localeCompare(String(b.libelle), 'fr', { numeric: true });
 
-  const racines = noeuds.filter((n) => n.parent_id === null || n.parent_id === undefined);
+  const racines = noeuds.filter((n) => cleId(n.parent_id) === null);
 
   const liste = [];
   for (const r of [...racines].sort(parOrdre)) {
-    const enfants = [...(parParent.get(r.id) || [])].sort(parOrdre);
+    const enfants = [...(parParent.get(cleId(r.id)) || [])].sort(parOrdre);
     liste.push({ ...r, profondeur: 0, chemin: r.libelle, nb_enfants: enfants.length });
     for (const e of enfants) {
       liste.push({
@@ -145,5 +155,14 @@ export function organiserCategories(rows) {
       });
     }
   }
+
+  // Filet : un enfant dont le parent aurait disparu resterait invisible.
+  // Mieux vaut l'afficher a la racine que le perdre silencieusement.
+  const vus = new Set(liste.map((c) => cleId(c.id)));
+  for (const n of noeuds) {
+    if (vus.has(cleId(n.id))) continue;
+    liste.push({ ...n, profondeur: 0, chemin: n.libelle, nb_enfants: 0 });
+  }
+
   return liste;
 }
