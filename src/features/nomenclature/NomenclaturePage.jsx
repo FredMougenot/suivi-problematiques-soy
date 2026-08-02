@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { usePlanningStore } from '../../store/usePlanningStore';
 import {
   useCategoriesQuery, organiserCategories,
@@ -26,6 +27,7 @@ const vierge = { parent_id: '', libelle: '', ordre: '', actif: true, notes: '' }
  */
 export default function NomenclaturePage() {
   const addToast = usePlanningStore((s) => s.addToast);
+  const naviguer = useNavigate();
   const categoriesQ = useCategoriesQuery();
   const reglesQ = useReglesCategorieQuery();
   const produitsQ = useReferenceProduitsQuery();
@@ -158,6 +160,10 @@ export default function NomenclaturePage() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Sans menu lateral, cet ecran serait un cul-de-sac. */}
+          <button className="btn btn-secondary" onClick={() => naviguer('/inventaire-netrack')}>
+            ← Inventaire
+          </button>
           <button className="btn btn-secondary" onClick={() => categoriesQ.refetch()}>
             Actualiser
           </button>
