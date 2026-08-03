@@ -197,16 +197,31 @@ export function construireArbre(lignes, tri, rangs) {
   return finaliser(racine, tri).enfants;
 }
 
-/** Colonnes de la vue arborescente. */
+/**
+ * Colonnes de la vue arborescente.
+ *
+ * Chaque colonne a UN sens, valable a tous les niveaux. Une colonne qui n'a
+ * rien a dire sur un niveau reste vide : elle n'est jamais detournee pour
+ * loger un autre champ. C'est ce qui permet de lire un en-tete et de savoir
+ * ce qu'on regarde, quelle que soit la ligne.
+ *
+ * `niveaux` documente qui remplit quoi :
+ *   groupe = categorie et sous-categorie
+ *   produit, lot = les noeuds correspondants
+ *   detail = la ligne de sous-lot, feuille de l'arbre
+ */
 export const COLONNES_ARBRE = [
-  { cle: 'libelle', libelle: 'Catégorie / Sous-catégorie / Produit / Lot' },
-  { cle: 'trax_code', libelle: 'TRAXcode' },
-  { cle: 'description', libelle: 'Description' },
-  { cle: 'nb_produits', libelle: 'Produits', num: true },
-  { cle: 'nb_lots', libelle: 'Lots', num: true },
-  { cle: 'qte', libelle: 'Qté totale', num: true },
-  { cle: 'poids', libelle: 'Poids total', num: true },
-  { cle: 'jours_min', libelle: 'Plus proche exp.', num: true },
+  { cle: 'libelle', libelle: 'Catégorie / Sous-catégorie / Produit / Lot', niveaux: 'tous' },
+  { cle: 'trax_code', libelle: 'TRAXcode', niveaux: 'produit' },
+  { cle: 'description', libelle: 'Description', niveaux: 'produit' },
+  { cle: 'nb_produits', libelle: 'Produits', num: true, niveaux: 'groupe' },
+  { cle: 'nb_lots', libelle: 'Lots', num: true, niveaux: 'groupe, produit' },
+  { cle: 'qte', libelle: 'Qté totale', num: true, niveaux: 'tous' },
+  { cle: 'poids', libelle: 'Poids total', num: true, niveaux: 'tous' },
+  { cle: 'date_lot', libelle: 'Date lot', niveaux: 'detail' },
+  { cle: 'date_expiration', libelle: 'Best before', niveaux: 'detail' },
+  { cle: 'jours_min', libelle: 'Jours rest.', num: true, niveaux: 'tous' },
+  { cle: 'no_comm_client', libelle: 'PO client', niveaux: 'detail' },
 ];
 
 /**

@@ -802,17 +802,20 @@ export default function InventaireNetrackPage() {
                         <span className="nr-mono">{l.no_lot || '—'}</span>
                         {l.no_sous_lot && <span className="nr-faible"> / {l.no_sous_lot}</span>}
                       </td>
+                      <td />
+                      <td />
+                      <td />
+                      <td />
+                      <td className="nr-num">{nb(l.unite2_qte_inv)}</td>
+                      <td className="nr-num">{l.poids_total === null ? '—' : nb(l.poids_total)}</td>
                       <td className="nr-mono nr-faible">{l.date_lot || '—'}</td>
                       <td className="nr-mono nr-jours" data-n={l.niveau_expiration || undefined}>
                         {l.date_expiration || '—'}
                       </td>
-                      <td className="nr-mono nr-faible">{l.no_comm_client || '—'}</td>
-                      <td />
-                      <td className="nr-num">{nb(l.unite2_qte_inv)}</td>
-                      <td className="nr-num">{l.poids_total === null ? '—' : nb(l.poids_total)}</td>
                       <td className="nr-num nr-jours" data-n={l.niveau_expiration || undefined}>
                         {l.jours_expiration === null ? '—' : nb(l.jours_expiration)}
                       </td>
+                      <td className="nr-mono nr-faible">{l.no_comm_client || '—'}</td>
                     </tr>
                   );
                 }
@@ -851,7 +854,7 @@ export default function InventaireNetrackPage() {
                     <td className={'nr-desc' + (estProduit ? '' : ' nr-faible')}>
                       {estProduit ? (n.description || '—') : ''}
                     </td>
-                    <td className="nr-num">{n.est_lot ? '' : nb(n.nb_produits)}</td>
+                    <td className="nr-num">{estProduit || n.est_lot ? '' : nb(n.nb_produits)}</td>
                     <td className="nr-num">{n.est_lot ? '' : nb(n.nb_lots)}</td>
                     <td className="nr-num">{nb(n.qte)}</td>
                     <td className="nr-num" data-partiel={n.nb_poids_connus > 0 && n.nb_poids_connus < n.nb_lots ? '1' : undefined}
@@ -864,9 +867,16 @@ export default function InventaireNetrackPage() {
                         <span className="nr-partiel"> ({Math.round(n.nb_poids_connus / n.nb_lots * 100)} %)</span>
                       )}
                     </td>
+                    {/* Dates : elles appartiennent au sous-lot. Un agregat n'a
+                        qu'une echeance, celle de son lot le plus urgent, et
+                        elle se lit dans « Jours rest. ». */}
+                    <td />
+                    <td />
                     <td className="nr-num nr-jours" data-n={n.niveau || undefined}>
                       {n.jours_min === null ? '—' : nb(n.jours_min)}
                     </td>
+                    {/* PO client : porte par la ligne de detail, pas par un agregat. */}
+                    <td />
                   </tr>
                 );
               })}
