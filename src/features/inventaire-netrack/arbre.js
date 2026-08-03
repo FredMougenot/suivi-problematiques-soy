@@ -1,11 +1,17 @@
 /**
- * Vue arborescente de l'inventaire : Categorie → Sous-categorie → Produit → Lots.
+ * Vue arborescente de l'inventaire : Categorie → Sous-categorie → Produit → Lot.
  *
  * Le niveau sous-categorie est OPTIONNEL et n'apparait que s'il existe : un
  * produit sans sous-categorie est rattache directement a sa categorie. Un
  * noeud « (sans sous-categorie) » n'apprendrait rien et ajouterait un clic.
  * L'absence de CATEGORIE, elle, reste signalee par un noeud explicite : c'est
  * un trou du referentiel, il doit se voir.
+ *
+ * ══ L'ARBRE S'ARRETE AU LOT ════════════════════════════════════════
+ * Les sous-lots ne sont plus deplies en place : ils vivent dans le tiroir
+ * lateral. C'est la que le volume explosait — 624 lots contre 5 658 sous-lots,
+ * et chez PBC une vingtaine de sous-lots par lot qui ne different souvent que
+ * par leur numero. Un noeud LOT est donc une FEUILLE.
  *
  * Chaque niveau agrege ses descendants (lots, quantite, poids) et herite du
  * niveau d'expiration de son lot le plus urgent : c'est ce lot qui commande
@@ -147,7 +153,8 @@ export function construireArbre(lignes, tri, rangs) {
     // `niv` est le niveau d'INDENTATION, fixe par nature de noeud, la ou
     // `profondeur` suit l'arbre reel. Sans sous-categorie un produit remonte
     // d'un cran : l'indentation doit rester celle d'un produit, sinon deux
-    // branches voisines ne s'alignent plus.
+    // branches voisines ne s'alignent plus. C'est aussi `niv` qui commande
+    // les boutons de depliage — voir toutesLesCles.
     nCat.niv = 0;
 
     // Le parent direct du produit : la sous-categorie si elle existe,
@@ -178,13 +185,33 @@ export function construireArbre(lignes, tri, rangs) {
     }
     if (!nProd.description && l.description) nProd.description = l.description;
 
-    // Niveau LOT : depliable comme les autres, il regroupe les sous-lots
-    // d'un meme numero. Les lignes restent portees par ce noeud, donc un lot
-    // sans sous-lot se deplie sur son unique ligne de detail.
+    // ── Niveau LOT : FEUILLE de l'arbre ──────────────────────────
+    // Il porte ses sous-lots dans `lignes`, mais ceux-ci ne sont plus rendus
+    // dans le tableau : le clic ouvre le tiroir lateral.
     const nLot = enfant(nProd, '\u0002' + (l.no_lot || ''), l.no_lot || '(sans n° lot)',
       nProd.profondeur + 1);
     nLot.est_lot = true;
     nLot.niv = 3;
+    // Recopies pour identifier le lot dans l'URL sans passer par la cle
+    // interne du noeud, qui contient des separateurs invisibles.
+    nLot.no_produit = nProd.no_produit ?? l.no_produit;
+    nLot.no_lot = l.no_lot || '';
+
+    // Champs qui appartiennent au sous-lot mais que l'on veut lire au niveau
+    // du lot. On collecte les valeurs DISTINCTES plutot que la premiere
+    // rencontree : en base, 661 lots sur 668 ont un best before unique, mais
+    // 158 lots portent plusieurs PO client. Afficher le premier PO comme s'il
+    // etait LE PO serait un mensonge dans un cas sur quatre. Le rendu decide
+    // quoi montrer quand il y en a plusieurs.
+    if (!nLot.valeurs) {
+      nLot.valeurs = {
+        date_lot: new Set(), date_expiration: new Set(), no_comm_client: new Set(),
+      };
+    }
+    if (l.date_lot) nLot.valeurs.date_lot.add(l.date_lot);
+    if (l.date_expiration) nLot.valeurs.date_expiration.add(l.date_expiration);
+    if (l.no_comm_client) nLot.valeurs.no_comm_client.add(l.no_comm_client);
+
     nLot.lignes.push(l);
     cumuler(nLot, l);
 
@@ -208,7 +235,11 @@ export function construireArbre(lignes, tri, rangs) {
  * `niveaux` documente qui remplit quoi :
  *   groupe = categorie et sous-categorie
  *   produit, lot = les noeuds correspondants
- *   detail = la ligne de sous-lot, feuille de l'arbre
+ *
+ * Date lot, Best before et PO client sont desormais remplis au niveau LOT :
+ * la ligne de sous-lot ayant quitte le tableau pour le tiroir, ces colonnes
+ * seraient restees vides partout. Le lot les agrege honnetement — valeur
+ * unique si tous ses sous-lots concordent, comptage sinon.
  */
 export const COLONNES_ARBRE = [
   { cle: 'libelle', libelle: 'Catégorie / Sous-catégorie / Produit / Lot', niveaux: 'tous' },
@@ -218,22 +249,31 @@ export const COLONNES_ARBRE = [
   { cle: 'nb_lots', libelle: 'Lots', num: true, niveaux: 'groupe, produit' },
   { cle: 'qte', libelle: 'Qté totale', num: true, niveaux: 'tous' },
   { cle: 'poids', libelle: 'Poids total', num: true, niveaux: 'tous' },
-  { cle: 'date_lot', libelle: 'Date lot', niveaux: 'detail' },
-  { cle: 'date_expiration', libelle: 'Best before', niveaux: 'detail' },
+  { cle: 'date_lot', libelle: 'Date lot', niveaux: 'lot' },
+  { cle: 'date_expiration', libelle: 'Best before', niveaux: 'lot' },
   { cle: 'jours_min', libelle: 'Jours rest.', num: true, niveaux: 'tous' },
-  { cle: 'no_comm_client', libelle: 'PO client', niveaux: 'detail' },
+  { cle: 'no_comm_client', libelle: 'PO client', niveaux: 'lot' },
 ];
 
 /**
  * Cles des noeuds a deplier jusqu'au niveau demande.
- * `jusqua` compte en profondeur d'affichage : -1 tout replier, 0 ouvrir les
- * categories, 1 ouvrir aussi les sous-categories, 2 ouvrir les produits.
+ *
+ * Le filtre porte sur `niv` (nature du noeud) et NON sur `profondeur` : un
+ * produit rattache directement a une categorie a une profondeur de 1 mais
+ * reste un produit. Filtrer sur la profondeur ouvrait ses lots alors que le
+ * produit voisin, range sous une sous-categorie, s'arretait au lot — deux
+ * branches cote a cote ne s'ouvraient pas au meme cran.
+ *
+ * `jusqua` : -1 tout replier, 0 ouvrir les categories, 1 ouvrir aussi les
+ * sous-categories, 2 ouvrir les produits (donc reveler les lots). Un lot est
+ * une feuille et n'est jamais ouvert.
  */
 export function toutesLesCles(noeuds, jusqua = 2) {
   const cles = [];
   const parcourir = (liste) => {
     for (const n of liste) {
-      if (n.profondeur <= jusqua) cles.push(n.cle);
+      if (n.est_lot) continue;
+      if ((n.niv ?? n.profondeur) <= jusqua) cles.push(n.cle);
       if (n.enfants.length) parcourir(n.enfants);
     }
   };
