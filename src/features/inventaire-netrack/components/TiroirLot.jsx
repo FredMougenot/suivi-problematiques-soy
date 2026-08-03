@@ -105,16 +105,20 @@ export default function TiroirLot({ detail, onFermer, onEnregistrerTrax }) {
             </span>
           </section>
 
+          {/* Meme jeu de colonnes que l'arbre pour Date lot, Best before et PO
+              client : ici sans agregation, sous-lot par sous-lot. C'est le
+              seul endroit ou une valeur multiple se lit en detail. */}
           <table className="data-table nr-sous-table">
             <thead>
               <tr>
                 <th>Sous-lot</th>
                 <th>Étiquette</th>
-                <th>N° comm.</th>
                 <th style={{ textAlign: 'right' }}>Qté</th>
                 <th style={{ textAlign: 'right' }}>Poids</th>
-                <th>Expiration</th>
+                <th>Date lot</th>
+                <th>Best before</th>
                 <th style={{ textAlign: 'right' }}>Jours</th>
+                <th>PO client</th>
               </tr>
             </thead>
             <tbody>
@@ -122,15 +126,16 @@ export default function TiroirLot({ detail, onFermer, onEnregistrerTrax }) {
                 <tr key={l.id} data-exp={l.niveau_expiration || undefined}>
                   <td className="nr-mono">{l.no_sous_lot || '—'}</td>
                   <td className="nr-mono">{l.etiquette || '—'}</td>
-                  <td className="nr-mono">{l.no_comm_client || '—'}</td>
                   <td className="nr-num">{l.unite2_qte_inv || '—'}</td>
                   <td className="nr-num">{l.poids_total === null ? '—' : nb(l.poids_total)}</td>
+                  <td className="nr-mono nr-faible">{l.date_lot || '—'}</td>
                   <td className="nr-mono nr-jours" data-n={l.niveau_expiration || undefined}>
                     {l.date_expiration || '—'}
                   </td>
                   <td className="nr-num nr-jours" data-n={l.niveau_expiration || undefined}>
                     {l.jours_expiration === null ? '—' : nb(l.jours_expiration)}
                   </td>
+                  <td className="nr-mono nr-faible">{l.no_comm_client || '—'}</td>
                 </tr>
               ))}
             </tbody>
