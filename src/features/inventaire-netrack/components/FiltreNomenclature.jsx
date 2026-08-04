@@ -6,6 +6,15 @@ import { useMemo } from 'react';
  * Ligne 1 : les categories reellement presentes dans le releve.
  * Ligne 2 : les sous-categories de la categorie choisie, et elle seule.
  *
+ * ══ TROIS ETATS, PAS DEUX ══════════════════════════════════════
+ *   ''  → rien n'a encore ete demande : le tableau reste vide, la page se
+ *          charge sans construire 5 658 lignes.
+ *   '*' → TOUTES : tout s'affiche, et la recherche porte sur tout.
+ *   une valeur → cette categorie.
+ *
+ * Confondre les deux premiers, c'est ce qui rendait « Toutes » inoperant :
+ * cliquer dessus revenait a n'avoir rien demande, donc a ne rien afficher.
+ *
  * ══ POURQUOI LES VALEURS PLUTOT QUE LA NOMENCLATURE ════════════════
  * Les libelles sont tires des lignes affichees, pas de
  * base_reference_categories : une categorie definie mais vide ce matin
@@ -14,26 +23,27 @@ import { useMemo } from 'react';
  *
  * Chaque pastille porte son nombre de lignes : sans ce nombre, on clique a
  * l'aveugle et on tombe souvent sur du vide.
- *
- * C'est un FILTRE — il restreint ce qu'on regarde. A ne pas confondre avec
- * les axes juste au-dessus, qui decident comment c'est regroupe.
  */
+
+export const TOUTES = '*';
+
 export default function FiltreNomenclature({
   lignes, categorie, sousCategorie, onCategorie, onSousCategorie,
 }) {
   const { cats, sous } = useMemo(() => {
     const parCat = new Map();
     const parSous = new Map();
+    const cible = categorie && categorie !== TOUTES;
 
     for (const l of lignes) {
       const c = l.categorie || '(sans catégorie)';
       parCat.set(c, (parCat.get(c) || 0) + 1);
 
+      if (!cible) continue;
       const correspond = categorie === '(sans)' ? !l.categorie : l.categorie === categorie;
-      if (categorie && correspond) {
-        const s = l.sous_categorie || '(sans sous-catégorie)';
-        parSous.set(s, (parSous.get(s) || 0) + 1);
-      }
+      if (!correspond) continue;
+      const s = l.sous_categorie || '(sans sous-catégorie)';
+      parSous.set(s, (parSous.get(s) || 0) + 1);
     }
 
     const trier = (m) => [...m.entries()]
@@ -55,8 +65,11 @@ export default function FiltreNomenclature({
         <span className="nr-nomen-lbl">Catégorie</span>
         <button
           className="nr-val"
-          aria-pressed={categorie === ''}
-          onClick={() => { onCategorie(''); onSousCategorie(''); }}
+          aria-pressed={categorie === TOUTES}
+          onClick={() => {
+            onSousCategorie('');
+            onCategorie(categorie === TOUTES ? '' : TOUTES);
+          }}
         >
           Toutes<span className="nr-val-n">{total.toLocaleString('fr-CA')}</span>
         </button>
@@ -77,10 +90,10 @@ export default function FiltreNomenclature({
         ))}
       </div>
 
-      {/* La 2e ligne n'existe que si la 1re a tranche : afficher des
-          sous-categories sans parent melangerait des homonymes — PAPIER
-          existe sous LIGNE EH1 ET sous LIGNE TBA. */}
-      {categorie !== '' && (
+      {/* La 2e ligne n'existe que si la 1re a tranche sur UNE categorie :
+          afficher des sous-categories sans parent melangerait des homonymes
+          — PAPIER existe sous LIGNE EH1 ET sous LIGNE TBA. */}
+      {categorie !== '' && categorie !== TOUTES && (
         <div className="nr-nomen-ligne nr-nomen-sous">
           <span className="nr-nomen-lbl">Sous-catégorie</span>
           {sous.length === 0 ? (
