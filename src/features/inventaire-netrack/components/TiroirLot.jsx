@@ -1,24 +1,124 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ChampTrax } from './ChampTrax';
 
 /**
  * TiroirLot — le detail d'une FEUILLE de la grille, ouvert par-dessus le
- * tableau.
+ * tableau, et le point de SAISIE du stock usine.
  *
- * Avec les axes par defaut la feuille est un lot et le tiroir montre ses
- * sous-lots, mais le composant ne suppose rien : il affiche les lignes
- * brutes du groupe, quel que soit le dernier axe choisi. Les attributs du
- * produit ne s'affichent que si le groupe designe UN produit — sinon ils
- * n'auraient pas de valeur unique.
+ * ══ POURQUOI LA SAISIE EST ICI ═══════════════════════════════
+ * On est deja sur le produit : son numero est connu, son referentiel aussi.
+ * Un ecran de saisie separe obligerait a le rechercher une seconde fois, et
+ * a risquer une faute de frappe sur le code.
+ *
+ * Le formulaire n'apparait que si le groupe designe UN produit : sur un
+ * groupe melange, on ne saurait pas a quel produit rattacher la ligne.
  *
  * ══ L'ETAT VIT DANS L'URL ═══════════════════════════════════════
  * Le groupe ouvert est un parametre (`grp=<chemin>`) : « Copier le lien »
- * doit reproduire ce qu'on voit, tiroir compris. Aucun etat propre ici.
+ * doit reproduire ce qu'on voit, tiroir compris. Seul le formulaire garde un
+ * etat local — une saisie en cours n'a rien a faire dans une adresse.
  *
  * Le `position: fixed` fonctionne parce qu'aucun ancetre de la surface ne
  * porte de `transform` — regle posee sur le hub, a ne pas casser.
  */
-export default function TiroirLot({ detail, onFermer, onEnregistrerTrax }) {
+
+const VIDE = {
+  no_lot: '', no_sous_lot: '', qte: '', etiquette: '',
+  no_comm_client: '', date_lot: '', date_expiration: '', note: '',
+};
+
+function FormulaireUsine({ noProduit, ajouter }) {
+  const [ouvert, setOuvert] = useState(false);
+  const [f, setF] = useState(VIDE);
+  const [erreur, setErreur] = useState(null);
+
+  const champ = (cle) => ({
+    value: f[cle],
+    onChange: (e) => setF((p) => ({ ...p, [cle]: e.target.value })),
+  });
+
+  const envoyer = async () => {
+    setErreur(null);
+    try {
+      await ajouter.mutateAsync({ ...f, no_produit: noProduit });
+      setF(VIDE);
+      setOuvert(false);
+    } catch (e) {
+      setErreur(e.message || 'Enregistrement impossible.');
+    }
+  };
+
+  if (!ouvert) {
+    return (
+      <button className="btn btn-secondary nr-usine-ouvrir" onClick={() => setOuvert(true)}>
+        + Ajouter un item usine
+      </button>
+    );
+  }
+
+  return (
+    <section className="nr-usine-form">
+      <div className="nr-tiroir-lbl">Nouvel item — emplacement Usine</div>
+
+      <div className="nr-usine-grille">
+        <label>
+          <span>N° lot</span>
+          <input type="text" {...champ('no_lot')} />
+        </label>
+        <label>
+          <span>N° sous-lot</span>
+          <input type="text" {...champ('no_sous_lot')} />
+        </label>
+        <label>
+          <span>Quantité</span>
+          <input type="number" step="any" {...champ('qte')} />
+        </label>
+        <label>
+          <span>Étiquette</span>
+          <input type="text" {...champ('etiquette')} />
+        </label>
+        <label>
+          <span>Date lot</span>
+          <input type="date" {...champ('date_lot')} />
+        </label>
+        <label>
+          <span>Best before</span>
+          <input type="date" {...champ('date_expiration')} />
+        </label>
+        <label>
+          <span>PO client</span>
+          <input type="text" {...champ('no_comm_client')} />
+        </label>
+        <label className="nr-usine-large">
+          <span>Note</span>
+          <input type="text" {...champ('note')} />
+        </label>
+      </div>
+
+      {erreur && <div className="nr-usine-erreur">{erreur}</div>}
+
+      <div className="nr-usine-actions">
+        <button
+          className="btn btn-primary"
+          onClick={envoyer}
+          disabled={ajouter.isPending}
+        >
+          {ajouter.isPending ? 'Enregistrement…' : 'Enregistrer'}
+        </button>
+        <button
+          className="btn btn-secondary"
+          onClick={() => { setF(VIDE); setErreur(null); setOuvert(false); }}
+        >
+          Annuler
+        </button>
+      </div>
+    </section>
+  );
+}
+
+export default function TiroirLot({
+  detail, onFermer, onEnregistrerTrax, ajouterUsine, supprimerUsine,
+}) {
   useEffect(() => {
     if (!detail) return undefined;
     const onKey = (e) => { if (e.key === 'Escape') onFermer(); };
@@ -97,6 +197,10 @@ export default function TiroirLot({ detail, onFermer, onEnregistrerTrax }) {
                   />
                 </div>
               </section>
+
+              {ajouterUsine && (
+                <FormulaireUsine noProduit={produit.no_produit} ajouter={ajouterUsine} />
+              )}
             </>
           )}
 
@@ -115,6 +219,7 @@ export default function TiroirLot({ detail, onFermer, onEnregistrerTrax }) {
           <table className="data-table nr-sous-table">
             <thead>
               <tr>
+                <th>Emplacement</th>
                 {!produit && <th>Produit</th>}
                 <th>Lot</th>
                 <th>Sous-lot</th>
@@ -124,26 +229,48 @@ export default function TiroirLot({ detail, onFermer, onEnregistrerTrax }) {
                 <th>Best before</th>
                 <th style={{ textAlign: 'right' }}>Jours</th>
                 <th>PO client</th>
+                <th aria-label="Actions" />
               </tr>
             </thead>
             <tbody>
-              {tries.map((l) => (
-                <tr key={l.id} data-exp={l.niveau_expiration || undefined}>
-                  {!produit && <td className="nr-mono">{l.no_produit || '—'}</td>}
-                  <td className="nr-mono">{l.no_lot || '—'}</td>
-                  <td className="nr-mono">{l.no_sous_lot || '—'}</td>
-                  <td className="nr-num">{l.unite2_qte_inv || '—'}</td>
-                  <td className="nr-num">{l.poids_total === null ? '—' : nb(l.poids_total)}</td>
-                  <td className="nr-mono nr-faible">{l.date_lot || '—'}</td>
-                  <td className="nr-mono nr-jours" data-n={l.niveau_expiration || undefined}>
-                    {l.date_expiration || '—'}
-                  </td>
-                  <td className="nr-num nr-jours" data-n={l.niveau_expiration || undefined}>
-                    {l.jours_expiration === null ? '—' : nb(l.jours_expiration)}
-                  </td>
-                  <td className="nr-mono nr-faible">{l.no_comm_client || '—'}</td>
-                </tr>
-              ))}
+              {tries.map((l) => {
+                const estUsine = String(l.id || '').startsWith('us-');
+                return (
+                  <tr key={l.id} data-exp={l.niveau_expiration || undefined}>
+                    <td>
+                      <span className="nr-empl" data-usine={estUsine ? '1' : undefined}>
+                        {l.emplacement || '—'}
+                      </span>
+                    </td>
+                    {!produit && <td className="nr-mono">{l.no_produit || '—'}</td>}
+                    <td className="nr-mono">{l.no_lot || '—'}</td>
+                    <td className="nr-mono">{l.no_sous_lot || '—'}</td>
+                    <td className="nr-num">{l.unite2_qte_inv || '—'}</td>
+                    <td className="nr-num">{l.poids_total === null ? '—' : nb(l.poids_total)}</td>
+                    <td className="nr-mono nr-faible">{l.date_lot || '—'}</td>
+                    <td className="nr-mono nr-jours" data-n={l.niveau_expiration || undefined}>
+                      {l.date_expiration || '—'}
+                    </td>
+                    <td className="nr-num nr-jours" data-n={l.niveau_expiration || undefined}>
+                      {l.jours_expiration === null ? '—' : nb(l.jours_expiration)}
+                    </td>
+                    <td className="nr-mono nr-faible">{l.no_comm_client || '—'}</td>
+                    <td>
+                      {/* Seules les lignes usine sont supprimables : celles de
+                          l'entreposeur sont reecrites au prochain releve, les
+                          effacer ne servirait a rien. */}
+                      {estUsine && supprimerUsine && (
+                        <button
+                          className="nr-usine-suppr"
+                          aria-label="Supprimer cette ligne usine"
+                          disabled={supprimerUsine.isPending}
+                          onClick={() => supprimerUsine.mutate(l.id)}
+                        >✕</button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
