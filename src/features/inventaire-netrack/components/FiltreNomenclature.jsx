@@ -7,13 +7,9 @@ import { useMemo } from 'react';
  * Ligne 2 : les sous-categories de la categorie choisie, et elle seule.
  *
  * ══ TROIS ETATS, PAS DEUX ══════════════════════════════════════
- *   ''  → rien n'a encore ete demande : le tableau reste vide, la page se
- *          charge sans construire 5 658 lignes.
+ *   ''  → transitoire : la page bascule aussitot sur TOUTES.
  *   '*' → TOUTES : tout s'affiche, et la recherche porte sur tout.
  *   une valeur → cette categorie.
- *
- * Confondre les deux premiers, c'est ce qui rendait « Toutes » inoperant :
- * cliquer dessus revenait a n'avoir rien demande, donc a ne rien afficher.
  *
  * ══ POURQUOI LES VALEURS PLUTOT QUE LA NOMENCLATURE ════════════════
  * Les libelles sont tires des lignes affichees, pas de
@@ -26,6 +22,8 @@ import { useMemo } from 'react';
  */
 
 export const TOUTES = '*';
+
+const SANS_SOUS = '(sans sous-catégorie)';
 
 export default function FiltreNomenclature({
   lignes, categorie, sousCategorie, onCategorie, onSousCategorie,
@@ -42,7 +40,7 @@ export default function FiltreNomenclature({
       if (!cible) continue;
       const correspond = categorie === '(sans)' ? !l.categorie : l.categorie === categorie;
       if (!correspond) continue;
-      const s = l.sous_categorie || '(sans sous-catégorie)';
+      const s = l.sous_categorie || SANS_SOUS;
       parSous.set(s, (parSous.get(s) || 0) + 1);
     }
 
@@ -56,6 +54,11 @@ export default function FiltreNomenclature({
   // affiche : le filtre existant attend '(sans)'.
   const valeurCat = (libelle) => (libelle === '(sans catégorie)' ? '(sans)' : libelle);
 
+  // Une categorie dont AUCUN produit n'a de sous-categorie n'a pas de 2e
+  // niveau : afficher « Toutes » et « (sans sous-categorie) » reviendrait a
+  // proposer un choix entre une seule chose et elle-meme.
+  const aUnVraiNiveau = sous.some(([libelle]) => libelle !== SANS_SOUS);
+
   const total = lignes.length;
   const totalSous = sous.reduce((s, [, n]) => s + n, 0);
 
@@ -66,10 +69,7 @@ export default function FiltreNomenclature({
         <button
           className="nr-val"
           aria-pressed={categorie === TOUTES}
-          onClick={() => {
-            onSousCategorie('');
-            onCategorie(categorie === TOUTES ? '' : TOUTES);
-          }}
+          onClick={() => { onSousCategorie(''); onCategorie(TOUTES); }}
         >
           Toutes<span className="nr-val-n">{total.toLocaleString('fr-CA')}</span>
         </button>
@@ -82,7 +82,9 @@ export default function FiltreNomenclature({
             onClick={() => {
               const v = valeurCat(libelle);
               onSousCategorie('');
-              onCategorie(categorie === v ? '' : v);
+              // Redescendre a TOUTES plutot qu'a rien : l'ecran n'a plus
+              // d'etat vide.
+              onCategorie(categorie === v ? TOUTES : v);
             }}
           >
             {libelle}<span className="nr-val-n">{n.toLocaleString('fr-CA')}</span>
@@ -90,36 +92,31 @@ export default function FiltreNomenclature({
         ))}
       </div>
 
-      {/* La 2e ligne n'existe que si la 1re a tranche sur UNE categorie :
-          afficher des sous-categories sans parent melangerait des homonymes
-          — PAPIER existe sous LIGNE EH1 ET sous LIGNE TBA. */}
-      {categorie !== '' && categorie !== TOUTES && (
+      {/* La 2e ligne n'existe que si la 1re a tranche sur UNE categorie, et
+          seulement si cette categorie a de vraies sous-categories : afficher
+          des sous-categories sans parent melangerait des homonymes — PAPIER
+          existe sous LIGNE EH1 ET sous LIGNE TBA. */}
+      {categorie !== '' && categorie !== TOUTES && aUnVraiNiveau && (
         <div className="nr-nomen-ligne nr-nomen-sous">
           <span className="nr-nomen-lbl">Sous-catégorie</span>
-          {sous.length === 0 ? (
-            <span className="nr-faible">aucune sous-catégorie ici</span>
-          ) : (
-            <>
-              <button
-                className="nr-val"
-                aria-pressed={sousCategorie === ''}
-                onClick={() => onSousCategorie('')}
-              >
-                Toutes<span className="nr-val-n">{totalSous.toLocaleString('fr-CA')}</span>
-              </button>
-              {sous.map(([libelle, n]) => (
-                <button
-                  key={libelle}
-                  className="nr-val"
-                  data-vide={libelle === '(sans sous-catégorie)' ? '1' : undefined}
-                  aria-pressed={sousCategorie === libelle}
-                  onClick={() => onSousCategorie(sousCategorie === libelle ? '' : libelle)}
-                >
-                  {libelle}<span className="nr-val-n">{n.toLocaleString('fr-CA')}</span>
-                </button>
-              ))}
-            </>
-          )}
+          <button
+            className="nr-val"
+            aria-pressed={sousCategorie === ''}
+            onClick={() => onSousCategorie('')}
+          >
+            Toutes<span className="nr-val-n">{totalSous.toLocaleString('fr-CA')}</span>
+          </button>
+          {sous.map(([libelle, n]) => (
+            <button
+              key={libelle}
+              className="nr-val"
+              data-vide={libelle === SANS_SOUS ? '1' : undefined}
+              aria-pressed={sousCategorie === libelle}
+              onClick={() => onSousCategorie(sousCategorie === libelle ? '' : libelle)}
+            >
+              {libelle}<span className="nr-val-n">{n.toLocaleString('fr-CA')}</span>
+            </button>
+          ))}
         </div>
       )}
     </div>
