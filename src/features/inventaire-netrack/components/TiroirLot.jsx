@@ -2,30 +2,70 @@ import { useEffect, useState } from 'react';
 import { ChampTrax } from './ChampTrax';
 
 /**
- * TiroirLot — le detail d'une FEUILLE de la grille, ouvert par-dessus le
- * tableau, et le point de SAISIE du stock usine.
+ * TiroirLot — le detail d'une FEUILLE de la grille, et le point de SAISIE
+ * du stock usine.
  *
  * ══ POURQUOI LA SAISIE EST ICI ═══════════════════════════════
  * On est deja sur le produit : son numero est connu, son referentiel aussi.
- * Un ecran de saisie separe obligerait a le rechercher une seconde fois, et
- * a risquer une faute de frappe sur le code.
+ * Un ecran separe obligerait a le rechercher une seconde fois, et a risquer
+ * une faute de frappe sur le code.
  *
- * Le formulaire n'apparait que si le groupe designe UN produit : sur un
- * groupe melange, on ne saurait pas a quel produit rattacher la ligne.
+ * ══ EDITION SUR PLACE ════════════════════════════════════════
+ * Seules les lignes USINE sont modifiables. Celles de l'entreposeur sont
+ * reecrites au prochain releve : les corriger ici n'aurait aucun effet, et
+ * laisserait croire le contraire.
  *
- * ══ L'ETAT VIT DANS L'URL ═══════════════════════════════════════
- * Le groupe ouvert est un parametre (`grp=<chemin>`) : « Copier le lien »
- * doit reproduire ce qu'on voit, tiroir compris. Seul le formulaire garde un
- * etat local — une saisie en cours n'a rien a faire dans une adresse.
+ * Chaque cellule enregistre UN champ a sa sortie, pas la ligne entiere —
+ * ecrire toute la ligne ecraserait une correction faite ailleurs entre-temps.
  *
- * Le `position: fixed` fonctionne parce qu'aucun ancetre de la surface ne
- * porte de `transform` — regle posee sur le hub, a ne pas casser.
+ * ══ QUANTITES ═════════════════════════════════════════════════
+ * Unites entieres et balance partielle sont deux colonnes distinctes : un sac
+ * ouvert avec 12,5 kg dedans n'est pas « 0,5 sac ».
  */
 
 const VIDE = {
-  no_lot: '', no_sous_lot: '', qte: '', etiquette: '',
+  no_lot: '', no_sous_lot: '', qte: '', partiel: '', etiquette: '',
   no_comm_client: '', date_lot: '', date_expiration: '', note: '',
 };
+
+/** Cellule modifiable a la sortie du champ. Echap annule. */
+function Cellule({ ligne, champ, type = 'text', classe = '', modifier }) {
+  const valeur = ligne[champ];
+  const initial = valeur === null || valeur === undefined ? '' : String(valeur);
+  const [saisie, setSaisie] = useState(initial);
+  const [erreur, setErreur] = useState(false);
+
+  useEffect(() => { setSaisie(initial); }, [initial]);
+
+  if (!modifier) return <span>{initial || '—'}</span>;
+
+  return (
+    <input
+      className={'nr-cell-edit ' + classe}
+      data-erreur={erreur ? '1' : undefined}
+      type={type}
+      step={type === 'number' ? 'any' : undefined}
+      value={saisie}
+      placeholder="—"
+      onClick={(e) => e.stopPropagation()}
+      onChange={(e) => setSaisie(e.target.value)}
+      onBlur={async () => {
+        if (saisie === initial) return;
+        try {
+          setErreur(false);
+          await modifier.mutateAsync({ id: ligne.id, champ, valeur: saisie });
+        } catch (e) {
+          setErreur(true);
+          setSaisie(initial);
+        }
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.currentTarget.blur();
+        if (e.key === 'Escape') { setSaisie(initial); e.currentTarget.blur(); }
+      }}
+    />
+  );
+}
 
 function FormulaireUsine({ noProduit, ajouter }) {
   const [ouvert, setOuvert] = useState(false);
@@ -70,12 +110,20 @@ function FormulaireUsine({ noProduit, ajouter }) {
           <input type="text" {...champ('no_sous_lot')} />
         </label>
         <label>
-          <span>Quantité</span>
+          <span>Unités entières</span>
           <input type="number" step="any" {...champ('qte')} />
+        </label>
+        <label>
+          <span>Partiel</span>
+          <input type="number" step="any" placeholder="unité entamée" {...champ('partiel')} />
         </label>
         <label>
           <span>Étiquette</span>
           <input type="text" {...champ('etiquette')} />
+        </label>
+        <label>
+          <span>PO client</span>
+          <input type="text" {...champ('no_comm_client')} />
         </label>
         <label>
           <span>Date lot</span>
@@ -84,10 +132,6 @@ function FormulaireUsine({ noProduit, ajouter }) {
         <label>
           <span>Best before</span>
           <input type="date" {...champ('date_expiration')} />
-        </label>
-        <label>
-          <span>PO client</span>
-          <input type="text" {...champ('no_comm_client')} />
         </label>
         <label className="nr-usine-large">
           <span>Note</span>
@@ -98,11 +142,7 @@ function FormulaireUsine({ noProduit, ajouter }) {
       {erreur && <div className="nr-usine-erreur">{erreur}</div>}
 
       <div className="nr-usine-actions">
-        <button
-          className="btn btn-primary"
-          onClick={envoyer}
-          disabled={ajouter.isPending}
-        >
+        <button className="btn btn-primary" onClick={envoyer} disabled={ajouter.isPending}>
           {ajouter.isPending ? 'Enregistrement…' : 'Enregistrer'}
         </button>
         <button
@@ -117,7 +157,7 @@ function FormulaireUsine({ noProduit, ajouter }) {
 }
 
 export default function TiroirLot({
-  detail, onFermer, onEnregistrerTrax, ajouterUsine, supprimerUsine,
+  detail, onFermer, onEnregistrerTrax, ajouterUsine, modifierUsine, supprimerUsine,
 }) {
   useEffect(() => {
     if (!detail) return undefined;
@@ -141,6 +181,7 @@ export default function TiroirLot({
   });
 
   const qte = tries.reduce((s, l) => s + (Number(l.unite2_qte_inv) || 0), 0);
+  const partiels = tries.reduce((s, l) => s + (Number(l.partiel) || 0), 0);
   const avecPoids = tries.filter((l) => l.poids_total !== null && l.poids_total !== undefined);
   const poids = avecPoids.reduce((s, l) => s + l.poids_total, 0);
 
@@ -206,7 +247,10 @@ export default function TiroirLot({
 
           <section className="nr-tiroir-totaux">
             <span><b>{tries.length}</b> ligne(s)</span>
-            <span><b>{nb(Math.round(qte * 100) / 100)}</b> qté</span>
+            <span><b>{nb(Math.round(qte * 100) / 100)}</b> unités</span>
+            {partiels > 0 && (
+              <span><b>{nb(Math.round(partiels * 100) / 100)}</b> en partiel</span>
+            )}
             <span>
               <b>{avecPoids.length ? nb(Math.round(poids * 100) / 100) : '—'}</b> poids
               {avecPoids.length > 0 && avecPoids.length < tries.length
@@ -214,8 +258,6 @@ export default function TiroirLot({
             </span>
           </section>
 
-          {/* Sans agregation : c'est le seul endroit ou une valeur multiple
-              se lit en detail, ligne par ligne. */}
           <table className="data-table nr-sous-table">
             <thead>
               <tr>
@@ -223,7 +265,8 @@ export default function TiroirLot({
                 {!produit && <th>Produit</th>}
                 <th>Lot</th>
                 <th>Sous-lot</th>
-                <th style={{ textAlign: 'right' }}>Qté</th>
+                <th style={{ textAlign: 'right' }}>Unités</th>
+                <th style={{ textAlign: 'right' }}>Partiel</th>
                 <th style={{ textAlign: 'right' }}>Poids</th>
                 <th>Date lot</th>
                 <th>Best before</th>
@@ -235,6 +278,9 @@ export default function TiroirLot({
             <tbody>
               {tries.map((l) => {
                 const estUsine = String(l.id || '').startsWith('us-');
+                // L'edition n'est proposee que la ou elle a un effet.
+                const mod = estUsine ? modifierUsine : null;
+
                 return (
                   <tr key={l.id} data-exp={l.niveau_expiration || undefined}>
                     <td>
@@ -243,22 +289,40 @@ export default function TiroirLot({
                       </span>
                     </td>
                     {!produit && <td className="nr-mono">{l.no_produit || '—'}</td>}
-                    <td className="nr-mono">{l.no_lot || '—'}</td>
-                    <td className="nr-mono">{l.no_sous_lot || '—'}</td>
-                    <td className="nr-num">{l.unite2_qte_inv || '—'}</td>
+                    <td className="nr-mono">
+                      <Cellule ligne={l} champ="no_lot" modifier={mod} />
+                    </td>
+                    <td className="nr-mono">
+                      <Cellule ligne={l} champ="no_sous_lot" modifier={mod} />
+                    </td>
+                    <td className="nr-num">
+                      {estUsine
+                        ? <Cellule ligne={l} champ="qte" type="number" classe="nr-cell-num" modifier={mod} />
+                        : (l.unite2_qte_inv || '—')}
+                    </td>
+                    <td className="nr-num">
+                      {estUsine
+                        ? <Cellule ligne={l} champ="partiel" type="number" classe="nr-cell-num" modifier={mod} />
+                        : '—'}
+                    </td>
                     <td className="nr-num">{l.poids_total === null ? '—' : nb(l.poids_total)}</td>
-                    <td className="nr-mono nr-faible">{l.date_lot || '—'}</td>
+                    <td className="nr-mono nr-faible">
+                      {estUsine
+                        ? <Cellule ligne={l} champ="date_lot" type="date" modifier={mod} />
+                        : (l.date_lot || '—')}
+                    </td>
                     <td className="nr-mono nr-jours" data-n={l.niveau_expiration || undefined}>
-                      {l.date_expiration || '—'}
+                      {estUsine
+                        ? <Cellule ligne={l} champ="date_expiration" type="date" modifier={mod} />
+                        : (l.date_expiration || '—')}
                     </td>
                     <td className="nr-num nr-jours" data-n={l.niveau_expiration || undefined}>
                       {l.jours_expiration === null ? '—' : nb(l.jours_expiration)}
                     </td>
-                    <td className="nr-mono nr-faible">{l.no_comm_client || '—'}</td>
+                    <td className="nr-mono nr-faible">
+                      <Cellule ligne={l} champ="no_comm_client" modifier={mod} />
+                    </td>
                     <td>
-                      {/* Seules les lignes usine sont supprimables : celles de
-                          l'entreposeur sont reecrites au prochain releve, les
-                          effacer ne servirait a rien. */}
                       {estUsine && supprimerUsine && (
                         <button
                           className="nr-usine-suppr"
