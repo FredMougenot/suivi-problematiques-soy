@@ -8,7 +8,8 @@
  *
  * L'effet qui basculait ensuite sur 'arbre' ne suffisait pas : il s'execute
  * APRES un premier rendu complet en « Par lot ». Le cout etait deja paye.
- * On corrige la valeur par defaut elle-meme.
+ * On inverse donc la valeur de repli elle-meme : 'lot' et 'produit' restent
+ * accessibles explicitement, tout le reste tombe sur la grille.
  *
  *   node scripts/netrack-vue-grille-par-defaut.mjs
  */
@@ -24,24 +25,34 @@ function lire(chemin) {
   return { texte: brut.replace(/\r\n/g, '\n'), crlf: brut.includes('\r\n') };
 }
 
+function remplacer(texte, nom, avant, apres) {
+  const n = texte.split(avant).length - 1;
+  if (n !== 1) throw new Error('[' + nom + '] motif trouve ' + n + ' fois, attendu 1');
+  return texte.replace(avant, apres);
+}
+
 const page = lire(PAGE);
 let t = page.texte;
 
-if (t.includes("vueBrute || 'arbre'")) {
+if (t.includes("vueBrute === 'lot' ? 'lot' : 'arbre'")) {
   console.log('Deja applique. Rien a faire.');
   process.exit(0);
 }
 
-const n = t.split("vueBrute || 'lot'").length - 1;
-if (n !== 1) {
-  throw new Error(
-    "Motif \"vueBrute || 'lot'\" trouve " + n + ' fois, attendu 1.\n'
-    + 'Ouvre InventaireNetrackPage.jsx et cherche la ligne qui definit `vue`,\n'
-    + 'puis remplace la valeur par defaut par \'arbre\'.',
-  );
-}
+// La valeur de repli passe de 'lot' a 'arbre'.
+t = remplacer(t, 'vue par defaut',
+  "  const vue = vueBrute === 'produit' ? 'produit' : vueBrute === 'arbre' ? 'arbre' : 'lot';",
+  "  // Repli sur la grille : c'est la seule vue virtualisee. « Par lot »\n"
+  + '  // monte 5 823 lignes d\'un coup et ne doit jamais s\'ouvrir par accident.\n'
+  + "  const vue = vueBrute === 'produit' ? 'produit' : vueBrute === 'lot' ? 'lot' : 'arbre';");
 
-t = t.replace("vueBrute || 'lot'", "vueBrute || 'arbre'");
+// L'effet de rattrapage n'a plus d'objet : il provoquait une navigation
+// supplementaire au chargement pour un resultat desormais acquis d'entree.
+if (t.includes("    if (!vueBrute) majParams({ vue: 'arbre' });")) {
+  t = remplacer(t, 'effet de rattrapage',
+    "    if (!vueBrute) majParams({ vue: 'arbre' });\n",
+    "    // La vue par defaut est deja 'arbre' : plus rien a rattraper ici.\n");
+}
 
 writeFileSync(PAGE, page.crlf ? t.replace(/\n/g, '\r\n') : t, 'utf8');
 console.log('OK  InventaireNetrackPage.jsx');
