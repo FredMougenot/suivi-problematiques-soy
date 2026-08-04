@@ -6,6 +6,13 @@ import { useMemo } from 'react';
  * Ligne 1 : les categories reellement presentes dans le releve.
  * Ligne 2 : les sous-categories de la categorie choisie, et elle seule.
  *
+ * ══ UN SEUL APPEL PAR CLIC ════════════════════════════════════
+ * Changer de categorie doit AUSSI vider la sous-categorie — PAPIER n'existe
+ * pas sous MATIERES PREMIERES. Mais deux appels successifs a majParams ne
+ * fonctionnent pas : le second repart des parametres du rendu precedent et
+ * ecrase le premier. C'est au parent de vider `sc` dans le meme appel que
+ * `cat`.
+ *
  * ══ TROIS ETATS, PAS DEUX ══════════════════════════════════════
  *   ''  → transitoire : la page bascule aussitot sur TOUTES.
  *   '*' → TOUTES : tout s'affiche, et la recherche porte sur tout.
@@ -69,7 +76,7 @@ export default function FiltreNomenclature({
         <button
           className="nr-val"
           aria-pressed={categorie === TOUTES}
-          onClick={() => { onSousCategorie(''); onCategorie(TOUTES); }}
+          onClick={() => onCategorie(TOUTES)}
         >
           Toutes<span className="nr-val-n">{total.toLocaleString('fr-CA')}</span>
         </button>
@@ -81,9 +88,7 @@ export default function FiltreNomenclature({
             aria-pressed={categorie === valeurCat(libelle)}
             onClick={() => {
               const v = valeurCat(libelle);
-              onSousCategorie('');
-              // Redescendre a TOUTES plutot qu'a rien : l'ecran n'a plus
-              // d'etat vide.
+              // Redescendre a TOUTES plutot qu'a rien : plus d'ecran vide.
               onCategorie(categorie === v ? TOUTES : v);
             }}
           >
