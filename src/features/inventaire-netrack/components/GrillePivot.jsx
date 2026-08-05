@@ -28,7 +28,11 @@ import { ChampTrax, BadgeCompte } from './ChampTrax';
 const INDENT = 20;
 const HAUTEUR = 34;
 
-const LARGEURS = [28, null, 110, 210, 76, 66, 105, 112, 102, 102, 92, 108];
+/* Une seule colonne doit rester en `null` : avec table-layout:fixed, c'est
+   elle qui absorbe l'espace restant. C'etait REGROUPEMENT, qui devenait deux
+   fois trop large ; la place va desormais a DESCRIPTION, seule colonne dont
+   le contenu etait tronque faute de largeur. */
+const LARGEURS = [28, 245, 110, null, 76, 66, 105, 112, 102, 102, 92, 108];
 
 const nb = (v) => (typeof v === 'number' ? v.toLocaleString('fr-CA') : v);
 
