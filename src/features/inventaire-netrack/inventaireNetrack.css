@@ -7,7 +7,9 @@
   --nr-expire: #c84646;
   --nr-critique: #d67a38;
   --nr-proche: #d6a838;
-  --nr-surveille: #6d8fb0;
+  /* Vert : dernier cran de l'echelle rouge > orange > jaune > vert.
+     Le bleu-gris precedent se lisait comme une absence de couleur. */
+  --nr-surveille: #4f9d72;
 }
 
 .nr-chips {
@@ -608,11 +610,609 @@
   color: var(--text-primary);
 }
 .nr-exc-l { font-size: 12px; }
-.nr-exc[data-grave="expire"] .nr-exc-n { color: var(--ruby); }
-.nr-exc[data-grave="critique"] .nr-exc-n { color: var(--amber); }
+/* Echelle d'expiration : la meme que celle de l'ancienne legende, portee
+   par le bouton lui-meme. Un point de la couleur du niveau, et le nombre
+   dans cette couleur — la correspondance se lit sans table de renvoi. */
+.nr-exc[data-grave]::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+.nr-exc[data-grave="expire"]::before { background: var(--nr-expire); }
+.nr-exc[data-grave="critique"]::before { background: var(--nr-critique); }
+.nr-exc[data-grave="proche"]::before { background: var(--nr-proche); }
+.nr-exc[data-grave="surveille"]::before { background: var(--nr-surveille); }
+
+.nr-exc[data-grave="expire"] .nr-exc-n { color: var(--nr-expire); }
+.nr-exc[data-grave="critique"] .nr-exc-n { color: var(--nr-critique); }
+.nr-exc[data-grave="proche"] .nr-exc-n { color: var(--nr-proche); }
+.nr-exc[data-grave="surveille"] .nr-exc-n { color: var(--nr-surveille); }
+
+/* Pastille active : le liseré reprend la couleur du niveau. */
+.nr-exc[data-grave="expire"][aria-pressed="true"] { border-color: var(--nr-expire); }
+.nr-exc[data-grave="critique"][aria-pressed="true"] { border-color: var(--nr-critique); }
+.nr-exc[data-grave="proche"][aria-pressed="true"] { border-color: var(--nr-proche); }
+.nr-exc[data-grave="surveille"][aria-pressed="true"] { border-color: var(--nr-surveille); }
+
 
 /* Total de poids calcule sur une partie seulement des lots. */
 .nr-partiel {
   font-size: 10px;
   color: var(--text-muted);
 }
+
+/* === Arborescence virtualisee + tiroir de lot === */
+
+/* La coquille borne sa hauteur : c'est la fenetre que mesure le virtualiseur,
+   et c'est ce qui permet a l'en-tete de coller. Sans hauteur bornee, la page
+   defilait sur 47 000 px et l'en-tete disparaissait au premier geste. */
+/* HAUTEUR, pas plafond : un max-height ne cree aucune hauteur propre, donc
+   le conteneur mesurait 36 px tant que le tableau etait vide et le
+   virtualiseur ne montait jamais la premiere ligne. */
+.nr-virt { height: max(320px, calc(100vh - 340px)); overflow: auto; }
+.nr-virt thead th {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: rgba(18, 32, 48, .98);
+  backface-visibility: hidden;
+}
+
+/* Largeurs figees : seule une fenetre de lignes est montee, une largeur
+   calculee sur le contenu sauterait a chaque defilement. */
+.nr-arbre-table { table-layout: fixed; width: 100%; }
+.nr-espace td { background: none; }
+
+.nr-lot-feuille { cursor: pointer; }
+.nr-lot-feuille[aria-selected="true"] {
+  background: var(--bg-active);
+  box-shadow: inset 3px 0 0 var(--copper);
+}
+
+/* Valeur agregee sur plusieurs sous-lots : signalee, jamais silencieuse. */
+[data-multiple="1"] { color: var(--text-muted); font-style: italic; }
+
+/* position: fixed tient parce qu'aucun ancetre de la surface ne porte de
+   transform : regle du hub, ne pas la casser avec un translateZ ici. */
+.nr-tiroir-voile {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .45);
+  z-index: 59;
+  backface-visibility: hidden;
+}
+.nr-tiroir {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 520px;
+  max-width: 94vw;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-raised);
+  border-left: 1px solid rgba(255, 255, 255, .14);
+  box-shadow: var(--shadow-xl);
+  backface-visibility: hidden;
+}
+.nr-tiroir-tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, .10);
+}
+.nr-tiroir-sur {
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.nr-tiroir-titre { font-size: 20px; color: var(--text-primary); }
+.nr-tiroir-corps {
+  flex: 1;
+  overflow: auto;
+  padding: 16px 18px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.nr-tiroir-val { font-size: 15px; color: var(--text-primary); }
+.nr-tiroir-grille { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+.nr-tiroir-lbl {
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+.nr-tiroir-totaux {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, .10);
+  border-radius: var(--r-md);
+  color: var(--text-secondary);
+  backface-visibility: hidden;
+}
+
+@media (max-width: 720px) {
+  .nr-tiroir { width: 100%; }
+  .nr-tiroir-grille { grid-template-columns: 1fr; }
+}
+
+/* === Barre d'axes de la grille pivot === */
+
+/* L'ordre des pastilles EST la hierarchie du tableau : la barre doit se
+   lire comme un chemin, pas comme une liste de filtres. */
+.nr-axes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255, 255, 255, .10);
+  border-radius: var(--r-md);
+  backface-visibility: hidden;
+}
+.nr-axe {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px 2px 2px;
+  border: 1px solid var(--copper-dim);
+  border-radius: var(--r-sm);
+  background: var(--bg-hover);
+}
+.nr-axe-l { padding: 0 4px; color: var(--text-primary); font-size: 13px; }
+.nr-axe-fl, .nr-axe-x {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.nr-axe-fl:hover:not(:disabled), .nr-axe-x:hover { color: var(--copper-light); }
+.nr-axe-fl:disabled { opacity: .25; cursor: default; }
+.nr-axe-ajout { height: 28px; padding: 0 8px; font-size: 13px; }
+
+/* === Composeur d'axes de la grille pivot === */
+
+/* Le composeur se lit comme un CHEMIN, pas comme une barre de filtres :
+   chaque pastille porte son RANG, et le rang EST la hierarchie. Compteur
+   CSS plutot que numero code dans le JSX — il se renumerote seul a chaque
+   deplacement. */
+
+.nr-axes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.nr-axes-zone {
+  counter-reset: axe;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 10px 16px;
+  border: 1px dashed rgba(255, 255, 255, .16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .02);
+  transition: border-color var(--t-base) var(--ease);
+  backface-visibility: hidden;
+}
+.nr-axes-zone:hover { border-color: var(--copper-dim); }
+
+/* Intitules de section : discrets, en petites capitales espacees. */
+.nr-axes-zone > .nr-faible:first-child,
+.nr-axes-reserve > .nr-faible:first-child {
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding-right: 4px;
+}
+
+.nr-axes-reserve {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+}
+
+/* ── Pastille posee ── */
+.nr-axe {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 8px 0 6px;
+  border: 1px solid var(--copper-dim);
+  border-radius: 999px;
+  background: var(--bg-raised);
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1;
+  cursor: grab;
+  user-select: none;
+  transition: border-color var(--t-fast) var(--ease),
+    box-shadow var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+  backface-visibility: hidden;
+}
+.nr-axe:hover {
+  border-color: var(--copper);
+  box-shadow: 0 0 0 3px var(--copper-glow);
+  transform: translateY(-1px);
+}
+.nr-axe:active { cursor: grabbing; transform: none; }
+.nr-axe[aria-grabbed="true"] { opacity: .3; box-shadow: none; }
+
+/* Le rang en pastille pleine : c'est lui qui dit que l'ordre compte. */
+.nr-axe::before {
+  counter-increment: axe;
+  content: counter(axe);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--copper);
+  color: var(--bg-void);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* La poignee du JSX ne sert plus : le rang la remplace. */
+.nr-axe-poignee { display: none; }
+.nr-axe-l { padding: 0; white-space: nowrap; }
+
+.nr-axe-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.nr-axe-x:hover { background: var(--ruby-bg); color: var(--ruby); }
+
+/* ── Champ en reserve ── disponible, donc plus sobre que ce qui est pose. */
+.nr-champ {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, .10);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  line-height: 1;
+  cursor: grab;
+  user-select: none;
+  transition: border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease),
+    background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+/* Le point s'allume au survol : la pastille se sait attrapable. */
+.nr-champ::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  transition: background var(--t-fast) var(--ease);
+}
+.nr-champ:hover {
+  border-color: var(--copper-dim);
+  color: var(--text-primary);
+  background: var(--bg-hover);
+  transform: translateY(-1px);
+}
+.nr-champ:hover::before { background: var(--copper); }
+.nr-champ:active { cursor: grabbing; transform: none; }
+
+/* ── Trait d'insertion ── montre ou la pastille va tomber. */
+.nr-axe-marque {
+  display: inline-block;
+  width: 3px;
+  height: 26px;
+  margin: 0 1px;
+  border-radius: 2px;
+  background: var(--copper);
+  box-shadow: 0 0 8px var(--copper-glow);
+  animation: nr-pulse 1s ease-in-out infinite;
+}
+@keyframes nr-pulse { 50% { opacity: .45; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .nr-axe, .nr-champ, .nr-axes-zone, .nr-axe-x { transition: none; }
+  .nr-axe-marque { animation: none; }
+}
+
+/* === Deux lignes de valeurs : categorie puis sous-categorie === */
+
+.nr-nomen {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.nr-nomen-ligne {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+/* La 2e ligne se lit comme une consequence de la 1re, d'ou le retrait et
+   le liseré qui la rattache visuellement au choix du dessus. */
+.nr-nomen-sous {
+  margin-left: 14px;
+  padding-left: 12px;
+  border-left: 2px solid var(--copper-dim);
+}
+.nr-nomen-lbl {
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  min-width: 96px;
+}
+
+.nr-val {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 27px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, .10);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease),
+    background var(--t-fast) var(--ease);
+}
+.nr-val:hover { border-color: var(--copper-dim); color: var(--text-primary); }
+.nr-val[aria-pressed="true"] {
+  border-color: var(--copper);
+  background: var(--bg-raised);
+  color: var(--text-primary);
+}
+
+/* Le compte : sans lui on clique a l'aveugle. Discret mais toujours la. */
+.nr-val-n {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+.nr-val[aria-pressed="true"] .nr-val-n { color: var(--copper-light); }
+
+/* Un trou de referentiel ne se deguise pas en categorie ordinaire. */
+.nr-val[data-vide="1"] { font-style: italic; border-style: dashed; }
+
+@media (prefers-reduced-motion: reduce) { .nr-val { transition: none; } }
+
+/* === Aide de syntaxe sur la ligne de recherche === */
+
+/* L'aide decrit ce qu'on tape dans le champ juste a cote : elle doit se
+   lire d'un coup d'oeil sans casser la ligne, d'ou le retour a la ligne
+   autorise mais la taille reduite et la couleur attenuee. */
+.nr-aide-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.nr-aide-inline b { color: var(--text-secondary); font-weight: 600; }
+
+/* === Emplacement et saisie usine === */
+
+/* L'emplacement Usine se distingue du stock entrepose : c'est la seule
+   donnee de cet ecran qui vient de nous et non du releve. */
+.nr-chip[data-emplacement="Usine"][aria-pressed="true"],
+.nr-empl[data-usine="1"] {
+  color: var(--emerald);
+}
+.nr-empl {
+  font-size: 11px;
+  letter-spacing: .04em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.nr-usine-ouvrir { align-self: flex-start; }
+
+.nr-usine-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--emerald);
+  border-radius: var(--r-md);
+  background: var(--emerald-bg);
+  backface-visibility: hidden;
+}
+.nr-usine-grille {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+}
+.nr-usine-grille label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.nr-usine-grille label > span {
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.nr-usine-grille input {
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: var(--r-sm);
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-size: 13px;
+}
+.nr-usine-grille input:focus {
+  outline: none;
+  border-color: var(--emerald);
+}
+.nr-usine-large { grid-column: 1 / -1; }
+.nr-usine-actions { display: flex; gap: 8px; }
+.nr-usine-erreur { color: var(--ruby); font-size: 12px; }
+
+.nr-usine-suppr {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  padding: 0 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.nr-usine-suppr:hover { color: var(--ruby); }
+
+/* === Edition sur place dans le tiroir === */
+
+/* Un champ modifiable ne doit pas ressembler a un champ de formulaire : il
+   se lit comme une cellule, et ne revele son bord qu'au survol ou au
+   focus. Sinon le tableau devient un mur de boites. */
+.nr-cell-edit {
+  width: 100%;
+  min-width: 0;
+  height: 22px;
+  padding: 0 4px;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.nr-cell-edit:hover { border-color: rgba(255, 255, 255, .14); }
+.nr-cell-edit:focus {
+  outline: none;
+  border-color: var(--emerald);
+  background: var(--bg-base);
+}
+.nr-cell-edit[data-erreur="1"] { border-color: var(--ruby); }
+.nr-cell-num { text-align: right; }
+
+/* Les fleches du champ nombre volent de la largeur pour rien. */
+.nr-cell-edit[type="number"]::-webkit-outer-spin-button,
+.nr-cell-edit[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.nr-cell-edit[type="number"] { -moz-appearance: textfield; }
+
+@media (prefers-reduced-motion: reduce) { .nr-cell-edit { transition: none; } }
+
+/* === Tiroir : moitie d'ecran, glissant, opaque === */
+
+@keyframes nr-tiroir-entree { from { transform: translateX(100%); } }
+@keyframes nr-tiroir-sortie { to   { transform: translateX(100%); } }
+@keyframes nr-voile-entree  { from { opacity: 0; } }
+@keyframes nr-voile-sortie  { to   { opacity: 0; } }
+
+.nr-tiroir {
+  width: 60vw;
+  max-width: none;
+
+  /* OPAQUE, exception assumee sur cet ecran : on saisit des donnees et on
+     lit un tableau par-dessus un autre tableau. Le texte du dessous
+     rendrait les deux illisibles. */
+  background: #0d1720;
+
+  animation: nr-tiroir-entree 220ms var(--ease-out, cubic-bezier(.22,1,.36,1));
+  will-change: transform;
+}
+.nr-tiroir[data-ferme="1"] {
+  animation: nr-tiroir-sortie 200ms var(--ease, ease) forwards;
+}
+
+.nr-tiroir-voile { animation: nr-voile-entree 220ms ease; }
+.nr-tiroir-voile[data-ferme="1"] { animation: nr-voile-sortie 200ms ease forwards; }
+
+@media (max-width: 1100px) { .nr-tiroir { width: 70vw; } }
+@media (max-width: 720px)  { .nr-tiroir { width: 100vw; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .nr-tiroir, .nr-tiroir-voile,
+  .nr-tiroir[data-ferme="1"], .nr-tiroir-voile[data-ferme="1"] { animation: none; }
+}
+
+/* La grille du formulaire respire mieux sur une demi-largeur. */
+@media (min-width: 1101px) {
+  .nr-usine-grille { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* === Recherche de produit du tiroir de creation === */
+
+.nr-usine-recherche { display: flex; flex-direction: column; gap: 8px; }
+.nr-usine-champ {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: var(--r-sm);
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+.nr-usine-champ:focus { outline: none; border-color: var(--emerald); }
+
+.nr-usine-resultats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 280px;
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, .10);
+  border-radius: var(--r-sm);
+}
+.nr-usine-resultats button {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  background: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.nr-usine-resultats button:hover { background: var(--bg-hover); }
+.nr-usine-resultats .nr-mono { flex: none; min-width: 110px; }

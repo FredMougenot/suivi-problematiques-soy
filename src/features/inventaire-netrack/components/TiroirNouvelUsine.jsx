@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import FormulaireUsine from './FormulaireUsine';
 import { useReferenceProduitsQuery } from '../queries';
 
@@ -27,6 +27,7 @@ export default function TiroirNouvelUsine({ ouvert, onFermer, ajouter }) {
   const [recherche, setRecherche] = useState('');
   const [choisi, setChoisi] = useState(null);
   const [codeLibre, setCodeLibre] = useState(false);
+  const refChamp = useRef(null);
 
   const { data: reference = [] } = useReferenceProduitsQuery();
 
@@ -47,6 +48,20 @@ export default function TiroirNouvelUsine({ ouvert, onFermer, ajouter }) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
+
+  /**
+   * Focus donne a la main plutot que par `autoFocus`.
+   *
+   * `autoFocus` laisse le navigateur amener le champ dans le champ de
+   * vision. Le champ est dans un tiroir FIXE, mais la page est plus large
+   * que la fenetre : le navigateur faisait defiler la PAGE pour un
+   * element qui ne bouge pas, ce qui produisait un second mouvement
+   * pendant le glissement du tiroir. preventScroll supprime ce reflexe.
+   */
+  useEffect(() => {
+    if (!ouvert || !refChamp.current) return;
+    refChamp.current.focus({ preventScroll: true });
+  }, [ouvert]);
 
   const resultats = useMemo(() => {
     const q = recherche.trim().toLowerCase();
@@ -110,7 +125,7 @@ export default function TiroirNouvelUsine({ ouvert, onFermer, ajouter }) {
               <input
                 type="text"
                 className="nr-usine-champ"
-                autoFocus
+                ref={refChamp}
                 placeholder="Code ou description…"
                 value={recherche}
                 onChange={(e) => setRecherche(e.target.value)}

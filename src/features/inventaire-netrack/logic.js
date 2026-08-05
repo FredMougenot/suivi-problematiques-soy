@@ -89,17 +89,23 @@ function niveauRelatif(pct) {
 }
 
 /**
- * Degre de gravite, utilise pour la couleur de ligne : le PLUS GRAVE des deux
- * lectures, absolue et relative. Aucune ne prime, et aucun signal ne se perd.
- * Sans date de lot, la duree de vie est inconnue : seul l'absolu s'applique.
+ * Degre de gravite : SEULE la lecture absolue, en jours restants avant le
+ * best before.
+ *
+ * La lecture relative (part de duree de vie consommee) a ete retiree : les
+ * pastilles annoncent des JOURS, et un produit de 3 mois qu'il restait
+ * 12 jours a ecouler se retrouvait classe « 7 jours ou moins ». Le compte
+ * affiche et le libelle se contredisaient.
+ *
+ * Le parametre pctVieRestante est conserve pour ne pas casser les appels,
+ * mais il n'entre plus dans le calcul. `pct_vie_restante` reste disponible
+ * sur chaque ligne : si ce signal merite une pastille, elle aura son propre
+ * libelle plutot que de detourner celles-ci.
  */
+// eslint-disable-next-line no-unused-vars
 export function niveauExpiration(jours, pctVieRestante = null) {
   if (jours === null || jours === undefined) return null;
-  const a = niveauAbsolu(jours);
-  const r = niveauRelatif(pctVieRestante);
-  if (a === null) return r;
-  if (r === null) return a;
-  return RANG_NIVEAU[r] > RANG_NIVEAU[a] ? r : a;
+  return niveauAbsolu(jours);
 }
 
 /**
@@ -156,6 +162,9 @@ export function enrichir(lignes, reference) {
       ? null
       : Number(brut);
     const qte = nombre(l.unite2_qte_inv);
+    // Balance d'une unite entamee, saisie a l'usine. C'est un POIDS :
+    // il s'ajoute tel quel et ne passe jamais par le poids unitaire.
+    const partiel = nombre(l.partiel);
     const jours = joursAvantExpiration(l);
     const pctVie = partVieRestante(l, jours);
     return {
@@ -166,7 +175,11 @@ export function enrichir(lignes, reference) {
       client_regle: ref && !vide(ref.client) ? ref.client : null,
       trax_code: ref && !vide(ref.trax_code) ? ref.trax_code : null,
       poids_unitaire: pu,
-      poids_total: pu === null ? null : Math.round(pu * qte * 100) / 100,
+      poids_total: pu === null
+        // Sans poids unitaire, seul le partiel est connu — mais il est
+        // connu : afficher un tiret alors qu'on a pese serait faux.
+        ? (partiel ? Math.round(partiel * 100) / 100 : null)
+        : Math.round((pu * qte + partiel) * 100) / 100,
       jours_expiration: jours,
       niveau_expiration: niveauExpiration(jours, pctVie),
       dans_referentiel: Boolean(ref),

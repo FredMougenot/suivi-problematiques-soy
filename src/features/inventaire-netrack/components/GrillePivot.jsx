@@ -41,114 +41,6 @@ function aplatir(noeuds, deplies, sortie = []) {
   return sortie;
 }
 
-function BarreAxes({ axes, onAxes }) {
-  // { type: 'axe', i } quand on deplace une pastille deja posee,
-  // { type: 'champ', nom } quand elle vient de la reserve.
-  const [glisse, setGlisse] = useState(null);
-  const [cible, setCible] = useState(null);
-
-  const dispo = Object.keys(AXES).filter((a) => !axes.includes(a));
-
-  const finir = () => { setGlisse(null); setCible(null); };
-
-  const deposer = () => {
-    if (!glisse) { finir(); return; }
-    const suivant = [...axes];
-    let idx = cible === null ? suivant.length : cible;
-
-    if (glisse.type === 'axe') {
-      const nom = axes[glisse.i];
-      suivant.splice(glisse.i, 1);
-      // Retirer l'element decale toutes les positions situees apres lui.
-      if (idx > glisse.i) idx -= 1;
-      suivant.splice(idx, 0, nom);
-    } else if (!suivant.includes(glisse.nom)) {
-      suivant.splice(idx, 0, glisse.nom);
-    }
-
-    finir();
-    onAxes(suivant);
-  };
-
-  const survol = (e, i) => {
-    e.preventDefault();
-    const r = e.currentTarget.getBoundingClientRect();
-    setCible(e.clientX < r.left + r.width / 2 ? i : i + 1);
-  };
-
-  const marque = (i) => (cible === i && glisse ? <span className="nr-axe-marque" /> : null);
-
-  return (
-    <div className="nr-axes">
-      <div
-        className="nr-axes-zone"
-        onDragOver={(e) => { e.preventDefault(); if (cible === null) setCible(axes.length); }}
-        onDrop={deposer}
-      >
-        <span className="nr-faible">Regrouper par :</span>
-
-        {axes.map((a, i) => (
-          <span key={a} style={{ display: 'inline-flex', alignItems: 'center' }}>
-            {marque(i)}
-            <span
-              className="nr-axe"
-              draggable
-              aria-grabbed={glisse && glisse.type === 'axe' && glisse.i === i ? true : undefined}
-              onDragStart={() => setGlisse({ type: 'axe', i })}
-              onDragEnd={finir}
-              onDragOver={(e) => survol(e, i)}
-            >
-              <span className="nr-axe-poignee" aria-hidden="true">∷</span>
-              <span className="nr-axe-l">{AXES[a].libelle}</span>
-              <button
-                className="nr-axe-x"
-                onClick={() => onAxes(axes.filter((_, k) => k !== i))}
-                aria-label={'Retirer ' + AXES[a].libelle}
-              >✕</button>
-            </span>
-          </span>
-        ))}
-
-        {marque(axes.length)}
-
-        {axes.length === 0 && (
-          <span className="nr-faible">glisse un champ ici — sans axe, rien à afficher</span>
-        )}
-      </div>
-
-      {dispo.length > 0 && (
-        <div
-          className="nr-axes-reserve"
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={() => {
-            // Ramener une pastille dans la reserve, c'est la retirer.
-            if (glisse && glisse.type === 'axe') {
-              const suivant = axes.filter((_, k) => k !== glisse.i);
-              finir();
-              onAxes(suivant);
-            } else finir();
-          }}
-        >
-          <span className="nr-faible">Champs :</span>
-          {dispo.map((a) => (
-            <span
-              key={a}
-              className="nr-champ"
-              draggable
-              title="Glisse-le dans la barre, ou clique pour l'ajouter à la fin"
-              onDragStart={() => setGlisse({ type: 'champ', nom: a })}
-              onDragEnd={finir}
-              onClick={() => onAxes([...axes, a])}
-            >
-              {AXES[a].libelle}
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function GrillePivot({
   pivot, axes, deplies, tri, scrollRef, cleOuverte = '',
   onAxes, onTrier, onBasculer, onOuvrir, onTrax,
@@ -172,8 +64,6 @@ export default function GrillePivot({
 
   return (
     <>
-      <BarreAxes axes={axesValides} onAxes={onAxes} />
-
       {axesValides.length === 0 ? null : (
         <table className="data-table nr-large nr-arbre-table">
           <colgroup>

@@ -4,21 +4,38 @@ import { supabase } from '../../lib/supabaseClient';
 const TAILLE_PAGE = 1000;
 
 /**
- * Inventaire NetRack alimente par le workflow n8n
- * « GH Logistics - Connexion NetRack ».
- * La colonne `client` de cette table est le COMPTE NetRack (EO / PBC),
- * a ne pas confondre avec le client final, qui vient du referentiel.
+ * Inventaire complet, tous EMPLACEMENTS confondus, via la vue
+ * `v_inventaire_global` : union de `n8n_gh_inventaire` (alimentee par le
+ * workflow « GH Logistics - Connexion NetRack », emplacement
+ * « GH-entreposage ») et de `usine_stock` (saisie manuelle, emplacement
+ * « Usine »).
+ *
+ * TROIS notions a ne pas confondre :
+ *   emplacement  ou se trouve la marchandise ;
+ *   client       le COMPTE chez l'entreposeur (EO / PBC), nul pour une
+ *                ligne usine, qui n'a pas de compte ;
+ *   client_regle le client final, deduit du referentiel via no_produit —
+ *                il s'attribue donc tout seul aux lignes usine.
+ *
+ * Les identifiants sont prefixes `gh-` / `us-` : chaque table a sa propre
+ * sequence, deux lignes differentes partageraient sinon une cle.
  */
 export function useInventaireNetrackQuery() {
   return useQuery({
     queryKey: ['inventaire_netrack'],
-    staleTime: 5 * 60 * 1000,
+    // 30 s au lieu de 5 min : a plusieurs, deux personnes pouvaient
+    // saisir le meme lot sans se voir pendant tout ce temps.
+    staleTime: 30 * 1000,
+    // Filet de securite : au retour sur l'onglet et toutes les 60 s,
+    // meme si le temps reel a rate un evenement.
+    refetchOnWindowFocus: true,
+    refetchInterval: 60 * 1000,
     queryFn: async () => {
       let toutes = [];
       let debut = 0;
       for (;;) {
         const { data, error } = await supabase
-          .from('n8n_gh_inventaire')
+          .from('v_inventaire_global')
           .select('*')
           .order('no_produit')
           .range(debut, debut + TAILLE_PAGE - 1);

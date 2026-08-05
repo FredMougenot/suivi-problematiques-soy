@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabaseClient';
 
@@ -122,4 +123,37 @@ export function useSupprimerUsine() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['inventaire_netrack'] }),
   });
+}
+
+/**
+ * Abonnement aux changements de `usine_stock`.
+ *
+ * Le navigateur ouvre un canal vers Supabase et se fait prevenir des
+ * qu'une ligne bouge, au lieu d'attendre la prochaine interrogation.
+ *
+ * Deux precautions :
+ *   - le canal est FERME au demontage. Sans cela on en accumule un par
+ *     navigation, et chaque evenement declenche autant de rechargements.
+ *   - on ne se fie pas au contenu de l'evenement pour mettre le cache a
+ *     jour : on invalide, et la requete refait le tour. Appliquer le
+ *     payload a la main desynchroniserait au premier evenement rate.
+ *
+ * Le rafraichissement periodique de la requete reste indispensable : une
+ * coupure de canal fait rater des evenements sans avertissement.
+ */
+export function useTempsReelUsine() {
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    const canal = supabase
+      .channel('usine_stock')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'usine_stock' },
+        () => qc.invalidateQueries({ queryKey: ['inventaire_netrack'] }),
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(canal); };
+  }, [qc]);
 }

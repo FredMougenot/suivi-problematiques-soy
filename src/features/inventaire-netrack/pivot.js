@@ -27,8 +27,16 @@ import { nombre, niveauExpiration } from './logic';
 
 export const SANS_CATEGORIE = '(sans catégorie)';
 
-/** Configuration d'axes par defaut : l'arborescence historique. */
-export const AXES_DEFAUT = ['categorie', 'sous_categorie', 'produit', 'lot'];
+/**
+ * Hierarchie affichee. Categorie et sous-categorie n'y figurent plus :
+ * elles sont choisies en amont sur les deux lignes de valeurs, donc les
+ * remettre ici produirait un arbre a un seul noeud. Le tableau reprend a
+ * partir de ce que ce choix laisse : les produits, puis leurs lots.
+ *
+ * Le moteur reste parametrable (voir AXES) : c'est la commande visible qui
+ * a ete retiree, pas la capacite.
+ */
+export const AXES_DEFAUT = ['produit', 'lot'];
 
 /**
  * Axes de regroupement disponibles.

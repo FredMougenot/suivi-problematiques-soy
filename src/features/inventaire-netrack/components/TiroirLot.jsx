@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ChampTrax } from './ChampTrax';
+import FormulaireUsine from './FormulaireUsine';
 
 /**
  * TiroirLot — le detail d'une FEUILLE de la grille, et le point de SAISIE
@@ -23,14 +24,14 @@ import { ChampTrax } from './ChampTrax';
  * ouvert avec 12,5 kg dedans n'est pas « 0,5 sac ».
  */
 
-const VIDE = {
-  no_lot: '', no_sous_lot: '', qte: '', partiel: '', etiquette: '',
-  no_comm_client: '', date_lot: '', date_expiration: '', note: '',
-};
-
 /** Cellule modifiable a la sortie du champ. Echap annule. */
-function Cellule({ ligne, champ, type = 'text', classe = '', modifier }) {
-  const valeur = ligne[champ];
+/**
+ * `source` : d'ou vient la valeur affichee. `champ` : quelle colonne de
+ * usine_stock recevoir l'ecriture. Les deux different pour la quantite,
+ * exposee en `unite2_qte_inv` par la vue mais stockee en `qte`.
+ */
+function Cellule({ ligne, champ, source = null, type = 'text', classe = '', modifier }) {
+  const valeur = ligne[source || champ];
   const initial = valeur === null || valeur === undefined ? '' : String(valeur);
   const [saisie, setSaisie] = useState(initial);
   const [erreur, setErreur] = useState(false);
@@ -67,104 +68,30 @@ function Cellule({ ligne, champ, type = 'text', classe = '', modifier }) {
   );
 }
 
-function FormulaireUsine({ noProduit, ajouter }) {
-  const [ouvert, setOuvert] = useState(false);
-  const [f, setF] = useState(VIDE);
-  const [erreur, setErreur] = useState(null);
-
-  const champ = (cle) => ({
-    value: f[cle],
-    onChange: (e) => setF((p) => ({ ...p, [cle]: e.target.value })),
-  });
-
-  const envoyer = async () => {
-    setErreur(null);
-    try {
-      await ajouter.mutateAsync({ ...f, no_produit: noProduit });
-      setF(VIDE);
-      setOuvert(false);
-    } catch (e) {
-      setErreur(e.message || 'Enregistrement impossible.');
-    }
-  };
-
-  if (!ouvert) {
-    return (
-      <button className="btn btn-secondary nr-usine-ouvrir" onClick={() => setOuvert(true)}>
-        + Ajouter un item usine
-      </button>
-    );
-  }
-
-  return (
-    <section className="nr-usine-form">
-      <div className="nr-tiroir-lbl">Nouvel item — emplacement Usine</div>
-
-      <div className="nr-usine-grille">
-        <label>
-          <span>N° lot</span>
-          <input type="text" {...champ('no_lot')} />
-        </label>
-        <label>
-          <span>N° sous-lot</span>
-          <input type="text" {...champ('no_sous_lot')} />
-        </label>
-        <label>
-          <span>Unités entières</span>
-          <input type="number" step="any" {...champ('qte')} />
-        </label>
-        <label>
-          <span>Partiel</span>
-          <input type="number" step="any" placeholder="unité entamée" {...champ('partiel')} />
-        </label>
-        <label>
-          <span>Étiquette</span>
-          <input type="text" {...champ('etiquette')} />
-        </label>
-        <label>
-          <span>PO client</span>
-          <input type="text" {...champ('no_comm_client')} />
-        </label>
-        <label>
-          <span>Date lot</span>
-          <input type="date" {...champ('date_lot')} />
-        </label>
-        <label>
-          <span>Best before</span>
-          <input type="date" {...champ('date_expiration')} />
-        </label>
-        <label className="nr-usine-large">
-          <span>Note</span>
-          <input type="text" {...champ('note')} />
-        </label>
-      </div>
-
-      {erreur && <div className="nr-usine-erreur">{erreur}</div>}
-
-      <div className="nr-usine-actions">
-        <button className="btn btn-primary" onClick={envoyer} disabled={ajouter.isPending}>
-          {ajouter.isPending ? 'Enregistrement…' : 'Enregistrer'}
-        </button>
-        <button
-          className="btn btn-secondary"
-          onClick={() => { setF(VIDE); setErreur(null); setOuvert(false); }}
-        >
-          Annuler
-        </button>
-      </div>
-    </section>
-  );
-}
+/** Doit rester synchronise avec la duree de nr-tiroir-sortie en CSS. */
+const DUREE_FERMETURE = 200;
 
 export default function TiroirLot({
   detail, onFermer, onEnregistrerTrax, ajouterUsine, modifierUsine, supprimerUsine,
 }) {
+  // React demonterait le tiroir des le clic : on laisse l'animation se
+  // jouer avant de prevenir le parent.
+  const [ferme, setFerme] = useState(false);
+
+  const fermer = useCallback(() => {
+    setFerme(true);
+    setTimeout(onFermer, DUREE_FERMETURE);
+  }, [onFermer]);
+
+  // Un nouveau groupe rouvre un tiroir neuf, jamais un tiroir en fuite.
+  useEffect(() => { setFerme(false); }, [detail && detail.chemin.join()]);
+
   useEffect(() => {
     if (!detail) return undefined;
-    const onKey = (e) => { if (e.key === 'Escape') onFermer(); };
+    const onKey = (e) => { if (e.key === 'Escape') fermer(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [detail, onFermer]);
+  }, [detail, fermer]);
 
   if (!detail) return null;
 
@@ -189,14 +116,24 @@ export default function TiroirLot({
 
   return (
     <>
-      <div className="nr-tiroir-voile" onClick={onFermer} aria-hidden="true" />
-      <aside className="nr-tiroir" role="dialog" aria-label={'Détail ' + titre}>
+      <div
+        className="nr-tiroir-voile"
+        data-ferme={ferme ? '1' : undefined}
+        onClick={fermer}
+        aria-hidden="true"
+      />
+      <aside
+        className="nr-tiroir"
+        data-ferme={ferme ? '1' : undefined}
+        role="dialog"
+        aria-label={'Détail ' + titre}
+      >
         <header className="nr-tiroir-tete">
           <div>
             <div className="nr-tiroir-sur">{chemin.slice(0, -1).join(' › ') || 'Détail'}</div>
             <div className="nr-tiroir-titre nr-mono">{titre}</div>
           </div>
-          <button className="btn btn-secondary" onClick={onFermer} aria-label="Fermer">✕</button>
+          <button className="btn btn-secondary" onClick={fermer} aria-label="Fermer">✕</button>
         </header>
 
         <div className="nr-tiroir-corps">
@@ -297,7 +234,16 @@ export default function TiroirLot({
                     </td>
                     <td className="nr-num">
                       {estUsine
-                        ? <Cellule ligne={l} champ="qte" type="number" classe="nr-cell-num" modifier={mod} />
+                        ? (
+                          <Cellule
+                            ligne={l}
+                            champ="qte"
+                            source="unite2_qte_inv"
+                            type="number"
+                            classe="nr-cell-num"
+                            modifier={mod}
+                          />
+                        )
                         : (l.unite2_qte_inv || '—')}
                     </td>
                     <td className="nr-num">

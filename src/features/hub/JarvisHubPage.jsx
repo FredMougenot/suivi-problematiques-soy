@@ -112,14 +112,6 @@ export default function JarvisHubPage() {
     <div className={`view-surface${focused ? ' is-open' : ''}`}>
       {active ? (
         <>
-          <div className="view-head">
-            <span className="view-title">
-              <span aria-hidden="true" style={{ marginRight: 8, opacity: .8 }}>{active.icon}</span>
-              {active.title}
-            </span>
-            <span className="view-spacer" />
-            <button type="button" className="view-back" onClick={reset}>← Retour au hub</button>
-          </div>
           <div className="view-body">
             <Suspense fallback={<div className="view-loading">CHARGEMENT…</div>}>
               {ActiveComponent ? <ActiveComponent /> : null}

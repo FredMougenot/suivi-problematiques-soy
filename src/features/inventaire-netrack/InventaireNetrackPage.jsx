@@ -16,45 +16,24 @@ import {
   grouperParProduit, totauxParCategorie, couvertureRegles,
   exporterCsv, exporterCsvGroupe,
 } from './logic';
-import { construireArbre, COLONNES_ARBRE, toutesLesCles } from './arbre';
+import {
+  construirePivot, toutesLesCles, noeudParCle, AXES_DEFAUT,
+} from './pivot';
+import GrillePivot from './components/GrillePivot';
+import FiltreNomenclature from './components/FiltreNomenclature';
+import TiroirLot from './components/TiroirLot';
+import TiroirNouvelUsine from './components/TiroirNouvelUsine';
+import {
+  useAjouterUsine, useModifierUsine, useSupprimerUsine, useTempsReelUsine,
+} from './usine';
+import { ChampTrax } from './components/ChampTrax';
 import LoadingOverlay from '../../design-system/LoadingOverlay';
 import './inventaireNetrack.css';
 
 /** Les deux premieres colonnes restent visibles au defilement horizontal. */
 const COLLANTES = 2;
 
-/** Decalage horizontal d'un niveau d'arborescence, en pixels. */
-const INDENT = 22;
-
 const nb = (v) => (typeof v === 'number' ? v.toLocaleString('fr-CA') : v);
-
-/**
- * Saisie du TRAXcode d'un produit. Seule valeur de base_reference_produits
- * qui s'ecrit a la main : toutes les autres viennent des regles et seraient
- * ecrasees au prochain recalcul. Enregistrement a la sortie du champ.
- */
-function ChampTrax({ code, valeur, onEnregistrer }) {
-  const [saisie, setSaisie] = useState(valeur ?? '');
-  useEffect(() => { setSaisie(valeur ?? ''); }, [valeur]);
-
-  const inchange = (saisie.trim() || null) === (valeur || null);
-
-  return (
-    <input
-      className="nr-trax-input"
-      type="text"
-      value={saisie}
-      placeholder="—"
-      onClick={(e) => e.stopPropagation()}
-      onChange={(e) => setSaisie(e.target.value)}
-      onBlur={() => { if (!inchange) onEnregistrer(code, saisie); }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') e.currentTarget.blur();
-        if (e.key === 'Escape') { setSaisie(valeur ?? ''); e.currentTarget.blur(); }
-      }}
-    />
-  );
-}
 
 /**
  * Bandeau d'exceptions : ce qui demande une action, compte sur TOUT le releve
@@ -63,20 +42,27 @@ function ChampTrax({ code, valeur, onEnregistrer }) {
  */
 function BandeauExceptions({ lignes, exp, stk, cat, appliquer }) {
   const c = useMemo(() => {
-    let expire = 0; let critique = 0; let horsRef = 0; let sansCat = 0; let sansPoids = 0;
+    let expire = 0; let critique = 0; let proche = 0; let surveille = 0;
+    let horsRef = 0; let sansCat = 0; let sansPoids = 0;
     for (const l of lignes) {
       if (l.niveau_expiration === 'expire') expire += 1;
       else if (l.niveau_expiration === 'critique') critique += 1;
+      else if (l.niveau_expiration === 'proche') proche += 1;
+      else if (l.niveau_expiration === 'surveille') surveille += 1;
       if (!l.dans_referentiel) horsRef += 1;
       if (!l.categorie) sansCat += 1;
       if (l.poids_unitaire === null) sansPoids += 1;
     }
-    return { expire, critique, horsRef, sansCat, sansPoids };
+    return {
+      expire, critique, proche, surveille, horsRef, sansCat, sansPoids,
+    };
   }, [lignes]);
 
   const items = [
     { cle: 'expire', n: c.expire, libelle: 'expiré', grave: 'expire', actif: exp === 'expire', f: { exp: exp === 'expire' ? '' : 'expire', stk: '', cat: '' } },
     { cle: 'critique', n: c.critique, libelle: '7 jours ou moins', grave: 'critique', actif: exp === 'critique', f: { exp: exp === 'critique' ? '' : 'critique', stk: '', cat: '' } },
+    { cle: 'proche', n: c.proche, libelle: '8 à 30 jours', grave: 'proche', actif: exp === 'proche', f: { exp: exp === 'proche' ? '' : 'proche', stk: '', cat: '' } },
+    { cle: 'surveille', n: c.surveille, libelle: '31 à 90 jours', grave: 'surveille', actif: exp === 'surveille', f: { exp: exp === 'surveille' ? '' : 'surveille', stk: '', cat: '' } },
     { cle: 'horsRef', n: c.horsRef, libelle: 'hors référentiel', actif: stk === 'hors_ref', f: { stk: stk === 'hors_ref' ? '' : 'hors_ref', exp: '', cat: '' } },
     { cle: 'sansCat', n: c.sansCat, libelle: 'sans catégorie', actif: cat === '(sans)', f: { cat: cat === '(sans)' ? '' : '(sans)', exp: '', stk: '' } },
     { cle: 'sansPoids', n: c.sansPoids, libelle: 'sans poids', actif: stk === 'sans_poids', f: { stk: stk === 'sans_poids' ? '' : 'sans_poids', exp: '', cat: '' } },
@@ -102,33 +88,12 @@ function BandeauExceptions({ lignes, exp, stk, cat, appliquer }) {
   );
 }
 
-/**
- * Badge du compte NetRack (EO / PBC), en tete de ligne. Rien ne s'affiche
- * quand une branche melange plusieurs comptes : un badge faux serait pire
- * qu'un badge absent. La largeur est fixe pour que les libelles restent
- * alignes, badge ou pas.
- */
-function BadgeCompte({ compte }) {
-  return <span className="nr-badge-compte" data-compte={compte || undefined}>{compte || ''}</span>;
-}
+/** Valeurs d'expiration filtrees sur le niveau calcule, pas via filtrerEtTrier. */
+const NIVEAUX_EXPIRATION = new Set(['expire', 'critique', 'proche', 'surveille']);
 
-/**
- * Aplatit l'arbre en lignes de tableau, en ne descendant que dans les
- * branches ouvertes. Un tableau plat se rend bien plus vite qu'un
- * imbriquement de <table>, et le decalage visuel suffit a montrer le niveau.
- */
-function aplatirArbre(noeuds, deplies, sortie = []) {
-  for (const n of noeuds) {
-    sortie.push({ type: 'noeud', n });
-    if (!deplies.has(n.cle)) continue;
-    if (n.enfants.length) {
-      aplatirArbre(n.enfants, deplies, sortie);
-    } else {
-      for (const l of n.lignes) sortie.push({ type: 'lot', l, parent: n });
-    }
-  }
-  return sortie;
-}
+/** Les deux seuls lieux ou la marchandise peut se trouver. A ne pas
+ *  confondre avec le COMPTE (EO / PBC) ni avec le CLIENT final. */
+const EMPLACEMENTS = ['GH-entreposage', 'Usine'];
 
 export default function InventaireNetrackPage() {
   const addToast = usePlanningStore((s) => s.addToast);
@@ -141,15 +106,30 @@ export default function InventaireNetrackPage() {
   // ── Etat porte par l'URL : un lien reproduit exactement l'ecran ──
   const [params, setParams] = useSearchParams();
   const vueBrute = params.get('vue');
-  const vue = vueBrute === 'produit' ? 'produit' : vueBrute === 'arbre' ? 'arbre' : 'lot';
+  // Repli sur la grille : c'est la seule vue virtualisee. « Par lot »
+  // monte 5 823 lignes d'un coup et ne doit jamais s'ouvrir par accident.
+  const vue = vueBrute === 'produit' ? 'produit' : vueBrute === 'lot' ? 'lot' : 'arbre';
   const client = params.get('cli') || '';
   const categorie = params.get('cat') || '';
   const expiration = params.get('exp') || '';
   const stock = params.get('stk') || '';
   const recherche = params.get('q') || '';
+  const groupeOuvert = params.get('grp') || '';
+  const sousCategorie = params.get('sc') || '';
+  const emplacement = params.get('emp') || '';
+  // Tiroir de creation : il ne depend d'aucun groupe affiche, c'est tout
+  // son interet — le produit cherche est justement absent de la liste.
+  const nouvelUsine = params.get('neuf') === '1';
   const triColonne = params.get('tri') || 'no_produit';
   const triSens = params.get('sens') === '-1' ? -1 : 1;
   const tri = useMemo(() => ({ colonne: triColonne, sens: triSens }), [triColonne, triSens]);
+
+  /**
+   * Hierarchie du tableau. Fixe depuis le retrait du composeur d'axes :
+   * continuer a lire le parametre `axes` laissait une vieille URL vider
+   * le tableau sans aucun moyen de le retablir a l'ecran.
+   */
+  const axes = AXES_DEFAUT;
 
   const majParams = useCallback((modifs) => {
     setParams((prec) => {
@@ -184,9 +164,27 @@ export default function InventaireNetrackPage() {
   useEffect(() => {
     if (vueInitialisee.current) return;
     vueInitialisee.current = true;
-    if (!vueBrute) majParams({ vue: 'arbre' });
+    // La vue par defaut est deja 'arbre' : plus rien a rattraper ici.
   }, [vueBrute, majParams]);
 
+  /**
+   * Aucune categorie choisie = etat transitoire, jamais un ecran vide.
+   * On bascule sur TOUTES ('*'), qui est un choix explicite et le reste
+   * dans l'URL. Sans cela, une vieille URL ou un desistement laissaient un
+   * tableau vide sans explication.
+   */
+  const categorieInitialisee = useRef(false);
+  useEffect(() => {
+    if (categorieInitialisee.current) return;
+    categorieInitialisee.current = true;
+    if (!categorie) majParams({ cat: '*' });
+  }, [categorie, majParams]);
+
+  useTempsReelUsine();
+  const ajouterUsine = useAjouterUsine();
+  const modifierUsine = useModifierUsine();
+  const supprimerUsine = useSupprimerUsine();
+  const refScroll = useRef(null);
   const [deplies, setDeplies] = useState(() => new Set());
   const [panneau, setPanneau] = useState('');
   const [editeur, setEditeur] = useState(null); // { regle } ou { regle: null } pour une creation
@@ -221,9 +219,75 @@ export default function InventaireNetrackPage() {
     [lignes],
   );
 
+  /**
+   * Recherche = portee globale.
+   *
+   * Un texte saisi IGNORE la categorie, la sous-categorie et les quatre
+   * pastilles d'exceptions : on cherche un code partout, pas seulement la
+   * ou l'on se trouvait. Le client reste applique — c'est un perimetre
+   * de travail, pas un endroit ou l'on se trouve.
+   */
+  // Recherche = portee globale
+  /**
+   * Portee globale : recherche et pastilles passent au-dessus du chemin.
+   *
+   * Un texte saisi, ou une pastille d'expiration / de stock, IGNORE la
+   * categorie et la sous-categorie. On cherche un code partout, et une
+   * exception se regarde sur tout le releve — sinon le nombre affiche sur
+   * la pastille ne correspond pas a ce que le tableau montre.
+   *
+   * La pastille « sans categorie » n'entre pas la-dedans : elle EST un
+   * filtre de categorie, elle passe par `categorie`.
+   *
+   * Le CLIENT reste toujours applique : c'est un perimetre de travail, pas
+   * un endroit ou l'on se trouve.
+   */
+  /**
+   * Portee globale : recherche et pastilles passent au-dessus du chemin.
+   *
+   * Un texte saisi, ou une pastille d'expiration / de stock, IGNORE la
+   * categorie et la sous-categorie. On cherche un code partout, et une
+   * exception se regarde sur tout le releve — sinon le nombre affiche sur
+   * la pastille ne correspond pas a ce que le tableau montre.
+   *
+   * La pastille « sans categorie » n'entre pas la-dedans : elle EST un
+   * filtre de categorie, elle passe par `categorie`.
+   *
+   * `critique` (7 jours ou moins) est traite ICI : filtrerEtTrier ne
+   * connait pas cette valeur et renvoyait un resultat vide. Le niveau est
+   * deja calcule sur chaque ligne par enrichir().
+   *
+   * Le CLIENT reste toujours applique : c'est un perimetre de travail, pas
+   * un endroit ou l'on se trouve.
+   */
   const filtrees = useMemo(
-    () => filtrerEtTrier(lignes, { client, recherche, categorie, stock, expiration }, tri),
-    [lignes, client, recherche, categorie, stock, expiration, tri],
+    () => {
+      const porteeGlobale = Boolean(recherche || expiration || stock);
+      // Les quatre niveaux se filtrent sur `niveau_expiration`, deja calcule
+      // par enrichir(). filtrerEtTrier ne connait pas `critique`, et rien ne
+      // garantissait que ses bornes coincident avec celles du comptage :
+      // le nombre annonce sur la pastille aurait pu differer de l'affichage.
+      const parNiveau = NIVEAUX_EXPIRATION.has(expiration);
+      let base = filtrerEtTrier(
+        lignes,
+        {
+          client,
+          recherche,
+          stock,
+          expiration: parNiveau ? '' : expiration,
+          categorie: porteeGlobale || categorie === '*' ? '' : categorie,
+        },
+        tri,
+      );
+      if (parNiveau) base = base.filter((l) => l.niveau_expiration === expiration);
+      // Perimetre : il tient meme sous recherche ou pastille d'exception.
+      if (emplacement) base = base.filter((l) => l.emplacement === emplacement);
+      if (porteeGlobale || !sousCategorie) return base;
+      const sans = sousCategorie === '(sans sous-catégorie)';
+      return base.filter((l) => (sans ? !l.sous_categorie : l.sous_categorie === sousCategorie));
+    },
+    [lignes, client, recherche, categorie, stock, expiration,
+      sousCategorie, emplacement, tri],
   );
 
   const groupes = useMemo(
@@ -246,15 +310,36 @@ export default function InventaireNetrackPage() {
     return m;
   }, [categoriesQ.data]);
 
-  const arbre = useMemo(
-    () => (vue === 'arbre' ? construireArbre(filtrees, tri, rangsNomenclature) : []),
-    [vue, filtrees, tri, rangsNomenclature],
+  /**
+   * Rien tant qu'aucune categorie n'est choisie : construire l'arbre des
+   * 5 658 lignes pour le montrer d'entree ne repond a aucune question, et
+   * coute le calcul complet a chaque frappe dans la recherche.
+   */
+  const pivot = useMemo(
+    () => (vue === 'arbre'
+      ? construirePivot(filtrees, axes, tri, rangsNomenclature)
+      : []),
+    [vue, filtrees, axes, tri, rangsNomenclature],
   );
 
-  const lignesArbre = useMemo(
-    () => (vue === 'arbre' ? aplatirArbre(arbre, deplies) : []),
-    [vue, arbre, deplies],
-  );
+  /**
+   * Detail de la feuille ouverte dans le tiroir, retrouvee par son chemin.
+   * Un groupe qui sort du filtre courant n'existe plus dans la grille : le
+   * tiroir se referme de lui-meme, ce qui est coherent avec ce qui est
+   * affiche. Les attributs produit ne sortent que si le groupe designe UN
+   * produit — sinon ils n'auraient pas de valeur unique.
+   */
+  const detailGroupe = useMemo(() => {
+    if (!groupeOuvert) return null;
+    const n = noeudParCle(pivot, groupeOuvert);
+    if (!n || !n.lignes.length) return null;
+    return {
+      titre: n.libelle,
+      chemin: n.cle.split('\u0000'),
+      lignes: n.lignes,
+      produit: n.produits.size === 1 ? n.lignes[0] : null,
+    };
+  }, [groupeOuvert, pivot]);
 
   const totaux = useMemo(
     () => (panneau === 'totaux' ? totauxParCategorie(filtrees) : []),
@@ -317,7 +402,7 @@ export default function InventaireNetrackPage() {
 
   /** Deplie tout l'arbre jusqu'au niveau demande (-1 replie tout). */
   function deplierJusqua(niveau) {
-    setDeplies(new Set(toutesLesCles(arbre, niveau)));
+    setDeplies(new Set(toutesLesCles(pivot, niveau)));
   }
 
   function reinitialiser() {
@@ -414,10 +499,10 @@ export default function InventaireNetrackPage() {
           {boutonPanneau('couverture', 'Couverture')}
           {boutonPanneau('analyse', 'Analyse des colonnes')}
           <button className="btn btn-secondary" onClick={copierLien}>Copier le lien</button>
+          <button className="btn btn-primary" onClick={handleExport}>Exporter CSV</button>
           <button className="btn btn-secondary" onClick={handleActualiser} disabled={inventaireQ.isFetching}>
             {inventaireQ.isFetching ? 'Chargement…' : 'Actualiser'}
           </button>
-          <button className="btn btn-primary" onClick={handleExport}>Exporter CSV</button>
         </div>
       </div>
 
@@ -635,42 +720,6 @@ export default function InventaireNetrackPage() {
 
       <div className="toolbar">
         <div className="toolbar-left">
-          <div className="nr-chips" role="group" aria-label="Mode d'affichage">
-            <button
-              className="nr-chip"
-              aria-pressed={vue === 'lot'}
-              onClick={() => majParams({ vue: '' })}
-            >Par lot</button>
-            <button
-              className="nr-chip"
-              aria-pressed={vue === 'produit'}
-              onClick={() => majParams({ vue: 'produit' })}
-            >Par produit</button>
-            <button
-              className="nr-chip"
-              aria-pressed={vue === 'arbre'}
-              onClick={() => majParams({ vue: 'arbre' })}
-              title="Catégorie → Sous-catégorie → Produit → Lots"
-            >Arborescence</button>
-          </div>
-
-          {vue === 'arbre' && (
-            <div className="nr-chips" role="group" aria-label="Ordre de l'arborescence">
-              <button
-                className="nr-chip"
-                aria-pressed={tri.colonne !== 'jours_min'}
-                onClick={() => majParams({ tri: '', sens: '' })}
-                title="Ordre défini dans la nomenclature"
-              >Nomenclature</button>
-              <button
-                className="nr-chip"
-                aria-pressed={tri.colonne === 'jours_min'}
-                onClick={() => majParams({ tri: 'jours_min', sens: '1' })}
-                title="Ce qui périme le plus tôt remonte en premier (FEFO)"
-              >Urgence</button>
-            </div>
-          )}
-
           <div className="nr-chips" role="group" aria-label="Filtrer par client">
             <button
               className="nr-chip"
@@ -694,6 +743,29 @@ export default function InventaireNetrackPage() {
             >Sans client</button>
           </div>
 
+          <div className="nr-chips" role="group" aria-label="Filtrer par emplacement">
+            <button
+              className="nr-chip"
+              aria-pressed={emplacement === ''}
+              onClick={() => majParams({ emp: '', grp: '' })}
+            >Partout</button>
+            {EMPLACEMENTS.map((e) => (
+              <button
+                key={e}
+                className="nr-chip"
+                data-emplacement={e}
+                aria-pressed={emplacement === e}
+                onClick={() => majParams({ emp: emplacement === e ? '' : e, grp: '' })}
+              >{e}</button>
+            ))}
+          </div>
+
+          <button
+            className="btn btn-secondary"
+            onClick={() => majParams({ neuf: '1', grp: '' })}
+            title="Saisir un item usine pour un produit absent de la liste"
+          >+ Item usine</button>
+
           <div className="gib-search-wrap">
             <span className="search-icon">⌕</span>
             <input
@@ -704,62 +776,31 @@ export default function InventaireNetrackPage() {
             />
           </div>
 
-          <select className="fsel" value={categorie} onChange={(e) => majParams({ cat: e.target.value })}>
-            <option value="">Toutes les catégories</option>
-            {categories.map((v) => <option key={v} value={v}>{v}</option>)}
-            <option value="(sans)">— sans catégorie —</option>
-          </select>
+          <div className="nr-aide nr-aide-inline">
+            <span><b>espace</b> cumule</span>
+            <span><b>,</b> alterne</span>
+            <span><b>-mot</b> exclut</span>
+            <span><b>« mot mot »</b> entre guillemets : phrase exacte</span>
+            <span><b>champ:</b> compte, cli, trax, prod, desc, lot, sslot, cat, sc, cmd, etq</span>
+          </div>
 
-          <select className="fsel" value={expiration} onChange={(e) => majParams({ exp: e.target.value })}>
-            <option value="">Toutes les dates</option>
-            <option value="expire">Déjà expiré</option>
-            <option value="critique">Expire sous 7 jours</option>
-            <option value="j30">Expire sous 30 jours</option>
-            <option value="j90">Expire sous 90 jours</option>
-            <option value="expire_ou_j30">Expiré ou sous 30 jours</option>
-            <option value="sans_date">Sans date d'expiration</option>
-          </select>
-
-          <select className="fsel" value={stock} onChange={(e) => majParams({ stk: e.target.value })}>
-            <option value="">Tout le stock</option>
-            <option value="dispo">Quantité positive</option>
-            <option value="zero">Quantité nulle</option>
-            <option value="sans_poids">Sans poids connu</option>
-            <option value="sans_trax">Sans TRAXcode</option>
-          </select>
-
-          <button className="btn btn-secondary" onClick={reinitialiser}>Réinitialiser</button>
         </div>
       </div>
 
       {vue === 'arbre' && (
-        <div className="nr-arbre-outils">
-          <span className="nr-faible">Déplier :</span>
-          <button className="btn btn-secondary" onClick={() => deplierJusqua(-1)}>Tout replier</button>
-          <button className="btn btn-secondary" onClick={() => deplierJusqua(0)}>Un niveau</button>
-          <button className="btn btn-secondary" onClick={() => deplierJusqua(1)}>Deux niveaux</button>
-          <button className="btn btn-secondary" onClick={() => deplierJusqua(2)}>Tout déplier</button>
-        </div>
+        <FiltreNomenclature
+          lignes={lignes}
+          categorie={categorie}
+          sousCategorie={sousCategorie}
+          onCategorie={(v) => majParams({ cat: v, sc: '', grp: '' })}
+          onSousCategorie={(v) => majParams({ sc: v, grp: '' })}
+        />
       )}
 
-      <div className="nr-aide">
-        <span><b>espace</b> cumule</span>
-        <span><b>,</b> alterne</span>
-        <span><b>-mot</b> exclut</span>
-        <span><b>« mot mot »</b> entre guillemets : phrase exacte</span>
-        <span><b>champ:</b> compte, cli, trax, prod, desc, lot, sslot, cat, sc, cmd, etq</span>
-      </div>
-
-      <div className="nr-legende">
-        {SEUILS_EXPIRATION.map((s) => (
-          <span key={s.cle}>
-            <i className="nr-pastille" data-n={s.cle} />
-            {s.libelle}
-          </span>
-        ))}
-      </div>
-
-      <div className="table-shell dt-glow nr-scroll">
+      <div
+        className={'table-shell dt-glow nr-scroll' + (vue === 'arbre' ? ' nr-virt' : '')}
+        ref={refScroll}
+      >
         {enCours ? <LoadingOverlay /> : filtrees.length === 0 ? (
           <div className="nr-vide">
             {lignes.length === 0
@@ -767,121 +808,19 @@ export default function InventaireNetrackPage() {
               : "Aucun résultat pour ces filtres."}
           </div>
         ) : vue === 'arbre' ? (
-          <table className="data-table nr-large">
-            <thead>
-              <tr>
-                <th style={{ width: 28 }} aria-label="Déplier" />
-                {COLONNES_ARBRE.map((c) => (
-                  <th
-                    key={c.cle}
-                    className="nr-th"
-                    style={{ textAlign: c.num ? 'right' : 'left' }}
-                    onClick={() => trierPar(c.cle)}
-                  >
-                    {c.libelle}
-                    {tri.colonne === c.cle && (
-                      <span className="nr-fleche">{tri.sens === 1 ? '▲' : '▼'}</span>
-                    )}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {lignesArbre.map((r) => {
-                if (r.type === 'lot') {
-                  const l = r.l;
-                  return (
-                    <tr key={r.parent.cle + '\u0000' + l.id} className="nr-arbre-lot" data-exp={l.niveau_expiration || undefined}>
-                      <td />
-                      <td
-                        className="nr-arbre-cell"
-                        style={{ paddingLeft: 8 + ((r.parent.niv ?? r.parent.profondeur) + 1) * INDENT }}
-                      >
-                        <BadgeCompte compte={l.client_regle} />
-                        {l.etiquette && <span className="nr-faible">{l.etiquette} </span>}
-                        <span className="nr-mono">{l.no_lot || '—'}</span>
-                        {l.no_sous_lot && <span className="nr-faible"> / {l.no_sous_lot}</span>}
-                      </td>
-                      <td />
-                      <td />
-                      <td />
-                      <td />
-                      <td className="nr-num">{nb(l.unite2_qte_inv)}</td>
-                      <td className="nr-num">{l.poids_total === null ? '—' : nb(l.poids_total)}</td>
-                      <td className="nr-mono nr-faible">{l.date_lot || '—'}</td>
-                      <td className="nr-mono nr-jours" data-n={l.niveau_expiration || undefined}>
-                        {l.date_expiration || '—'}
-                      </td>
-                      <td className="nr-num nr-jours" data-n={l.niveau_expiration || undefined}>
-                        {l.jours_expiration === null ? '—' : nb(l.jours_expiration)}
-                      </td>
-                      <td className="nr-mono nr-faible">{l.no_comm_client || '—'}</td>
-                    </tr>
-                  );
-                }
-
-                const n = r.n;
-                const ouvert = deplies.has(n.cle);
-                // Un produit se reconnait a son drapeau, pas a sa profondeur :
-                // sans sous-categorie il remonte d'un niveau.
-                const estProduit = n.est_produit;
-                return (
-                  <tr
-                    key={n.cle}
-                    className="nr-ligne-groupe"
-                    data-niv={n.profondeur}
-                    data-produit={estProduit ? '1' : undefined}
-                    data-exp={n.niveau || undefined}
-                    onClick={() => basculerGroupe(n.cle)}
-                  >
-                    <td className="nr-chevron">{ouvert ? '▾' : '▸'}</td>
-                    <td
-                      className="nr-arbre-cell"
-                      style={{ paddingLeft: 8 + (n.niv ?? n.profondeur) * INDENT }}
-                    >
-                      <BadgeCompte compte={n.comptes && n.comptes.size === 1 ? [...n.comptes][0] : null} />
-                      <span className={estProduit ? 'nr-mono' : 'nr-arbre-titre'}>{n.libelle}</span>
-                    </td>
-                    <td>
-                      {estProduit ? (
-                        <ChampTrax
-                          code={n.no_produit}
-                          valeur={n.trax_code}
-                          onEnregistrer={sauverTrax}
-                        />
-                      ) : ''}
-                    </td>
-                    <td className={'nr-desc' + (estProduit ? '' : ' nr-faible')}>
-                      {estProduit ? (n.description || '—') : ''}
-                    </td>
-                    <td className="nr-num">{estProduit || n.est_lot ? '' : nb(n.nb_produits)}</td>
-                    <td className="nr-num">{n.est_lot ? '' : nb(n.nb_lots)}</td>
-                    <td className="nr-num">{nb(n.qte)}</td>
-                    <td className="nr-num" data-partiel={n.nb_poids_connus > 0 && n.nb_poids_connus < n.nb_lots ? '1' : undefined}
-                      title={n.nb_poids_connus > 0 && n.nb_poids_connus < n.nb_lots
-                        ? `Poids connu sur ${n.nb_poids_connus} lot(s) sur ${n.nb_lots}`
-                        : undefined}
-                    >
-                      {n.poids === null || n.nb_poids_connus === 0 ? '—' : nb(n.poids)}
-                      {n.nb_poids_connus > 0 && n.nb_poids_connus < n.nb_lots && (
-                        <span className="nr-partiel"> ({Math.round(n.nb_poids_connus / n.nb_lots * 100)} %)</span>
-                      )}
-                    </td>
-                    {/* Dates : elles appartiennent au sous-lot. Un agregat n'a
-                        qu'une echeance, celle de son lot le plus urgent, et
-                        elle se lit dans « Jours rest. ». */}
-                    <td />
-                    <td />
-                    <td className="nr-num nr-jours" data-n={n.niveau || undefined}>
-                      {n.jours_min === null ? '—' : nb(n.jours_min)}
-                    </td>
-                    {/* PO client : porte par la ligne de detail, pas par un agregat. */}
-                    <td />
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <GrillePivot
+            pivot={pivot}
+            axes={axes}
+            deplies={deplies}
+            tri={tri}
+            scrollRef={refScroll}
+            cleOuverte={groupeOuvert}
+            onAxes={(a) => { setDeplies(new Set()); majParams({ axes: a.join(',') || '-', grp: '' }); }}
+            onTrier={trierPar}
+            onBasculer={basculerGroupe}
+            onOuvrir={(n) => majParams({ grp: n.cle })}
+            onTrax={sauverTrax}
+          />
         ) : vue === 'produit' ? (
           <table className="data-table nr-large">
             <thead>
@@ -1065,6 +1004,21 @@ export default function InventaireNetrackPage() {
           </table>
         )}
       </div>
+
+      <TiroirNouvelUsine
+        ouvert={nouvelUsine}
+        onFermer={() => majParams({ neuf: '' })}
+        ajouter={ajouterUsine}
+      />
+
+      <TiroirLot
+        detail={detailGroupe}
+        onFermer={() => majParams({ grp: '' })}
+        onEnregistrerTrax={sauverTrax}
+        ajouterUsine={ajouterUsine}
+        modifierUsine={modifierUsine}
+        supprimerUsine={supprimerUsine}
+      />
 
       <EditeurRegle
         open={Boolean(editeur)}
