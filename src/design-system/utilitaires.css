@@ -19,51 +19,31 @@
   color: var(--text-muted);
 }
 
-/* ══ LARGEUR ANCREE SUR LA FENETRE ═══════════════════════════════
-   Regle : la taille de la page est bornee par la FENETRE, jamais par
-   son contenu. Sans cela, la mise en page est indeterminee — elle
-   "marchait" sous Chrome par chance, pas par construction.
+/* ══ TABLEAU NETRACK : ANNULER min-width:max-content ═════════════
+   Le <table> de la grille pivot porte DEUX classes qui se contredisent :
 
-   Symptome corrige : sous Firefox, la barre de boutons de .sec-h ne se
-   repliait pas, la page devenait plus large que la fenetre, et le
-   tableau NetRack (width:100% d'un parent surdimensionne) poussait
-   toutes ses colonnes hors du champ visible sauf la premiere.
+     .nr-large       { min-width: max-content; }
+     .nr-arbre-table { table-layout: fixed; width: 100%; }
 
-   Trois causes possibles, toutes couvertes ici :
-   1. .tool-main porte flex:1 alors que son parent .main N'EST PAS un
-      conteneur flex (AppShell rend un simple div) : la propriete est
-      inerte et la largeur n'est bornee par rien.
-   2. min-width:auto par defaut — Gecko refuse de comprimer sous la
-      largeur min-content la ou Blink accepte. D'ou la divergence.
-   3. ::-webkit-scrollbar (5px) est ignore par Firefox, qui reserve
-      ~17px ; avec scrollbar-gutter:stable sur .main ET .tool-main,
-      l'ecart cumule suffit a faire basculer le repli d'un cote.
+   min-width:max-content sur une table en table-layout:fixed est un cas
+   que la spec laisse indetermine, et les deux moteurs le tranchent
+   differemment :
 
-   Charge apres tokens.css et components.css : ce bloc prime, et tout
-   le correctif s'annule en supprimant cette seule section.
+   - Blink calcule le max-content a partir des largeurs declarees dans
+     le <colgroup> (~1111px). width:100% l'emporte, les 12 colonnes
+     tiennent. L'affichage correct sous Chrome tenait a ce choix.
+   - Gecko calcule le max-content a partir du CONTENU, en ignorant le
+     layout fixe. La table s'etire enormement ; table-layout:fixed
+     figeant les 11 colonnes declarees, tout l'excedent tombe dans la
+     seule colonne sans largeur (LARGEURS[1] = null = REGROUPEMENT),
+     qui occupe alors tout l'ecran et repousse les autres hors champ.
+
+   min-width:0 rend la largeur deterministe dans les deux moteurs : le
+   colgroup redevient seul maitre, ce que GrillePivot suppose depuis la
+   virtualisation. Selecteur a 3 classes pour primer quel que soit
+   l'ordre de chargement de inventaireNetrack.css.
+
+   A terme : deplacer cette regle dans inventaireNetrack.css, a cote de
+   .nr-arbre-table, plutot que de la garder ici.
 ─────────────────────────────────────────────────────────────── */
-
-/* Parite des barres de defilement entre Gecko et Blink. */
-html, body, #root {
-  scrollbar-width: thin;
-  scrollbar-color: var(--copper-dim) var(--bg-deep);
-}
-
-.app-layout { max-width: 100vw; }
-
-.main {
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: hidden;
-}
-
-.tool-main {
-  min-width: 0;
-  max-width: 100%;
-}
-
-/* .sec-h porte deja flex-wrap:wrap, mais un flex-wrap ne se declenche
-   qu'en cas de DEBORDEMENT : tant que les enfants imposent leur largeur
-   min-content, la ligne s'elargit au lieu de se replier. */
-.sec-h { min-width: 0; max-width: 100%; }
-.sec-h > * { min-width: 0; }
+table.data-table.nr-large.nr-arbre-table { min-width: 0; }
