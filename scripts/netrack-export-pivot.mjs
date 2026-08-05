@@ -20,13 +20,31 @@ import { readFileSync, writeFileSync } from 'node:fs';
 
 const BASE = 'src/features/inventaire-netrack';
 
+/**
+ * Les fichiers du depot sont en CRLF (Windows) : un motif ecrit avec des \n
+ * ne trouve rien des qu'il s'etale sur plusieurs lignes. On aligne donc le
+ * motif sur la fin de ligne reellement presente dans le fichier.
+ *
+ * Idempotent : si le resultat est deja en place, on passe. Le script peut
+ * donc etre relance apres un echec en cours de route sans rien abimer.
+ */
 function remplacer(chemin, avant, apres, etiquette) {
   const s = readFileSync(chemin, 'utf8');
-  const n = s.split(avant).length - 1;
+  const crlf = s.includes('\r\n');
+  const aligner = (t) => (crlf ? t.replace(/\r?\n/g, '\r\n') : t.replace(/\r\n/g, '\n'));
+  const a = aligner(avant);
+  const b = aligner(apres);
+
+  if (s.split(b).length - 1 >= 1) {
+    console.log(`  – ${etiquette} (deja en place)`);
+    return;
+  }
+
+  const n = s.split(a).length - 1;
   if (n !== 1) {
     throw new Error(`${etiquette} : ${n} occurrence(s) dans ${chemin}, il en faut exactement 1`);
   }
-  writeFileSync(chemin, s.replace(avant, apres), 'utf8');
+  writeFileSync(chemin, s.replace(a, b), 'utf8');
   console.log(`  ✓ ${etiquette}`);
 }
 
